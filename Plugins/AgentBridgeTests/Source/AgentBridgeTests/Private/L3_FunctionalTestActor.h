@@ -78,7 +78,7 @@ protected:
 	virtual void CleanUp() override;
 
 	virtual bool IsReady_Implementation() override;
-	virtual FString GetAdditionalTestFinishedMessage_Implementation(EFunctionalTestResult TestResult) const override;
+	virtual FString GetAdditionalTestFinishedMessage(EFunctionalTestResult TestResult) const override;
 
 private:
 	// ============================================================

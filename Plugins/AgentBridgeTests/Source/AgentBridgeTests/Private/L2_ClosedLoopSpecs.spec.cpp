@@ -1,17 +1,14 @@
-// L2_ClosedLoopSpecs.spec.cpp
-// AGENT + UE5 可操作層 — L2 闭环驗證
+﻿// L2_ClosedLoopSpecs.spec.cpp
+// AGENT + UE5 鍙搷浣滃堡 鈥?L2 闂幆椹楄瓑
 //
-// UE5 官方模組：Automation Spec（BDD 语法）
-// 註冊方式：BEGIN_DEFINE_SPEC / DEFINE_SPEC 宏
-// Test Flag：EditorContext + SmokeFilter
-// Session Frontend 路径：Project.AgentBridge.L2.*
+// UE5 瀹樻柟妯＄祫锛欰utomation Spec锛圔DD 璇硶锛?// 瑷诲唺鏂瑰紡锛欱EGIN_DEFINE_SPEC / DEFINE_SPEC 瀹?// Test Flag锛欵ditorContext + SmokeFilter
+// Session Frontend 璺緞锛歅roject.AgentBridge.L2.*
 //
-// L2 闭环验证的核心模式：
-//   写操作 → 读回 → 验证（写后读回一致性 + 副作用检查）
+// L2 闂幆楠岃瘉鐨勬牳蹇冩ā寮忥細
+//   鍐欐搷浣?鈫?璇诲洖 鈫?楠岃瘉锛堝啓鍚庤鍥炰竴鑷存€?+ 鍓綔鐢ㄦ鏌ワ級
 //
-// 与 L1 的区别：
-//   L1 = 单接口正确性（调一次，看返回值对不对）
-//   L2 = 多接口协作正确性（写→读→验 的链路是否闭环）
+// 涓?L1 鐨勫尯鍒細
+//   L1 = 鍗曟帴鍙ｆ纭€э紙璋冧竴娆★紝鐪嬭繑鍥炲€煎涓嶅锛?//   L2 = 澶氭帴鍙ｅ崗浣滄纭€э紙鍐欌啋璇烩啋楠?鐨勯摼璺槸鍚﹂棴鐜級
 
 #include "Misc/AutomationTest.h"
 #include "AgentBridgeSubsystem.h"
@@ -19,14 +16,13 @@
 #include "Editor.h"
 
 // ============================================================
-// L2-01: Spawn → Readback → Verify
-// 验证：SpawnActor 后 GetActorState 读回的 Transform 与预期一致
-// ============================================================
+// L2-01: Spawn 鈫?Readback 鈫?Verify
+// 楠岃瘉锛歋pawnActor 鍚?GetActorState 璇诲洖鐨?Transform 涓庨鏈熶竴鑷?// ============================================================
 
 BEGIN_DEFINE_SPEC(
 	FBridgeL2_SpawnReadbackLoop,
 	"Project.AgentBridge.L2.SpawnReadbackLoop",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::SmokeFilter
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter
 )
 	UAgentBridgeSubsystem* Subsystem;
 	FString LevelPath;
@@ -53,12 +49,12 @@ void FBridgeL2_SpawnReadbackLoop::Define()
 			UWorld* World = GEditor->GetEditorWorldContext().World();
 			LevelPath = World ? World->GetPathName() : TEXT("/Temp/TestMap");
 
-			// 设置输入 Transform
+			// 璁剧疆杈撳叆 Transform
 			InputTransform.Location = FVector(1234.0f, 5678.0f, 90.0f);
 			InputTransform.Rotation = FRotator(0.0f, 135.0f, 0.0f);
 			InputTransform.RelativeScale3D = FVector(1.5f, 1.5f, 1.5f);
 
-			// 执行 Spawn
+			// 鎵ц Spawn
 			FBridgeResponse SpawnResp = Subsystem->SpawnActor(
 				LevelPath,
 				TEXT("/Script/Engine.StaticMeshActor"),
@@ -72,7 +68,7 @@ void FBridgeL2_SpawnReadbackLoop::Define()
 				return;
 			}
 
-			// 提取 actor_path
+			// 鎻愬彇 actor_path
 			const TArray<TSharedPtr<FJsonValue>>* CreatedArr;
 			if (SpawnResp.Data->TryGetArrayField(TEXT("created_objects"), CreatedArr) && CreatedArr->Num() > 0)
 			{
@@ -96,12 +92,12 @@ void FBridgeL2_SpawnReadbackLoop::Define()
 			const TArray<TSharedPtr<FJsonValue>>* LocArr;
 			if ((*TransformObj)->TryGetArrayField(TEXT("location"), LocArr) && LocArr->Num() == 3)
 			{
-				float X = (*LocArr)[0]->AsNumber();
-				float Y = (*LocArr)[1]->AsNumber();
-				float Z = (*LocArr)[2]->AsNumber();
-				TestNearlyEqual(TEXT("Location.X"), X, InputTransform.Location.X, LocationTolerance);
-				TestNearlyEqual(TEXT("Location.Y"), Y, InputTransform.Location.Y, LocationTolerance);
-				TestNearlyEqual(TEXT("Location.Z"), Z, InputTransform.Location.Z, LocationTolerance);
+				float X = static_cast<float>((*LocArr)[0]->AsNumber());
+				float Y = static_cast<float>((*LocArr)[1]->AsNumber());
+				float Z = static_cast<float>((*LocArr)[2]->AsNumber());
+				TestNearlyEqual(TEXT("Location.X"), X, static_cast<float>(InputTransform.Location.X), LocationTolerance);
+				TestNearlyEqual(TEXT("Location.Y"), Y, static_cast<float>(InputTransform.Location.Y), LocationTolerance);
+				TestNearlyEqual(TEXT("Location.Z"), Z, static_cast<float>(InputTransform.Location.Z), LocationTolerance);
 			}
 			else
 			{
@@ -120,12 +116,12 @@ void FBridgeL2_SpawnReadbackLoop::Define()
 			const TArray<TSharedPtr<FJsonValue>>* RotArr;
 			if ((*TransformObj)->TryGetArrayField(TEXT("rotation"), RotArr) && RotArr->Num() == 3)
 			{
-				float Pitch = (*RotArr)[0]->AsNumber();
-				float Yaw = (*RotArr)[1]->AsNumber();
-				float Roll = (*RotArr)[2]->AsNumber();
-				TestNearlyEqual(TEXT("Rotation.Pitch"), Pitch, InputTransform.Rotation.Pitch, RotationTolerance);
-				TestNearlyEqual(TEXT("Rotation.Yaw"), Yaw, InputTransform.Rotation.Yaw, RotationTolerance);
-				TestNearlyEqual(TEXT("Rotation.Roll"), Roll, InputTransform.Rotation.Roll, RotationTolerance);
+				float Pitch = static_cast<float>((*RotArr)[0]->AsNumber());
+				float Yaw = static_cast<float>((*RotArr)[1]->AsNumber());
+				float Roll = static_cast<float>((*RotArr)[2]->AsNumber());
+				TestNearlyEqual(TEXT("Rotation.Pitch"), Pitch, static_cast<float>(InputTransform.Rotation.Pitch), RotationTolerance);
+				TestNearlyEqual(TEXT("Rotation.Yaw"), Yaw, static_cast<float>(InputTransform.Rotation.Yaw), RotationTolerance);
+				TestNearlyEqual(TEXT("Rotation.Roll"), Roll, static_cast<float>(InputTransform.Rotation.Roll), RotationTolerance);
 			}
 		});
 
@@ -140,12 +136,12 @@ void FBridgeL2_SpawnReadbackLoop::Define()
 			const TArray<TSharedPtr<FJsonValue>>* ScaleArr;
 			if ((*TransformObj)->TryGetArrayField(TEXT("relative_scale3d"), ScaleArr) && ScaleArr->Num() == 3)
 			{
-				float SX = (*ScaleArr)[0]->AsNumber();
-				float SY = (*ScaleArr)[1]->AsNumber();
-				float SZ = (*ScaleArr)[2]->AsNumber();
-				TestNearlyEqual(TEXT("Scale.X"), SX, InputTransform.RelativeScale3D.X, ScaleTolerance);
-				TestNearlyEqual(TEXT("Scale.Y"), SY, InputTransform.RelativeScale3D.Y, ScaleTolerance);
-				TestNearlyEqual(TEXT("Scale.Z"), SZ, InputTransform.RelativeScale3D.Z, ScaleTolerance);
+				float SX = static_cast<float>((*ScaleArr)[0]->AsNumber());
+				float SY = static_cast<float>((*ScaleArr)[1]->AsNumber());
+				float SZ = static_cast<float>((*ScaleArr)[2]->AsNumber());
+				TestNearlyEqual(TEXT("Scale.X"), SX, static_cast<float>(InputTransform.RelativeScale3D.X), ScaleTolerance);
+				TestNearlyEqual(TEXT("Scale.Y"), SY, static_cast<float>(InputTransform.RelativeScale3D.Y), ScaleTolerance);
+				TestNearlyEqual(TEXT("Scale.Z"), SZ, static_cast<float>(InputTransform.RelativeScale3D.Z), ScaleTolerance);
 			}
 		});
 
@@ -163,13 +159,13 @@ void FBridgeL2_SpawnReadbackLoop::Define()
 		{
 			FBridgeResponse DirtyResp = Subsystem->GetDirtyAssets();
 			TestTrue(TEXT("GetDirtyAssets should succeed"), DirtyResp.IsSuccess());
-			// Spawn 后关卡应为脏
-			// 注意：不做严格断言（其他操作也可能产生脏资产），仅验证接口可用
+			// Spawn 鍚庡叧鍗″簲涓鸿剰
+			// 娉ㄦ剰锛氫笉鍋氫弗鏍兼柇瑷€锛堝叾浠栨搷浣滀篃鍙兘浜х敓鑴忚祫浜э級锛屼粎楠岃瘉鎺ュ彛鍙敤
 		});
 
 		AfterEach([this]()
 		{
-			// Undo 清理
+			// Undo 娓呯悊
 			if (GEditor)
 			{
 				GEditor->UndoTransaction();
@@ -180,14 +176,13 @@ void FBridgeL2_SpawnReadbackLoop::Define()
 }
 
 // ============================================================
-// L2-02: Transform Modify → Readback → Verify
-// 验证：SetActorTransform 后读回的 Transform 与新值一致，旧值与预期一致
-// ============================================================
+// L2-02: Transform Modify 鈫?Readback 鈫?Verify
+// 楠岃瘉锛歋etActorTransform 鍚庤鍥炵殑 Transform 涓庢柊鍊间竴鑷达紝鏃у€间笌棰勬湡涓€鑷?// ============================================================
 
 BEGIN_DEFINE_SPEC(
 	FBridgeL2_TransformModifyLoop,
 	"Project.AgentBridge.L2.TransformModifyLoop",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::SmokeFilter
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter
 )
 	UAgentBridgeSubsystem* Subsystem;
 	FString LevelPath;
@@ -208,7 +203,7 @@ void FBridgeL2_TransformModifyLoop::Define()
 			UWorld* World = GEditor->GetEditorWorldContext().World();
 			LevelPath = World ? World->GetPathName() : TEXT("");
 
-			// Spawn 初始 Actor
+			// Spawn 鍒濆 Actor
 			OriginalTransform.Location = FVector(200.0f, 300.0f, 0.0f);
 			OriginalTransform.Rotation = FRotator(0.0f, 0.0f, 0.0f);
 			OriginalTransform.RelativeScale3D = FVector(1.0f, 1.0f, 1.0f);
@@ -225,7 +220,7 @@ void FBridgeL2_TransformModifyLoop::Define()
 				ActorPath = (*CreatedArr)[0]->AsObject()->GetStringField(TEXT("actor_path"));
 			}
 
-			// 定义目标 Transform
+			// 瀹氫箟鐩爣 Transform
 			ModifiedTransform.Location = FVector(800.0f, 900.0f, 50.0f);
 			ModifiedTransform.Rotation = FRotator(10.0f, 270.0f, 0.0f);
 			ModifiedTransform.RelativeScale3D = FVector(3.0f, 3.0f, 3.0f);
@@ -324,15 +319,15 @@ void FBridgeL2_TransformModifyLoop::Define()
 }
 
 // ============================================================
-// L2-03: Import → Metadata Check
-// 验证：ImportAssets 后 GetAssetMetadata 能找到导入的资产
-// 注意：需要测试资源文件才能运行，否则 skip
+// L2-03: Import 鈫?Metadata Check
+// 楠岃瘉锛欼mportAssets 鍚?GetAssetMetadata 鑳芥壘鍒板鍏ョ殑璧勪骇
+// 娉ㄦ剰锛氶渶瑕佹祴璇曡祫婧愭枃浠舵墠鑳借繍琛岋紝鍚﹀垯 skip
 // ============================================================
 
 BEGIN_DEFINE_SPEC(
 	FBridgeL2_ImportMetadataLoop,
 	"Project.AgentBridge.L2.ImportMetadataLoop",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::SmokeFilter
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter
 )
 	UAgentBridgeSubsystem* Subsystem;
 	FString TestSourceDir;
@@ -349,7 +344,7 @@ void FBridgeL2_ImportMetadataLoop::Define()
 			Subsystem = GEditor ? GEditor->GetEditorSubsystem<UAgentBridgeSubsystem>() : nullptr;
 			if (!Subsystem) { AddError(TEXT("Subsystem not available")); return; }
 
-			// 检查是否有测试资源目录
+			// 妫€鏌ユ槸鍚︽湁娴嬭瘯璧勬簮鐩綍
 			TestSourceDir = FPaths::ProjectDir() / TEXT("TestResources/ImportTest");
 			TestDestPath = TEXT("/Game/Tests/L2_ImportTest");
 			bHasTestResources = FPaths::DirectoryExists(TestSourceDir);
@@ -360,27 +355,27 @@ void FBridgeL2_ImportMetadataLoop::Define()
 			if (!bHasTestResources)
 			{
 				AddWarning(FString::Printf(
-					TEXT("Test resources not found at %s — skipping import test. "
+					TEXT("Test resources not found at %s 鈥?skipping import test. "
 						 "Create this directory with .fbx/.png files to enable."),
 					*TestSourceDir));
 				return;
 			}
 
-			// 执行导入
+			// 鎵ц瀵煎叆
 			FBridgeResponse ImportResp = Subsystem->ImportAssets(
 				TestSourceDir, TestDestPath, /*bReplaceExisting=*/true);
 
 			TestTrue(TEXT("Import should succeed"), ImportResp.IsSuccess());
 
-			// 检查 created_objects
+			// 妫€鏌?created_objects
 			const TArray<TSharedPtr<FJsonValue>>* CreatedArr;
 			if (!ImportResp.Data->TryGetArrayField(TEXT("created_objects"), CreatedArr) || CreatedArr->Num() == 0)
 			{
-				AddWarning(TEXT("No assets imported — directory may be empty"));
+				AddWarning(TEXT("No assets imported 鈥?directory may be empty"));
 				return;
 			}
 
-			// 对第一个导入的资产执行 GetAssetMetadata
+			// 瀵圭涓€涓鍏ョ殑璧勪骇鎵ц GetAssetMetadata
 			FString ImportedPath = (*CreatedArr)[0]->AsObject()->GetStringField(TEXT("asset_path"));
 			FBridgeResponse MetaResp = Subsystem->GetAssetMetadata(ImportedPath);
 
@@ -396,18 +391,18 @@ void FBridgeL2_ImportMetadataLoop::Define()
 		{
 			if (!bHasTestResources)
 			{
-				AddWarning(TEXT("Skipping — no test resources"));
+				AddWarning(TEXT("Skipping 鈥?no test resources"));
 				return;
 			}
 
 			FBridgeResponse DirtyResp = Subsystem->GetDirtyAssets();
 			TestTrue(TEXT("GetDirtyAssets should succeed"), DirtyResp.IsSuccess());
-			// 导入后应有脏资产
+			// 瀵煎叆鍚庡簲鏈夎剰璧勪骇
 		});
 
 		AfterEach([this]()
 		{
-			// Undo 导入
+			// Undo 瀵煎叆
 			if (GEditor && bHasTestResources)
 			{
 				GEditor->UndoTransaction();
@@ -415,3 +410,5 @@ void FBridgeL2_ImportMetadataLoop::Define()
 		});
 	});
 }
+
+

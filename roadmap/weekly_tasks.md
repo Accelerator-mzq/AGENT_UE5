@@ -9,7 +9,7 @@
 | 第 1 周 | 基础 + 校验链 | 搭骨架 + 落规则 + 校验链跑通 | 目录 + 规则文档 + 14 Schema + 8 example + validate 零错误 | 无 | `validate_examples.py --strict` exit code 0 | P0 |
 | 第 2 周 | **C++ Plugin 核心** | 创建 AgentBridge Plugin + 查询接口 | Plugin 骨架 + BridgeTypes.h + 7 个查询接口 C++ 实现 | 第 1 周校验链跑通 | Session Frontend 可见；RC API 可调用 Subsystem | P0 |
 | 第 3 周 | **写接口 + Transaction** | 4 个写接口 C++ 实现 + FScopedTransaction | 4 个写接口 + 写后读回 + Undo 验证 | 第 2 周查询接口可用 | SpawnActor → Ctrl+Z → Actor 消失 | P0 |
-| 第 4 周 | **AgentBridgeTests + L3 UI 工具** | L1（15 个）+ L2（5 个）+ L3 Automation Driver 封装 | AgentBridgeTests Plugin + TASK 20 L3 UI 工具 | 第 3 周写接口完成 | Session Frontend 20 个测试全部绿灯 | P0 |
+| 第 4 周 | **AgentBridgeTests + L3 UI 工具** | L1（11 个）+ L3.UITool（4 个）+ L2（5 个）+ L3 Automation Driver 封装 | AgentBridgeTests Plugin + TASK 20 L3 UI 工具 | 第 3 周写接口完成 | Session Frontend 20 个测试全部绿灯 | P0 |
 | 第 5 周 | **Commandlet + UAT** | 无头执行 + 构建自动化 | AgentBridgeCommandlet + FUATRunner | 第 4 周测试通过 | `-run=AgentBridge -Tool=ListLevelActors` 可执行 | P0 |
 | 第 6 周 | **L3 + Gauntlet** | Functional Test + CI/CD 编排 | L3 FunctionalTestActor + Gauntlet C# Config | 第 5 周 Commandlet 可用 | `RunUAT RunGauntlet -Test=AgentBridge.SmokeTests` 通过 | P0 |
 | 第 7 周 | Spec 执行链 + Python 客户端 | Orchestrator + Python 三通道 | Spec 模板 + Orchestrator + Python call_cpp_plugin | 第 6 周 Gauntlet 可用 | Spec → C++ Plugin 执行 → 验证报告 | P0 |
@@ -82,9 +82,9 @@
 | W4-05 | 实现 AutomationDriverAdapter 封装层 | .h + .cpp | IsAvailable + ClickDetailPanelButton + TypeInDetailPanelField + DragAssetToViewport | P0 | 未开始 |
 | W4-06 | 在 Subsystem 追加 3+1 个 L3 UITool 接口 | AgentBridgeSubsystem.h/.cpp | Category="AgentBridge\|UITool"；含 CrossVerifyUIOperation 交叉比对 | P0 | 未开始 |
 | W4-07 | 在 BridgeTypes.h 追加 L3 错误码 + FBridgeUIVerification | BridgeTypes.h | 3 个错误码 + 交叉比对结构体 + 辅助函数 | P0 | 未开始 |
-| W4-08 | 实现 L1 UITool 测试（4 个） | L1_UIToolTests.cpp | T1-12~T1-15；含 L3→L1 交叉比对；Driver 不可用时 graceful degradation | P0 | 未开始 |
+| W4-08 | 实现 L3 UITool 测试（4 个） | L1_UIToolTests.cpp | T1-12~T1-15；含 L3→L1 交叉比对；Driver 不可用时 graceful degradation | P0 | 未开始 |
 | W4-09 | 实现 L2 UITool 闭环 Spec（2 个） | L2_UIToolClosedLoopSpec.spec.cpp | DragAssetToViewportLoop(5 It) + TypeInFieldLoop(3 It) | P0 | 未开始 |
-| W4-10 | ★ L1+L2 全部绿灯 | Session Frontend | 20 个测试全部通过（L1×15 + L2×5） | P0 | 未开始 |
+| W4-10 | ★ L1+L2+L3.UITool 全部绿灯 | Session Frontend | 20 个测试全部通过（L1×11 + L3.UITool×4 + L2×5） | P0 | 未开始 |
 | W4-11 | 确认 Python 三通道客户端 + ui_tools.py | Python 文件 | BridgeChannel 含 CPP_PLUGIN；ui_tools.py Mock 模式 3 个接口返回 success | P0 | 未开始 |
 | W4-12 | 测试 Python 通道 C 调用 | 调用测试 | set_channel(CPP_PLUGIN) → get_actor_state → 返回正确 JSON | P0 | 未开始 |
 
@@ -136,7 +136,7 @@
 |---|---|---|---|---|---|
 | W8-01 | 编写真实 Demo Spec | demo_warehouse.yaml | 覆盖 10 个 Actor（spawn / transform / collision / material） | P0 | 未开始 |
 | W8-02 | Schema 校验 | 校验结果 | validate_examples.py --strict → 10/10 | P0 | 未开始 |
-| W8-03 | L1+L2 全部绿灯 | Session Frontend | 20 个测试全部绿灯（L1×15 + L2×5） | P0 | 未开始 |
+| W8-03 | L1+L2+L3.UITool 全部绿灯 | Session Frontend | 20 个测试全部绿灯（L1×11 + L3.UITool×4 + L2×5） | P0 | 未开始 |
 | W8-04 | L3 Functional Test 通过 | Session Frontend | FTEST_WarehouseDemo → 通过 | P0 | 未开始 |
 | W8-05 | Orchestrator Demo 通过 | 执行报告 | 10 Actor Demo → overall_status = success | P0 | 未开始 |
 | W8-06 | Commandlet 无头执行 | 退出码 | -run=AgentBridge -Spec=demo.yaml → exit 0 | P0 | 未开始 |

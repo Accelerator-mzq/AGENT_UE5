@@ -129,7 +129,7 @@
 
 ### 本周目标
 
-创建测试 Plugin（L1 × 15 + L2 × 5，含 L3 UI 工具测试），实现 L3 Automation Driver 封装层，更新 Python 层为三通道客户端。对应 TASK 07-09 + TASK 20。
+创建测试 Plugin（L1 × 11 + L3.UITool × 4 + L2 × 5），实现 L3 Automation Driver 封装层，更新 Python 层为三通道客户端。对应 TASK 07-09 + TASK 20。
 
 ### 关键任务
 
@@ -139,7 +139,7 @@
 4. 实现 L2 闭环验证（3 个 Automation Spec：SpawnReadback / TransformModify / ImportMetadata）
 5. **实现 L3 Automation Driver 封装层**（AutomationDriverAdapter.h/.cpp）
 6. **实现 3 个 L3 UI 工具接口**（ClickDetailPanelButton / TypeInDetailPanelField / DragAssetToViewport）
-7. **实现 L1 UITool 测试（4 个）+ L2 UITool 闭环（2 个 Spec）**
+7. **实现 L3 UITool 测试（4 个）+ L2 UITool 闭环（2 个 Spec）**
 8. 确认 Python 三通道客户端 + ui_tools.py
 
 ### 本周产出
@@ -151,7 +151,7 @@
 
 ### 验收标准
 
-- Session Frontend 中 L1 + L2 共 20 个测试全部绿灯（L1×15 + L2×5）
+- Session Frontend 中共 20 个测试全部绿灯（L1×11 + L3.UITool×4 + L2×5）
 - `Automation RunTests Project.AgentBridge` 通过
 - Python `set_channel(BridgeChannel.CPP_PLUGIN)` 后可调用接口
 
@@ -277,7 +277,7 @@
 | 第 1 周 | 基础 + 校验链 | 目录 + 规则文档 + **14 Schema + 8 example + validate 零错误** |
 | 第 2 周 | C++ Plugin 核心 | AgentBridge Plugin + 7 个查询接口（C++ 实装） |
 | 第 3 周 | 写接口 + Commandlet | 4 个写接口（FScopedTransaction）+ Commandlet + UATRunner |
-| 第 4 周 | 测试 + L3 UI 工具 + Python | L1 × 15 + L2 × 5（含 L3 UITool）+ Automation Driver 封装层 + Python 三通道 |
+| 第 4 周 | 测试 + L3 UI 工具 + Python | L1 × 11 + L3.UITool × 4 + L2 × 5 + Automation Driver 封装层 + Python 三通道 |
 | 第 5 周 | Orchestrator | Spec 读取 → 计划 → 执行 → 验证 → 报告（通道 C 默认） |
 | 第 6 周 | L3 + Gauntlet | FTEST_ Functional Test + Gauntlet CI/CD 三种配置 |
 | 第 7 周 | Phase 2 + Schema | 碰撞/材质接口 + Schema 扩展 10/10 |
@@ -314,7 +314,7 @@ v0.3 核心升级（全部 10 个 UE5 官方模块实装）：
 | 方向 | UE5 官方能力 | 状态 |
 |---|---|---|
 | C++ Plugin | AgentBridge C++ Editor Plugin（UEditorSubsystem） | ✅ 已实装 |
-| 测试体系 | Automation Test Framework + Automation Spec | ✅ L1(15个) + L2(5个) 已实装（含 L3 UITool 测试） |
+| 测试体系 | Automation Test Framework + Automation Spec | ✅ L1(11个) + L3.UITool(4个) + L2(5个) 已实装 |
 | 关卡验证 | Functional Testing + FTEST_ 地图 | ✅ L3 已实装 |
 | CI/CD 编排 | Gauntlet + UAT | ✅ C# TestConfig + GauntletController 已实装 |
 | 无头执行 | Commandlet | ✅ AgentBridgeCommandlet 已实装 |

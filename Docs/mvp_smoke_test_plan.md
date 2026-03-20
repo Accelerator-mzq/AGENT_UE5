@@ -49,7 +49,7 @@ Project.AgentBridge
 │   ├── SetActorTransform          ← T1-09
 │   ├── ImportAssets               ← T1-10
 │   └── CreateBlueprintChild       ← T1-11
-├── L1.UITool                      ← L3 UI 工具的 L1 级测试
+├── L3.UITool                      ← L3 UI 工具单接口测试分组
 │   ├── IsAutomationDriverAvailable ← T1-12
 │   ├── ClickDetailPanelButton     ← T1-13
 │   ├── TypeInDetailPanelField     ← T1-14
@@ -344,7 +344,7 @@ test_record:
 | 阶段 | 应执行的测试 | 执行方式 |
 |---|---|---|
 | Plugin 核心开发（第 2-3 周） | L1 Query + Write（11 个）| Session Frontend |
-| 测试 Plugin 开发（第 4-5 周） | L1 全部（15 个）+ L2（5 个） | Session Frontend + Console |
+| 测试 Plugin 开发（第 4-5 周） | L1（11 个）+ L3.UITool（4 个）+ L2（5 个） | Session Frontend + Console |
 | 完整集成（第 6-8 周） | L1 + L2 + L3 | Commandlet + UAT |
 | CI/CD 上线 | 全部 | Gauntlet |
 | 任何代码变更后 | 至少 L1 全部 | 最方便的方式 |

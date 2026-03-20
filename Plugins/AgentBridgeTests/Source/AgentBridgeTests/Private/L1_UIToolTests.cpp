@@ -4,7 +4,7 @@
 // UE5 官方模組：Automation Test Framework + Automation Driver
 // 註冊方式：IMPLEMENT_SIMPLE_AUTOMATION_TEST 宏
 // Test Flag：EditorContext + ProductFilter
-// Session Frontend 路径：Project.AgentBridge.L1.UITool.*
+// Session Frontend 路径：Project.AgentBridge.L3.UITool.*
 //
 // 测试策略：
 //   1. 每个 L3 接口的参数校验 / dry_run / Driver 可用性
@@ -45,7 +45,7 @@
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FBridgeL1_IsAutomationDriverAvailable,
-	"Project.AgentBridge.L1.UITool.IsAutomationDriverAvailable",
+	"Project.AgentBridge.L3.UITool.IsAutomationDriverAvailable",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter
 )
 
@@ -76,7 +76,7 @@ bool FBridgeL1_IsAutomationDriverAvailable::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FBridgeL1_ClickDetailPanelButton,
-	"Project.AgentBridge.L1.UITool.ClickDetailPanelButton",
+	"Project.AgentBridge.L3.UITool.ClickDetailPanelButton",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter
 )
 
@@ -137,7 +137,7 @@ bool FBridgeL1_ClickDetailPanelButton::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FBridgeL1_TypeInDetailPanelField,
-	"Project.AgentBridge.L1.UITool.TypeInDetailPanelField",
+	"Project.AgentBridge.L3.UITool.TypeInDetailPanelField",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter
 )
 
@@ -192,7 +192,7 @@ bool FBridgeL1_TypeInDetailPanelField::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FBridgeL1_DragAssetToViewport,
-	"Project.AgentBridge.L1.UITool.DragAssetToViewport",
+	"Project.AgentBridge.L3.UITool.DragAssetToViewport",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter
 )
 

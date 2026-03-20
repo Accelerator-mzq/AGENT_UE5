@@ -544,16 +544,40 @@ FBridgeResponse UAgentBridgeSubsystem::SpawnActor(
 		FString::Printf(TEXT("AgentBridge: Spawn %s"), *ActorName)));
 
 	UEditorActorSubsystem* ActorSubsystem = GEditor ? GEditor->GetEditorSubsystem<UEditorActorSubsystem>() : nullptr;
-	if (!ActorSubsystem)
+	UWorld* World = GetEditorWorld();
+	if (!World)
 	{
 		return FinalizeWriteResponse(AgentBridge::MakeFailed(
-			TEXT("Editor actor subsystem unavailable"),
+			TEXT("Editor world unavailable"),
 			EBridgeErrorCode::EditorNotReady,
-			TEXT("UEditorActorSubsystem is null")));
+			TEXT("GetEditorWorld returned null")));
 	}
 
-	AActor* NewActor = ActorSubsystem->SpawnActorFromClass(
-		Class, Transform.Location, Transform.Rotation);
+	// 在无头/无人值守环境下，UEditorActorSubsystem::SpawnActorFromClass 可能触发引擎内部异常（除零）。
+	// 这里提供稳定回退：直接用 UWorld::SpawnActor 走引擎通用路径。
+	AActor* NewActor = nullptr;
+	const bool bHeadlessSafePath = IsRunningCommandlet() || FApp::IsUnattended() || (GEditor && GEditor->GetActiveViewport() == nullptr);
+	if (bHeadlessSafePath)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+		SpawnParams.ObjectFlags |= RF_Transactional;
+
+		const FTransform SpawnTransform(Transform.Rotation, Transform.Location, Transform.RelativeScale3D);
+		NewActor = World->SpawnActor<AActor>(Class, SpawnTransform, SpawnParams);
+	}
+	else
+	{
+		if (!ActorSubsystem)
+		{
+			return FinalizeWriteResponse(AgentBridge::MakeFailed(
+				TEXT("Editor actor subsystem unavailable"),
+				EBridgeErrorCode::EditorNotReady,
+				TEXT("UEditorActorSubsystem is null")));
+		}
+
+		NewActor = ActorSubsystem->SpawnActorFromClass(Class, Transform.Location, Transform.Rotation);
+	}
 
 	if (!NewActor)
 	{

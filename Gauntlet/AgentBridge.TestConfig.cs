@@ -11,11 +11,11 @@
 //   - 停止 Editor 进程
 //
 // 三层测试：
-//   L1 Simple Test (15 个)：Query 7 + Write 4 + UITool 4
+//   L1 Simple Test (11 个)：Query 7 + Write 4
 //   L2 Automation Spec (5 个)：ClosedLoop 3 + UITool 2
 //   L3 Functional Test：FTEST_ 地图完整 Demo
 //
-// 注意：L3 UI 工具测试（L1.UITool + L2.UITool）依赖 Automation Driver，
+// 注意：L3 UI 工具测试（L3.UITool + L2.UITool）依赖 Automation Driver，
 // Automation Driver 需要实际的 Editor UI 渲染——不能使用 -NullRHI。
 // 因此提供两种 AllTests 配置：带 UI 和无 UI。
 //
@@ -52,7 +52,7 @@ namespace AgentBridge.Gauntlet
         public AllTests()
         {
             // 测试过滤：运行 Project.AgentBridge 下的全部测试
-            // 包含 L1.Query(7) + L1.Write(4) + L1.UITool(4) + L2.ClosedLoop(3) + L2.UITool(2)
+            // 包含 L1.Query(7) + L1.Write(4) + L3.UITool(4) + L2.ClosedLoop(3) + L2.UITool(2)
             AutomationTestFilter = "Project.AgentBridge";
 
             // 超时：最长 15 分钟
@@ -105,7 +105,7 @@ namespace AgentBridge.Gauntlet
     /// <summary>
     /// 运行 AgentBridge 冒烟测试（L1 + L2，不含 L3 UI 工具的实际执行部分）。
     /// 使用 -NullRHI，适用于无 GPU 的 CI 节点。
-    /// L1.UITool 测试在 -NullRHI 下会 graceful degradation（SKIP 而非 FAIL）。
+    /// L3.UITool 测试在 -NullRHI 下会 graceful degradation（SKIP 而非 FAIL）。
     /// </summary>
     public class SmokeTests : UnrealTestConfiguration
     {
@@ -114,13 +114,13 @@ namespace AgentBridge.Gauntlet
             AutomationTestFilter = "Project.AgentBridge.L1+Project.AgentBridge.L2";
 
             // 超时：最长 5 分钟
-            // L1.UITool 测试在 Driver 不可用时自动 SKIP，不会占用太多时间
+            // L3.UITool 测试在 Driver 不可用时自动 SKIP，不会占用太多时间
             MaxDuration = 300;
 
             MaxInstances = 1;
 
             // -NullRHI：无 GPU 渲染（CI 服务器）
-            // L1.UITool 测试会检测 Automation Driver 不可用 → AddWarning + return true
+            // L3.UITool 测试会检测 Automation Driver 不可用 → AddWarning + return true
             AdditionalCommandLineArgs = "-NullRHI -Unattended -NoSound -NoSplash";
         }
 

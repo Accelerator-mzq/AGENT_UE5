@@ -61,7 +61,7 @@ Step 2: 确认以下目录结构完整
   │   ├── feedback_write_mapping.md        ← 写-读闭环映射关系
   │   ├── field_specification_v0_1.md      ← 字段规范（transform/collision/bounds）
   │   ├── mvp_scope.md                     ← 功能边界（做/不做）
-  │   ├── mvp_smoke_test_plan.md           ← 测试方案（L1×15 + L2×5 + L3 + 容差标准）
+  │   ├── mvp_smoke_test_plan.md           ← 测试方案（L1×11 + L3.UITool×4 + L2×5 + L3 + 容差标准）
   │   ├── orchestrator_design.md           ← Orchestrator 编排设计（含 L3 execution_method 分发）
   │   ├── tool_contract_v0_1.md            ← 工具契约（§3-7.5 全部接口的 Args/Response/UE5 依赖）
   │   └── ue5_capability_map.md            ← 10 个 UE5 官方模块与本方案的映射
@@ -139,7 +139,7 @@ Step 2: 确认以下目录结构完整
   │               ├── AgentBridgeTestsModule.cpp
   │               ├── L1_QueryTests.cpp            ← 7 个 L1 查询测试
   │               ├── L1_WriteTests.cpp            ← 4 个 L1 写测试
-  │               ├── L1_UIToolTests.cpp           ← 4 个 L3 UI 工具的 L1 测试
+  │               ├── L1_UIToolTests.cpp           ← 4 个 L3.UITool 测试
   │               ├── L2_ClosedLoopSpecs.spec.cpp  ← 3 个 BDD 闭环 Spec
   │               ├── L2_UIToolClosedLoopSpec.spec.cpp ← 2 个 L3 交叉比对闭环
   │               ├── L3_FunctionalTestActor.h     ← Functional Test 声明
@@ -1619,7 +1619,7 @@ d) GetMaterialAssignment(ActorPath)
 
 执行 7 个验证步骤：
 1. Schema 校验：validate_examples.py --strict → 全部通过
-2. L1+L2 全部绿灯：Session Frontend Run All → 20 个测试全绿（L1×15 + L2×5）
+2. L1+L2+L3.UITool 全部绿灯：Session Frontend Run All → 20 个测试全绿（L1×11 + L3.UITool×4 + L2×5）
 3. L3 Functional Test：FTEST_WarehouseDemo → 通过
 4. Orchestrator 端到端：10 Actor Demo Spec → overall_status = success
 5. Commandlet 无头执行：-run=AgentBridge -Spec=demo.yaml → exit 0
@@ -1697,7 +1697,7 @@ L3 容差标准（区别于 L1 的 0.01cm）：
 
 【测试】
 1. 编译通过（含 AutomationDriver 模块依赖）
-2. Session Frontend 可见 4 个 L1.UITool 测试 + 2 个 L2.UITool Spec
+2. Session Frontend 可见 4 个 L3.UITool 测试 + 2 个 L2.UITool Spec
 3. IsAutomationDriverAvailable 可调用且返回确定值
 4. ClickDetailPanelButton 空参数返回 validation_error
 5. DragAssetToViewport dry_run 返回 tool_layer=L3_UITool
@@ -1706,7 +1706,7 @@ L3 容差标准（区别于 L1 的 0.01cm）：
 
 【验收标准】
 - 编译零 error
-- Session Frontend：L1.UITool 4 个 + L2.UITool 2 个 可见
+- Session Frontend：L3.UITool 4 个 + L2.UITool 2 个 可见
 - Driver 可用时：DragAssetToViewport → L1 ListLevelActors 验证 Actor 出现 → 交叉比对 consistent
 - Driver 不可用时：全部 L3 测试 graceful degradation（SKIP，不 FAIL）
 - Python Mock 模式：ui_tools.py 全部 3 个接口返回 success

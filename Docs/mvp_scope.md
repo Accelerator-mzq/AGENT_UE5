@@ -130,7 +130,7 @@ AGENT + UE5 可操作层不是替代 UE5 官方能力的自定义系统，而是
 | Transaction System | ✅ 通过 Remote Control API `generateTransaction` 实现基础 Undo |
 | Screenshot Comparison Tool | v0.2 对接截图自动对比 |
 
-**验证层实现状态**：v0.3 已将全部验证逻辑实装于 UE5 原生测试体系：L1 单接口测试为 Simple Automation Test（15 个：Query 7 + Write 4 + UITool 4），L2 闭环验证为 Automation Spec（5 个：ClosedLoop 3 + UITool 2），L3 完整 Demo 为 Functional Testing（AFunctionalTest 子类 + FTEST_ 测试地图）。CI/CD 通过 Gauntlet 编排。Schema 校验（validate_examples.py）是编排层自有能力，UE5 没有对应物，永久保留。
+**验证层实现状态**：v0.3 已将全部验证逻辑实装于 UE5 原生测试体系：L1 单接口测试为 Simple Automation Test（11 个：Query 7 + Write 4），L3.UITool 为独立测试分组（4 个），L2 闭环验证为 Automation Spec（5 个：ClosedLoop 3 + UITool 2），L3 完整 Demo 为 Functional Testing（AFunctionalTest 子类 + FTEST_ 测试地图）。CI/CD 通过 Gauntlet 编排。Schema 校验（validate_examples.py）是编排层自有能力，UE5 没有对应物，永久保留。
 
 > 完整的 UE5 官方能力总览及分层映射，参见 `Docs/ue5_capability_map.md`。
 

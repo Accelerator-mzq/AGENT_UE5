@@ -70,8 +70,7 @@ void AAgentBridgeFunctionalTest::CleanUp()
 	Super::CleanUp();
 }
 
-FString AAgentBridgeFunctionalTest::GetAdditionalTestFinishedMessage_Implementation(
-	EFunctionalTestResult TestResult) const
+FString AAgentBridgeFunctionalTest::GetAdditionalTestFinishedMessage(EFunctionalTestResult TestResult) const
 {
 	return FString::Printf(TEXT("Spawned %d actors. SpecPath=%s"),
 		SpawnedActorPaths.Num(),

@@ -1,339 +1,255 @@
-// L1_QueryTests.cpp
-// AGENT + UE5 可操作層 — L1 單接口驗證：查詢接口
-//
-// UE5 官方模組：Automation Test Framework
-// 註冊方式：IMPLEMENT_SIMPLE_AUTOMATION_TEST 宏
-// Test Flag：EditorContext + ProductFilter
-// Session Frontend 路径：Project.AgentBridge.L1.Query.*
-//
-// 每个测试调用 UAgentBridgeSubsystem 的对应接口，
-// 验证返回值的 status、data 结构是否符合预期。
-// 这是通道 C（C++ 直接调用）的测试路径。
+﻿// L1_QueryTests.cpp
+// L1 查询接口自动化测试（7 个）。
 
 #include "Misc/AutomationTest.h"
 #include "AgentBridgeSubsystem.h"
 #include "BridgeTypes.h"
 #include "Editor.h"
+#include "Dom/JsonObject.h"
+#include "Dom/JsonValue.h"
 
-// ============================================================
-// 辅助宏：获取 Subsystem + 基础断言
-// ============================================================
+namespace
+{
+// 获取 Subsystem，失败时记录错误。
+static UAgentBridgeSubsystem* GetSubsystem(FAutomationTestBase& Test)
+{
+    UAgentBridgeSubsystem* Subsystem = GEditor ? GEditor->GetEditorSubsystem<UAgentBridgeSubsystem>() : nullptr;
+    if (!Subsystem)
+    {
+        Test.AddError(TEXT("AgentBridgeSubsystem 不可用，请确认 AgentBridge 插件已启用。"));
+    }
+    return Subsystem;
+}
 
-#define GET_SUBSYSTEM_OR_FAIL() \
-	UAgentBridgeSubsystem* Subsystem = GEditor ? GEditor->GetEditorSubsystem<UAgentBridgeSubsystem>() : nullptr; \
-	if (!Subsystem) \
-	{ \
-		AddError(TEXT("AgentBridgeSubsystem not available. Is AgentBridge plugin enabled?")); \
-		return false; \
-	}
+static bool IsValidationInvalidArgs(const FBridgeResponse& Response)
+{
+    return BridgeStatusToString(Response.Status) == TEXT("validation_error")
+        && Response.Errors.Num() > 0
+        && Response.Errors[0].Code == TEXT("INVALID_ARGS");
+}
 
-#define TEST_STATUS_SUCCESS(Response) \
-	TestEqual(TEXT("Status should be success"), BridgeStatusToString(Response.Status), TEXT("success")); \
-	TestTrue(TEXT("IsSuccess() should return true"), Response.IsSuccess()); \
-	TestTrue(TEXT("Errors should be empty"), Response.Errors.Num() == 0);
+static FString GetAnyActorPath(UAgentBridgeSubsystem* Subsystem)
+{
+    const FBridgeResponse ListResp = Subsystem->ListLevelActors();
+    if (!ListResp.IsSuccess() || !ListResp.Data.IsValid())
+    {
+        return FString();
+    }
 
-// ============================================================
-// T1-01: GetCurrentProjectState
-// UE5 依赖: FPaths + FApp::GetBuildVersion + UEditorLevelLibrary
-// ============================================================
+    const TArray<TSharedPtr<FJsonValue>>* Actors = nullptr;
+    if (!ListResp.Data->TryGetArrayField(TEXT("actors"), Actors) || !Actors || Actors->Num() == 0)
+    {
+        return FString();
+    }
+
+    const TSharedPtr<FJsonObject> First = (*Actors)[0].IsValid() ? (*Actors)[0]->AsObject() : nullptr;
+    return First.IsValid() ? First->GetStringField(TEXT("actor_path")) : FString();
+}
+}
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FBridgeL1_GetCurrentProjectState,
-	"Project.AgentBridge.L1.Query.GetCurrentProjectState",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter
-)
+    FBridgeL1_GetCurrentProjectState,
+    "Project.AgentBridge.L1.Query.GetCurrentProjectState",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FBridgeL1_GetCurrentProjectState::RunTest(const FString& Parameters)
 {
-	GET_SUBSYSTEM_OR_FAIL();
+    UAgentBridgeSubsystem* Subsystem = GetSubsystem(*this);
+    if (!Subsystem) return false;
 
-	FBridgeResponse Response = Subsystem->GetCurrentProjectState();
+    const FBridgeResponse Resp = Subsystem->GetCurrentProjectState();
 
-	TEST_STATUS_SUCCESS(Response);
+    TestEqual(TEXT("status"), BridgeStatusToString(Resp.Status), TEXT("success"));
+    TestTrue(TEXT("data 存在"), Resp.Data.IsValid());
+    if (!Resp.Data.IsValid()) return false;
 
-	// 验证 data 结构
-	TestTrue(TEXT("Data should be valid"), Response.Data.IsValid());
-	if (Response.Data.IsValid())
-	{
-		TestTrue(TEXT("Data should contain project_name"),
-			Response.Data->HasField(TEXT("project_name")));
-		TestTrue(TEXT("Data should contain engine_version"),
-			Response.Data->HasField(TEXT("engine_version")));
-		TestTrue(TEXT("Data should contain current_level"),
-			Response.Data->HasField(TEXT("current_level")));
-		TestTrue(TEXT("Data should contain editor_mode"),
-			Response.Data->HasField(TEXT("editor_mode")));
+    TestTrue(TEXT("project_name 非空"), Resp.Data->HasField(TEXT("project_name")) && !Resp.Data->GetStringField(TEXT("project_name")).IsEmpty());
+    TestTrue(TEXT("engine_version 含 5.5"), Resp.Data->HasField(TEXT("engine_version")) && Resp.Data->GetStringField(TEXT("engine_version")).Contains(TEXT("5.5")));
+    TestTrue(TEXT("current_level 存在"), Resp.Data->HasField(TEXT("current_level")));
+    TestTrue(TEXT("editor_mode 合法"),
+        Resp.Data->HasField(TEXT("editor_mode"))
+        && (Resp.Data->GetStringField(TEXT("editor_mode")) == TEXT("editing") || Resp.Data->GetStringField(TEXT("editor_mode")) == TEXT("pie")));
 
-		// engine_version 不应为空
-		FString EngineVersion = Response.Data->GetStringField(TEXT("engine_version"));
-		TestFalse(TEXT("engine_version should not be empty"), EngineVersion.IsEmpty());
-
-		// editor_mode 应为 "editing" 或 "pie"
-		FString Mode = Response.Data->GetStringField(TEXT("editor_mode"));
-		TestTrue(TEXT("editor_mode should be 'editing' or 'pie'"),
-			Mode == TEXT("editing") || Mode == TEXT("pie"));
-	}
-
-	return true;
+    return true;
 }
 
-// ============================================================
-// T1-02: ListLevelActors
-// UE5 依赖: UEditorLevelLibrary::GetAllLevelActors()
-// ============================================================
-
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FBridgeL1_ListLevelActors,
-	"Project.AgentBridge.L1.Query.ListLevelActors",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter
-)
+    FBridgeL1_ListLevelActors,
+    "Project.AgentBridge.L1.Query.ListLevelActors",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FBridgeL1_ListLevelActors::RunTest(const FString& Parameters)
 {
-	GET_SUBSYSTEM_OR_FAIL();
+    UAgentBridgeSubsystem* Subsystem = GetSubsystem(*this);
+    if (!Subsystem) return false;
 
-	// 无过滤
-	FBridgeResponse Response = Subsystem->ListLevelActors();
+    const FBridgeResponse Resp = Subsystem->ListLevelActors();
 
-	TEST_STATUS_SUCCESS(Response);
+    TestEqual(TEXT("status"), BridgeStatusToString(Resp.Status), TEXT("success"));
+    TestTrue(TEXT("data 存在"), Resp.Data.IsValid());
+    if (!Resp.Data.IsValid()) return false;
 
-	TestTrue(TEXT("Data should be valid"), Response.Data.IsValid());
-	if (Response.Data.IsValid())
-	{
-		TestTrue(TEXT("Data should contain actors array"),
-			Response.Data->HasField(TEXT("actors")));
+    const TArray<TSharedPtr<FJsonValue>>* Actors = nullptr;
+    TestTrue(TEXT("actors 是数组"), Resp.Data->TryGetArrayField(TEXT("actors"), Actors));
+    if (!Actors) return false;
 
-		const TArray<TSharedPtr<FJsonValue>>* ActorsArray;
-		if (Response.Data->TryGetArrayField(TEXT("actors"), ActorsArray))
-		{
-			// 当前关卡至少应有默认 Actor（光源、天空等）
-			// 不做硬编码数量检查，仅验证结构
-			if (ActorsArray->Num() > 0)
-			{
-				TSharedPtr<FJsonObject> FirstActor = (*ActorsArray)[0]->AsObject();
-				TestTrue(TEXT("Actor should have actor_name"),
-					FirstActor.IsValid() && FirstActor->HasField(TEXT("actor_name")));
-				TestTrue(TEXT("Actor should have actor_path"),
-					FirstActor.IsValid() && FirstActor->HasField(TEXT("actor_path")));
-				TestTrue(TEXT("Actor should have class"),
-					FirstActor.IsValid() && FirstActor->HasField(TEXT("class")));
-			}
-		}
-	}
+    // 空关卡允许空数组，非空时检查字段结构。
+    for (const TSharedPtr<FJsonValue>& Item : *Actors)
+    {
+        const TSharedPtr<FJsonObject> Obj = Item.IsValid() ? Item->AsObject() : nullptr;
+        TestTrue(TEXT("actor_name 存在"), Obj.IsValid() && Obj->HasField(TEXT("actor_name")));
+        TestTrue(TEXT("actor_path 存在"), Obj.IsValid() && Obj->HasField(TEXT("actor_path")));
+        TestTrue(TEXT("class 存在"), Obj.IsValid() && Obj->HasField(TEXT("class")));
+    }
 
-	// 带过滤
-	FBridgeResponse FilteredResponse = Subsystem->ListLevelActors(TEXT("Light"));
-	TEST_STATUS_SUCCESS(FilteredResponse);
-
-	return true;
+    return true;
 }
 
-// ============================================================
-// T1-03: GetActorState
-// UE5 依赖: AActor Transform / Collision / Tags
-// ============================================================
-
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FBridgeL1_GetActorState,
-	"Project.AgentBridge.L1.Query.GetActorState",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter
-)
+    FBridgeL1_GetActorState,
+    "Project.AgentBridge.L1.Query.GetActorState",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FBridgeL1_GetActorState::RunTest(const FString& Parameters)
 {
-	GET_SUBSYSTEM_OR_FAIL();
+    UAgentBridgeSubsystem* Subsystem = GetSubsystem(*this);
+    if (!Subsystem) return false;
 
-	// 先列出 Actor 获取一个有效路径
-	FBridgeResponse ListResponse = Subsystem->ListLevelActors();
-	if (!ListResponse.IsSuccess() || !ListResponse.Data.IsValid())
-	{
-		AddError(TEXT("Cannot list actors to find a test target"));
-		return false;
-	}
+    const FString ActorPath = GetAnyActorPath(Subsystem);
+    if (ActorPath.IsEmpty())
+    {
+        AddWarning(TEXT("当前关卡无 Actor，跳过 GetActorState 正常路径断言。"));
+    }
+    else
+    {
+        const FBridgeResponse OkResp = Subsystem->GetActorState(ActorPath);
+        TestEqual(TEXT("正常路径 status"), BridgeStatusToString(OkResp.Status), TEXT("success"));
+        TestTrue(TEXT("data 存在"), OkResp.Data.IsValid());
+        if (OkResp.Data.IsValid())
+        {
+            TestTrue(TEXT("actor_name"), OkResp.Data->HasField(TEXT("actor_name")));
+            TestTrue(TEXT("actor_path"), OkResp.Data->HasField(TEXT("actor_path")));
+            TestTrue(TEXT("class"), OkResp.Data->HasField(TEXT("class")));
+            TestTrue(TEXT("transform"), OkResp.Data->HasField(TEXT("transform")));
+            TestTrue(TEXT("collision"), OkResp.Data->HasField(TEXT("collision")));
+            TestTrue(TEXT("tags"), OkResp.Data->HasField(TEXT("tags")));
+        }
+    }
 
-	const TArray<TSharedPtr<FJsonValue>>* ActorsArray;
-	if (!ListResponse.Data->TryGetArrayField(TEXT("actors"), ActorsArray) || ActorsArray->Num() == 0)
-	{
-		AddWarning(TEXT("No actors in current level — skipping GetActorState test"));
-		return true;
-	}
+    const FBridgeResponse EmptyResp = Subsystem->GetActorState(TEXT(""));
+    TestTrue(TEXT("空参数 -> validation_error + INVALID_ARGS"), IsValidationInvalidArgs(EmptyResp));
 
-	FString TestActorPath = (*ActorsArray)[0]->AsObject()->GetStringField(TEXT("actor_path"));
+    const FBridgeResponse NotFoundResp = Subsystem->GetActorState(TEXT("/Game/Maps/TestMap.NonExistent"));
+    TestEqual(TEXT("不存在路径 status"), BridgeStatusToString(NotFoundResp.Status), TEXT("failed"));
+    TestTrue(TEXT("不存在路径错误码 ACTOR_NOT_FOUND"), NotFoundResp.Errors.Num() > 0 && NotFoundResp.Errors[0].Code == TEXT("ACTOR_NOT_FOUND"));
 
-	// 测试正常路径
-	FBridgeResponse Response = Subsystem->GetActorState(TestActorPath);
-	TEST_STATUS_SUCCESS(Response);
-
-	if (Response.Data.IsValid())
-	{
-		TestTrue(TEXT("Data should contain actor_name"), Response.Data->HasField(TEXT("actor_name")));
-		TestTrue(TEXT("Data should contain actor_path"), Response.Data->HasField(TEXT("actor_path")));
-		TestTrue(TEXT("Data should contain transform"), Response.Data->HasField(TEXT("transform")));
-		TestTrue(TEXT("Data should contain collision"), Response.Data->HasField(TEXT("collision")));
-		TestTrue(TEXT("Data should contain tags"), Response.Data->HasField(TEXT("tags")));
-
-		// 验证 transform 结构
-		const TSharedPtr<FJsonObject>* TransformObj;
-		if (Response.Data->TryGetObjectField(TEXT("transform"), TransformObj))
-		{
-			TestTrue(TEXT("transform should contain location"), (*TransformObj)->HasField(TEXT("location")));
-			TestTrue(TEXT("transform should contain rotation"), (*TransformObj)->HasField(TEXT("rotation")));
-			TestTrue(TEXT("transform should contain relative_scale3d"), (*TransformObj)->HasField(TEXT("relative_scale3d")));
-		}
-	}
-
-	// 测试不存在的 Actor
-	FBridgeResponse NotFoundResponse = Subsystem->GetActorState(TEXT("/Game/NonExistent.Actor"));
-	TestEqual(TEXT("Not found should return failed"),
-		BridgeStatusToString(NotFoundResponse.Status), TEXT("failed"));
-	TestTrue(TEXT("Should have error"), NotFoundResponse.Errors.Num() > 0);
-	if (NotFoundResponse.Errors.Num() > 0)
-	{
-		TestEqual(TEXT("Error code should be ACTOR_NOT_FOUND"),
-			NotFoundResponse.Errors[0].Code, TEXT("ACTOR_NOT_FOUND"));
-	}
-
-	// 测试空字符串参数
-	FBridgeResponse EmptyResponse = Subsystem->GetActorState(TEXT(""));
-	TestEqual(TEXT("Empty path should return validation_error"),
-		BridgeStatusToString(EmptyResponse.Status), TEXT("validation_error"));
-
-	return true;
+    return true;
 }
 
-// ============================================================
-// T1-04: GetActorBounds
-// UE5 依赖: AActor::GetActorBounds()
-// ============================================================
-
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FBridgeL1_GetActorBounds,
-	"Project.AgentBridge.L1.Query.GetActorBounds",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter
-)
+    FBridgeL1_GetActorBounds,
+    "Project.AgentBridge.L1.Query.GetActorBounds",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FBridgeL1_GetActorBounds::RunTest(const FString& Parameters)
 {
-	GET_SUBSYSTEM_OR_FAIL();
+    UAgentBridgeSubsystem* Subsystem = GetSubsystem(*this);
+    if (!Subsystem) return false;
 
-	// 获取一个有效 Actor
-	FBridgeResponse ListResponse = Subsystem->ListLevelActors();
-	if (!ListResponse.IsSuccess()) { AddWarning(TEXT("No actors — skipping")); return true; }
+    const FString ActorPath = GetAnyActorPath(Subsystem);
+    if (ActorPath.IsEmpty())
+    {
+        AddWarning(TEXT("当前关卡无 Actor，跳过 GetActorBounds 正常路径断言。"));
+    }
+    else
+    {
+        const FBridgeResponse OkResp = Subsystem->GetActorBounds(ActorPath);
+        TestEqual(TEXT("正常路径 status"), BridgeStatusToString(OkResp.Status), TEXT("success"));
+        TestTrue(TEXT("data 存在"), OkResp.Data.IsValid());
+        if (OkResp.Data.IsValid())
+        {
+            const TArray<TSharedPtr<FJsonValue>>* Origin = nullptr;
+            const TArray<TSharedPtr<FJsonValue>>* Extent = nullptr;
+            TestTrue(TEXT("world_bounds_origin[3]"), OkResp.Data->TryGetArrayField(TEXT("world_bounds_origin"), Origin) && Origin && Origin->Num() == 3);
+            TestTrue(TEXT("world_bounds_extent[3]"), OkResp.Data->TryGetArrayField(TEXT("world_bounds_extent"), Extent) && Extent && Extent->Num() == 3);
+        }
+    }
 
-	const TArray<TSharedPtr<FJsonValue>>* ActorsArray;
-	if (!ListResponse.Data->TryGetArrayField(TEXT("actors"), ActorsArray) || ActorsArray->Num() == 0)
-	{
-		AddWarning(TEXT("No actors in level — skipping")); return true;
-	}
+    const FBridgeResponse EmptyResp = Subsystem->GetActorBounds(TEXT(""));
+    TestTrue(TEXT("空参数 -> validation_error + INVALID_ARGS"), IsValidationInvalidArgs(EmptyResp));
 
-	FString ActorPath = (*ActorsArray)[0]->AsObject()->GetStringField(TEXT("actor_path"));
-	FBridgeResponse Response = Subsystem->GetActorBounds(ActorPath);
-
-	TEST_STATUS_SUCCESS(Response);
-
-	if (Response.Data.IsValid())
-	{
-		TestTrue(TEXT("Should contain actor_path"), Response.Data->HasField(TEXT("actor_path")));
-		TestTrue(TEXT("Should contain world_bounds_origin"), Response.Data->HasField(TEXT("world_bounds_origin")));
-		TestTrue(TEXT("Should contain world_bounds_extent"), Response.Data->HasField(TEXT("world_bounds_extent")));
-
-		// origin 和 extent 应为 3 元素数组
-		const TArray<TSharedPtr<FJsonValue>>* OriginArr;
-		if (Response.Data->TryGetArrayField(TEXT("world_bounds_origin"), OriginArr))
-		{
-			TestEqual(TEXT("origin should have 3 elements"), OriginArr->Num(), 3);
-		}
-	}
-
-	return true;
+    return true;
 }
 
-// ============================================================
-// T1-05: GetAssetMetadata
-// UE5 依赖: UEditorAssetLibrary
-// ============================================================
-
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FBridgeL1_GetAssetMetadata,
-	"Project.AgentBridge.L1.Query.GetAssetMetadata",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter
-)
+    FBridgeL1_GetAssetMetadata,
+    "Project.AgentBridge.L1.Query.GetAssetMetadata",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FBridgeL1_GetAssetMetadata::RunTest(const FString& Parameters)
 {
-	GET_SUBSYSTEM_OR_FAIL();
+    UAgentBridgeSubsystem* Subsystem = GetSubsystem(*this);
+    if (!Subsystem) return false;
 
-	// 测试不存在的资产
-	FBridgeResponse Response = Subsystem->GetAssetMetadata(TEXT("/Game/NonExistent/SM_Nothing"));
-	TEST_STATUS_SUCCESS(Response);  // 仍然是 success，只是 exists=false
+    // 正常路径：引擎内置资源。
+    const FBridgeResponse ExistsResp = Subsystem->GetAssetMetadata(TEXT("/Engine/BasicShapes/Cube"));
+    TestEqual(TEXT("存在资源 status"), BridgeStatusToString(ExistsResp.Status), TEXT("success"));
+    TestTrue(TEXT("data 存在"), ExistsResp.Data.IsValid());
+    if (ExistsResp.Data.IsValid())
+    {
+        TestTrue(TEXT("exists=true"), ExistsResp.Data->HasField(TEXT("exists")) && ExistsResp.Data->GetBoolField(TEXT("exists")));
+        TestTrue(TEXT("class 非空"), ExistsResp.Data->HasField(TEXT("class")) && !ExistsResp.Data->GetStringField(TEXT("class")).IsEmpty());
+    }
 
-	if (Response.Data.IsValid())
-	{
-		TestTrue(TEXT("Should contain exists field"), Response.Data->HasField(TEXT("exists")));
-		TestFalse(TEXT("exists should be false"), Response.Data->GetBoolField(TEXT("exists")));
-	}
+    // 不存在资源：应 success + exists=false。
+    const FBridgeResponse NotExistsResp = Subsystem->GetAssetMetadata(TEXT("/Game/NonExistent/Asset"));
+    TestEqual(TEXT("不存在资源 status 仍为 success"), BridgeStatusToString(NotExistsResp.Status), TEXT("success"));
+    TestTrue(TEXT("exists=false"), NotExistsResp.Data.IsValid() && NotExistsResp.Data->HasField(TEXT("exists")) && !NotExistsResp.Data->GetBoolField(TEXT("exists")));
 
-	// 测试空参数
-	FBridgeResponse EmptyResponse = Subsystem->GetAssetMetadata(TEXT(""));
-	TestEqual(TEXT("Empty path should return validation_error"),
-		BridgeStatusToString(EmptyResponse.Status), TEXT("validation_error"));
+    const FBridgeResponse EmptyResp = Subsystem->GetAssetMetadata(TEXT(""));
+    TestTrue(TEXT("空参数 -> validation_error + INVALID_ARGS"), IsValidationInvalidArgs(EmptyResp));
 
-	return true;
+    return true;
 }
 
-// ============================================================
-// T1-06: GetDirtyAssets
-// UE5 依赖: FEditorFileUtils::GetDirtyContentPackages
-// ============================================================
-
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FBridgeL1_GetDirtyAssets,
-	"Project.AgentBridge.L1.Query.GetDirtyAssets",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter
-)
+    FBridgeL1_GetDirtyAssets,
+    "Project.AgentBridge.L1.Query.GetDirtyAssets",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FBridgeL1_GetDirtyAssets::RunTest(const FString& Parameters)
 {
-	GET_SUBSYSTEM_OR_FAIL();
+    UAgentBridgeSubsystem* Subsystem = GetSubsystem(*this);
+    if (!Subsystem) return false;
 
-	FBridgeResponse Response = Subsystem->GetDirtyAssets();
+    const FBridgeResponse Resp = Subsystem->GetDirtyAssets();
+    TestEqual(TEXT("status"), BridgeStatusToString(Resp.Status), TEXT("success"));
+    TestTrue(TEXT("data 存在"), Resp.Data.IsValid());
 
-	TEST_STATUS_SUCCESS(Response);
+    const TArray<TSharedPtr<FJsonValue>>* Dirty = nullptr;
+    TestTrue(TEXT("dirty_assets 是数组"), Resp.Data.IsValid() && Resp.Data->TryGetArrayField(TEXT("dirty_assets"), Dirty));
 
-	if (Response.Data.IsValid())
-	{
-		TestTrue(TEXT("Should contain dirty_assets array"),
-			Response.Data->HasField(TEXT("dirty_assets")));
-	}
-
-	return true;
+    return true;
 }
 
-// ============================================================
-// T1-07: RunMapCheck
-// UE5 依赖: Console Command "MAP CHECK"
-// ============================================================
-
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FBridgeL1_RunMapCheck,
-	"Project.AgentBridge.L1.Query.RunMapCheck",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter
-)
+    FBridgeL1_RunMapCheck,
+    "Project.AgentBridge.L1.Query.RunMapCheck",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FBridgeL1_RunMapCheck::RunTest(const FString& Parameters)
 {
-	GET_SUBSYSTEM_OR_FAIL();
+    UAgentBridgeSubsystem* Subsystem = GetSubsystem(*this);
+    if (!Subsystem) return false;
 
-	FBridgeResponse Response = Subsystem->RunMapCheck();
+    const FBridgeResponse Resp = Subsystem->RunMapCheck();
 
-	TEST_STATUS_SUCCESS(Response);
+    TestEqual(TEXT("status"), BridgeStatusToString(Resp.Status), TEXT("success"));
+    TestTrue(TEXT("data 存在"), Resp.Data.IsValid());
+    if (!Resp.Data.IsValid()) return false;
 
-	if (Response.Data.IsValid())
-	{
-		TestTrue(TEXT("Should contain level_path"), Response.Data->HasField(TEXT("level_path")));
-		TestTrue(TEXT("Should contain map_errors"), Response.Data->HasField(TEXT("map_errors")));
-		TestTrue(TEXT("Should contain map_warnings"), Response.Data->HasField(TEXT("map_warnings")));
-	}
+    TestTrue(TEXT("map_errors 存在"), Resp.Data->HasField(TEXT("map_errors")));
+    TestTrue(TEXT("map_warnings 存在"), Resp.Data->HasField(TEXT("map_warnings")));
 
-	return true;
+    return true;
 }

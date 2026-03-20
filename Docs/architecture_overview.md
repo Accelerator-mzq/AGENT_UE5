@@ -80,8 +80,8 @@ v0.3 的核心变更是**将 Bridge 封装层从 Python 脚本升级为 C++ Edit
     │              AgentBridgeTests C++ Plugin                     │
     │              ═══════════════════════════                     │
     │                                                              │
-    │  L1: Simple Automation Test（15 个：Query 7 + Write 4       │
-    │                                     + UITool 4）            │
+    │  L1: Simple Automation Test（11 个：Query 7 + Write 4）      │
+    │  L3.UITool: Simple Automation Test（4 个）                  │
     │  L2: Automation Spec（5 个：ClosedLoop 3 + UITool 2）       │
     │  L3: Functional Testing（AFunctionalTest 子类）             │
     │                                                              │
@@ -110,11 +110,11 @@ v0.3 要求全部 10 个模块在代码中实装（不是"文档提及"）。按
 | **C++ Editor Plugin** | L1 语义 | 通道 C：UAgentBridgeSubsystem（核心） | `Plugins/AgentBridge/` | 全部 L1/L2 测试 |
 | **Commandlet** | L2 服务 | `UAgentBridgeCommandlet`：无头执行 Spec / 测试 | `AgentBridgeCommandlet.cpp` | 命令行 `-run=AgentBridge` |
 | **UAT** | L2 服务 | `FUATRunner`：封装 BuildCookRun / RunTests | `UATRunner.cpp` | `build_project` 可调用 |
-| **Automation Test Framework** | L2 服务 | L1 测试注册为 Simple Automation Test（15 个） | `L1_*.cpp` | Session Frontend |
+| **Automation Test Framework** | L2 服务 | L1 测试注册为 Simple Automation Test（11 个）+ L3.UITool（4 个） | `L1_*.cpp` | Session Frontend |
 | **Automation Spec** | L2 服务 | L2 测试用 BDD Spec 语法（5 个） | `L2_*.spec.cpp` | Session Frontend |
 | **Functional Testing** | L2 服务 | L3 测试为 AFunctionalTest 子类 | `L3_*.cpp` | FTEST_ 地图 |
 | **Gauntlet** | L2 服务 | C# 测试会话配置 + GauntletTestController | `Gauntlet/*.cs` + `GauntletController` | UAT RunGauntlet |
-| **Automation Driver** | **L3 UI** | **L3 UI 工具的官方执行后端**（3 个接口 + 封装层 + 交叉比对） | `AutomationDriverAdapter.cpp` + Subsystem UITool 接口 | L1 UITool 测试 + L2 UITool 闭环 |
+| **Automation Driver** | **L3 UI** | **L3 UI 工具的官方执行后端**（3 个接口 + 封装层 + 交叉比对） | `AutomationDriverAdapter.cpp` + Subsystem UITool 接口 | L3 UITool 测试 + L2 UITool 闭环 |
 
 ---
 
@@ -274,7 +274,7 @@ C++ Plugin 是三个通道的共同底层——Python 和 RC API 也可以调用
 │   validate_examples.py
 │   验证 JSON 响应结构是否符合 Schema 定义
 │
-├── L1: Simple Automation Test（15 个单接口测试）
+├── L1: Simple Automation Test（11 个单接口测试）
 │   注册：IMPLEMENT_SIMPLE_AUTOMATION_TEST 宏
 │   分组：Query 7 个 + Write 4 个 + UITool 4 个
 │   逻辑：调用 Subsystem 接口 → TestEqual / TestTrue 验证返回值
