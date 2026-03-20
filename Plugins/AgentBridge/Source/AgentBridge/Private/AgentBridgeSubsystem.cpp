@@ -24,6 +24,7 @@
 #include "Factories/BlueprintFactory.h"
 #include "AssetImportTask.h"
 #include "Subsystems/EditorActorSubsystem.h"
+#include "UATRunner.h"
 
 #include "FileHelpers.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -964,54 +965,66 @@ FBridgeResponse UAgentBridgeSubsystem::BuildProject(
 	const FString& Configuration,
 	bool bDryRun)
 {
-	FString ProjectPath = FPaths::GetProjectFilePath();
+	FBridgeResponse ValidationError;
+	if (!AgentBridge::ValidateRequiredString(Platform, TEXT("Platform"), ValidationError))
+	{
+		return ValidationError;
+	}
+	if (!AgentBridge::ValidateRequiredString(Configuration, TEXT("Configuration"), ValidationError))
+	{
+		return ValidationError;
+	}
 
-	// 定位 RunUAT
-	FString EngineDir = FPaths::EngineDir();
-	FString RunUATPath = EngineDir / TEXT("Build/BatchFiles/RunUAT.bat");
-#if PLATFORM_LINUX
-	RunUATPath = EngineDir / TEXT("Build/BatchFiles/RunUAT.sh");
-#elif PLATFORM_MAC
-	RunUATPath = EngineDir / TEXT("Build/BatchFiles/RunUAT.sh");
-#endif
+	FUATRunner Runner;
+	const bool bUATAvailable = Runner.IsUATAvailable();
 
-	FString Args = FString::Printf(
-		TEXT("BuildCookRun -project=\"%s\" -platform=%s -clientconfig=%s -build -cook -stage -pak -unattended"),
-		*ProjectPath, *Platform, *Configuration);
+	const FString ProjectPath = FPaths::GetProjectFilePath();
+	const FString PreviewArgs = FString::Printf(
+		TEXT("BuildCookRun -project=\"%s\" -platform=%s -clientconfig=%s -cook -stage -pak"),
+		*ProjectPath,
+		*Platform,
+		*Configuration);
 
 	TSharedPtr<FJsonObject> Data = MakeShareable(new FJsonObject());
-	Data->SetStringField(TEXT("uat_path"), RunUATPath);
-	Data->SetStringField(TEXT("args"), Args);
+	Data->SetBoolField(TEXT("uat_available"), bUATAvailable);
+	Data->SetStringField(TEXT("command_preview"), PreviewArgs);
 	Data->SetStringField(TEXT("platform"), Platform);
 	Data->SetStringField(TEXT("configuration"), Configuration);
+
+	if (!bUATAvailable)
+	{
+		return AgentBridge::MakeFailed(
+			TEXT("UAT is not available"),
+			EBridgeErrorCode::ToolExecutionFailed,
+			TEXT("RunUAT.bat/sh not found under Engine/Build/BatchFiles"));
+	}
 
 	if (bDryRun)
 	{
 		return AgentBridge::MakeSuccess(
-			FString::Printf(TEXT("Dry run: would execute UAT BuildCookRun for %s/%s"), *Platform, *Configuration),
+			FString::Printf(TEXT("Dry run: BuildCookRun for %s/%s"), *Platform, *Configuration),
 			Data);
 	}
 
-	// 启动 UAT 子进程
-	FProcHandle ProcHandle = FPlatformProcess::CreateProc(
-		*RunUATPath, *Args,
-		/*bLaunchDetached=*/true,
-		/*bLaunchHidden=*/false,
-		/*bLaunchReallyHidden=*/false,
-		/*OutProcessID=*/nullptr,
-		/*PriorityModifier=*/0,
-		/*OptionalWorkingDirectory=*/nullptr,
-		/*PipeWriteChild=*/nullptr);
-
-	if (!ProcHandle.IsValid())
+	const FUATRunResult RunResult = Runner.BuildCookRun(Platform, Configuration, /*bSync=*/false);
+	Data->SetBoolField(TEXT("launched"), RunResult.bLaunched);
+	Data->SetBoolField(TEXT("completed"), RunResult.bCompleted);
+	Data->SetNumberField(TEXT("exit_code"), RunResult.ExitCode);
+	Data->SetStringField(TEXT("command_line"), RunResult.CommandLine);
+	Data->SetBoolField(TEXT("is_success"), RunResult.IsSuccess());
+	if (!RunResult.ErrorMessage.IsEmpty())
 	{
-		return AgentBridge::MakeFailed(
-			TEXT("Failed to launch UAT"),
-			EBridgeErrorCode::ToolExecutionFailed,
-			FString::Printf(TEXT("Cannot create process: %s"), *RunUATPath));
+		Data->SetStringField(TEXT("error_message"), RunResult.ErrorMessage);
 	}
 
-	Data->SetBoolField(TEXT("process_launched"), true);
+	if (!RunResult.bLaunched)
+	{
+		return AgentBridge::MakeFailed(
+			TEXT("Failed to launch UAT BuildCookRun"),
+			EBridgeErrorCode::ToolExecutionFailed,
+			RunResult.ErrorMessage.IsEmpty() ? TEXT("CreateProc failed") : RunResult.ErrorMessage);
+	}
+
 	return AgentBridge::MakeSuccess(TEXT("UAT BuildCookRun launched"), Data);
 }
 

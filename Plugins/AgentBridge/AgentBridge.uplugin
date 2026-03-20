@@ -18,7 +18,7 @@
 		{
 			"Name": "AgentBridge",
 			"Type": "Editor",
-			"LoadingPhase": "PostEngineInit",
+			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
 				"Engine",
 				"UnrealEd"

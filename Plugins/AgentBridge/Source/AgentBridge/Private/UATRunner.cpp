@@ -1,175 +1,178 @@
 // UATRunner.cpp
-// AGENT + UE5 可操作层 — UAT 子进程封装实现
-//
-// UE5 官方模块：UAT (Unreal Automation Tool)
-// UAT 运行在引擎进程外部（C#），通过 FPlatformProcess::CreateProc 启动。
+// AGENT + UE5 可操作层 - UAT 子进程封装实现
 
 #include "UATRunner.h"
-#include "Misc/Paths.h"
-#include "Misc/FileHelper.h"
+
 #include "HAL/PlatformProcess.h"
-#include "HAL/PlatformFileManager.h"
+#include "Misc/Paths.h"
 
 FUATRunner::FUATRunner()
 {
 	RunUATPath = DetectRunUATPath();
-	ProjectPath = FPaths::GetProjectFilePath();
 }
-
-// ============================================================
-// 路径检测
-// ============================================================
 
 FString FUATRunner::DetectRunUATPath() const
 {
-	FString EngineDir = FPaths::EngineDir();
+	const FString EngineDir = FPaths::EngineDir();
 
 #if PLATFORM_WINDOWS
-	FString Path = EngineDir / TEXT("Build/BatchFiles/RunUAT.bat");
-#elif PLATFORM_LINUX || PLATFORM_MAC
-	FString Path = EngineDir / TEXT("Build/BatchFiles/RunUAT.sh");
+	FString Candidate = EngineDir / TEXT("Build/BatchFiles/RunUAT.bat");
 #else
-	FString Path = EngineDir / TEXT("Build/BatchFiles/RunUAT.bat");
+	FString Candidate = EngineDir / TEXT("Build/BatchFiles/RunUAT.sh");
 #endif
 
-	return FPaths::ConvertRelativePathToFull(Path);
+	Candidate = FPaths::ConvertRelativePathToFull(Candidate);
+	if (!FPaths::FileExists(Candidate))
+	{
+		return FString();
+	}
+	return Candidate;
 }
 
 bool FUATRunner::IsUATAvailable() const
 {
-	return FPaths::FileExists(RunUATPath);
+	return !RunUATPath.IsEmpty() && FPaths::FileExists(RunUATPath);
 }
 
-// ============================================================
-// 核心执行
-// ============================================================
-
-FUATRunResult FUATRunner::ExecuteUAT(const FString& Args, bool bSync)
+FUATRunResult FUATRunner::ExecuteUAT(const FString& Args, const bool bSync)
 {
 	FUATRunResult Result;
-	Result.CommandLine = FString::Printf(TEXT("%s %s"), *RunUATPath, *Args);
+	Result.CommandLine = FString::Printf(TEXT("\"%s\" %s"), *RunUATPath, *Args);
 
-	// 检查 RunUAT 存在
 	if (!IsUATAvailable())
 	{
-		Result.bLaunched = false;
-		Result.ErrorMessage = FString::Printf(TEXT("RunUAT not found at: %s"), *RunUATPath);
+		Result.ErrorMessage = FString::Printf(TEXT("RunUAT not found: %s"), *RunUATPath);
 		UE_LOG(LogTemp, Error, TEXT("[AgentBridge UAT] %s"), *Result.ErrorMessage);
 		return Result;
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("[AgentBridge UAT] Executing: %s"), *Result.CommandLine);
+	uint32 ProcessId = 0;
+	void* StdOutReadPipe = nullptr;
+	void* StdOutWritePipe = nullptr;
+	void* StdErrReadPipe = nullptr;
+	void* StdErrWritePipe = nullptr;
 
 	if (bSync)
 	{
-		// 同步模式：阻塞等待 UAT 完成
-		int32 ReturnCode = -1;
-		FString StdOut;
-		FString StdErr;
-
-		FPlatformProcess::ExecProcess(
-			*RunUATPath,
-			*Args,
-			&ReturnCode,
-			&StdOut,
-			&StdErr
-		);
-
-		Result.bLaunched = true;
-		Result.bCompleted = true;
-		Result.ExitCode = ReturnCode;
-		Result.StdOut = StdOut;
-		Result.StdErr = StdErr;
-
-		if (ReturnCode == 0)
-		{
-			UE_LOG(LogTemp, Log, TEXT("[AgentBridge UAT] Completed successfully (exit code 0)"));
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("[AgentBridge UAT] Completed with exit code: %d"), ReturnCode);
-			if (!StdErr.IsEmpty())
-			{
-				UE_LOG(LogTemp, Warning, TEXT("[AgentBridge UAT] StdErr: %s"), *StdErr);
-			}
-		}
+		FPlatformProcess::CreatePipe(StdOutReadPipe, StdOutWritePipe);
+		FPlatformProcess::CreatePipe(StdErrReadPipe, StdErrWritePipe);
 	}
-	else
-	{
-		// 异步模式：启动后立即返回
-		FProcHandle ProcHandle = FPlatformProcess::CreateProc(
-			*RunUATPath,
-			*Args,
-			/*bLaunchDetached=*/true,
-			/*bLaunchHidden=*/false,
-			/*bLaunchReallyHidden=*/false,
-			/*OutProcessID=*/nullptr,
-			/*PriorityModifier=*/0,
-			/*OptionalWorkingDirectory=*/nullptr,
-			/*PipeWriteChild=*/nullptr
-		);
 
-		Result.bLaunched = ProcHandle.IsValid();
+	UE_LOG(LogTemp, Log, TEXT("[AgentBridge UAT] Launch: %s"), *Result.CommandLine);
+
+	FProcHandle ProcHandle;
+#if PLATFORM_WINDOWS
+	ProcHandle = FPlatformProcess::CreateProc(
+		*RunUATPath,
+		*Args,
+		/*bLaunchDetached=*/true,
+		/*bLaunchHidden=*/true,
+		/*bLaunchReallyHidden=*/false,
+		&ProcessId,
+		/*PriorityModifier=*/0,
+		nullptr,
+		bSync ? StdOutWritePipe : nullptr,
+		nullptr,
+		bSync ? StdErrWritePipe : nullptr);
+#else
+	ProcHandle = FPlatformProcess::CreateProc(
+		*RunUATPath,
+		*Args,
+		/*bLaunchDetached=*/true,
+		/*bLaunchHidden=*/true,
+		/*bLaunchReallyHidden=*/false,
+		&ProcessId,
+		/*PriorityModifier=*/0,
+		nullptr,
+		bSync ? StdOutWritePipe : nullptr,
+		nullptr);
+#endif
+
+	if (!ProcHandle.IsValid())
+	{
+		Result.ErrorMessage = FString::Printf(TEXT("Failed to launch UAT process: %s"), *RunUATPath);
+		UE_LOG(LogTemp, Error, TEXT("[AgentBridge UAT] %s"), *Result.ErrorMessage);
+		if (StdOutReadPipe || StdOutWritePipe) FPlatformProcess::ClosePipe(StdOutReadPipe, StdOutWritePipe);
+		if (StdErrReadPipe || StdErrWritePipe) FPlatformProcess::ClosePipe(StdErrReadPipe, StdErrWritePipe);
+		return Result;
+	}
+
+	Result.bLaunched = true;
+
+	if (!bSync)
+	{
 		Result.bCompleted = false;
 		Result.ExitCode = -1;
-
-		if (!Result.bLaunched)
-		{
-			Result.ErrorMessage = FString::Printf(TEXT("Failed to launch process: %s"), *RunUATPath);
-			UE_LOG(LogTemp, Error, TEXT("[AgentBridge UAT] %s"), *Result.ErrorMessage);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Log, TEXT("[AgentBridge UAT] Process launched (async mode)"));
-		}
+		UE_LOG(LogTemp, Log, TEXT("[AgentBridge UAT] Process launched in async mode, PID=%u"), ProcessId);
+		return Result;
 	}
 
+	// 同步模式：持续读管道，避免大输出导致管道阻塞。
+	while (FPlatformProcess::IsProcRunning(ProcHandle))
+	{
+		if (StdOutReadPipe)
+		{
+			Result.StdOut += FPlatformProcess::ReadPipe(StdOutReadPipe);
+		}
+		if (StdErrReadPipe)
+		{
+			Result.StdErr += FPlatformProcess::ReadPipe(StdErrReadPipe);
+		}
+		FPlatformProcess::Sleep(0.05f);
+	}
+
+	FPlatformProcess::WaitForProc(ProcHandle);
+
+	if (StdOutReadPipe)
+	{
+		Result.StdOut += FPlatformProcess::ReadPipe(StdOutReadPipe);
+	}
+	if (StdErrReadPipe)
+	{
+		Result.StdErr += FPlatformProcess::ReadPipe(StdErrReadPipe);
+	}
+
+	int32 ReturnCode = -1;
+	if (!FPlatformProcess::GetProcReturnCode(ProcHandle, &ReturnCode))
+	{
+		ReturnCode = -1;
+	}
+
+	Result.bCompleted = true;
+	Result.ExitCode = ReturnCode;
+
+	if (StdOutReadPipe || StdOutWritePipe) FPlatformProcess::ClosePipe(StdOutReadPipe, StdOutWritePipe);
+	if (StdErrReadPipe || StdErrWritePipe) FPlatformProcess::ClosePipe(StdErrReadPipe, StdErrWritePipe);
+	FPlatformProcess::CloseProc(ProcHandle);
+
+	UE_LOG(LogTemp, Log, TEXT("[AgentBridge UAT] Sync finished, ExitCode=%d"), ReturnCode);
 	return Result;
 }
-
-// ============================================================
-// BuildCookRun
-// UAT 命令: BuildCookRun -project=... -platform=... -build -cook -stage -pak
-// ============================================================
 
 FUATRunResult FUATRunner::BuildCookRun(
 	const FString& Platform,
 	const FString& Configuration,
-	bool bSync)
+	const bool bSync)
 {
-	FString Args = FString::Printf(
-		TEXT("BuildCookRun")
-		TEXT(" -project=\"%s\"")
-		TEXT(" -platform=%s")
-		TEXT(" -clientconfig=%s")
-		TEXT(" -build -cook -stage -pak")
-		TEXT(" -unattended -utf8output"),
+	const FString ProjectPath = FPaths::GetProjectFilePath();
+	const FString Args = FString::Printf(
+		TEXT("BuildCookRun -project=\"%s\" -platform=%s -clientconfig=%s -cook -stage -pak"),
 		*ProjectPath,
 		*Platform,
-		*Configuration
-	);
-
+		*Configuration);
 	return ExecuteUAT(Args, bSync);
 }
-
-// ============================================================
-// RunAutomationTests
-// UAT 命令: RunAutomationTests -project=... -filter=...
-// ============================================================
 
 FUATRunResult FUATRunner::RunAutomationTests(
 	const FString& Filter,
 	const FString& ReportPath,
-	bool bSync)
+	const bool bSync)
 {
+	const FString ProjectPath = FPaths::GetProjectFilePath();
 	FString Args = FString::Printf(
-		TEXT("RunAutomationTests")
-		TEXT(" -project=\"%s\"")
-		TEXT(" -filter=\"%s\"")
-		TEXT(" -unattended -utf8output -nullrhi"),
+		TEXT("RunAutomationTests -project=\"%s\" -filter=\"%s\""),
 		*ProjectPath,
-		*Filter
-	);
+		*Filter);
 
 	if (!ReportPath.IsEmpty())
 	{
@@ -179,40 +182,34 @@ FUATRunResult FUATRunner::RunAutomationTests(
 	return ExecuteUAT(Args, bSync);
 }
 
-// ============================================================
-// RunGauntlet
-// UAT 命令: RunGauntlet -Test=... -project=...
-// ============================================================
-
 FUATRunResult FUATRunner::RunGauntlet(
 	const FString& TestConfigName,
-	bool bSync)
+	const bool bSync)
 {
-	FString Args = FString::Printf(
-		TEXT("RunGauntlet")
-		TEXT(" -project=\"%s\"")
-		TEXT(" -Test=%s")
-		TEXT(" -unattended -utf8output"),
+	const FString ProjectPath = FPaths::GetProjectFilePath();
+	const FString Args = FString::Printf(
+		TEXT("RunGauntlet -project=\"%s\" -Test=%s -unattended"),
 		*ProjectPath,
-		*TestConfigName
-	);
-
+		*TestConfigName);
 	return ExecuteUAT(Args, bSync);
 }
 
-// ============================================================
-// RunCustomCommand
-// ============================================================
-
 FUATRunResult FUATRunner::RunCustomCommand(
-	const FString& UATCommand,
-	bool bSync)
+	const FString& Command,
+	const bool bSync)
 {
-	FString Args = FString::Printf(
-		TEXT("%s -project=\"%s\" -unattended -utf8output"),
-		*UATCommand,
-		*ProjectPath
-	);
+	FString Args = Command.TrimStartAndEnd();
+	if (Args.IsEmpty())
+	{
+		FUATRunResult Result;
+		Result.ErrorMessage = TEXT("RunCustomCommand requires non-empty command");
+		return Result;
+	}
+
+	if (!Args.Contains(TEXT("-project="), ESearchCase::IgnoreCase))
+	{
+		Args += FString::Printf(TEXT(" -project=\"%s\""), *FPaths::GetProjectFilePath());
+	}
 
 	return ExecuteUAT(Args, bSync);
 }

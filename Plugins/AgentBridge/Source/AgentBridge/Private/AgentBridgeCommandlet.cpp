@@ -1,20 +1,51 @@
 // AgentBridgeCommandlet.cpp
-// AGENT + UE5 可操作层 — Commandlet 无头执行实现
-//
-// UE5 官方模块：Command-Line / Commandlet
-// 在无 GUI 环境下执行 Spec / Automation Test / 单个 Bridge 工具。
+// AGENT + UE5 可操作层 - Commandlet 无头执行实现
 
 #include "AgentBridgeCommandlet.h"
+
 #include "AgentBridgeSubsystem.h"
 #include "BridgeTypes.h"
-
 #include "Editor.h"
-#include "Misc/FileHelper.h"
-#include "Misc/Paths.h"
-#include "Misc/Parse.h"
+#include "IPythonScriptPlugin.h"
+
 #include "Dom/JsonObject.h"
+#include "Dom/JsonValue.h"
+#include "HAL/FileManager.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Parse.h"
+#include "Misc/Paths.h"
 #include "Serialization/JsonSerializer.h"
 #include "Serialization/JsonWriter.h"
+
+namespace
+{
+	// 将 status 字符串映射到 EBridgeStatus。
+	static EBridgeStatus ParseStatusString(const FString& StatusString)
+	{
+		const FString Lower = StatusString.ToLower();
+		if (Lower == TEXT("success")) return EBridgeStatus::Success;
+		if (Lower == TEXT("warning")) return EBridgeStatus::Warning;
+		if (Lower == TEXT("mismatch")) return EBridgeStatus::Mismatch;
+		if (Lower == TEXT("validation_error")) return EBridgeStatus::ValidationError;
+		return EBridgeStatus::Failed;
+	}
+
+	// 构造简易 JSON 结果，保证 report 文件始终是合法 JSON。
+	static FString MakeSimpleResultJson(const EBridgeStatus Status, const FString& Summary)
+	{
+		TSharedPtr<FJsonObject> Root = MakeShareable(new FJsonObject());
+		Root->SetStringField(TEXT("status"), BridgeStatusToString(Status));
+		Root->SetStringField(TEXT("summary"), Summary);
+		Root->SetObjectField(TEXT("data"), MakeShareable(new FJsonObject()));
+		Root->SetArrayField(TEXT("warnings"), {});
+		Root->SetArrayField(TEXT("errors"), {});
+
+		FString Json;
+		const TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Json);
+		FJsonSerializer::Serialize(Root.ToSharedRef(), Writer);
+		return Json;
+	}
+}
 
 UAgentBridgeCommandlet::UAgentBridgeCommandlet()
 {
@@ -23,214 +54,364 @@ UAgentBridgeCommandlet::UAgentBridgeCommandlet()
 	IsServer = false;
 	LogToConsole = true;
 
-	HelpDescription = TEXT("AGENT + UE5 可操作層: Headless execution of Specs, Automation Tests, or single Bridge tools.");
-	HelpUsage = TEXT("UE5Editor-Cmd.exe Project.uproject -run=AgentBridge [-Spec=path] [-RunTests=filter] [-Tool=name] [-Report=path]");
+	HelpDescription = TEXT("AgentBridge headless entry for Spec/Test/Tool execution");
+	HelpUsage = TEXT("UnrealEditor-Cmd.exe Project.uproject -run=AgentBridge [-Spec=xxx.yaml | -RunTests=Filter | -Tool=Name] [-Report=path]");
 
-	HelpParamNames.Add(TEXT("Spec"));
-	HelpParamDescriptions.Add(TEXT("Path to a YAML Spec file to execute"));
-
-	HelpParamNames.Add(TEXT("RunTests"));
-	HelpParamDescriptions.Add(TEXT("Automation Test filter expression (e.g. Project.AgentBridge.L1)"));
-
-	HelpParamNames.Add(TEXT("Tool"));
-	HelpParamDescriptions.Add(TEXT("Single Bridge tool to execute (e.g. ListLevelActors, GetDirtyAssets)"));
-
-	HelpParamNames.Add(TEXT("Report"));
-	HelpParamDescriptions.Add(TEXT("Output path for JSON report"));
+	HelpParamNames = {
+		TEXT("Spec"),
+		TEXT("RunTests"),
+		TEXT("Tool"),
+		TEXT("Report")
+	};
+	HelpParamDescriptions = {
+		TEXT("YAML spec path"),
+		TEXT("Automation test filter"),
+		TEXT("Single tool name"),
+		TEXT("JSON report output path")
+	};
 }
-
-// ============================================================
-// Main — Commandlet 入口
-// ============================================================
 
 int32 UAgentBridgeCommandlet::Main(const FString& Params)
 {
-	UE_LOG(LogTemp, Log, TEXT("[AgentBridge Commandlet] Starting with params: %s"), *Params);
+	UE_LOG(LogTemp, Log, TEXT("[AgentBridge Commandlet] Params: %s"), *Params);
 
 	ParseParams(Params);
+	LastResultJson = TEXT("");
 
-	int32 ExitCode = 0;
-
+	int32 ExitCode = 2;
 	if (!SpecPath.IsEmpty())
 	{
-		UE_LOG(LogTemp, Log, TEXT("[AgentBridge Commandlet] Mode: Execute Spec → %s"), *SpecPath);
 		ExitCode = RunSpec();
 	}
 	else if (!TestFilter.IsEmpty())
 	{
-		UE_LOG(LogTemp, Log, TEXT("[AgentBridge Commandlet] Mode: Run Tests → %s"), *TestFilter);
 		ExitCode = RunTests();
 	}
 	else if (!ToolName.IsEmpty())
 	{
-		UE_LOG(LogTemp, Log, TEXT("[AgentBridge Commandlet] Mode: Single Tool → %s"), *ToolName);
 		ExitCode = RunSingleTool();
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("[AgentBridge Commandlet] No mode specified. Use -Spec, -RunTests, or -Tool."));
+		UE_LOG(LogTemp, Error, TEXT("[AgentBridge Commandlet] No mode specified. Use -Spec / -RunTests / -Tool."));
+		LastResultJson = MakeSimpleResultJson(EBridgeStatus::ValidationError, TEXT("No mode specified"));
 		ExitCode = 2;
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("[AgentBridge Commandlet] Finished with exit code: %d"), ExitCode);
+	if (!ReportPath.IsEmpty())
+	{
+		if (LastResultJson.IsEmpty())
+		{
+			LastResultJson = MakeSimpleResultJson(
+				ExitCode == 0 ? EBridgeStatus::Success : (ExitCode == 1 ? EBridgeStatus::Warning : EBridgeStatus::Failed),
+				TEXT("Commandlet finished without explicit JSON payload"));
+		}
+		WriteReport(LastResultJson);
+	}
+
+	// 始终输出最终 JSON，便于命令行/CI 直接采集结果证据。
+	if (!LastResultJson.IsEmpty())
+	{
+		UE_LOG(LogTemp, Display, TEXT("[AgentBridge Commandlet] ResultJson=%s"), *LastResultJson);
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("[AgentBridge Commandlet] ExitCode=%d"), ExitCode);
 	return ExitCode;
 }
 
-// ============================================================
-// 参数解析
-// ============================================================
-
 void UAgentBridgeCommandlet::ParseParams(const FString& Params)
 {
-	TArray<FString> Tokens;
-	TArray<FString> Switches;
-	TMap<FString, FString> ParamMap;
+	RawParams = Params;
+	SpecPath.Empty();
+	TestFilter.Empty();
+	ToolName.Empty();
+	ReportPath.Empty();
 
-	// UE5 标准参数解析
-	const TCHAR* ParamsChar = *Params;
-	FString Token;
-	while (FParse::Token(ParamsChar, Token, false))
-	{
-		if (Token.StartsWith(TEXT("-")))
-		{
-			Token.RemoveFromStart(TEXT("-"));
-			FString Key, Value;
-			if (Token.Split(TEXT("="), &Key, &Value))
-			{
-				// 移除引号
-				Value.TrimQuotesInline();
-				ParamMap.Add(Key, Value);
-			}
-			else
-			{
-				Switches.Add(Token);
-			}
-		}
-		else
-		{
-			Tokens.Add(Token);
-		}
-	}
+	FParse::Value(*Params, TEXT("Spec="), SpecPath);
+	FParse::Value(*Params, TEXT("RunTests="), TestFilter);
+	FParse::Value(*Params, TEXT("Tool="), ToolName);
+	FParse::Value(*Params, TEXT("Report="), ReportPath);
 
-	SpecPath = ParamMap.FindRef(TEXT("Spec"));
-	TestFilter = ParamMap.FindRef(TEXT("RunTests"));
-	ToolName = ParamMap.FindRef(TEXT("Tool"));
-	ReportPath = ParamMap.FindRef(TEXT("Report"));
+	SpecPath.TrimQuotesInline();
+	TestFilter.TrimQuotesInline();
+	ToolName.TrimQuotesInline();
+	ReportPath.TrimQuotesInline();
 }
 
-// ============================================================
-// 模式 1：执行 Spec 文件
-// ============================================================
+FString UAgentBridgeCommandlet::GetNamedParam(const TCHAR* Key) const
+{
+	FString Value;
+	FParse::Value(*RawParams, Key, Value);
+	Value.TrimQuotesInline();
+	return Value;
+}
+
+bool UAgentBridgeCommandlet::GetBoolNamedParam(const TCHAR* Key, const bool bDefaultValue) const
+{
+	const FString Value = GetNamedParam(Key).ToLower();
+	if (Value.IsEmpty())
+	{
+		return bDefaultValue;
+	}
+	if (Value == TEXT("1") || Value == TEXT("true") || Value == TEXT("yes") || Value == TEXT("on"))
+	{
+		return true;
+	}
+	if (Value == TEXT("0") || Value == TEXT("false") || Value == TEXT("no") || Value == TEXT("off"))
+	{
+		return false;
+	}
+	return bDefaultValue;
+}
+
+bool UAgentBridgeCommandlet::TryGetVectorParam(const TCHAR* Key, FVector& OutVector) const
+{
+	const FString Value = GetNamedParam(Key);
+	if (Value.IsEmpty())
+	{
+		return false;
+	}
+
+	double X = 0.0;
+	double Y = 0.0;
+	double Z = 0.0;
+	if (!ParseCsv3(Value, X, Y, Z))
+	{
+		return false;
+	}
+
+	OutVector = FVector(X, Y, Z);
+	return true;
+}
+
+bool UAgentBridgeCommandlet::TryGetRotatorParam(const TCHAR* Key, FRotator& OutRotator) const
+{
+	const FString Value = GetNamedParam(Key);
+	if (Value.IsEmpty())
+	{
+		return false;
+	}
+
+	double Pitch = 0.0;
+	double Yaw = 0.0;
+	double Roll = 0.0;
+	if (!ParseCsv3(Value, Pitch, Yaw, Roll))
+	{
+		return false;
+	}
+
+	OutRotator = FRotator(Pitch, Yaw, Roll);
+	return true;
+}
+
+bool UAgentBridgeCommandlet::ParseCsv3(const FString& Csv, double& X, double& Y, double& Z)
+{
+	TArray<FString> Parts;
+	Csv.ParseIntoArray(Parts, TEXT(","), true);
+	if (Parts.Num() != 3)
+	{
+		return false;
+	}
+
+	return LexTryParseString(X, *Parts[0].TrimStartAndEnd())
+		&& LexTryParseString(Y, *Parts[1].TrimStartAndEnd())
+		&& LexTryParseString(Z, *Parts[2].TrimStartAndEnd());
+}
+
+int32 UAgentBridgeCommandlet::StatusToExitCode(const EBridgeStatus Status)
+{
+	switch (Status)
+	{
+	case EBridgeStatus::Success:
+		return 0;
+	case EBridgeStatus::Warning:
+	case EBridgeStatus::Mismatch:
+		return 1;
+	case EBridgeStatus::ValidationError:
+	case EBridgeStatus::Failed:
+	default:
+		return 2;
+	}
+}
 
 int32 UAgentBridgeCommandlet::RunSpec()
 {
-	// 检查 Spec 文件存在
-	if (!FPaths::FileExists(SpecPath))
+	FString AbsoluteSpecPath = SpecPath;
+	if (!FPaths::FileExists(AbsoluteSpecPath))
 	{
-		UE_LOG(LogTemp, Error, TEXT("[AgentBridge Commandlet] Spec file not found: %s"), *SpecPath);
+		AbsoluteSpecPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / SpecPath);
+	}
+
+	if (!FPaths::FileExists(AbsoluteSpecPath))
+	{
+		LastResultJson = MakeSimpleResultJson(EBridgeStatus::ValidationError, FString::Printf(TEXT("Spec not found: %s"), *SpecPath));
+		UE_LOG(LogTemp, Error, TEXT("[AgentBridge Commandlet] Spec file not found: %s"), *AbsoluteSpecPath);
 		return 2;
 	}
 
-	// 获取 Subsystem
-	UAgentBridgeSubsystem* Subsystem = GEditor->GetEditorSubsystem<UAgentBridgeSubsystem>();
-	if (!Subsystem)
+	IPythonScriptPlugin* PythonPlugin = IPythonScriptPlugin::Get();
+	if (!PythonPlugin || !PythonPlugin->IsPythonAvailable())
 	{
-		UE_LOG(LogTemp, Error, TEXT("[AgentBridge Commandlet] AgentBridgeSubsystem not available"));
+		LastResultJson = MakeSimpleResultJson(EBridgeStatus::Failed, TEXT("PythonScriptPlugin is not available"));
+		UE_LOG(LogTemp, Error, TEXT("[AgentBridge Commandlet] PythonScriptPlugin unavailable"));
 		return 2;
 	}
 
-	// 读取 Spec（YAML 解析）
-	// 注意：UE5 C++ 没有内置 YAML 解析器
-	// 方案 1：通过 IPythonScriptPlugin 调用 Python 的 Orchestrator
-	// 方案 2：使用第三方 YAML 库（yaml-cpp）
-	// 方案 3：将 Spec 转为 JSON 格式
-	// 此处使用方案 1——调用 Python Orchestrator
-
-	FString PythonCommand = FString::Printf(
-		TEXT("import sys; sys.path.insert(0, '%s'); "
-			 "from agent_ue5.orchestrator.orchestrator import run; "
-			 "result = run('%s'); "
-			 "print(result)"),
-		*FPaths::ProjectDir(),
-		*SpecPath
-	);
-
-	UE_LOG(LogTemp, Log, TEXT("[AgentBridge Commandlet] Invoking Python Orchestrator for Spec execution"));
-
-	// 通过 IPythonScriptPlugin 执行 Python
-	// 注意：需要 PythonScriptPlugin 已加载
-	if (GEditor)
+	FString EffectiveReportPath = ReportPath;
+	if (EffectiveReportPath.IsEmpty())
 	{
-		GEditor->Exec(GEditor->GetEditorWorldContext().World(),
-			*FString::Printf(TEXT("py %s"), *PythonCommand));
+		EffectiveReportPath = FPaths::ProjectSavedDir() / TEXT("AgentBridge/commandlet_spec_report.json");
+	}
+	if (!FPaths::IsRelative(EffectiveReportPath))
+	{
+		EffectiveReportPath = FPaths::ConvertRelativePathToFull(EffectiveReportPath);
+	}
+	else
+	{
+		EffectiveReportPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / EffectiveReportPath);
 	}
 
-	// 收集报告
-	TSharedPtr<FJsonObject> ReportJson = MakeShareable(new FJsonObject());
-	ReportJson->SetStringField(TEXT("spec_path"), SpecPath);
-	ReportJson->SetStringField(TEXT("execution_mode"), TEXT("commandlet"));
-	ReportJson->SetStringField(TEXT("status"), TEXT("completed"));
+	IFileManager::Get().MakeDirectory(*FPaths::GetPath(EffectiveReportPath), true);
 
-	if (!ReportPath.IsEmpty())
+	auto ToPythonLiteral = [](FString Path) -> FString
 	{
-		FString ReportContent;
-		TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&ReportContent);
-		FJsonSerializer::Serialize(ReportJson.ToSharedRef(), Writer);
-		WriteReport(ReportContent);
+		Path = FPaths::ConvertRelativePathToFull(Path);
+		Path.ReplaceInline(TEXT("\\"), TEXT("/"));
+		Path.ReplaceInline(TEXT("'"), TEXT("\\'"));
+		return Path;
+	};
+
+	const FString ProjectDirPy = ToPythonLiteral(FPaths::ProjectDir());
+	const FString ScriptsDirPy = ToPythonLiteral(FPaths::ProjectDir() / TEXT("Scripts"));
+	const FString SpecPy = ToPythonLiteral(AbsoluteSpecPath);
+	const FString ReportPy = ToPythonLiteral(EffectiveReportPath);
+
+	const FString PythonCommand = FString::Printf(
+		TEXT("import json,sys; ")
+		TEXT("sys.path.insert(0,r'%s'); ")
+		TEXT("sys.path.insert(0,r'%s'); ")
+		TEXT("from orchestrator import run as _ab_run; ")
+		TEXT("_ab_result=_ab_run(r'%s'); ")
+		TEXT("open(r'%s','w',encoding='utf-8').write(json.dumps(_ab_result, ensure_ascii=False, indent=2, default=str))"),
+		*ProjectDirPy,
+		*ScriptsDirPy,
+		*SpecPy,
+		*ReportPy);
+
+	const bool bExecOk = PythonPlugin->ExecPythonCommand(*PythonCommand);
+	if (!bExecOk)
+	{
+		LastResultJson = MakeSimpleResultJson(EBridgeStatus::Failed, TEXT("Python orchestrator execution failed"));
+		UE_LOG(LogTemp, Error, TEXT("[AgentBridge Commandlet] Python execution failed"));
+		return 2;
+	}
+
+	if (!FFileHelper::LoadFileToString(LastResultJson, *EffectiveReportPath))
+	{
+		LastResultJson = MakeSimpleResultJson(EBridgeStatus::Success, TEXT("Spec executed, but report file is not readable"));
+		UE_LOG(LogTemp, Warning, TEXT("[AgentBridge Commandlet] Spec report not readable: %s"), *EffectiveReportPath);
+		return 0;
+	}
+
+	TSharedPtr<FJsonObject> Root;
+	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(LastResultJson);
+	if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[AgentBridge Commandlet] Spec report is not valid JSON, fallback to success"));
+		return 0;
+	}
+
+	if (Root->HasTypedField<EJson::String>(TEXT("status")))
+	{
+		return StatusToExitCode(ParseStatusString(Root->GetStringField(TEXT("status"))));
+	}
+
+	if (const TArray<TSharedPtr<FJsonValue>>* Items = nullptr; Root->TryGetArrayField(TEXT("results"), Items) && Items)
+	{
+		EBridgeStatus WorstStatus = EBridgeStatus::Success;
+		for (const TSharedPtr<FJsonValue>& Item : *Items)
+		{
+			if (!Item.IsValid() || Item->Type != EJson::Object)
+			{
+				continue;
+			}
+			const TSharedPtr<FJsonObject> Obj = Item->AsObject();
+			if (!Obj.IsValid() || !Obj->HasTypedField<EJson::String>(TEXT("status")))
+			{
+				continue;
+			}
+			const EBridgeStatus ItemStatus = ParseStatusString(Obj->GetStringField(TEXT("status")));
+			if (StatusToExitCode(ItemStatus) > StatusToExitCode(WorstStatus))
+			{
+				WorstStatus = ItemStatus;
+			}
+		}
+		return StatusToExitCode(WorstStatus);
 	}
 
 	return 0;
 }
 
-// ============================================================
-// 模式 2：运行 Automation Test
-// ============================================================
-
 int32 UAgentBridgeCommandlet::RunTests()
 {
-	UAgentBridgeSubsystem* Subsystem = GEditor->GetEditorSubsystem<UAgentBridgeSubsystem>();
-	if (!Subsystem)
+	if (!GEditor)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[AgentBridge Commandlet] AgentBridgeSubsystem not available"));
+		LastResultJson = MakeSimpleResultJson(EBridgeStatus::Failed, TEXT("GEditor is null"));
+		UE_LOG(LogTemp, Error, TEXT("[AgentBridge Commandlet] GEditor is null"));
 		return 2;
 	}
 
-	// 通过 Subsystem 触发 Automation Tests
-	FBridgeResponse Response = Subsystem->RunAutomationTests(TestFilter, ReportPath);
-
-	UE_LOG(LogTemp, Log, TEXT("[AgentBridge Commandlet] RunAutomationTests response: %s"), *Response.Summary);
-
-	if (!ReportPath.IsEmpty())
-	{
-		WriteReport(Response.ToJsonString());
-	}
-
-	return Response.IsSuccess() ? 0 : 1;
-}
-
-// ============================================================
-// 模式 3：执行单个 Bridge 工具
-// ============================================================
-
-int32 UAgentBridgeCommandlet::RunSingleTool()
-{
 	UAgentBridgeSubsystem* Subsystem = GEditor->GetEditorSubsystem<UAgentBridgeSubsystem>();
 	if (!Subsystem)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[AgentBridge Commandlet] AgentBridgeSubsystem not available"));
+		LastResultJson = MakeSimpleResultJson(EBridgeStatus::Failed, TEXT("AgentBridgeSubsystem unavailable"));
+		UE_LOG(LogTemp, Error, TEXT("[AgentBridge Commandlet] AgentBridgeSubsystem unavailable"));
+		return 2;
+	}
+
+	FBridgeResponse Response = Subsystem->RunAutomationTests(TestFilter, ReportPath);
+	LastResultJson = Response.ToJsonString();
+	UE_LOG(LogTemp, Log, TEXT("[AgentBridge Commandlet] RunTests status=%s summary=%s"), *BridgeStatusToString(Response.Status), *Response.Summary);
+	return StatusToExitCode(Response.Status);
+}
+
+int32 UAgentBridgeCommandlet::RunSingleTool()
+{
+	if (!GEditor)
+	{
+		LastResultJson = MakeSimpleResultJson(EBridgeStatus::Failed, TEXT("GEditor is null"));
+		return 2;
+	}
+
+	UAgentBridgeSubsystem* Subsystem = GEditor->GetEditorSubsystem<UAgentBridgeSubsystem>();
+	if (!Subsystem)
+	{
+		LastResultJson = MakeSimpleResultJson(EBridgeStatus::Failed, TEXT("AgentBridgeSubsystem unavailable"));
 		return 2;
 	}
 
 	FBridgeResponse Response;
 
-	// 分发到对应的 Subsystem 接口
+	// 查询工具（7）
 	if (ToolName.Equals(TEXT("GetCurrentProjectState"), ESearchCase::IgnoreCase))
 	{
 		Response = Subsystem->GetCurrentProjectState();
 	}
 	else if (ToolName.Equals(TEXT("ListLevelActors"), ESearchCase::IgnoreCase))
 	{
-		Response = Subsystem->ListLevelActors();
+		Response = Subsystem->ListLevelActors(GetNamedParam(TEXT("ClassFilter=")));
+	}
+	else if (ToolName.Equals(TEXT("GetActorState"), ESearchCase::IgnoreCase))
+	{
+		Response = Subsystem->GetActorState(GetNamedParam(TEXT("ActorPath=")));
+	}
+	else if (ToolName.Equals(TEXT("GetActorBounds"), ESearchCase::IgnoreCase))
+	{
+		Response = Subsystem->GetActorBounds(GetNamedParam(TEXT("ActorPath=")));
+	}
+	else if (ToolName.Equals(TEXT("GetAssetMetadata"), ESearchCase::IgnoreCase))
+	{
+		Response = Subsystem->GetAssetMetadata(GetNamedParam(TEXT("AssetPath=")));
 	}
 	else if (ToolName.Equals(TEXT("GetDirtyAssets"), ESearchCase::IgnoreCase))
 	{
@@ -240,55 +421,145 @@ int32 UAgentBridgeCommandlet::RunSingleTool()
 	{
 		Response = Subsystem->RunMapCheck();
 	}
+	// 写工具（4）
+	else if (ToolName.Equals(TEXT("SpawnActor"), ESearchCase::IgnoreCase))
+	{
+		FVector Location = FVector::ZeroVector;
+		FRotator Rotation = FRotator::ZeroRotator;
+		FVector Scale = FVector::OneVector;
+		if (!TryGetVectorParam(TEXT("Location="), Location)
+			|| !TryGetRotatorParam(TEXT("Rotation="), Rotation)
+			|| !TryGetVectorParam(TEXT("Scale="), Scale))
+		{
+			Response = AgentBridge::MakeValidationError(TEXT("Transform"), TEXT("SpawnActor requires -Location=x,y,z -Rotation=p,y,r -Scale=x,y,z"));
+		}
+		else
+		{
+			FBridgeTransform Transform;
+			Transform.Location = Location;
+			Transform.Rotation = Rotation;
+			Transform.RelativeScale3D = Scale;
+			Response = Subsystem->SpawnActor(
+				GetNamedParam(TEXT("LevelPath=")),
+				GetNamedParam(TEXT("ActorClass=")),
+				GetNamedParam(TEXT("ActorName=")),
+				Transform,
+				GetBoolNamedParam(TEXT("bDryRun="), false));
+		}
+	}
+	else if (ToolName.Equals(TEXT("SetActorTransform"), ESearchCase::IgnoreCase))
+	{
+		FVector Location = FVector::ZeroVector;
+		FRotator Rotation = FRotator::ZeroRotator;
+		FVector Scale = FVector::OneVector;
+		if (!TryGetVectorParam(TEXT("Location="), Location)
+			|| !TryGetRotatorParam(TEXT("Rotation="), Rotation)
+			|| !TryGetVectorParam(TEXT("Scale="), Scale))
+		{
+			Response = AgentBridge::MakeValidationError(TEXT("Transform"), TEXT("SetActorTransform requires -Location=x,y,z -Rotation=p,y,r -Scale=x,y,z"));
+		}
+		else
+		{
+			FBridgeTransform Transform;
+			Transform.Location = Location;
+			Transform.Rotation = Rotation;
+			Transform.RelativeScale3D = Scale;
+			Response = Subsystem->SetActorTransform(
+				GetNamedParam(TEXT("ActorPath=")),
+				Transform,
+				GetBoolNamedParam(TEXT("bDryRun="), false));
+		}
+	}
+	else if (ToolName.Equals(TEXT("ImportAssets"), ESearchCase::IgnoreCase))
+	{
+		Response = Subsystem->ImportAssets(
+			GetNamedParam(TEXT("SourceDir=")),
+			GetNamedParam(TEXT("DestPath=")),
+			GetBoolNamedParam(TEXT("bReplaceExisting="), false),
+			GetBoolNamedParam(TEXT("bDryRun="), false));
+	}
+	else if (ToolName.Equals(TEXT("CreateBlueprintChild"), ESearchCase::IgnoreCase))
+	{
+		Response = Subsystem->CreateBlueprintChild(
+			GetNamedParam(TEXT("ParentClass=")),
+			GetNamedParam(TEXT("PackagePath=")),
+			GetBoolNamedParam(TEXT("bDryRun="), false));
+	}
+	// 验证工具（3）
+	else if (ToolName.Equals(TEXT("ValidateActorInsideBounds"), ESearchCase::IgnoreCase))
+	{
+		FVector BoundsOrigin = FVector::ZeroVector;
+		FVector BoundsExtent = FVector::ZeroVector;
+		if (!TryGetVectorParam(TEXT("BoundsOrigin="), BoundsOrigin)
+			|| !TryGetVectorParam(TEXT("BoundsExtent="), BoundsExtent))
+		{
+			Response = AgentBridge::MakeValidationError(TEXT("Bounds"), TEXT("ValidateActorInsideBounds requires -BoundsOrigin=x,y,z -BoundsExtent=x,y,z"));
+		}
+		else
+		{
+			Response = Subsystem->ValidateActorInsideBounds(
+				GetNamedParam(TEXT("ActorPath=")),
+				BoundsOrigin,
+				BoundsExtent);
+		}
+	}
+	else if (ToolName.Equals(TEXT("ValidateActorNonOverlap"), ESearchCase::IgnoreCase))
+	{
+		Response = Subsystem->ValidateActorNonOverlap(GetNamedParam(TEXT("ActorPath=")));
+	}
+	else if (ToolName.Equals(TEXT("RunAutomationTests"), ESearchCase::IgnoreCase))
+	{
+		Response = Subsystem->RunAutomationTests(GetNamedParam(TEXT("Filter=")), GetNamedParam(TEXT("TestReportPath=")));
+	}
+	// 构建工具（1）
+	else if (ToolName.Equals(TEXT("BuildProject"), ESearchCase::IgnoreCase))
+	{
+		const FString Platform = GetNamedParam(TEXT("Platform=")).IsEmpty() ? TEXT("Win64") : GetNamedParam(TEXT("Platform="));
+		const FString Configuration = GetNamedParam(TEXT("Configuration=")).IsEmpty() ? TEXT("Development") : GetNamedParam(TEXT("Configuration="));
+		Response = Subsystem->BuildProject(Platform, Configuration, GetBoolNamedParam(TEXT("bDryRun="), false));
+	}
 	else
 	{
+		Response = AgentBridge::MakeValidationError(
+			TEXT("Tool"),
+			FString::Printf(TEXT("Unknown tool: %s"), *ToolName));
 		UE_LOG(LogTemp, Error, TEXT("[AgentBridge Commandlet] Unknown tool: %s"), *ToolName);
-		UE_LOG(LogTemp, Log, TEXT("  Available tools: GetCurrentProjectState, ListLevelActors, GetDirtyAssets, RunMapCheck"));
-		UE_LOG(LogTemp, Log, TEXT("  Tools requiring parameters not supported in single-tool mode. Use -Spec instead."));
-		return 2;
 	}
 
-	// 输出结果
-	FString JsonResult = Response.ToJsonString();
-	UE_LOG(LogTemp, Log, TEXT("[AgentBridge Commandlet] Result: %s"), *JsonResult);
-
-	if (!ReportPath.IsEmpty())
-	{
-		WriteReport(JsonResult);
-	}
-
-	if (Response.Status == EBridgeStatus::Failed || Response.Status == EBridgeStatus::ValidationError)
-	{
-		return 2;
-	}
-	if (Response.Status == EBridgeStatus::Mismatch || Response.Status == EBridgeStatus::Warning)
-	{
-		return 1;
-	}
-	return 0;
+	LastResultJson = Response.ToJsonString();
+	UE_LOG(LogTemp, Log, TEXT("[AgentBridge Commandlet] Tool=%s status=%s summary=%s"), *ToolName, *BridgeStatusToString(Response.Status), *Response.Summary);
+	return StatusToExitCode(Response.Status);
 }
-
-// ============================================================
-// 报告输出
-// ============================================================
 
 void UAgentBridgeCommandlet::WriteReport(const FString& JsonContent)
 {
-	if (ReportPath.IsEmpty()) return;
+	if (ReportPath.IsEmpty())
+	{
+		return;
+	}
 
-	// 确保目录存在
-	FString Dir = FPaths::GetPath(ReportPath);
+	FString FinalPath = ReportPath;
+	if (FPaths::IsRelative(FinalPath))
+	{
+		FinalPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / FinalPath);
+	}
+	else
+	{
+		FinalPath = FPaths::ConvertRelativePathToFull(FinalPath);
+	}
+
+	const FString Dir = FPaths::GetPath(FinalPath);
 	if (!Dir.IsEmpty())
 	{
 		IFileManager::Get().MakeDirectory(*Dir, true);
 	}
 
-	if (FFileHelper::SaveStringToFile(JsonContent, *ReportPath, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM))
+	if (FFileHelper::SaveStringToFile(JsonContent, *FinalPath, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM))
 	{
-		UE_LOG(LogTemp, Log, TEXT("[AgentBridge Commandlet] Report written to: %s"), *ReportPath);
+		UE_LOG(LogTemp, Log, TEXT("[AgentBridge Commandlet] Report written: %s"), *FinalPath);
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("[AgentBridge Commandlet] Failed to write report to: %s"), *ReportPath);
+		UE_LOG(LogTemp, Error, TEXT("[AgentBridge Commandlet] Failed to write report: %s"), *FinalPath);
 	}
 }
