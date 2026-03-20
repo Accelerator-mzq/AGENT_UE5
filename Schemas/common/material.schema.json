@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Material Assignment Definitions",
+  "description": "UE5.5.4 材质槽位分配结构定义。用于描述 assign_material 写操作的输入和反馈。当前为 MVP Phase 2 能力。",
+  "$defs": {
+    "material_slot_assignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "component_name": {
+          "type": "string",
+          "description": "目标组件名称，例如 TruckMesh"
+        },
+        "slot_name": {
+          "type": "string",
+          "description": "材质槽位名称，例如 Body / Glass / Wheel"
+        },
+        "material_path": {
+          "type": "string",
+          "description": "材质资产路径，例如 /Game/Materials/M_Truck_Rust"
+        }
+      }
+    }
+  }
+}

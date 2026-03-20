@@ -1,0 +1,43 @@
+﻿# =========================================
+# Unreal Engine 项目忽略规则（Mvpv4TestCodex）
+# 说明：保留源码/文档/配置，忽略构建产物与本地缓存
+# =========================================
+
+# UE 构建产物与中间文件
+Binaries/
+Intermediate/
+Saved/
+DerivedDataCache/
+
+# 插件构建产物（双保险）
+Plugins/*/Binaries/
+Plugins/*/Intermediate/
+
+# 本地报告与证据目录（如需保留可删除此行）
+reports/
+
+# IDE 与本地工程文件
+.vscode/
+*.code-workspace
+*.sln
+*.suo
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.opendb
+
+# Visual Studio / Rider 用户文件
+.vs/
+.idea/
+*.user
+*.userprefs
+*.csproj.user
+
+# 日志与临时文件
+*.log
+*.tmp
+*.temp
+
+# 系统文件
+.DS_Store
+Thumbs.db

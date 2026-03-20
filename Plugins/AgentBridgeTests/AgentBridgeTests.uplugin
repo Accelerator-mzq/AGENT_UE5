@@ -1,0 +1,35 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.3.0",
+	"FriendlyName": "Agent Bridge Tests",
+	"Description": "AGENT + UE5 可操作層 — 測試 Plugin。基於 UE5 Automation Test Framework / Automation Spec / Functional Testing 實現 L1/L2/L3 三層測試體系。",
+	"Category": "Testing",
+	"CreatedBy": "AgentUE5 Team",
+	"CreatedByURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": true,
+	"Installed": false,
+	"EnabledByDefault": false,
+	"Modules": [
+		{
+			"Name": "AgentBridgeTests",
+			"Type": "Editor",
+			"LoadingPhase": "PostEngineInit",
+			"AdditionalDependencies": [
+				"Engine",
+				"UnrealEd"
+			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "AgentBridge",
+			"Enabled": true
+		},
+		{
+			"Name": "FunctionalTesting",
+			"Enabled": true
+		}
+	]
+}
