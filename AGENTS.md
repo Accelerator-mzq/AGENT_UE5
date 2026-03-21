@@ -91,6 +91,14 @@ Set-Content -Encoding UTF8 reports/example.md $content
 Add-Content -Encoding UTF8 reports/example.md "append line"
 ```
 
+### 2.9 对话文件路径规范（VSCode 可点击）
+
+为确保在 VSCode 对话中可直接打开文件，Agent 在回复里引用文件时遵循：
+
+- 默认使用工作区相对路径（例如：`reports/task08_evidence_2026-03-21/pr_creation_2026-03-21.md`）
+- 不使用 URL 编码路径（如 `%20`）和 `file://` 前缀
+- 仅当用户明确要求绝对路径时，才提供绝对路径
+
 ---
 
 ## 3. 项目原则
