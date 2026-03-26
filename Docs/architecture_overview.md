@@ -152,11 +152,18 @@ UE5 模块：Commandlet + UAT + Automation Test Framework + Automation Spec + Fu
 
 ### L3 UI 工具（UI Tools）
 
-通过 Automation Driver 模拟用户输入（点击/键入/拖拽）与 Editor GUI 交互。仅用于 L1 无法覆盖的 UI 级操作场景。
+通过 Automation Driver 与 Slate/Editor 原生放置链组合执行 UI 级操作。仅用于 L1 无法覆盖的 UI 级操作场景。
 
 典型接口：`ClickDetailPanelButton` / `TypeInDetailPanelField` / `DragAssetToViewport`
 
-UE5 模块：Automation Driver（`IAutomationDriverModule`）
+UE5 模块：Automation Driver（`IAutomationDriverModule`）+ Slate + LevelEditor
+
+**统一执行模型**：L3 默认不再把完整 UI 操作直接塞进 RC 同步调用链里等待完成，而是通过 `start_ui_operation()` / `query_ui_operation()` 的异步任务壳调度。原因是 UE5 官方对 Automation Driver 同步 API 有明确线程约束；在 RC 同步链路里直接等待完整 UI 操作，存在阻塞和死锁风险。
+
+**当前已落地的后端口径**：
+- `ClickDetailPanelButton`：默认包装函数走异步任务壳，底层使用非 GameThread 上的 `AutomationDriver::Click()` 原型验证点击语义
+- `TypeInDetailPanelField`：走异步任务壳；属性行定位后对 `SEditableText` 直接设值，并通过 `Enter` 提交，最后再做 L1 读回
+- `DragAssetToViewport`：走异步任务壳；最终放置通过 Editor 官方 `DropObjectsAtCoordinates(...)` 路径完成，而不是裸鼠标拖拽
 
 **L3 使用约束**（全部满足才允许）：
 1. L1 无对应 API

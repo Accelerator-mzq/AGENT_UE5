@@ -775,7 +775,7 @@ L3 使用条件：L1 无对应 API + 操作可结构化 + 结果可通过 L1 验
 
 **UE5 依赖**：**UE5 Automation Test Framework**（`FAutomationTestBase`）——通过 Console Command `Automation RunTests <Filter>` 触发 | 通道 A/C/D
 
-**说明**：`filter` 参数匹配 UE5 Automation Test Framework 中注册的测试层级名称（如 `"Project.Bridge.SpawnActor"`）。也可用 `RunFilter Smoke` 按 Test Flag 过滤。在 CI/CD 中可通过 Commandlet（通道 C）或 UAT `-RunAutomationTests`（通道 D）无人值守执行。
+**说明**：`filter` 参数匹配 UE5 Automation Test Framework 中注册的测试层级名称（如 `"Project.Bridge.SpawnActor"`）。也可用 `RunFilter Smoke` 按 Test Flag 过滤。在 CI/CD 中可通过 Commandlet（通道 C）或 UAT `BuildCookRun -run -editortest -RunAutomationTest=<Filter>`（通道 D）无人值守执行。当前 UE5.5.4 项目口径中，不再把旧的 `RunUAT RunAutomationTests ...` 作为通过标准。
 
 **Args**：
 ```json
@@ -864,7 +864,7 @@ L3 使用条件：L1 无对应 API + 操作可结构化 + 结果可通过 L1 验
 
 **Args**：`{ "actor_path": string, "button_label": string, "dry_run": bool }`
 
-**UE5 依赖**：Automation Driver — `FindElement(By::Text(label))` → `Click()` | 通道 C 专用
+**UE5 依赖**：统一通过 `start_ui_operation()` / `query_ui_operation()` 异步任务壳调度；底层点击语义由 Automation Driver 提供，避免在 RC 同步调用链里直接等待完整 UI 点击 | 通道 C 专用
 
 **验证方式**（调用后必须执行）：L1 `get_actor_state` 或 `get_component_state` 读回变更
 
@@ -891,7 +891,7 @@ L3 使用条件：L1 无对应 API + 操作可结构化 + 结果可通过 L1 验
 
 **Args**：`{ "actor_path": string, "property_path": string, "value": string, "dry_run": bool }`
 
-**UE5 依赖**：Automation Driver — `FindElement` → `Click` → `Ctrl+A` → `Type(value)` → `Enter` | 通道 C 专用
+**UE5 依赖**：统一通过 `start_ui_operation()` / `query_ui_operation()` 异步任务壳调度；定位属性行后对可编辑文本控件直接设值并显式提交，避免单纯依赖裸键盘序列 | 通道 C 专用
 
 **验证方式**：L1 `get_actor_state` 读回属性值变更
 
@@ -905,7 +905,7 @@ L3 使用条件：L1 无对应 API + 操作可结构化 + 结果可通过 L1 验
 
 **Args**：`{ "asset_path": string, "drop_location": [x, y, z], "dry_run": bool }`
 
-**UE5 依赖**：Automation Driver — `FindElement(By::Text(assetName))` → `Press(LMB)` → `MoveTo(screenPos)` → `Release(LMB)` | 通道 C 专用
+**UE5 依赖**：统一通过 `start_ui_operation()` / `query_ui_operation()` 异步任务壳调度；最终放置走 Editor 官方 `DropObjectsAtCoordinates(...)` 路径，而不是裸鼠标拖拽 | 通道 C 专用
 
 **验证方式**：L1 `list_level_actors`（确认 Actor 数量增加）+ L1 `get_actor_state`（确认位置接近 drop_location，容差 100cm）
 
@@ -946,6 +946,22 @@ L3 使用条件：L1 无对应 API + 操作可结构化 + 结果可通过 L1 验
   "mismatches": []
 }
 ```
+
+### 7.5.5 L3 异步任务壳
+
+为兼容 UE5.5.4 下 Automation Driver 同步 API 的线程约束，L3 UI 工具统一补了一层异步任务壳：
+
+1. `start_ui_operation`：只负责参数校验、生成 `operation_id`、入队并立即返回
+2. `query_ui_operation`：轮询 `pending / running / success / failed`
+3. UI 操作终态后，必须继续通过 L1 做独立读回验证
+
+当前工程中的默认口径是：
+
+- `click_detail_panel_button`：默认包装函数已切到异步任务壳
+- `type_in_detail_panel_field`：已接入异步任务壳
+- `drag_asset_to_viewport`：已接入异步任务壳
+
+因此，L3 的统一策略是“异步调度 + L1 读回验证”，而不是在 RC 同步请求里直接等待完整 UI 操作结束。
 
 ---
 
