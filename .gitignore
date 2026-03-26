@@ -37,6 +37,8 @@ reports/
 *.log
 *.tmp
 *.temp
+__pycache__/
+*.pyc
 
 # 系统文件
 .DS_Store
