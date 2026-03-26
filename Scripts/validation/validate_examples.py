@@ -43,7 +43,7 @@ SCHEMAS_DIR = PROJECT_ROOT / "Schemas"
 EXAMPLES_DIR = SCHEMAS_DIR / "examples"
 
 # 显式映射：example 文件名 -> schema 文件相对路径（相对于 SCHEMAS_DIR）
-# 覆盖 MVP 全部 7 个反馈接口 + 1 个写后反馈 = 8 个 example
+# 覆盖 MVP 全部 9 个反馈接口 + 1 个写后反馈 = 10 个 example
 EXAMPLE_TO_SCHEMA: Dict[str, str] = {
     # === 反馈接口 example ===
     "get_current_project_state.example.json":
@@ -54,6 +54,10 @@ EXAMPLE_TO_SCHEMA: Dict[str, str] = {
         "feedback/actor/get_actor_state.response.schema.json",
     "get_actor_bounds.example.json":
         "feedback/actor/get_actor_bounds.response.schema.json",
+    "get_component_state.example.json":
+        "feedback/actor/get_component_state.response.schema.json",
+    "get_material_assignment.example.json":
+        "feedback/actor/get_material_assignment.response.schema.json",
     "get_asset_metadata.example.json":
         "feedback/asset/get_asset_metadata.response.schema.json",
     "get_dirty_assets.example.json":

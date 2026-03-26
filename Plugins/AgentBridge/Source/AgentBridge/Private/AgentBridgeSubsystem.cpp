@@ -6,6 +6,7 @@
 // 增加参数校验、统一响应、错误码、写后读回和 Transaction 管理。
 
 #include "AgentBridgeSubsystem.h"
+#include "AutomationDriverAdapter.h"
 
 #include "Editor.h"
 #include "Engine/World.h"
@@ -15,8 +16,12 @@
 #include "Engine/OverlapResult.h"
 #include "EngineUtils.h"
 #include "GameFramework/Actor.h"
+#include "Components/ActorComponent.h"
 #include "Components/BoxComponent.h"
+#include "Components/MeshComponent.h"
 #include "Components/PrimitiveComponent.h"
+#include "Components/SceneComponent.h"
+#include "Materials/MaterialInterface.h"
 
 #include "EditorAssetLibrary.h"
 #include "AssetToolsModule.h"
@@ -29,15 +34,70 @@
 #include "FileHelpers.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Misc/App.h"
+#include "Misc/DefaultValueHelper.h"
 #include "Misc/Paths.h"
 #include "Misc/ScopedSlowTask.h"
 #include "Misc/FileHelper.h"
+#include "Misc/Guid.h"
 #include "HAL/FileManager.h"
 #include "HAL/PlatformProcess.h"
 #include "ImageUtils.h"
 #include "Modules/ModuleManager.h"
 #include "ScopedTransaction.h"
 #include "UObject/Package.h"
+
+#include "Async/Async.h"
+
+class FPendingUIOperation
+{
+public:
+	/** 异步任务唯一标识，供 query_ui_operation 轮询 */
+	FString OperationId;
+
+	/** 当前最小原型支持的操作类型 */
+	FString OperationType;
+
+	/** 目标 Actor 路径 */
+	FString ActorPath;
+
+	/** 主参数：当前原型里等价于 ButtonLabel */
+	FString Target;
+
+	/** 预留给后续输入类操作使用，当前原型不消费 */
+	FString Value;
+
+	/** DragAssetToViewport 异步原型用的世界坐标参数 */
+	bool bHasDropLocation = false;
+	FVector DropLocation = FVector::ZeroVector;
+
+	/** 单次 UI 操作超时秒数 */
+	float TimeoutSeconds = 10.0f;
+
+	/** 异步运行态：pending / running / success / failed */
+	FString OperationState = TEXT("pending");
+
+	/** 调试信息：当前原型使用的执行后端 */
+	FString ExecutionBackend = TEXT("automation_driver_sync_off_game_thread_prototype");
+
+	/** 如有需要，记录 Driver 使用的定位路径 */
+	FString DebugLocatorPath;
+
+	/** 最近一次状态说明 */
+	FString Summary;
+
+	/** 最终失败原因（如果有） */
+	FString FailureReason;
+
+	/** 创建/更新时间（秒） */
+	double CreatedAtSeconds = 0.0;
+	double UpdatedAtSeconds = 0.0;
+
+	/** 线程池任务 future；query 时检查是否已完成 */
+	TUniquePtr<TFuture<FUIOperationResult>> Future;
+
+	/** 任务完成后的最终结果 */
+	TOptional<FUIOperationResult> FinalResult;
+};
 #include "UnrealClient.h"
 
 #include "Dom/JsonObject.h"
@@ -53,6 +113,129 @@ namespace
 		Response.SyncForRemote();
 		return Response;
 	}
+
+	static bool TryParseVectorCsv(const FString& InValue, FVector& OutVector)
+	{
+		TArray<FString> Parts;
+		InValue.ParseIntoArray(Parts, TEXT(","), true);
+		if (Parts.Num() != 3)
+		{
+			return false;
+		}
+
+		float Parsed[3] = {0.0f, 0.0f, 0.0f};
+		for (int32 Index = 0; Index < 3; ++Index)
+		{
+			const FString Token = Parts[Index].TrimStartAndEnd();
+			if (!FDefaultValueHelper::ParseFloat(Token, Parsed[Index]))
+			{
+				return false;
+			}
+		}
+
+		OutVector = FVector(Parsed[0], Parsed[1], Parsed[2]);
+		return true;
+	}
+
+	static TArray<TSharedPtr<FJsonValue>> VectorToJsonArray(const FVector& V)
+	{
+		TArray<TSharedPtr<FJsonValue>> Arr;
+		Arr.Add(MakeShareable(new FJsonValueNumber(V.X)));
+		Arr.Add(MakeShareable(new FJsonValueNumber(V.Y)));
+		Arr.Add(MakeShareable(new FJsonValueNumber(V.Z)));
+		return Arr;
+	}
+
+	static TArray<TSharedPtr<FJsonValue>> RotatorToJsonArray(const FRotator& R)
+	{
+		TArray<TSharedPtr<FJsonValue>> Arr;
+		Arr.Add(MakeShareable(new FJsonValueNumber(R.Pitch)));
+		Arr.Add(MakeShareable(new FJsonValueNumber(R.Yaw)));
+		Arr.Add(MakeShareable(new FJsonValueNumber(R.Roll)));
+		return Arr;
+	}
+
+	static UActorComponent* FindActorComponentByName(const AActor* Actor, const FString& ComponentName)
+	{
+		if (!Actor)
+		{
+			return nullptr;
+		}
+
+		TInlineComponentArray<UActorComponent*> Components;
+		Actor->GetComponents(Components);
+		for (UActorComponent* Component : Components)
+		{
+			if (Component && Component->GetName().Equals(ComponentName, ESearchCase::CaseSensitive))
+			{
+				return Component;
+			}
+		}
+		return nullptr;
+	}
+
+	static UMeshComponent* FindPrimaryMeshComponent(const AActor* Actor)
+	{
+		if (!Actor)
+		{
+			return nullptr;
+		}
+
+		if (const UMeshComponent* RootMesh = Cast<UMeshComponent>(Actor->GetRootComponent()))
+		{
+			return const_cast<UMeshComponent*>(RootMesh);
+		}
+
+		return Actor->FindComponentByClass<UMeshComponent>();
+	}
+
+	static FString GetCurrentLevelPackagePath(const UWorld* World)
+	{
+		if (World && World->GetOutermost())
+		{
+			return World->GetOutermost()->GetName();
+		}
+		return TEXT("");
+	}
+
+	static bool TryParseCollisionEnabledName(
+		const FString& InValue,
+		ECollisionEnabled::Type& OutValue,
+		FString& OutNormalizedName)
+	{
+		const FString Normalized = InValue.TrimStartAndEnd();
+		if (Normalized.IsEmpty())
+		{
+			return false;
+		}
+
+		struct FCollisionEnabledEntry
+		{
+			const TCHAR* Name;
+			ECollisionEnabled::Type Value;
+		};
+
+		static const FCollisionEnabledEntry Entries[] = {
+			{TEXT("NoCollision"), ECollisionEnabled::NoCollision},
+			{TEXT("QueryOnly"), ECollisionEnabled::QueryOnly},
+			{TEXT("PhysicsOnly"), ECollisionEnabled::PhysicsOnly},
+			{TEXT("QueryAndPhysics"), ECollisionEnabled::QueryAndPhysics},
+			{TEXT("ProbeOnly"), ECollisionEnabled::ProbeOnly},
+			{TEXT("QueryAndProbe"), ECollisionEnabled::QueryAndProbe},
+		};
+
+		for (const FCollisionEnabledEntry& Entry : Entries)
+		{
+			if (Normalized.Equals(Entry.Name, ESearchCase::IgnoreCase))
+			{
+				OutValue = Entry.Value;
+				OutNormalizedName = Entry.Name;
+				return true;
+			}
+		}
+
+		return false;
+	}
 }
 
 // ============================================================
@@ -67,6 +250,8 @@ void UAgentBridgeSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UAgentBridgeSubsystem::Deinitialize()
 {
+	// 异步原型状态只在 Editor 会话内有效；退出时直接清空，避免残留无效 future。
+	PendingUIOperations.Empty();
 	UE_LOG(LogTemp, Log, TEXT("[AgentBridge] Subsystem deinitialized"));
 	Super::Deinitialize();
 }
@@ -517,6 +702,121 @@ FBridgeResponse UAgentBridgeSubsystem::RunMapCheck()
 }
 
 // ============================================================
+// 查询接口 8: GetComponentState
+// UE5 依赖: Actor->GetComponents() + USceneComponent::GetRelativeTransform()
+// ============================================================
+
+FBridgeResponse UAgentBridgeSubsystem::GetComponentState(
+	const FString& ActorPath,
+	const FString& ComponentName)
+{
+	FBridgeResponse ValidationError;
+	if (!AgentBridge::ValidateRequiredString(ActorPath, TEXT("ActorPath"), ValidationError))
+	{
+		return ValidationError;
+	}
+	if (!AgentBridge::ValidateRequiredString(ComponentName, TEXT("ComponentName"), ValidationError))
+	{
+		return ValidationError;
+	}
+	if (!AgentBridge::IsEditorReady(ValidationError))
+	{
+		return ValidationError;
+	}
+
+	AActor* Actor = FindActorByPath(ActorPath);
+	if (!Actor)
+	{
+		return AgentBridge::MakeFailed(
+			TEXT("Actor not found"),
+			EBridgeErrorCode::ActorNotFound,
+			FString::Printf(TEXT("No actor at path: %s"), *ActorPath));
+	}
+
+	UActorComponent* Component = FindActorComponentByName(Actor, ComponentName);
+	if (!Component)
+	{
+		return AgentBridge::MakeFailed(
+			TEXT("Component not found"),
+			EBridgeErrorCode::ToolExecutionFailed,
+			FString::Printf(TEXT("No component named '%s' on actor '%s'"), *ComponentName, *ActorPath));
+	}
+
+	USceneComponent* SceneComponent = Cast<USceneComponent>(Component);
+	if (!SceneComponent)
+	{
+		return AgentBridge::MakeFailed(
+			TEXT("Component is not a scene component"),
+			EBridgeErrorCode::ToolExecutionFailed,
+			FString::Printf(TEXT("Component '%s' does not expose relative transform"), *ComponentName));
+	}
+
+	TSharedPtr<FJsonObject> Data = MakeShareable(new FJsonObject());
+	Data->SetStringField(TEXT("component_name"), SceneComponent->GetName());
+	Data->SetStringField(TEXT("component_class"), SceneComponent->GetClass()->GetPathName());
+	Data->SetArrayField(TEXT("relative_location"), VectorToJsonArray(SceneComponent->GetRelativeLocation()));
+	Data->SetArrayField(TEXT("relative_rotation"), RotatorToJsonArray(SceneComponent->GetRelativeRotation()));
+	Data->SetArrayField(TEXT("relative_scale"), VectorToJsonArray(SceneComponent->GetRelativeScale3D()));
+
+	return AgentBridge::MakeSuccess(TEXT("Component state fetched successfully"), Data);
+}
+
+// ============================================================
+// 查询接口 9: GetMaterialAssignment
+// UE5 依赖: UMeshComponent::GetNumMaterials / GetMaterial()
+// ============================================================
+
+FBridgeResponse UAgentBridgeSubsystem::GetMaterialAssignment(const FString& ActorPath)
+{
+	FBridgeResponse ValidationError;
+	if (!AgentBridge::ValidateRequiredString(ActorPath, TEXT("ActorPath"), ValidationError))
+	{
+		return ValidationError;
+	}
+	if (!AgentBridge::IsEditorReady(ValidationError))
+	{
+		return ValidationError;
+	}
+
+	AActor* Actor = FindActorByPath(ActorPath);
+	if (!Actor)
+	{
+		return AgentBridge::MakeFailed(
+			TEXT("Actor not found"),
+			EBridgeErrorCode::ActorNotFound,
+			FString::Printf(TEXT("No actor at path: %s"), *ActorPath));
+	}
+
+	UMeshComponent* MeshComponent = FindPrimaryMeshComponent(Actor);
+	if (!MeshComponent)
+	{
+		return AgentBridge::MakeFailed(
+			TEXT("MeshComponent not found"),
+			EBridgeErrorCode::ToolExecutionFailed,
+			FString::Printf(TEXT("Actor '%s' has no MeshComponent"), *ActorPath));
+	}
+
+	TArray<TSharedPtr<FJsonValue>> MaterialsArray;
+	const int32 MaterialCount = MeshComponent->GetNumMaterials();
+	for (int32 SlotIndex = 0; SlotIndex < MaterialCount; ++SlotIndex)
+	{
+		UMaterialInterface* Material = MeshComponent->GetMaterial(SlotIndex);
+
+		TSharedPtr<FJsonObject> Entry = MakeShareable(new FJsonObject());
+		Entry->SetNumberField(TEXT("slot_index"), SlotIndex);
+		Entry->SetStringField(TEXT("material_path"), Material ? Material->GetPathName() : TEXT(""));
+		Entry->SetStringField(TEXT("material_name"), Material ? Material->GetName() : TEXT(""));
+		MaterialsArray.Add(MakeShareable(new FJsonValueObject(Entry)));
+	}
+
+	TSharedPtr<FJsonObject> Data = MakeShareable(new FJsonObject());
+	Data->SetStringField(TEXT("actor_path"), ActorPath);
+	Data->SetArrayField(TEXT("materials"), MaterialsArray);
+
+	return AgentBridge::MakeSuccess(TEXT("Material assignment retrieved"), Data);
+}
+
+// ============================================================
 // 写接口 1: SpawnActor
 // UE5 依赖: UEditorLevelLibrary::SpawnActorFromClass()
 // Transaction: FScopedTransaction（自动纳入 Undo）
@@ -860,6 +1160,208 @@ FBridgeResponse UAgentBridgeSubsystem::CreateBlueprintChild(
 
 	return FinalizeWriteResponse(AgentBridge::MakeSuccess(
 		FString::Printf(TEXT("Created Blueprint at %s"), *CreatedPath), Data));
+}
+
+// ============================================================
+// 写接口 5: SetActorCollision
+// UE5 依赖: UPrimitiveComponent::SetCollisionProfileName / SetCollisionEnabled / SetCanEverAffectNavigation
+// Transaction: FScopedTransaction
+// ============================================================
+
+FBridgeResponse UAgentBridgeSubsystem::SetActorCollision(
+	const FString& ActorPath,
+	const FString& CollisionProfileName,
+	const FString& CollisionEnabledName,
+	bool bCanAffectNavigation,
+	bool bDryRun)
+{
+	FBridgeResponse ValidationError;
+	if (!AgentBridge::ValidateRequiredString(ActorPath, TEXT("ActorPath"), ValidationError)) return FinalizeWriteResponse(ValidationError);
+	if (!AgentBridge::ValidateRequiredString(CollisionProfileName, TEXT("CollisionProfileName"), ValidationError)) return FinalizeWriteResponse(ValidationError);
+	if (!AgentBridge::ValidateRequiredString(CollisionEnabledName, TEXT("CollisionEnabledName"), ValidationError)) return FinalizeWriteResponse(ValidationError);
+	if (!AgentBridge::IsEditorReady(ValidationError)) return FinalizeWriteResponse(ValidationError);
+
+	ECollisionEnabled::Type CollisionEnabled = ECollisionEnabled::QueryAndPhysics;
+	FString NormalizedCollisionEnabledName;
+	if (!TryParseCollisionEnabledName(CollisionEnabledName, CollisionEnabled, NormalizedCollisionEnabledName))
+	{
+		return FinalizeWriteResponse(AgentBridge::MakeValidationError(
+			TEXT("CollisionEnabledName"),
+			FString::Printf(
+				TEXT("Unsupported collision enabled value '%s'. Expected one of: NoCollision, QueryOnly, PhysicsOnly, QueryAndPhysics, ProbeOnly, QueryAndProbe"),
+				*CollisionEnabledName)));
+	}
+
+	AActor* Actor = FindActorByPath(ActorPath);
+	if (!Actor)
+	{
+		return FinalizeWriteResponse(AgentBridge::MakeFailed(
+			TEXT("Actor not found"),
+			EBridgeErrorCode::ActorNotFound,
+			FString::Printf(TEXT("No actor at path: %s"), *ActorPath)));
+	}
+
+	UPrimitiveComponent* PrimitiveComponent = Cast<UPrimitiveComponent>(Actor->GetRootComponent());
+	if (!PrimitiveComponent)
+	{
+		return FinalizeWriteResponse(AgentBridge::MakeFailed(
+			TEXT("PrimitiveComponent not found"),
+			EBridgeErrorCode::ToolExecutionFailed,
+			FString::Printf(TEXT("Actor '%s' root component is not a PrimitiveComponent"), *ActorPath)));
+	}
+
+	TSharedPtr<FJsonObject> OldCollision = ReadCollisionToJson(Actor);
+
+	if (bDryRun)
+	{
+		TSharedPtr<FJsonObject> Data = MakeEmptyWriteData();
+		TArray<TSharedPtr<FJsonValue>> ModifiedArray;
+		TSharedPtr<FJsonObject> ModifiedRef = MakeShareable(new FJsonObject());
+		ModifiedRef->SetStringField(TEXT("actor_path"), ActorPath);
+		ModifiedArray.Add(MakeShareable(new FJsonValueObject(ModifiedRef)));
+		Data->SetArrayField(TEXT("modified_objects"), ModifiedArray);
+		Data->SetObjectField(TEXT("old_collision"), OldCollision);
+
+		TSharedPtr<FJsonObject> PreviewCollision = MakeShareable(new FJsonObject(*OldCollision));
+		PreviewCollision->SetStringField(TEXT("collision_profile_name"), CollisionProfileName);
+		PreviewCollision->SetStringField(TEXT("collision_enabled"), NormalizedCollisionEnabledName);
+		PreviewCollision->SetBoolField(TEXT("can_affect_navigation"), bCanAffectNavigation);
+		Data->SetObjectField(TEXT("preview_collision"), PreviewCollision);
+
+		return FinalizeWriteResponse(AgentBridge::MakeSuccess(TEXT("Dry run: would modify collision"), Data));
+	}
+
+	FScopedTransaction Transaction(FText::FromString(
+		FString::Printf(TEXT("AgentBridge: SetCollision %s"), *Actor->GetActorNameOrLabel())));
+
+	Actor->Modify();
+	PrimitiveComponent->Modify();
+	PrimitiveComponent->SetCollisionProfileName(FName(*CollisionProfileName));
+	PrimitiveComponent->SetCollisionEnabled(CollisionEnabled);
+	PrimitiveComponent->SetCanEverAffectNavigation(bCanAffectNavigation);
+
+	TSharedPtr<FJsonObject> ActualCollision = ReadCollisionToJson(Actor);
+	TSharedPtr<FJsonObject> Data = MakeEmptyWriteData();
+
+	TArray<TSharedPtr<FJsonValue>> ModifiedArray;
+	TSharedPtr<FJsonObject> ModifiedRef = MakeShareable(new FJsonObject());
+	ModifiedRef->SetStringField(TEXT("actor_path"), ActorPath);
+	ModifiedArray.Add(MakeShareable(new FJsonValueObject(ModifiedRef)));
+	Data->SetArrayField(TEXT("modified_objects"), ModifiedArray);
+	Data->SetObjectField(TEXT("old_collision"), OldCollision);
+	Data->SetObjectField(TEXT("actual_collision"), ActualCollision);
+
+	TArray<TSharedPtr<FJsonValue>> DirtyArray;
+	const FString LevelPath = GetCurrentLevelPackagePath(GetEditorWorld());
+	if (!LevelPath.IsEmpty())
+	{
+		DirtyArray.Add(MakeShareable(new FJsonValueString(LevelPath)));
+	}
+	Data->SetArrayField(TEXT("dirty_assets"), DirtyArray);
+
+	return FinalizeWriteResponse(AgentBridge::MakeSuccess(TEXT("Collision updated"), Data));
+}
+
+// ============================================================
+// 写接口 6: AssignMaterial
+// UE5 依赖: LoadObject<UMaterialInterface>() + UMeshComponent::SetMaterial()
+// Transaction: FScopedTransaction
+// ============================================================
+
+FBridgeResponse UAgentBridgeSubsystem::AssignMaterial(
+	const FString& ActorPath,
+	const FString& MaterialPath,
+	int32 SlotIndex,
+	bool bDryRun)
+{
+	FBridgeResponse ValidationError;
+	if (!AgentBridge::ValidateRequiredString(ActorPath, TEXT("ActorPath"), ValidationError)) return FinalizeWriteResponse(ValidationError);
+	if (!AgentBridge::ValidateRequiredString(MaterialPath, TEXT("MaterialPath"), ValidationError)) return FinalizeWriteResponse(ValidationError);
+	if (SlotIndex < 0)
+	{
+		return FinalizeWriteResponse(AgentBridge::MakeValidationError(TEXT("SlotIndex"), TEXT("SlotIndex must be >= 0")));
+	}
+	if (!AgentBridge::IsEditorReady(ValidationError)) return FinalizeWriteResponse(ValidationError);
+
+	AActor* Actor = FindActorByPath(ActorPath);
+	if (!Actor)
+	{
+		return FinalizeWriteResponse(AgentBridge::MakeFailed(
+			TEXT("Actor not found"),
+			EBridgeErrorCode::ActorNotFound,
+			FString::Printf(TEXT("No actor at path: %s"), *ActorPath)));
+	}
+
+	UMeshComponent* MeshComponent = FindPrimaryMeshComponent(Actor);
+	if (!MeshComponent)
+	{
+		return FinalizeWriteResponse(AgentBridge::MakeFailed(
+			TEXT("MeshComponent not found"),
+			EBridgeErrorCode::ToolExecutionFailed,
+			FString::Printf(TEXT("Actor '%s' has no MeshComponent"), *ActorPath)));
+	}
+
+	if (SlotIndex >= MeshComponent->GetNumMaterials())
+	{
+		return FinalizeWriteResponse(AgentBridge::MakeValidationError(
+			TEXT("SlotIndex"),
+			FString::Printf(TEXT("SlotIndex %d is out of range. NumMaterials=%d"), SlotIndex, MeshComponent->GetNumMaterials())));
+	}
+
+	UMaterialInterface* Material = LoadObject<UMaterialInterface>(nullptr, *MaterialPath);
+	if (!Material)
+	{
+		return FinalizeWriteResponse(AgentBridge::MakeFailed(
+			FString::Printf(TEXT("Material not found: %s"), *MaterialPath),
+			EBridgeErrorCode::AssetNotFound,
+			FString::Printf(TEXT("Cannot load material asset: %s"), *MaterialPath)));
+	}
+
+	UMaterialInterface* OldMaterial = MeshComponent->GetMaterial(SlotIndex);
+
+	if (bDryRun)
+	{
+		TSharedPtr<FJsonObject> Data = MakeEmptyWriteData();
+		TArray<TSharedPtr<FJsonValue>> ModifiedArray;
+		TSharedPtr<FJsonObject> ModifiedRef = MakeShareable(new FJsonObject());
+		ModifiedRef->SetStringField(TEXT("actor_path"), ActorPath);
+		ModifiedArray.Add(MakeShareable(new FJsonValueObject(ModifiedRef)));
+		Data->SetArrayField(TEXT("modified_objects"), ModifiedArray);
+		Data->SetStringField(TEXT("old_material_path"), OldMaterial ? OldMaterial->GetPathName() : TEXT(""));
+		Data->SetStringField(TEXT("preview_material_path"), Material->GetPathName());
+		Data->SetNumberField(TEXT("slot_index"), SlotIndex);
+		return FinalizeWriteResponse(AgentBridge::MakeSuccess(TEXT("Dry run: would assign material"), Data));
+	}
+
+	FScopedTransaction Transaction(FText::FromString(
+		FString::Printf(TEXT("AgentBridge: AssignMaterial %s"), *Actor->GetActorNameOrLabel())));
+
+	Actor->Modify();
+	MeshComponent->Modify();
+	MeshComponent->SetMaterial(SlotIndex, Material);
+
+	UMaterialInterface* ActualMaterial = MeshComponent->GetMaterial(SlotIndex);
+
+	TSharedPtr<FJsonObject> Data = MakeEmptyWriteData();
+	TArray<TSharedPtr<FJsonValue>> ModifiedArray;
+	TSharedPtr<FJsonObject> ModifiedRef = MakeShareable(new FJsonObject());
+	ModifiedRef->SetStringField(TEXT("actor_path"), ActorPath);
+	ModifiedArray.Add(MakeShareable(new FJsonValueObject(ModifiedRef)));
+	Data->SetArrayField(TEXT("modified_objects"), ModifiedArray);
+	Data->SetStringField(TEXT("old_material_path"), OldMaterial ? OldMaterial->GetPathName() : TEXT(""));
+	Data->SetStringField(TEXT("actual_material_path"), ActualMaterial ? ActualMaterial->GetPathName() : TEXT(""));
+	Data->SetStringField(TEXT("actual_material_name"), ActualMaterial ? ActualMaterial->GetName() : TEXT(""));
+	Data->SetNumberField(TEXT("slot_index"), SlotIndex);
+
+	TArray<TSharedPtr<FJsonValue>> DirtyArray;
+	const FString LevelPath = GetCurrentLevelPackagePath(GetEditorWorld());
+	if (!LevelPath.IsEmpty())
+	{
+		DirtyArray.Add(MakeShareable(new FJsonValueString(LevelPath)));
+	}
+	Data->SetArrayField(TEXT("dirty_assets"), DirtyArray);
+
+	return FinalizeWriteResponse(AgentBridge::MakeSuccess(TEXT("Material assigned"), Data));
 }
 
 // ============================================================
@@ -1306,6 +1808,10 @@ FBridgeResponse UAgentBridgeSubsystem::UIOperationResultToResponse(
 	Data->SetBoolField(TEXT("ui_idle_after"), UIResult.bUIIdleAfter);
 	Data->SetNumberField(TEXT("duration_seconds"), UIResult.DurationSeconds);
 	Data->SetStringField(TEXT("tool_layer"), TEXT("L3_UITool"));
+	if (!UIResult.DebugLocatorPath.IsEmpty())
+	{
+		Data->SetStringField(TEXT("debug_locator_path"), UIResult.DebugLocatorPath);
+	}
 
 	if (UIResult.IsSuccess())
 	{
@@ -1539,6 +2045,309 @@ FBridgeResponse UAgentBridgeSubsystem::DragAssetToViewport(
 
 	Response.SyncForRemote();
 	return Response;
+}
+
+// ============================================================
+// StartUIOperation / QueryUIOperation
+// 异步原型：当前支持 click_detail_panel_button / type_in_detail_panel_field / drag_asset_to_viewport
+// ============================================================
+
+FBridgeResponse UAgentBridgeSubsystem::StartUIOperation(
+	const FString& OperationType,
+	const FString& ActorPath,
+	const FString& Target,
+	const FString& Value,
+	float TimeoutSeconds,
+	bool bDryRun)
+{
+	FBridgeResponse ValidationError;
+	if (!AgentBridge::ValidateRequiredString(OperationType, TEXT("OperationType"), ValidationError)) return ValidationError;
+
+	const FString NormalizedOperation = OperationType.TrimStartAndEnd().ToLower();
+	if (NormalizedOperation != TEXT("click_detail_panel_button")
+		&& NormalizedOperation != TEXT("type_in_detail_panel_field")
+		&& NormalizedOperation != TEXT("drag_asset_to_viewport"))
+	{
+		return AgentBridge::MakeValidationError(
+			TEXT("OperationType"),
+			FString::Printf(
+				TEXT("Unsupported async UI operation: '%s'. Prototype currently supports click_detail_panel_button / type_in_detail_panel_field / drag_asset_to_viewport"),
+				*OperationType));
+	}
+
+	if ((NormalizedOperation == TEXT("click_detail_panel_button")
+		|| NormalizedOperation == TEXT("type_in_detail_panel_field"))
+		&& !AgentBridge::ValidateRequiredString(ActorPath, TEXT("ActorPath"), ValidationError))
+	{
+		return ValidationError;
+	}
+
+	if (!AgentBridge::ValidateRequiredString(Target, TEXT("Target"), ValidationError)) return ValidationError;
+
+	if ((NormalizedOperation == TEXT("type_in_detail_panel_field")
+		|| NormalizedOperation == TEXT("drag_asset_to_viewport"))
+		&& !AgentBridge::ValidateRequiredString(Value, TEXT("Value"), ValidationError))
+	{
+		return ValidationError;
+	}
+
+	if (TimeoutSeconds <= 0.0f)
+	{
+		return AgentBridge::MakeValidationError(TEXT("TimeoutSeconds"), TEXT("TimeoutSeconds must be > 0"));
+	}
+
+	if (!FAutomationDriverAdapter::IsAvailable())
+	{
+		return AgentBridge::MakeDriverNotAvailable();
+	}
+
+	if (NormalizedOperation == TEXT("click_detail_panel_button")
+		|| NormalizedOperation == TEXT("type_in_detail_panel_field"))
+	{
+		AActor* Actor = FindActorByPath(ActorPath);
+		if (!Actor)
+		{
+			return AgentBridge::MakeFailed(TEXT("Actor not found"), EBridgeErrorCode::ActorNotFound, ActorPath);
+		}
+	}
+
+	FVector ParsedDropLocation = FVector::ZeroVector;
+	if (NormalizedOperation == TEXT("drag_asset_to_viewport"))
+	{
+		if (!TryParseVectorCsv(Value, ParsedDropLocation))
+		{
+			return AgentBridge::MakeValidationError(
+				TEXT("Value"),
+				TEXT("drag_asset_to_viewport requires Value formatted as 'X,Y,Z'"));
+		}
+	}
+
+	if (bDryRun)
+	{
+		TSharedPtr<FJsonObject> Data = MakeShareable(new FJsonObject());
+		Data->SetStringField(TEXT("operation_type"), NormalizedOperation);
+		Data->SetStringField(TEXT("actor_path"), ActorPath);
+		Data->SetStringField(TEXT("target"), Target);
+		Data->SetStringField(TEXT("value"), Value);
+		Data->SetNumberField(TEXT("timeout_seconds"), TimeoutSeconds);
+		Data->SetStringField(TEXT("operation_state"), TEXT("validated"));
+		if (NormalizedOperation == TEXT("drag_asset_to_viewport"))
+		{
+			TArray<TSharedPtr<FJsonValue>> DropLocationArray;
+			DropLocationArray.Add(MakeShareable(new FJsonValueNumber(ParsedDropLocation.X)));
+			DropLocationArray.Add(MakeShareable(new FJsonValueNumber(ParsedDropLocation.Y)));
+			DropLocationArray.Add(MakeShareable(new FJsonValueNumber(ParsedDropLocation.Z)));
+			Data->SetArrayField(TEXT("drop_location"), DropLocationArray);
+			Data->SetStringField(TEXT("execution_backend"), TEXT("drag_asset_to_viewport_async_prototype"));
+		}
+		else
+		{
+			Data->SetStringField(TEXT("execution_backend"),
+				NormalizedOperation == TEXT("click_detail_panel_button")
+				? TEXT("automation_driver_sync_off_game_thread_prototype")
+				: TEXT("detail_panel_text_entry_async_prototype"));
+		}
+		Data->SetStringField(TEXT("tool_layer"), TEXT("L3_UITool_AsyncPrototype"));
+		return AgentBridge::MakeSuccess(TEXT("Dry run: async UI operation validated"), Data);
+	}
+
+	TSharedPtr<FPendingUIOperation> Operation = MakeShared<FPendingUIOperation>();
+	Operation->OperationId = FGuid::NewGuid().ToString(EGuidFormats::DigitsWithHyphensLower);
+	Operation->OperationType = NormalizedOperation;
+	Operation->ActorPath = ActorPath;
+	Operation->Target = Target;
+	Operation->Value = Value;
+	Operation->TimeoutSeconds = TimeoutSeconds;
+	Operation->OperationState = TEXT("running");
+	Operation->Summary = TEXT("Async UI operation queued");
+	Operation->CreatedAtSeconds = FPlatformTime::Seconds();
+	Operation->UpdatedAtSeconds = Operation->CreatedAtSeconds;
+	Operation->bHasDropLocation = (NormalizedOperation == TEXT("drag_asset_to_viewport"));
+	if (Operation->bHasDropLocation)
+	{
+		Operation->DropLocation = ParsedDropLocation;
+	}
+	Operation->ExecutionBackend =
+		NormalizedOperation == TEXT("click_detail_panel_button")
+		? TEXT("automation_driver_sync_off_game_thread_prototype")
+		: (NormalizedOperation == TEXT("type_in_detail_panel_field")
+			? TEXT("detail_panel_text_entry_async_prototype")
+			: TEXT("drag_asset_to_viewport_async_prototype"));
+
+	// 原型阶段先把“RC 请求快速返回 + 后台任务轮询完成”这条链跑通。
+	Operation->Future = MakeUnique<TFuture<FUIOperationResult>>(Async(EAsyncExecution::ThreadPool,
+		[NormalizedOperation, ActorPath, Target, Value, TimeoutSeconds]()
+		{
+			if (NormalizedOperation == TEXT("click_detail_panel_button"))
+			{
+				return FAutomationDriverAdapter::ClickDetailPanelButtonOffGameThread(
+					ActorPath,
+					Target,
+					TimeoutSeconds);
+			}
+
+			if (NormalizedOperation == TEXT("drag_asset_to_viewport"))
+			{
+				FVector DropLocation = FVector::ZeroVector;
+				if (!TryParseVectorCsv(Value, DropLocation))
+				{
+					FUIOperationResult InvalidValueResult;
+					InvalidValueResult.FailureReason = TEXT("Invalid drop location payload for drag_asset_to_viewport");
+					return InvalidValueResult;
+				}
+
+				return FAutomationDriverAdapter::DragAssetToViewportAsyncPrototype(
+					Target,
+					DropLocation,
+					TimeoutSeconds);
+			}
+
+			return FAutomationDriverAdapter::TypeInDetailPanelFieldAsyncPrototype(
+				ActorPath,
+				Target,
+				Value,
+				TimeoutSeconds);
+		}));
+
+	PendingUIOperations.Add(Operation->OperationId, Operation);
+
+	TSharedPtr<FJsonObject> Data = MakeShareable(new FJsonObject());
+	Data->SetStringField(TEXT("operation_id"), Operation->OperationId);
+	Data->SetStringField(TEXT("operation_type"), Operation->OperationType);
+	Data->SetStringField(TEXT("actor_path"), Operation->ActorPath);
+	Data->SetStringField(TEXT("target"), Operation->Target);
+	Data->SetStringField(TEXT("value"), Operation->Value);
+	Data->SetNumberField(TEXT("timeout_seconds"), Operation->TimeoutSeconds);
+	Data->SetStringField(TEXT("operation_state"), Operation->OperationState);
+	Data->SetStringField(TEXT("execution_backend"), Operation->ExecutionBackend);
+	Data->SetStringField(TEXT("tool_layer"), TEXT("L3_UITool_AsyncPrototype"));
+
+	return AgentBridge::MakeSuccess(TEXT("Async UI operation started"), Data);
+}
+
+FBridgeResponse UAgentBridgeSubsystem::QueryUIOperation(const FString& OperationId)
+{
+	FBridgeResponse ValidationError;
+	if (!AgentBridge::ValidateRequiredString(OperationId, TEXT("OperationId"), ValidationError)) return ValidationError;
+
+	TSharedPtr<FPendingUIOperation>* Found = PendingUIOperations.Find(OperationId);
+	if (!Found || !Found->IsValid())
+	{
+		return AgentBridge::MakeFailed(
+			TEXT("UI operation not found"),
+			EBridgeErrorCode::InvalidArgs,
+			FString::Printf(TEXT("Unknown operation_id: %s"), *OperationId));
+	}
+
+	RefreshPendingUIOperation(*Found);
+	return BuildPendingUIOperationResponse(*Found);
+}
+
+void UAgentBridgeSubsystem::RefreshPendingUIOperation(const TSharedPtr<FPendingUIOperation>& Operation)
+{
+	if (!Operation.IsValid() || !Operation->Future.IsValid())
+	{
+		return;
+	}
+
+	if (!Operation->Future->IsReady())
+	{
+		Operation->OperationState = TEXT("running");
+		Operation->UpdatedAtSeconds = FPlatformTime::Seconds();
+		Operation->Summary = TEXT("Async UI operation is still running");
+		return;
+	}
+
+	FUIOperationResult UIResult = Operation->Future->Get();
+	Operation->Future.Reset();
+	Operation->FinalResult = UIResult;
+	Operation->DebugLocatorPath = UIResult.DebugLocatorPath;
+	Operation->UpdatedAtSeconds = FPlatformTime::Seconds();
+
+	if (UIResult.IsSuccess())
+	{
+		Operation->OperationState = TEXT("success");
+		Operation->Summary = TEXT("Async UI operation completed successfully");
+	}
+	else
+	{
+		Operation->OperationState = TEXT("failed");
+		Operation->Summary = TEXT("Async UI operation failed");
+		Operation->FailureReason = UIResult.FailureReason;
+	}
+}
+
+FBridgeResponse UAgentBridgeSubsystem::BuildPendingUIOperationResponse(const TSharedPtr<FPendingUIOperation>& Operation) const
+{
+	check(Operation.IsValid());
+
+	TSharedPtr<FJsonObject> Data = MakeShareable(new FJsonObject());
+	Data->SetStringField(TEXT("operation_id"), Operation->OperationId);
+	Data->SetStringField(TEXT("operation_type"), Operation->OperationType);
+	Data->SetStringField(TEXT("actor_path"), Operation->ActorPath);
+	Data->SetStringField(TEXT("target"), Operation->Target);
+	Data->SetStringField(TEXT("value"), Operation->Value);
+	if (Operation->bHasDropLocation)
+	{
+		TArray<TSharedPtr<FJsonValue>> DropLocationArray;
+		DropLocationArray.Add(MakeShareable(new FJsonValueNumber(Operation->DropLocation.X)));
+		DropLocationArray.Add(MakeShareable(new FJsonValueNumber(Operation->DropLocation.Y)));
+		DropLocationArray.Add(MakeShareable(new FJsonValueNumber(Operation->DropLocation.Z)));
+		Data->SetArrayField(TEXT("drop_location"), DropLocationArray);
+	}
+	Data->SetStringField(TEXT("operation_state"), Operation->OperationState);
+	Data->SetStringField(TEXT("execution_backend"), Operation->ExecutionBackend);
+	Data->SetNumberField(TEXT("timeout_seconds"), Operation->TimeoutSeconds);
+	Data->SetNumberField(TEXT("created_at_seconds"), Operation->CreatedAtSeconds);
+	Data->SetNumberField(TEXT("updated_at_seconds"), Operation->UpdatedAtSeconds);
+	Data->SetStringField(TEXT("tool_layer"), TEXT("L3_UITool_AsyncPrototype"));
+
+	if (!Operation->DebugLocatorPath.IsEmpty())
+	{
+		Data->SetStringField(TEXT("debug_locator_path"), Operation->DebugLocatorPath);
+	}
+
+	if (Operation->FinalResult.IsSet())
+	{
+		const FUIOperationResult& UIResult = Operation->FinalResult.GetValue();
+		Data->SetBoolField(TEXT("executed"), UIResult.bExecuted);
+		Data->SetBoolField(TEXT("ui_idle_after"), UIResult.bUIIdleAfter);
+		Data->SetNumberField(TEXT("duration_seconds"), UIResult.DurationSeconds);
+		if (!UIResult.FailureReason.IsEmpty())
+		{
+			Data->SetStringField(TEXT("failure_reason"), UIResult.FailureReason);
+		}
+	}
+
+	if (Operation->OperationState == TEXT("running") || Operation->OperationState == TEXT("pending"))
+	{
+		return AgentBridge::MakeSuccess(Operation->Summary, Data);
+	}
+
+	if (Operation->OperationState == TEXT("success"))
+	{
+		return AgentBridge::MakeSuccess(Operation->Summary, Data);
+	}
+
+	EBridgeErrorCode Code = EBridgeErrorCode::ToolExecutionFailed;
+	const FString FailureReason = Operation->FailureReason;
+	if (FailureReason.Contains(TEXT("not available")))
+	{
+		Code = EBridgeErrorCode::DriverNotAvailable;
+	}
+	else if (FailureReason.Contains(TEXT("not found")))
+	{
+		Code = EBridgeErrorCode::WidgetNotFound;
+	}
+	else if (FailureReason.Contains(TEXT("timeout")) || FailureReason.Contains(TEXT("idle")))
+	{
+		Code = EBridgeErrorCode::UIOperationTimeout;
+	}
+
+	FBridgeResponse Failed = AgentBridge::MakeFailed(Operation->Summary, Code, FailureReason);
+	Failed.Data = Data;
+	Failed.SyncForRemote();
+	return Failed;
 }
 
 // ============================================================

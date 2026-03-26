@@ -39,6 +39,8 @@ _CPP_QUERY_MAP = {
     "get_asset_metadata": "GetAssetMetadata",
     "get_dirty_assets": "GetDirtyAssets",
     "run_map_check": "RunMapCheck",
+    "get_component_state": "GetComponentState",
+    "get_material_assignment": "GetMaterialAssignment",
 }
 
 
@@ -216,15 +218,18 @@ def _get_actor_state_python(actor_path: str) -> dict:
 
 
 def _get_actor_state_rc(actor_path: str) -> dict:
-    from remote_control_client import get_property, RemoteControlError
+    from remote_control_client import call_function, RemoteControlError
     try:
-        loc = get_property(actor_path, "RelativeLocation")
-        rot = get_property(actor_path, "RelativeRotation")
-        scale = get_property(actor_path, "RelativeScale3D")
+        # UE5.5.4 下 ActorPath 走 /remote/object/property 读取 RelativeLocation
+        # 会出现“property could not be resolved”的 400。
+        # 这里改为直接调用 Actor 自身的原生函数，避免 B 通道在三通道一致性校验里误报失败。
+        loc = call_function(actor_path, "K2_GetActorLocation")
+        rot = call_function(actor_path, "K2_GetActorRotation")
+        scale = call_function(actor_path, "GetActorScale3D")
 
-        location = loc.get("RelativeLocation", {})
-        rotation = rot.get("RelativeRotation", {})
-        scale3d = scale.get("RelativeScale3D", {})
+        location = loc.get("ReturnValue", {})
+        rotation = rot.get("ReturnValue", {})
+        scale3d = scale.get("ReturnValue", {})
 
         return make_response(
             status="success", summary="Actor state fetched via Remote Control",
@@ -385,6 +390,166 @@ def _get_dirty_assets_rc() -> dict:
     return make_response(
         status="success", summary=f"Found {len(dirty)} dirty assets via RC",
         data={"dirty_assets": dirty},
+    )
+
+
+# ============================================================
+# 6.1 get_component_state
+# UE5 依赖: Actor->GetComponents() + USceneComponent::GetRelativeTransform()
+# ============================================================
+
+def get_component_state(actor_path: str, component_name: str) -> dict:
+    err = validate_required_string(actor_path, "actor_path")
+    if err:
+        return err
+    err = validate_required_string(component_name, "component_name")
+    if err:
+        return err
+
+    if get_channel() == BridgeChannel.MOCK:
+        return make_response(
+            status="success",
+            summary="Component state retrieved",
+            data={
+                "component_name": component_name,
+                "component_class": "/Script/Engine.StaticMeshComponent",
+                "relative_location": [0.0, 0.0, 0.0],
+                "relative_rotation": [0.0, 0.0, 0.0],
+                "relative_scale": [1.0, 1.0, 1.0],
+            },
+        )
+
+    return _dispatch(
+        "get_component_state",
+        lambda: _get_component_state_python(actor_path, component_name),
+        lambda: _get_component_state_rc(actor_path, component_name),
+        cpp_params={"ActorPath": actor_path, "ComponentName": component_name},
+    )
+
+
+def _get_component_state_python(actor_path: str, component_name: str) -> dict:
+    import unreal
+    from ue_helpers import find_actor_by_path
+    actor = find_actor_by_path(actor_path)
+    if actor is None:
+        return make_response(
+            status="failed", summary="Actor not found", data={},
+            errors=[make_error("ACTOR_NOT_FOUND", f"No actor at path: {actor_path}")])
+
+    for component in actor.get_components_by_class(unreal.ActorComponent):
+        if component.get_name() != component_name:
+            continue
+
+        if not hasattr(component, "get_relative_location"):
+            return make_response(
+                status="failed", summary="Component is not a scene component", data={},
+                errors=[make_error("TOOL_EXECUTION_FAILED", f"Component '{component_name}' has no relative transform")])
+
+        loc = component.get_relative_location()
+        rot = component.get_relative_rotation()
+        scale = component.get_relative_scale3d()
+        return make_response(
+            status="success",
+            summary="Component state retrieved",
+            data={
+                "component_name": component.get_name(),
+                "component_class": component.get_class().get_path_name(),
+                "relative_location": [loc.x, loc.y, loc.z],
+                "relative_rotation": [rot.pitch, rot.yaw, rot.roll],
+                "relative_scale": [scale.x, scale.y, scale.z],
+            },
+        )
+
+    return make_response(
+        status="failed", summary="Component not found", data={},
+        errors=[make_error("TOOL_EXECUTION_FAILED", f"No component named '{component_name}' on actor '{actor_path}'")])
+
+
+def _get_component_state_rc(actor_path: str, component_name: str) -> dict:
+    return make_response(
+        status="failed",
+        summary="get_component_state not supported via direct Remote Control",
+        data={},
+        errors=[make_error("TOOL_EXECUTION_FAILED", "Use channel C (cpp_plugin) for get_component_state")],
+    )
+
+
+# ============================================================
+# 6.2 get_material_assignment
+# UE5 依赖: UMeshComponent::GetNumMaterials / GetMaterial()
+# ============================================================
+
+def get_material_assignment(actor_path: str) -> dict:
+    err = validate_required_string(actor_path, "actor_path")
+    if err:
+        return err
+
+    if get_channel() == BridgeChannel.MOCK:
+        return make_response(
+            status="success",
+            summary="Material assignment retrieved",
+            data={
+                "actor_path": actor_path,
+                "materials": [
+                    {
+                        "slot_index": 0,
+                        "material_path": "/Engine/BasicShapes/BasicShapeMaterial",
+                        "material_name": "BasicShapeMaterial",
+                    }
+                ],
+            },
+        )
+
+    return _dispatch(
+        "get_material_assignment",
+        lambda: _get_material_assignment_python(actor_path),
+        lambda: _get_material_assignment_rc(actor_path),
+        cpp_params={"ActorPath": actor_path},
+    )
+
+
+def _get_material_assignment_python(actor_path: str) -> dict:
+    import unreal
+    from ue_helpers import find_actor_by_path
+    actor = find_actor_by_path(actor_path)
+    if actor is None:
+        return make_response(
+            status="failed", summary="Actor not found", data={},
+            errors=[make_error("ACTOR_NOT_FOUND", f"No actor at path: {actor_path}")])
+
+    mesh_component = None
+    components = actor.get_components_by_class(unreal.MeshComponent)
+    if components:
+        mesh_component = components[0]
+
+    if mesh_component is None:
+        return make_response(
+            status="failed", summary="MeshComponent not found", data={},
+            errors=[make_error("TOOL_EXECUTION_FAILED", f"Actor '{actor_path}' has no MeshComponent")])
+
+    materials = []
+    num_materials = mesh_component.get_num_materials()
+    for slot_index in range(num_materials):
+        material = mesh_component.get_material(slot_index)
+        materials.append({
+            "slot_index": slot_index,
+            "material_path": material.get_path_name() if material else "",
+            "material_name": material.get_name() if material else "",
+        })
+
+    return make_response(
+        status="success",
+        summary="Material assignment retrieved",
+        data={"actor_path": actor_path, "materials": materials},
+    )
+
+
+def _get_material_assignment_rc(actor_path: str) -> dict:
+    return make_response(
+        status="failed",
+        summary="get_material_assignment not supported via direct Remote Control",
+        data={},
+        errors=[make_error("TOOL_EXECUTION_FAILED", "Use channel C (cpp_plugin) for get_material_assignment")],
     )
 
 

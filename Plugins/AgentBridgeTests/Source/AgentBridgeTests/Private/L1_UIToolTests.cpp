@@ -4,7 +4,7 @@
 // UE5 官方模組：Automation Test Framework + Automation Driver
 // 註冊方式：IMPLEMENT_SIMPLE_AUTOMATION_TEST 宏
 // Test Flag：EditorContext + ProductFilter
-// Session Frontend 路径：Project.AgentBridge.L3.UITool.*
+// Session Frontend 路径：Project.AgentBridge.L1.UITool.*
 //
 // 测试策略：
 //   1. 每个 L3 接口的参数校验 / dry_run / Driver 可用性
@@ -17,11 +17,40 @@
 #include "AutomationDriverAdapter.h"
 #include "BridgeTypes.h"
 #include "Editor.h"
+#include "LevelEditorViewport.h"
 #include "EditorLevelLibrary.h"
 
 // ============================================================
 // 辅助宏
 // ============================================================
+
+namespace
+{
+	static FVector GetStableUIToolDropLocation()
+	{
+		// 优先使用当前关卡视口中心射线与地面 Z=0 的交点。
+		// 这样得到的目标点天然位于当前相机可见区域内，比写死远处坐标更稳定。
+		if (GCurrentLevelEditingViewportClient)
+		{
+			const FVector ViewLocation = GCurrentLevelEditingViewportClient->GetViewLocation();
+			const FVector ViewDirection = GCurrentLevelEditingViewportClient->GetViewRotation().Vector();
+
+			if (!FMath::IsNearlyZero(ViewDirection.Z))
+			{
+				const double RayDistance = -ViewLocation.Z / ViewDirection.Z;
+				if (RayDistance > 100.0)
+				{
+					FVector VisiblePoint = ViewLocation + ViewDirection * RayDistance;
+					VisiblePoint.Z = 0.0f;
+					return VisiblePoint;
+				}
+			}
+		}
+
+		// 回退到已在 Task14 真机闭环中验证过的保守坐标。
+		return FVector(600.0f, 400.0f, 0.0f);
+	}
+}
 
 #define GET_SUBSYSTEM_OR_FAIL() \
 	UAgentBridgeSubsystem* Subsystem = GEditor ? GEditor->GetEditorSubsystem<UAgentBridgeSubsystem>() : nullptr; \
@@ -45,7 +74,7 @@
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FBridgeL1_IsAutomationDriverAvailable,
-	"Project.AgentBridge.L3.UITool.IsAutomationDriverAvailable",
+	"Project.AgentBridge.L1.UITool.IsAutomationDriverAvailable",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter
 )
 
@@ -76,7 +105,7 @@ bool FBridgeL1_IsAutomationDriverAvailable::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FBridgeL1_ClickDetailPanelButton,
-	"Project.AgentBridge.L3.UITool.ClickDetailPanelButton",
+	"Project.AgentBridge.L1.UITool.ClickDetailPanelButton",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter
 )
 
@@ -137,7 +166,7 @@ bool FBridgeL1_ClickDetailPanelButton::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FBridgeL1_TypeInDetailPanelField,
-	"Project.AgentBridge.L3.UITool.TypeInDetailPanelField",
+	"Project.AgentBridge.L1.UITool.TypeInDetailPanelField",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter
 )
 
@@ -192,7 +221,7 @@ bool FBridgeL1_TypeInDetailPanelField::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FBridgeL1_DragAssetToViewport,
-	"Project.AgentBridge.L3.UITool.DragAssetToViewport",
+	"Project.AgentBridge.L1.UITool.DragAssetToViewport",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter
 )
 
@@ -209,7 +238,7 @@ bool FBridgeL1_DragAssetToViewport::RunTest(const FString& Parameters)
 
 	SKIP_IF_DRIVER_UNAVAILABLE();
 
-	FVector DropLocation(800.0f, 600.0f, 0.0f);
+	const FVector DropLocation = GetStableUIToolDropLocation();
 
 	// --- 测试 2: dry_run ---
 	{
@@ -244,12 +273,11 @@ bool FBridgeL1_DragAssetToViewport::RunTest(const FString& Parameters)
 		// L3 执行
 		FBridgeResponse L3Response = Subsystem->DragAssetToViewport(
 			TEXT("/Engine/BasicShapes/Cube"), DropLocation);
-
+		TestTrue(TEXT("DragAssetToViewport should succeed when driver is available"), L3Response.IsSuccess());
 		if (!L3Response.IsSuccess())
 		{
-			AddWarning(FString::Printf(TEXT("DragAssetToViewport failed (may be expected in CI): %s"),
-				*L3Response.Summary));
-			return true;
+			AddError(FString::Printf(TEXT("DragAssetToViewport failed: %s"), *L3Response.Summary));
+			return false;
 		}
 
 		// L3→L1 交叉比对

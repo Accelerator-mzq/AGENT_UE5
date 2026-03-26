@@ -26,6 +26,9 @@
 #include "BridgeTypes.h"
 #include "L3_FunctionalTestActor.generated.h"
 
+class UAgentBridgeSubsystem;
+class AActor;
+
 /**
  * L3 完整 Demo 验证 — Functional Test Actor
  * 
@@ -106,9 +109,27 @@ private:
 	/** 记录测试报告 */
 	void LogTestReport(int32 TotalActors, int32 PassedActors, int32 FailedActors);
 
+	/** 读取当前 Undo 栈中已提交事务深度 */
+	int32 GetCommittedTransactionDepth() const;
+
+	/** 统一生成最终附加消息 */
+	FString BuildFinishedMessage(const FString& CoreMessage) const;
+
 	/** 跟踪已生成的 Actor 路径（用于清理） */
 	TArray<FString> SpawnedActorPaths;
 
-	/** Undo 计数（用于 CleanUp 时撤销全部操作） */
-	int32 UndoCount = 0;
+	/** 跟踪运行时生成的 Actor 引用（PIE 模式下直接 Destroy 清理） */
+	TArray<TWeakObjectPtr<AActor>> SpawnedActorRefs;
+
+	/** PrepareTest 时记录的事务深度，用于 CleanUp 做快照差值 Undo */
+	int32 TransactionDepthBeforeTest = 0;
+
+	/** 最近一次生成的报告路径（Spec 驱动模式） */
+	FString LastReportPath;
+
+	/** 最近一次的执行摘要 */
+	FString LastExecutionSummary;
+
+	/** 缓存 Subsystem 引用 */
+	TObjectPtr<UAgentBridgeSubsystem> CachedSubsystem = nullptr;
 };

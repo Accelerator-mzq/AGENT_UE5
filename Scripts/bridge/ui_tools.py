@@ -24,6 +24,7 @@ L3 返回值与 L1 验证返回值做交叉比对——两者一致才判定 suc
 """
 
 from __future__ import annotations
+import time
 from typing import Optional, Dict, Any, List
 
 from bridge_core import (
@@ -31,6 +32,7 @@ from bridge_core import (
     make_response, make_error, safe_execute,
     validate_required_string, call_cpp_plugin,
 )
+from query_tools import list_level_actors
 
 
 # ============================================================
@@ -42,7 +44,17 @@ _CPP_UI_TOOL_MAP = {
     "type_in_detail_panel_field": "TypeInDetailPanelField",
     "drag_asset_to_viewport": "DragAssetToViewport",
     "is_automation_driver_available": "IsAutomationDriverAvailable",
+    "start_ui_operation": "StartUIOperation",
+    "query_ui_operation": "QueryUIOperation",
 }
+
+_ASYNC_UI_POLL_INTERVAL_SECONDS = 0.25
+_ASYNC_UI_TIMEOUT_GRACE_SECONDS = 5.0
+
+
+def _channel_value(channel) -> str:
+    """统一提取通道值，兼容重复导入时的 Enum 身份差异。"""
+    return getattr(channel, "value", str(channel))
 
 
 # ============================================================
@@ -58,10 +70,10 @@ def _dispatch_ui_tool(tool_name: str, cpp_params: Optional[Dict] = None) -> dict
     """
     channel = get_channel()
 
-    if channel == BridgeChannel.MOCK:
+    if _channel_value(channel) == BridgeChannel.MOCK.value:
         return _mock_ui_tool_response(tool_name, cpp_params)
 
-    if channel == BridgeChannel.CPP_PLUGIN:
+    if _channel_value(channel) == BridgeChannel.CPP_PLUGIN.value:
         cpp_func = _CPP_UI_TOOL_MAP.get(tool_name)
         if not cpp_func:
             return make_response(
@@ -102,6 +114,85 @@ def _mock_ui_tool_response(tool_name: str, params: Optional[Dict] = None) -> dic
     )
 
 
+def _run_async_ui_operation(
+    operation_type: str,
+    target: str,
+    actor_path: str = "",
+    value: str = "",
+    timeout_seconds: float = 10.0,
+    dry_run: bool = False,
+) -> dict:
+    """统一封装异步 UI 原型的启动与轮询。
+
+    设计目的：
+      1. 让上层继续使用同步风格的 Python 函数签名
+      2. 实际执行改走 start_ui_operation / query_ui_operation
+      3. 避开旧的 RC 同步链直接等待 UI 操作完成
+    """
+    channel = get_channel()
+
+    if _channel_value(channel) == BridgeChannel.MOCK.value:
+        return _mock_ui_tool_response(operation_type, {
+            "actor_path": actor_path,
+            "target": target,
+            "value": value,
+            "timeout_seconds": timeout_seconds,
+            "operation_state": "success",
+            "execution_backend": "mock_async_ui_operation",
+        })
+
+    start_response = start_ui_operation(
+        operation_type=operation_type,
+        actor_path=actor_path,
+        target=target,
+        value=value,
+        timeout_seconds=timeout_seconds,
+        dry_run=dry_run,
+    )
+    if start_response.get("status") not in ("success", "warning"):
+        return start_response
+
+    if dry_run:
+        return start_response
+
+    operation_id = start_response.get("data", {}).get("operation_id")
+    if not operation_id:
+        return make_response(
+            status="failed",
+            summary="Async UI operation did not return operation_id",
+            data={"operation_type": operation_type, "tool_layer": "L3_UITool_AsyncPrototype"},
+            errors=[make_error("TOOL_EXECUTION_FAILED", "Missing operation_id in start_ui_operation response")],
+        )
+
+    deadline = time.time() + max(timeout_seconds + _ASYNC_UI_TIMEOUT_GRACE_SECONDS, 1.0)
+    last_query = start_response
+
+    while time.time() < deadline:
+        query_response = query_ui_operation(operation_id)
+        last_query = query_response
+
+        query_state = query_response.get("data", {}).get("operation_state")
+        if query_state in ("success", "failed"):
+            return query_response
+
+        if query_response.get("status") not in ("success", "warning"):
+            return query_response
+
+        time.sleep(_ASYNC_UI_POLL_INTERVAL_SECONDS)
+
+    timeout_data = dict(last_query.get("data", {}))
+    timeout_data.setdefault("operation_id", operation_id)
+    timeout_data.setdefault("operation_type", operation_type)
+    timeout_data["operation_state"] = timeout_data.get("operation_state", "running")
+
+    return make_response(
+        status="failed",
+        summary=f"Async UI operation polling timed out: {operation_type}",
+        data=timeout_data,
+        errors=[make_error("TIMEOUT", f"query_ui_operation timed out after {timeout_seconds + _ASYNC_UI_TIMEOUT_GRACE_SECONDS:.2f}s")],
+    )
+
+
 # ============================================================
 # L3 接口
 # ============================================================
@@ -113,9 +204,9 @@ def is_automation_driver_available() -> bool:
     Mock 模式下返回 True。
     """
     channel = get_channel()
-    if channel == BridgeChannel.MOCK:
+    if _channel_value(channel) == BridgeChannel.MOCK.value:
         return True
-    if channel == BridgeChannel.CPP_PLUGIN:
+    if _channel_value(channel) == BridgeChannel.CPP_PLUGIN.value:
         resp = call_cpp_plugin("IsAutomationDriverAvailable")
         # RC API 返回 bool 类型的 ReturnValue
         if isinstance(resp, bool):
@@ -142,7 +233,9 @@ def click_detail_panel_button(
         dry_run: 仅校验参数和 Driver 可用性
 
     返回：
-        FBridgeResponse 格式（tool_layer: L3_UITool）
+        FBridgeResponse 格式（tool_layer: L3_UITool_AsyncPrototype）。
+        当前默认实现改走 start_ui_operation / query_ui_operation，
+        底层点击由异步原型决定具体执行后端。
     """
     err = validate_required_string(actor_path, "actor_path")
     if err:
@@ -151,11 +244,12 @@ def click_detail_panel_button(
     if err:
         return err
 
-    return _dispatch_ui_tool("click_detail_panel_button", {
-        "ActorPath": actor_path,
-        "ButtonLabel": button_label,
-        "bDryRun": dry_run,
-    })
+    return _run_async_ui_operation(
+        operation_type="click_detail_panel_button",
+        actor_path=actor_path,
+        target=button_label,
+        dry_run=dry_run,
+    )
 
 
 def type_in_detail_panel_field(
@@ -185,12 +279,20 @@ def type_in_detail_panel_field(
     if err:
         return err
 
-    return _dispatch_ui_tool("type_in_detail_panel_field", {
-        "ActorPath": actor_path,
-        "PropertyPath": property_path,
-        "Value": value,
-        "bDryRun": dry_run,
-    })
+    # 统一走异步任务壳，避免在 RC 同步链里直接等待完整的 Detail Panel 输入交互。
+    result = _run_async_ui_operation(
+        operation_type="type_in_detail_panel_field",
+        actor_path=actor_path,
+        target=property_path,
+        value=value,
+        dry_run=dry_run,
+    )
+
+    # 显式补齐字段输入语义，避免后续交叉比对把 target/value 误判成其它 UI 工具。
+    data = result.setdefault("data", {})
+    data["property_path"] = property_path
+    data["typed_value"] = value
+    return result
 
 
 def drag_asset_to_viewport(
@@ -221,14 +323,114 @@ def drag_asset_to_viewport(
             errors=[make_error("INVALID_ARGS", "drop_location must be a list of 3 numbers")]
         )
 
-    return _dispatch_ui_tool("drag_asset_to_viewport", {
-        "AssetPath": asset_path,
-        "DropLocation": {
-            "X": drop_location[0],
-            "Y": drop_location[1],
-            "Z": drop_location[2],
-        },
+    channel = get_channel()
+    if _channel_value(channel) == BridgeChannel.MOCK.value:
+        response = _mock_ui_tool_response("drag_asset_to_viewport", {
+            "asset_path": asset_path,
+            "drop_location": list(drop_location),
+        })
+        response.setdefault("data", {})["drop_location"] = list(drop_location)
+        return response
+
+    # 拖拽也统一纳入异步任务壳，避免在 RC 同步链里等待整段 Slate/Viewport 交互结束。
+    # 同时补一层最基本的 L1 读回：比较前后 actor 列表，避免“UI 执行成功但实际未落地”被误报为 success。
+    before_response = list_level_actors()
+    before_actors = before_response.get("data", {}).get("actors", []) if before_response.get("status") in ("success", "warning") else []
+    before_paths = {actor.get("actor_path", "") for actor in before_actors if isinstance(actor, dict)}
+
+    drop_location_value = ",".join(str(v) for v in drop_location)
+    result = _run_async_ui_operation(
+        operation_type="drag_asset_to_viewport",
+        actor_path="",
+        target=asset_path,
+        value=drop_location_value,
+        dry_run=dry_run,
+    )
+
+    if dry_run or result.get("status") not in ("success", "warning"):
+        return result
+
+    after_response = list_level_actors()
+    after_actors = after_response.get("data", {}).get("actors", []) if after_response.get("status") in ("success", "warning") else []
+    after_paths = {actor.get("actor_path", "") for actor in after_actors if isinstance(actor, dict)}
+
+    new_actor_paths = sorted(path for path in (after_paths - before_paths) if path)
+    new_actors = [actor for actor in after_actors if actor.get("actor_path", "") in new_actor_paths]
+
+    data = result.setdefault("data", {})
+    data["actors_before"] = len(before_paths)
+    data["actors_after"] = len(after_paths)
+    data["actors_created"] = len(new_actor_paths)
+    data["created_actors"] = new_actors
+    data["drop_location"] = list(drop_location)
+
+    if len(new_actor_paths) == 0:
+        result["status"] = "mismatch"
+        result["summary"] = (
+            f"{result.get('summary', 'Async drag finished')} "
+            f"(L1 readback: no new actor detected)"
+        )
+
+    return result
+
+
+def start_ui_operation(
+    operation_type: str,
+    actor_path: str,
+    target: str,
+    value: str = "",
+    timeout_seconds: float = 10.0,
+    dry_run: bool = False,
+) -> dict:
+    """启动异步 UI 操作原型。
+
+    当前最小支持范围：
+      - click_detail_panel_button
+      - type_in_detail_panel_field
+      - drag_asset_to_viewport
+
+    参数映射：
+      - click_detail_panel_button: actor_path=ActorPath, target=ButtonLabel
+      - type_in_detail_panel_field: actor_path=ActorPath, target=PropertyPath, value=输入值
+      - drag_asset_to_viewport: actor_path 可为空, target=AssetPath, value='X,Y,Z'
+
+    返回：
+      FBridgeResponse，data 内含 operation_id / operation_state。
+    """
+    err = validate_required_string(operation_type, "operation_type")
+    if err:
+        return err
+    normalized_operation = operation_type.strip().lower()
+    if normalized_operation in ("click_detail_panel_button", "type_in_detail_panel_field"):
+        err = validate_required_string(actor_path, "actor_path")
+        if err:
+            return err
+    err = validate_required_string(target, "target")
+    if err:
+        return err
+    if normalized_operation in ("type_in_detail_panel_field", "drag_asset_to_viewport"):
+        err = validate_required_string(value, "value")
+        if err:
+            return err
+
+    return _dispatch_ui_tool("start_ui_operation", {
+        "OperationType": operation_type,
+        "ActorPath": actor_path,
+        "Target": target,
+        "Value": value,
+        "TimeoutSeconds": timeout_seconds,
         "bDryRun": dry_run,
+    })
+
+
+def query_ui_operation(operation_id: str) -> dict:
+    """查询异步 UI 操作原型的当前状态。"""
+    err = validate_required_string(operation_id, "operation_id")
+    if err:
+        return err
+
+    return _dispatch_ui_tool("query_ui_operation", {
+        "OperationId": operation_id,
     })
 
 
@@ -293,7 +495,7 @@ def cross_verify_ui_operation(
     mismatches = []
 
     # DragAssetToViewport 特殊比对：
-    # 检查 L3 声称的 actors_created 是否在 L1 的 actor 列表中
+    # 检查 L3 声称的 created_actors 是否在 L1 的 actor 列表中。
     if "actors_created" in l3_data and l3_data["actors_created"] > 0:
         l3_created = l3_data.get("created_actors", [])
         l1_actors = l1_data.get("actors", [])
@@ -304,8 +506,114 @@ def cross_verify_ui_operation(
             if ca_path and ca_path not in l1_paths:
                 mismatches.append(f"L3 created actor '{ca_path}' not found in L1 actor list")
 
+    # TypeInDetailPanelField 特殊比对：
+    # 用 L1 get_actor_state 读回后的真实属性值，对照 L3 typed_value 做二次确认。
+    is_type_operation = (
+        l3_data.get("operation_type") == "type_in_detail_panel_field"
+        or l3_data.get("operation") == "TypeInDetailPanelField"
+        or ("property_path" in l3_data and "typed_value" in l3_data)
+    )
+    if is_type_operation:
+        property_path = l3_data.get("property_path") or l3_data.get("target", "")
+        typed_value = l3_data.get("typed_value", l3_data.get("value"))
+        actual_value = _extract_property_value_from_actor_state(l1_data, property_path)
+
+        # Detail Panel 数值提交偶发会比 query_ui_operation 的 success 晚一个短 Tick。
+        # 这里补一个极短的 L1 重试窗口，优先收敛真正的 UI 结果，再决定是否 mismatch。
+        if actual_value is None or not _values_match_for_ui_property(typed_value, actual_value):
+            retried_l1_response, retried_actual_value = _retry_ui_property_readback(
+                l1_verify_func=l1_verify_func,
+                l1_verify_args=l1_verify_args,
+                property_path=property_path,
+                expected_value=typed_value,
+                initial_response=l1_response,
+                initial_value=actual_value,
+            )
+            l1_response = retried_l1_response
+            l1_data = l1_response.get("data", {}) if isinstance(l1_response, dict) else {}
+            actual_value = retried_actual_value
+            result["l1_response"] = l1_response
+
+        if actual_value is None:
+            mismatches.append(f"L1 readback could not resolve property path: {property_path}")
+        elif not _values_match_for_ui_property(typed_value, actual_value):
+            mismatches.append(
+                f"Property mismatch for '{property_path}': L3 typed={typed_value}, L1 actual={actual_value}"
+            )
+
     result["mismatches"] = mismatches
     result["consistent"] = len(mismatches) == 0
     result["final_status"] = "success" if len(mismatches) == 0 else "mismatch"
 
     return result
+
+
+def _extract_property_value_from_actor_state(actor_state: dict, property_path: str):
+    """从 get_actor_state 返回值中解析少量高价值 Detail Panel 属性。"""
+    if not isinstance(actor_state, dict) or not isinstance(property_path, str):
+        return None
+
+    normalized = property_path.strip()
+    transform = actor_state.get("transform", {})
+    if not isinstance(transform, dict):
+        transform = {}
+
+    vector_property_map = {
+        "RelativeLocation": ("location", {"X": 0, "Y": 1, "Z": 2}),
+        "Location": ("location", {"X": 0, "Y": 1, "Z": 2}),
+        "RelativeScale3D": ("relative_scale3d", {"X": 0, "Y": 1, "Z": 2}),
+        "Scale3D": ("relative_scale3d", {"X": 0, "Y": 1, "Z": 2}),
+        "Rotation": ("rotation", {"Pitch": 0, "Yaw": 1, "Roll": 2}),
+        "RelativeRotation": ("rotation", {"Pitch": 0, "Yaw": 1, "Roll": 2}),
+    }
+
+    segments = [segment for segment in normalized.split(".") if segment]
+    if len(segments) == 2:
+        parent_key, axis_key = segments
+        transform_key, axis_map = vector_property_map.get(parent_key, (None, None))
+        if transform_key and axis_map and axis_key in axis_map:
+            values = transform.get(transform_key, [])
+            if isinstance(values, list) and len(values) >= 3:
+                return values[axis_map[axis_key]]
+
+    return None
+
+
+def _values_match_for_ui_property(expected_value, actual_value) -> bool:
+    """对 UI 属性输入值做宽松但可审计的相等判定。"""
+    try:
+        return abs(float(expected_value) - float(actual_value)) <= 0.01
+    except (TypeError, ValueError):
+        return str(expected_value) == str(actual_value)
+
+
+def _retry_ui_property_readback(
+    l1_verify_func,
+    l1_verify_args: Optional[dict],
+    property_path: str,
+    expected_value,
+    initial_response: dict,
+    initial_value,
+):
+    """对 Detail Panel 字段输入补一个很短的读回稳定窗口。"""
+    latest_response = initial_response
+    latest_value = initial_value
+
+    for _ in range(6):
+        time.sleep(0.25)
+        if l1_verify_args:
+            latest_response = l1_verify_func(**l1_verify_args)
+        else:
+            latest_response = l1_verify_func()
+
+        if latest_response.get("status") not in ("success", "warning"):
+            continue
+
+        latest_value = _extract_property_value_from_actor_state(
+            latest_response.get("data", {}),
+            property_path,
+        )
+        if latest_value is not None and _values_match_for_ui_property(expected_value, latest_value):
+            break
+
+    return latest_response, latest_value

@@ -24,6 +24,7 @@ public class AgentBridgeTests : ModuleRules
             "AutomationController",
             "AutomationDriver",
             "FunctionalTesting",
+            "PythonScriptPlugin",
             "Json",
             "JsonUtilities",
             "Gauntlet",

@@ -348,6 +348,57 @@ test_record:
   notes: ""
 ```
 
+### 8.1 Task19 最终测试记录（2026-03-26）
+
+```yaml
+test_record:
+  date: "2026-03-26"
+  engine_version: "5.5.4"
+  test_level: /Game/Tests/FTEST_WarehouseDemo
+  plugin_version: "0.3.0"
+  execution_method: "mixed"  # console / commandlet / gauntlet / execute_python_script
+
+  l1_results:
+    T1-01_GetCurrentProjectState: PASS
+    T1-02_ListLevelActors: PASS
+    T1-03_GetActorState: PASS
+    T1-04_GetActorBounds: PASS
+    T1-05_GetAssetMetadata: PASS
+    T1-06_GetDirtyAssets: PASS
+    T1-07_RunMapCheck: PASS
+    T1-08_SpawnActor: PASS
+    T1-09_SetActorTransform: PASS
+    T1-10_ImportAssets: PASS
+    T1-11_CreateBlueprintChild: PASS
+    T1-12_IsAutomationDriverAvailable: PASS
+    T1-13_ClickDetailPanelButton: PASS
+    T1-14_TypeInDetailPanelField: PASS
+    T1-15_DragAssetToViewport: PASS
+
+  l2_results:
+    LT-01_SpawnReadbackLoop: PASS
+    LT-02_TransformModifyLoop: PASS
+    LT-03_ImportMetadataLoop: SKIP
+    LT-04_DragAssetToViewportLoop: PASS
+    LT-05_TypeInFieldLoop: PASS
+
+  l2_extras:
+    undo_after_spawn: PASS
+    undo_after_transform: PASS
+    tolerance_location_L1: 0.01
+    tolerance_rotation_L1: 0.01
+    tolerance_scale_L1: 0.001
+    tolerance_location_L3: 100.0
+
+  l3_results:
+    FTEST_WarehouseDemo: PASS
+
+  schema_validation:
+    validate_examples_strict: PASS  # 10/10
+
+  notes: "Task19 Step4 最终使用已验证 runtime spec；Task19 Step7 已修复通道 B 直接读取 Actor Relative* 属性在 UE5.5.4 下返回 400 的问题，三通道一致性恢复。"
+```
+
 ---
 
 ## 9. 与路线图的对应关系

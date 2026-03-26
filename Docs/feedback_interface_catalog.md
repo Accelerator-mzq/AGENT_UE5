@@ -403,7 +403,7 @@ data:
 
 **Args**：`{ actor_path, button_label, dry_run }`
 
-**执行后端**：Automation Driver — `FindElement(By::Text(label))` → `Click()`
+**执行后端**：默认通过 `start_ui_operation()` / `query_ui_operation()` 异步任务壳调度；底层点击语义由 Automation Driver 提供，避免在 RC 同步链路里直接等待完整 UI 点击
 
 **L1 验证方式**：调用后必须通过 `get_actor_state` 或 `get_component_state` 读回变更
 
@@ -419,7 +419,7 @@ data:
 
 **Args**：`{ actor_path, property_path, value, dry_run }`
 
-**执行后端**：Automation Driver — `FindElement` → `Click` → `Ctrl+A` → `Type(value)` → `Enter`
+**执行后端**：默认通过异步任务壳调度；定位属性行后直接对可编辑文本控件设值并显式提交
 
 **L1 验证方式**：`get_actor_state` 读回属性值变更
 
@@ -431,7 +431,7 @@ data:
 
 **Args**：`{ asset_path, drop_location: [x,y,z], dry_run }`
 
-**执行后端**：Automation Driver — `FindElement(By::Text(assetName))` → `Press(LMB)` → `MoveTo(screenPos)` → `Release(LMB)`
+**执行后端**：默认通过异步任务壳调度；最终放置走 Editor 官方 `DropObjectsAtCoordinates(...)` 路径，而不是裸鼠标拖拽
 
 **L1 验证方式**：`list_level_actors`（确认 Actor 数量增加）+ `get_actor_state`（确认位置接近 drop_location，容差 100cm）
 
@@ -444,6 +444,16 @@ data:
 **目的**：检查 Automation Driver 模块是否可用。返回 bool，不是 FBridgeResponse。
 
 **使用场景**：Orchestrator 在执行 L3 操作前先检查 Driver 是否可用，不可用时跳过或降级。
+
+### D5. L3 异步任务壳
+
+L3 UI 工具当前的统一执行模型是：
+
+1. `start_ui_operation`：只做参数校验、生成 `operation_id`、入队并立即返回
+2. `query_ui_operation`：轮询 `pending / running / success / failed`
+3. UI 操作终态后，再用 L1 做独立读回验证
+
+这层异步任务壳的作用是把 Automation Driver 的同步执行从 RC 同步等待链中拆开，降低阻塞风险，并保持 L3→L1 交叉比对闭环。
 
 ### L3 使用判定条件（全部满足才允许）
 

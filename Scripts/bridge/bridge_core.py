@@ -208,11 +208,11 @@ def call_cpp_plugin(function_name: str, parameters: Optional[Dict[str, Any]] = N
         # C++ Subsystem 返回 FBridgeResponse，RC API 会将其序列化为 JSON
         # 检查是否有 ReturnValue（RC API 的标准返回格式）
         if "ReturnValue" in raw_response:
-            return raw_response["ReturnValue"]
+            return _normalize_cpp_plugin_return_value(raw_response["ReturnValue"])
 
         # 如果 RC API 直接返回了响应结构
         if "status" in raw_response:
-            return raw_response
+            return _normalize_cpp_plugin_return_value(raw_response)
 
         # fallback：包装为 success
         return make_response(
@@ -229,6 +229,35 @@ def call_cpp_plugin(function_name: str, parameters: Optional[Dict[str, Any]] = N
             errors=[make_error("TOOL_EXECUTION_FAILED",
                               f"RC API error calling {function_name}: {e}")],
         )
+
+
+def _normalize_cpp_plugin_return_value(value: Any) -> Any:
+    """展开 C++ Plugin 经 RC API 返回的 FBridgeResponse/FJsonObjectWrapper。"""
+    if not isinstance(value, dict):
+        return value
+
+    normalized = dict(value)
+    data = normalized.get("data")
+    if isinstance(data, dict):
+        normalized["data"] = _unwrap_fjsonobjectwrapper(data)
+
+    return normalized
+
+
+def _unwrap_fjsonobjectwrapper(value: dict[str, Any]) -> dict[str, Any]:
+    """将 FJsonObjectWrapper 的 JsonString 解析为普通 dict。"""
+    json_string = value.get("JsonString")
+    if not isinstance(json_string, str) or not json_string.strip():
+        return value
+
+    try:
+        parsed = json.loads(json_string)
+    except json.JSONDecodeError:
+        return value
+
+    if isinstance(parsed, dict):
+        return parsed
+    return value
 
 
 # ============================================================

@@ -10,8 +10,8 @@
 
 namespace
 {
-// 获取 Subsystem，失败时记录错误。
-static UAgentBridgeSubsystem* GetSubsystem(FAutomationTestBase& Test)
+// 获取 Query 测试专用 Subsystem，避免 Unity Build 下与其他测试文件的同名辅助函数冲突。
+static UAgentBridgeSubsystem* GetQueryTestSubsystem(FAutomationTestBase& Test)
 {
     UAgentBridgeSubsystem* Subsystem = GEditor ? GEditor->GetEditorSubsystem<UAgentBridgeSubsystem>() : nullptr;
     if (!Subsystem)
@@ -54,7 +54,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FBridgeL1_GetCurrentProjectState::RunTest(const FString& Parameters)
 {
-    UAgentBridgeSubsystem* Subsystem = GetSubsystem(*this);
+    UAgentBridgeSubsystem* Subsystem = GetQueryTestSubsystem(*this);
     if (!Subsystem) return false;
 
     const FBridgeResponse Resp = Subsystem->GetCurrentProjectState();
@@ -80,7 +80,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FBridgeL1_ListLevelActors::RunTest(const FString& Parameters)
 {
-    UAgentBridgeSubsystem* Subsystem = GetSubsystem(*this);
+    UAgentBridgeSubsystem* Subsystem = GetQueryTestSubsystem(*this);
     if (!Subsystem) return false;
 
     const FBridgeResponse Resp = Subsystem->ListLevelActors();
@@ -112,7 +112,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FBridgeL1_GetActorState::RunTest(const FString& Parameters)
 {
-    UAgentBridgeSubsystem* Subsystem = GetSubsystem(*this);
+    UAgentBridgeSubsystem* Subsystem = GetQueryTestSubsystem(*this);
     if (!Subsystem) return false;
 
     const FString ActorPath = GetAnyActorPath(Subsystem);
@@ -153,7 +153,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FBridgeL1_GetActorBounds::RunTest(const FString& Parameters)
 {
-    UAgentBridgeSubsystem* Subsystem = GetSubsystem(*this);
+    UAgentBridgeSubsystem* Subsystem = GetQueryTestSubsystem(*this);
     if (!Subsystem) return false;
 
     const FString ActorPath = GetAnyActorPath(Subsystem);
@@ -188,7 +188,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FBridgeL1_GetAssetMetadata::RunTest(const FString& Parameters)
 {
-    UAgentBridgeSubsystem* Subsystem = GetSubsystem(*this);
+    UAgentBridgeSubsystem* Subsystem = GetQueryTestSubsystem(*this);
     if (!Subsystem) return false;
 
     // 正常路径：引擎内置资源。
@@ -219,7 +219,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FBridgeL1_GetDirtyAssets::RunTest(const FString& Parameters)
 {
-    UAgentBridgeSubsystem* Subsystem = GetSubsystem(*this);
+    UAgentBridgeSubsystem* Subsystem = GetQueryTestSubsystem(*this);
     if (!Subsystem) return false;
 
     const FBridgeResponse Resp = Subsystem->GetDirtyAssets();
@@ -239,7 +239,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FBridgeL1_RunMapCheck::RunTest(const FString& Parameters)
 {
-    UAgentBridgeSubsystem* Subsystem = GetSubsystem(*this);
+    UAgentBridgeSubsystem* Subsystem = GetQueryTestSubsystem(*this);
     if (!Subsystem) return false;
 
     const FBridgeResponse Resp = Subsystem->RunMapCheck();

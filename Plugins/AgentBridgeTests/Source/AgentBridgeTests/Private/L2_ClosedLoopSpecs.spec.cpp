@@ -22,7 +22,8 @@ const float ScaleTolerance = 0.001f;     // scale
 const TCHAR* StaticMeshActorClass = TEXT("/Script/Engine.StaticMeshActor");
 const TCHAR* BoundsTestActorClass = TEXT("/Script/Engine.TriggerBox");
 
-static UAgentBridgeSubsystem* GetSubsystem(FAutomationTestBase& Test)
+// 获取 L2 Spec 专用 Subsystem，避免 Unity Build 下与 L1_QueryTests 的同名辅助函数冲突。
+static UAgentBridgeSubsystem* GetL2SpecSubsystem(FAutomationTestBase& Test)
 {
 	UAgentBridgeSubsystem* Subsystem = GEditor ? GEditor->GetEditorSubsystem<UAgentBridgeSubsystem>() : nullptr;
 	if (!Subsystem)
@@ -200,7 +201,7 @@ void FBridgeL2_SpawnReadbackLoop::Define()
 	{
 		BeforeEach([this]()
 		{
-			Subsystem = GetSubsystem(*this);
+			Subsystem = GetL2SpecSubsystem(*this);
 			LevelPath = GetCurrentLevelPath();
 			SpawnedActorPath.Empty();
 			bSpawnSucceeded = false;
@@ -428,7 +429,7 @@ void FBridgeL2_TransformModifyLoop::Define()
 	{
 		BeforeEach([this]()
 		{
-			Subsystem = GetSubsystem(*this);
+			Subsystem = GetL2SpecSubsystem(*this);
 			LevelPath = GetCurrentLevelPath();
 			ActorPath.Empty();
 			bSpawnSucceeded = false;
@@ -664,7 +665,7 @@ void FBridgeL2_ImportMetadataLoop::Define()
 	{
 		BeforeEach([this]()
 		{
-			Subsystem = GetSubsystem(*this);
+			Subsystem = GetL2SpecSubsystem(*this);
 			TestSourceDir = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("TestResources/ImportTest"));
 			TestDestPath = TEXT("/Game/Tests/L2_ImportTest");
 			bHasTestAssets = false;

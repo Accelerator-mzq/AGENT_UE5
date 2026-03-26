@@ -69,6 +69,9 @@ public class AgentBridge : ModuleRules
             "SlateCore",
             "EditorStyle",
 
+            // LevelEditor（活跃 Viewport 获取 + 走官方 DropObjectsAtCoordinates 放置路径）
+            "LevelEditor",
+
             // Content Browser（L3 DragAssetToViewport 资产定位）
             "ContentBrowser",
 

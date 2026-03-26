@@ -139,21 +139,21 @@ Schemas/
 
 `primitives` / `transform` / `bounds` / `collision` / `error` / `material`
 
-### Feedback（7 个）
+### Feedback（9 个）
 
-`get_current_project_state` / `list_level_actors` / `get_actor_state` / `get_actor_bounds` / `get_asset_metadata` / `get_dirty_assets` / `run_map_check`
+`get_current_project_state` / `list_level_actors` / `get_actor_state` / `get_actor_bounds` / `get_component_state` / `get_material_assignment` / `get_asset_metadata` / `get_dirty_assets` / `run_map_check`
 
 ### Write Feedback（1 个）
 
 `write_operation_feedback`
 
-### Examples（8 个）
+### Examples（10 个）
 
-与上述 7 个 feedback + 1 个 write_feedback 一一对应。
+与上述 9 个 feedback + 1 个 write_feedback 一一对应。
 
 ### 校验状态
 
-`validate_examples.py --strict` → 8 checked / 8 passed / 0 failed ✅
+`validate_examples.py --strict` → 10 checked / 10 passed / 0 failed ✅
 
 ---
 

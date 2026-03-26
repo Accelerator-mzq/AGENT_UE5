@@ -63,7 +63,7 @@ class UATRunner:
 
         参数：
             project_path: .uproject 文件路径（空=自动检测）
-            engine_dir: 引擎根目录（空=从环境变量或注册表检测）
+            engine_dir: 引擎目录（可传 UE 安装根目录，或直接传 .../Engine 目录）
         """
         self.project_path = project_path
         self.engine_dir = engine_dir
@@ -101,16 +101,23 @@ class UATRunner:
     ) -> UATRunResult:
         """
         通过 UAT 运行自动化测试。
-        对应 UAT 命令：RunUAT RunAutomationTests -project=... -filter=...
+        UE5.5 中不再依赖独立的 RunAutomationTests 子命令，
+        统一走 BuildCookRun 的 editortest 路径：
+        RunUAT BuildCookRun -project=... -run -editortest -RunAutomationTest=...
         """
         args = (
-            f"RunAutomationTests"
+            f"BuildCookRun"
             f' -project="{self.project_path}"'
-            f' -filter="{test_filter}"'
-            f" -unattended -utf8output -nullrhi"
+            f" -run -editortest -unattended -utf8output -nullrhi -NoP4"
         )
+        if test_filter:
+            args += f" -RunAutomationTest={test_filter}"
+        else:
+            args += " -RunAutomationTests"
+
         if report_path:
-            args += f' -ReportOutputPath="{report_path}"'
+            # BuildCookRun 没有稳定的直接报告参数，这里通过附加命令行透传给 Automation。
+            args += f' -addcmdline="-ReportExportPath=\\"{report_path}\\""'
         return self._execute_uat(args, sync=sync)
 
     def run_gauntlet(
@@ -210,8 +217,18 @@ class UATRunner:
             return ""
 
         if platform.system() == "Windows":
-            path = os.path.join(base, "Build", "BatchFiles", "RunUAT.bat")
+            candidate_paths = [
+                os.path.join(base, "Build", "BatchFiles", "RunUAT.bat"),
+                os.path.join(base, "Engine", "Build", "BatchFiles", "RunUAT.bat"),
+            ]
         else:
-            path = os.path.join(base, "Build", "BatchFiles", "RunUAT.sh")
+            candidate_paths = [
+                os.path.join(base, "Build", "BatchFiles", "RunUAT.sh"),
+                os.path.join(base, "Engine", "Build", "BatchFiles", "RunUAT.sh"),
+            ]
 
-        return os.path.abspath(path) if os.path.isfile(path) else ""
+        for path in candidate_paths:
+            if os.path.isfile(path):
+                return os.path.abspath(path)
+
+        return ""

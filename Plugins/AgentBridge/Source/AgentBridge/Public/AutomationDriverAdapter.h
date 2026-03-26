@@ -28,6 +28,7 @@
 
 // 前向声明——避免头文件中直接 include Automation Driver 的头
 class IAutomationDriver;
+class IAsyncAutomationDriver;
 class IDriverElement;
 
 /**
@@ -47,6 +48,9 @@ struct AGENTBRIDGE_API FUIOperationResult
 
 	/** 操作后 UI 是否回到 Idle 状态 */
 	bool bUIIdleAfter = false;
+
+	/** 可选调试信息：记录本次操作匹配到的定位路径 / Tag */
+	FString DebugLocatorPath;
 
 	bool IsSuccess() const { return bExecuted && bUIIdleAfter; }
 };
@@ -98,13 +102,63 @@ public:
 	);
 
 	/**
+	 * 异步原型专用：在非 GameThread 上通过 AutomationDriver::Click() 点击 Detail Panel 按钮。
+	 *
+	 * 设计目的：
+	 *   1. 避开 RC 同步链路在 GameThread 上直接等待 Driver Click 的死锁风险
+	 *   2. 保留 AutomationDriver::Click() 的真实点击语义，用于验证异步链方案是否可行
+	 *
+	 * 执行模型：
+	 *   - 调用线程：必须是非 GameThread（例如 ThreadPool 任务）
+	 *   - GameThread：仅负责 Actor 选中 / Detail 面板刷新 / 定位可点击按钮 Tag
+	 *   - 调用线程：负责真正执行 Driver->Wait + DriverElement->Click() 的同步等待
+	 *
+	 * 注意：
+	 *   这是 start_ui_operation / query_ui_operation 的最小原型后端，
+	 *   当前只用于验证 “异步链 + Driver Click” 是否能跑通。
+	 */
+	static FUIOperationResult ClickDetailPanelButtonOffGameThread(
+		const FString& ActorPath,
+		const FString& ButtonLabel,
+		float TimeoutSeconds = 10.0f
+	);
+
+	/**
+	 * 异步原型专用：在后台任务里调度 Detail Panel 文本输入。
+	 *
+	 * 说明：
+	 *   - 当前 TypeInDetailPanelField 的实际输入链路仍依赖 Slate / Detail Panel，
+	 *     因此本体依旧在 GameThread 上执行。
+	 *   - 这里的价值是把“等待操作完成”从 RC 同步请求里拆出去，
+	 *     让 start_ui_operation / query_ui_operation 能先把异步链跑通。
+	 */
+	static FUIOperationResult TypeInDetailPanelFieldAsyncPrototype(
+		const FString& ActorPath,
+		const FString& PropertyPath,
+		const FString& Value,
+		float TimeoutSeconds = 10.0f
+	);
+
+	/**
+	 * 异步原型专用：在后台任务里调度拖拽资产到 Viewport。
+	 *
+	 * 当前拖拽逻辑仍依赖 Slate / Viewport / Content Browser 的主线程状态，
+	 * 因此执行本体依旧回到 GameThread；异步壳的职责是把等待从 RC 同步链拆出去。
+	 */
+	static FUIOperationResult DragAssetToViewportAsyncPrototype(
+		const FString& AssetPath,
+		const FVector& DropLocation,
+		float TimeoutSeconds = 15.0f
+	);
+
+	/**
 	 * 在 Detail Panel 的属性输入框中输入值。
 	 *
 	 * 执行流程：
 	 *   1. 确认目标 Actor 已选中
 	 *   2. 在 Detail Panel 中按 PropertyPath 定位属性行
 	 *   3. 点击输入框获得焦点
-	 *   4. 选中全部文本 → 输入新值 → 模拟 Enter 确认
+	 *   4. 清空旧值 → 输入新值 → 模拟 Enter 确认
 	 *   5. 等待 UI Idle
 	 *
 	 * @param ActorPath     目标 Actor 路径
@@ -124,13 +178,13 @@ public:
 	 * 将 Content Browser 中的资产拖拽到 Viewport 指定位置。
 	 *
 	 * 执行流程：
-	 *   1. 在 Content Browser 中定位资产（通过 AssetPath）
-	 *   2. 计算 Viewport 中 DropLocation 对应的屏幕坐标
-	 *   3. 模拟从 Content Browser → Viewport 的拖拽释放
+	 *   1. 校验 AssetPath 并加载资产对象
+	 *   2. 计算 Viewport 中 DropLocation 对应的投放坐标
+	 *   3. 调用 LevelEditor 官方 DropObjectsAtCoordinates 放置路径
 	 *   4. 等待 UI Idle + Actor 生成
 	 *
 	 * 为什么需要这个而不用 SpawnActor？
-	 *   拖拽走 Editor 原生 OnDropped 流程，会触发自动碰撞设置、
+	 *   这里仍然走 Editor 原生 Viewport 放置行为，会触发自动碰撞设置、
 	 *   自动命名、自动贴地等行为——SpawnActor API 不触发这些。
 	 *
 	 * @param AssetPath     资产路径（如 /Game/Meshes/SM_Chair）
@@ -159,7 +213,7 @@ public:
 
 private:
 	/** 获取或创建 Automation Driver 实例 */
-	static TSharedPtr<IAutomationDriver> GetOrCreateDriver();
+	static TSharedPtr<IAutomationDriver, ESPMode::ThreadSafe> GetOrCreateDriver();
 
 	/**
 	 * 选中指定 Actor 并确保 Detail Panel 打开。
@@ -198,5 +252,5 @@ private:
 	static bool WorldToScreen(const FVector& WorldLocation, FVector2D& OutScreenPos);
 
 	/** 缓存的 Driver 实例 */
-	static TSharedPtr<IAutomationDriver> CachedDriver;
+	static TSharedPtr<IAutomationDriver, ESPMode::ThreadSafe> CachedDriver;
 };
