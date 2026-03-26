@@ -326,6 +326,21 @@ int32 UAgentBridgeCommandlet::RunSpec()
 		return StatusToExitCode(ParseStatusString(Root->GetStringField(TEXT("status"))));
 	}
 
+	// Orchestrator 报告走的是 overall_status 口径，这里补齐映射，保证 -Spec 模式退出码可判定。
+	if (Root->HasTypedField<EJson::String>(TEXT("overall_status")))
+	{
+		const FString OverallStatus = Root->GetStringField(TEXT("overall_status")).ToLower();
+		if (OverallStatus == TEXT("success"))
+		{
+			return 0;
+		}
+		if (OverallStatus == TEXT("warning") || OverallStatus == TEXT("mismatch"))
+		{
+			return 1;
+		}
+		return 2;
+	}
+
 	if (const TArray<TSharedPtr<FJsonValue>>* Items = nullptr; Root->TryGetArrayField(TEXT("results"), Items) && Items)
 	{
 		EBridgeStatus WorstStatus = EBridgeStatus::Success;

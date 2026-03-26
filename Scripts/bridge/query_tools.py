@@ -218,15 +218,18 @@ def _get_actor_state_python(actor_path: str) -> dict:
 
 
 def _get_actor_state_rc(actor_path: str) -> dict:
-    from remote_control_client import get_property, RemoteControlError
+    from remote_control_client import call_function, RemoteControlError
     try:
-        loc = get_property(actor_path, "RelativeLocation")
-        rot = get_property(actor_path, "RelativeRotation")
-        scale = get_property(actor_path, "RelativeScale3D")
+        # UE5.5.4 下 ActorPath 走 /remote/object/property 读取 RelativeLocation
+        # 会出现“property could not be resolved”的 400。
+        # 这里改为直接调用 Actor 自身的原生函数，避免 B 通道在三通道一致性校验里误报失败。
+        loc = call_function(actor_path, "K2_GetActorLocation")
+        rot = call_function(actor_path, "K2_GetActorRotation")
+        scale = call_function(actor_path, "GetActorScale3D")
 
-        location = loc.get("RelativeLocation", {})
-        rotation = rot.get("RelativeRotation", {})
-        scale3d = scale.get("RelativeScale3D", {})
+        location = loc.get("ReturnValue", {})
+        rotation = rot.get("ReturnValue", {})
+        scale3d = scale.get("ReturnValue", {})
 
         return make_response(
             status="success", summary="Actor state fetched via Remote Control",

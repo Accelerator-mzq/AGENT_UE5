@@ -727,12 +727,57 @@ namespace
 		return nullptr;
 	}
 
+	void AppendUniqueWindow(
+		TArray<TSharedRef<SWindow>>& InOutWindows,
+		const TSharedRef<SWindow>& Window)
+	{
+		for (const TSharedRef<SWindow>& ExistingWindow : InOutWindows)
+		{
+			if (&ExistingWindow.Get() == &Window.Get())
+			{
+				return;
+			}
+		}
+
+		InOutWindows.Add(Window);
+	}
+
+	TArray<TSharedRef<SWindow>> CollectSearchableTopLevelWindows(FSlateApplication& SlateApp)
+	{
+		TArray<TSharedRef<SWindow>> SearchWindows;
+
+		// 1. 优先使用当前“可见窗口”集合，命中率最高，也最贴近真实交互上下文。
+		SlateApp.GetAllVisibleWindowsOrdered(SearchWindows);
+
+		// 2. 某些会话里会出现“窗口存在但可见列表为空”的情况，此时补充模态窗口与交互窗口。
+		if (const TSharedPtr<SWindow> ActiveModalWindow = SlateApp.GetActiveModalWindow())
+		{
+			AppendUniqueWindow(SearchWindows, ActiveModalWindow.ToSharedRef());
+		}
+
+		const TArray<TSharedRef<SWindow>> InteractiveWindows = SlateApp.GetInteractiveTopLevelWindows();
+		for (const TSharedRef<SWindow>& Window : InteractiveWindows)
+		{
+			AppendUniqueWindow(SearchWindows, Window);
+		}
+
+		// 3. 最后一层兜底：即使窗口当前不在“可见窗口”集合里，也允许扫描顶层窗口，
+		//    避免后台/最小化/布局恢复中的编辑器窗口被完全漏掉。
+		const TArray<TSharedRef<SWindow>> TopLevelWindows = SlateApp.GetTopLevelWindows();
+		for (const TSharedRef<SWindow>& Window : TopLevelWindows)
+		{
+			AppendUniqueWindow(SearchWindows, Window);
+		}
+
+		return SearchWindows;
+	}
+
 	TSharedPtr<SWidget> FindWidgetByLabelInVisibleWindows(
 		const FString& Label,
 		TArray<FString>* OutWindowTitles)
 	{
-		TArray<TSharedRef<SWindow>> VisibleWindows;
-		FSlateApplication::Get().GetAllVisibleWindowsOrdered(VisibleWindows);
+		FSlateApplication& SlateApp = FSlateApplication::Get();
+		const TArray<TSharedRef<SWindow>> VisibleWindows = CollectSearchableTopLevelWindows(SlateApp);
 
 		for (const TSharedRef<SWindow>& Window : VisibleWindows)
 		{
