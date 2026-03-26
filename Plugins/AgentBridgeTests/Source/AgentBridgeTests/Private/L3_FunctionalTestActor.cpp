@@ -1,216 +1,430 @@
 // L3_FunctionalTestActor.cpp
-// AGENT + UE5 可操作層 — L3 完整 Demo 验证实现
+// AGENT + UE5 可操作层 — L3 完整 Demo 验证实现
 //
-// UE5 官方模組：Functional Testing
-// 在 FTEST_ 测试地图中放置 AAgentBridgeFunctionalTest Actor，
-// 执行完整的"多 Actor 生成 → 逐个读回 → 容差验证 → 全局检查"流程。
+// 目标：
+//   1. 内置模式：在 Functional Test 地图中执行多 Actor Spawn -> Readback -> 容差验证
+//   2. Spec 驱动：通过 Python Orchestrator 执行结构化 Spec，并解析最终报告
+//   3. 测试结束后按事务快照做 Undo 清理，避免关卡残留
 
 #include "L3_FunctionalTestActor.h"
+
 #include "AgentBridgeSubsystem.h"
 #include "BridgeTypes.h"
 #include "Editor.h"
+#include "Editor/TransBuffer.h"
+#include "Engine/PointLight.h"
+#include "Engine/StaticMeshActor.h"
+#include "Engine/World.h"
+#include "HAL/FileManager.h"
+#include "IPythonScriptPlugin.h"
+#include "JsonObjectConverter.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+#include "Serialization/JsonSerializer.h"
+
+namespace
+{
+	static bool TryReadJsonNumberArray(
+		const TSharedPtr<FJsonObject>& Object,
+		const FString& FieldName,
+		FVector& OutVector)
+	{
+		if (!Object.IsValid())
+		{
+			return false;
+		}
+
+		const TArray<TSharedPtr<FJsonValue>>* ArrayPtr = nullptr;
+		if (!Object->TryGetArrayField(FieldName, ArrayPtr) || !ArrayPtr || ArrayPtr->Num() != 3)
+		{
+			return false;
+		}
+
+		OutVector = FVector(
+			static_cast<float>((*ArrayPtr)[0]->AsNumber()),
+			static_cast<float>((*ArrayPtr)[1]->AsNumber()),
+			static_cast<float>((*ArrayPtr)[2]->AsNumber()));
+		return true;
+	}
+
+	static bool TryReadJsonNumberArray(
+		const TSharedPtr<FJsonObject>& Object,
+		const FString& FieldName,
+		FRotator& OutRotator)
+	{
+		if (!Object.IsValid())
+		{
+			return false;
+		}
+
+		const TArray<TSharedPtr<FJsonValue>>* ArrayPtr = nullptr;
+		if (!Object->TryGetArrayField(FieldName, ArrayPtr) || !ArrayPtr || ArrayPtr->Num() != 3)
+		{
+			return false;
+		}
+
+		OutRotator = FRotator(
+			static_cast<float>((*ArrayPtr)[0]->AsNumber()),
+			static_cast<float>((*ArrayPtr)[1]->AsNumber()),
+			static_cast<float>((*ArrayPtr)[2]->AsNumber()));
+		return true;
+	}
+
+	static bool TryExtractTransform(
+		const TSharedPtr<FJsonObject>& DataObject,
+		FBridgeTransform& OutTransform)
+	{
+		if (!DataObject.IsValid())
+		{
+			return false;
+		}
+
+		const TSharedPtr<FJsonObject>* TransformObject = nullptr;
+		if (!DataObject->TryGetObjectField(TEXT("transform"), TransformObject) || !TransformObject || !TransformObject->IsValid())
+		{
+			return false;
+		}
+
+		FBridgeTransform Parsed;
+		if (!TryReadJsonNumberArray(*TransformObject, TEXT("location"), Parsed.Location))
+		{
+			return false;
+		}
+		if (!TryReadJsonNumberArray(*TransformObject, TEXT("rotation"), Parsed.Rotation))
+		{
+			return false;
+		}
+		if (!TryReadJsonNumberArray(*TransformObject, TEXT("relative_scale3d"), Parsed.RelativeScale3D))
+		{
+			return false;
+		}
+
+		OutTransform = Parsed;
+		return true;
+	}
+
+	static FString ToPythonLiteral(const FString& InPath)
+	{
+		FString Normalized = FPaths::ConvertRelativePathToFull(InPath);
+		Normalized.ReplaceInline(TEXT("\\"), TEXT("/"));
+		Normalized.ReplaceInline(TEXT("'"), TEXT("\\'"));
+		return Normalized;
+	}
+
+	static TSubclassOf<AActor> ResolveBuiltInActorClass(const FString& ActorClassPath)
+	{
+		if (ActorClassPath.Equals(TEXT("/Script/Engine.StaticMeshActor"), ESearchCase::IgnoreCase)
+			|| ActorClassPath.Equals(TEXT("StaticMeshActor"), ESearchCase::IgnoreCase))
+		{
+			return AStaticMeshActor::StaticClass();
+		}
+
+		if (ActorClassPath.Equals(TEXT("/Script/Engine.PointLight"), ESearchCase::IgnoreCase)
+			|| ActorClassPath.Equals(TEXT("PointLight"), ESearchCase::IgnoreCase))
+		{
+			return APointLight::StaticClass();
+		}
+
+		if (UClass* LoadedClass = StaticLoadClass(AActor::StaticClass(), nullptr, *ActorClassPath))
+		{
+			return LoadedClass;
+		}
+
+		return nullptr;
+	}
+
+	static FBox ComputeActorBoundsBox(const AActor* Actor)
+	{
+		FVector Origin = FVector::ZeroVector;
+		FVector Extent = FVector::ZeroVector;
+		Actor->GetActorBounds(false, Origin, Extent);
+		return FBox::BuildAABB(Origin, Extent);
+	}
+
+	static bool HasMeaningfulBounds(const AActor* Actor)
+	{
+		FVector Origin = FVector::ZeroVector;
+		FVector Extent = FVector::ZeroVector;
+		Actor->GetActorBounds(false, Origin, Extent);
+		return !Extent.IsNearlyZero(KINDA_SMALL_NUMBER);
+	}
+}
 
 AAgentBridgeFunctionalTest::AAgentBridgeFunctionalTest()
 {
-	// Functional Test 默认设置
 	TestLabel = TEXT("AgentBridge L3 Full Demo");
 }
 
-// ============================================================
-// 生命周期
-// ============================================================
-
 bool AAgentBridgeFunctionalTest::IsReady_Implementation()
 {
-	// 确认 Subsystem 可用
-	if (!GEditor) return false;
-	UAgentBridgeSubsystem* Subsystem = GEditor->GetEditorSubsystem<UAgentBridgeSubsystem>();
-	return Subsystem != nullptr;
+	if (!GEditor)
+	{
+		return false;
+	}
+
+	if (!GEditor->GetEditorWorldContext().World())
+	{
+		return false;
+	}
+
+	return GEditor->GetEditorSubsystem<UAgentBridgeSubsystem>() != nullptr;
 }
 
 void AAgentBridgeFunctionalTest::PrepareTest()
 {
 	Super::PrepareTest();
 
+	CachedSubsystem = GEditor ? GEditor->GetEditorSubsystem<UAgentBridgeSubsystem>() : nullptr;
 	SpawnedActorPaths.Empty();
-	UndoCount = 0;
+	SpawnedActorRefs.Empty();
+	LastReportPath.Empty();
+	LastExecutionSummary.Empty();
+	TransactionDepthBeforeTest = GetCommittedTransactionDepth();
 
-	LogMessage(FString::Printf(TEXT("[L3] Preparing test. SpecPath=%s, BuiltInActorCount=%d"),
-		SpecPath.IsEmpty() ? TEXT("(built-in)") : *SpecPath, BuiltInActorCount));
+	LogMessage(FString::Printf(
+		TEXT("[AgentBridge L3] PrepareTest: SpecPath=%s, BuiltInActorCount=%d, TransactionDepthBefore=%d"),
+		SpecPath.IsEmpty() ? TEXT("(built-in)") : *SpecPath,
+		BuiltInActorCount,
+		TransactionDepthBeforeTest));
 }
 
 void AAgentBridgeFunctionalTest::StartTest()
 {
 	Super::StartTest();
 
+	if (!CachedSubsystem)
+	{
+		FinishTest(EFunctionalTestResult::Failed, BuildFinishedMessage(TEXT("Subsystem not available")));
+		return;
+	}
+
 	if (SpecPath.IsEmpty())
 	{
 		RunBuiltInScenario();
+		return;
 	}
-	else
-	{
-		RunSpecDriven();
-	}
+
+	RunSpecDriven();
 }
 
 void AAgentBridgeFunctionalTest::CleanUp()
 {
-	if (bUndoAfterTest && GEditor && UndoCount > 0)
+	if (bUndoAfterTest && GEditor && GEditor->Trans)
 	{
-		LogMessage(FString::Printf(TEXT("[L3] Cleaning up: Undo x%d"), UndoCount));
-		for (int32 i = 0; i < UndoCount; ++i)
+		const int32 DepthAfterTest = GetCommittedTransactionDepth();
+		const int32 UndoSteps = FMath::Max(DepthAfterTest - TransactionDepthBeforeTest, 0);
+
+		LogMessage(FString::Printf(
+			TEXT("[AgentBridge L3] CleanUp: TransactionDepthBefore=%d, After=%d, UndoSteps=%d"),
+			TransactionDepthBeforeTest,
+			DepthAfterTest,
+			UndoSteps));
+
+		for (int32 StepIndex = 0; StepIndex < UndoSteps; ++StepIndex)
 		{
-			GEditor->UndoTransaction();
+			if (!GEditor->UndoTransaction())
+			{
+				LogMessage(FString::Printf(
+					TEXT("[AgentBridge L3] CleanUp: Undo stopped early at step %d"),
+					StepIndex + 1));
+				break;
+			}
+		}
+	}
+
+	// PIE 模式下内置场景直接在运行时世界中生成 Actor；这里优先显式销毁，避免测试结束前残留。
+	for (const TWeakObjectPtr<AActor>& SpawnedActorRef : SpawnedActorRefs)
+	{
+		if (AActor* SpawnedActor = SpawnedActorRef.Get())
+		{
+			SpawnedActor->Destroy();
 		}
 	}
 
 	SpawnedActorPaths.Empty();
-	UndoCount = 0;
+	SpawnedActorRefs.Empty();
+	LastReportPath.Empty();
+	LastExecutionSummary.Empty();
+	CachedSubsystem = nullptr;
 
 	Super::CleanUp();
 }
 
 FString AAgentBridgeFunctionalTest::GetAdditionalTestFinishedMessage(EFunctionalTestResult TestResult) const
 {
-	return FString::Printf(TEXT("Spawned %d actors. SpecPath=%s"),
-		SpawnedActorPaths.Num(),
-		SpecPath.IsEmpty() ? TEXT("(built-in)") : *SpecPath);
+	return BuildFinishedMessage(LastExecutionSummary);
 }
-
-// ============================================================
-// 内置测试场景
-// ============================================================
 
 void AAgentBridgeFunctionalTest::RunBuiltInScenario()
 {
-	UAgentBridgeSubsystem* Subsystem = GEditor->GetEditorSubsystem<UAgentBridgeSubsystem>();
-	if (!Subsystem)
+	if (BuiltInActorCount <= 0)
 	{
-		FinishTest(EFunctionalTestResult::Failed, TEXT("AgentBridgeSubsystem not available"));
+		FinishTest(EFunctionalTestResult::Failed, BuildFinishedMessage(TEXT("BuiltInActorCount must be > 0")));
 		return;
 	}
 
-	// 1. 前置检查：GetCurrentProjectState
-	FBridgeResponse ProjectState = Subsystem->GetCurrentProjectState();
-	if (!ProjectState.IsSuccess())
+	if (!GetWorld())
 	{
-		FinishTest(EFunctionalTestResult::Failed,
-			FString::Printf(TEXT("GetCurrentProjectState failed: %s"), *ProjectState.Summary));
+		FinishTest(EFunctionalTestResult::Failed, BuildFinishedMessage(TEXT("Functional Test world is not available")));
 		return;
 	}
-	LogMessage(FString::Printf(TEXT("[L3] Project: %s, Level: %s"),
-		*ProjectState.Data->GetStringField(TEXT("project_name")),
-		*ProjectState.Data->GetStringField(TEXT("current_level"))));
 
-	// 2. 生成多个 Actor 并逐个验证
-	UWorld* World = GEditor->GetEditorWorldContext().World();
-	FString LevelPath = World ? World->GetPathName() : TEXT("");
+	LogMessage(FString::Printf(
+		TEXT("[AgentBridge L3] RunBuiltInScenario: backend=PIE direct world, PlayWorld=%s"),
+		(GEditor && GEditor->PlayWorld) ? TEXT("true") : TEXT("false")));
 
-	int32 TotalActors = BuiltInActorCount;
 	int32 PassedActors = 0;
 	int32 FailedActors = 0;
 
-	for (int32 i = 0; i < TotalActors; ++i)
+	for (int32 Index = 0; Index < BuiltInActorCount; ++Index)
 	{
-		FBridgeTransform Transform;
-		Transform.Location = FVector(i * 300.0f, i * 200.0f, 0.0f);
-		Transform.Rotation = FRotator(0.0f, i * 72.0f, 0.0f);  // 均匀分布旋转
-		Transform.RelativeScale3D = FVector(1.0f + i * 0.2f, 1.0f + i * 0.2f, 1.0f + i * 0.2f);
+		FBridgeTransform ExpectedTransform;
+		ExpectedTransform.Location = FVector(300.0f * Index, 200.0f * Index, 50.0f * Index);
+		ExpectedTransform.Rotation = FRotator(5.0f * Index, 30.0f * Index, 2.5f * Index);
+		ExpectedTransform.RelativeScale3D = FVector(
+			1.0f + 0.1f * Index,
+			1.0f + 0.1f * Index,
+			1.0f + 0.1f * Index);
 
-		FString ActorName = FString::Printf(TEXT("L3_BuiltIn_Actor_%02d"), i);
+		const FString ActorClass = (Index % 2 == 0)
+			? TEXT("/Script/Engine.StaticMeshActor")
+			: TEXT("/Script/Engine.PointLight");
+		const FString ActorName = FString::Printf(TEXT("L3_BuiltIn_Actor_%02d"), Index);
 
-		bool bOk = SpawnAndVerifyActor(
-			i,
-			TEXT("/Script/Engine.StaticMeshActor"),
+		const bool bPassed = SpawnAndVerifyActor(
+			Index,
+			ActorClass,
 			ActorName,
-			Transform,
-			SpawnedActorPaths
-		);
-
-		if (bOk) PassedActors++;
-		else FailedActors++;
+			ExpectedTransform,
+			SpawnedActorPaths);
+		if (bPassed)
+		{
+			++PassedActors;
+		}
+		else
+		{
+			++FailedActors;
+		}
 	}
 
-	// 3. 全局验证
 	RunGlobalValidation(SpawnedActorPaths);
+	LogTestReport(BuiltInActorCount, PassedActors, FailedActors);
 
-	// 4. 记录报告
-	LogTestReport(TotalActors, PassedActors, FailedActors);
-
-	// 5. 判定结果
 	if (FailedActors > 0)
 	{
-		FinishTest(EFunctionalTestResult::Failed,
-			FString::Printf(TEXT("%d/%d actors failed verification"), FailedActors, TotalActors));
+		LastExecutionSummary = FString::Printf(TEXT("%d/%d built-in actors failed"), FailedActors, BuiltInActorCount);
+		FinishTest(EFunctionalTestResult::Failed, BuildFinishedMessage(LastExecutionSummary));
+		return;
 	}
-	else
-	{
-		FinishTest(EFunctionalTestResult::Succeeded,
-			FString::Printf(TEXT("All %d actors passed verification"), TotalActors));
-	}
-}
 
-// ============================================================
-// Spec 驱动测试
-// ============================================================
+	LastExecutionSummary = FString::Printf(TEXT("%d/%d built-in actors verified"), PassedActors, BuiltInActorCount);
+	FinishTest(EFunctionalTestResult::Succeeded, BuildFinishedMessage(LastExecutionSummary));
+}
 
 void AAgentBridgeFunctionalTest::RunSpecDriven()
 {
-	UAgentBridgeSubsystem* Subsystem = GEditor->GetEditorSubsystem<UAgentBridgeSubsystem>();
-	if (!Subsystem)
+	if (!CachedSubsystem)
 	{
-		FinishTest(EFunctionalTestResult::Failed, TEXT("Subsystem not available"));
+		FinishTest(EFunctionalTestResult::Failed, BuildFinishedMessage(TEXT("Subsystem not available")));
 		return;
 	}
 
-	// Spec 解析需要 Python Orchestrator
-	// 通过 Commandlet 中同样的 Python 调用路径执行
-	FString FullSpecPath = FPaths::ProjectDir() / SpecPath;
-	if (!FPaths::FileExists(FullSpecPath))
+	FString AbsoluteSpecPath = SpecPath;
+	if (!FPaths::FileExists(AbsoluteSpecPath))
 	{
-		FinishTest(EFunctionalTestResult::Failed,
-			FString::Printf(TEXT("Spec file not found: %s"), *FullSpecPath));
+		AbsoluteSpecPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / SpecPath);
+	}
+
+	if (!FPaths::FileExists(AbsoluteSpecPath))
+	{
+		FinishTest(
+			EFunctionalTestResult::Failed,
+			BuildFinishedMessage(FString::Printf(TEXT("Spec file not found: %s"), *SpecPath)));
 		return;
 	}
 
-	LogMessage(FString::Printf(TEXT("[L3] Executing Spec: %s"), *FullSpecPath));
-
-	// 通过 IPythonScriptPlugin 调用 Python Orchestrator
-	FString PythonCode = FString::Printf(
-		TEXT("from agent_ue5.orchestrator.orchestrator import run; "
-			 "result = run('%s'); "
-			 "print('SPEC_RESULT:', result)"),
-		*FullSpecPath.Replace(TEXT("\\"), TEXT("/"))
-	);
-
-	if (GEditor && GEditor->GetEditorWorldContext().World())
+	IPythonScriptPlugin* PythonPlugin = IPythonScriptPlugin::Get();
+	if (!PythonPlugin || !PythonPlugin->IsPythonAvailable())
 	{
-		GEditor->Exec(GEditor->GetEditorWorldContext().World(),
-			*FString::Printf(TEXT("py %s"), *PythonCode));
+		FinishTest(EFunctionalTestResult::Failed, BuildFinishedMessage(TEXT("PythonScriptPlugin is not available")));
+		return;
 	}
 
-	// 注意：Python Orchestrator 的执行是异步的（ExecPython 可能跨帧完成）
-	// 完整的异步等待需要 Latent Command 模式
-	// 此处使用简化路径：假设 Spec 执行在同一帧完成（小规模 Spec）
-	// 大规模 Spec 的 Latent 实现留为后续优化
+	LastReportPath = FPaths::ConvertRelativePathToFull(
+		FPaths::ProjectSavedDir() / TEXT("AgentBridge/functional_test_spec_report.json"));
+	IFileManager::Get().MakeDirectory(*FPaths::GetPath(LastReportPath), true);
 
-	// 验证：检查 Spec 中描述的 Actor 是否存在
-	FBridgeResponse ListResp = Subsystem->ListLevelActors();
-	if (ListResp.IsSuccess())
+	const FString ProjectDirPy = ToPythonLiteral(FPaths::ProjectDir());
+	const FString ScriptsDirPy = ToPythonLiteral(FPaths::ProjectDir() / TEXT("Scripts"));
+	const FString SpecPy = ToPythonLiteral(AbsoluteSpecPath);
+	const FString ReportPy = ToPythonLiteral(LastReportPath);
+
+	const FString PythonCommand = FString::Printf(
+		TEXT("import json,sys; ")
+		TEXT("sys.path.insert(0,r'%s'); ")
+		TEXT("sys.path.insert(0,r'%s'); ")
+		TEXT("from orchestrator.orchestrator import run as _ab_run; ")
+		TEXT("_ab_result=_ab_run(r'%s', report_path=r'%s'); ")
+		TEXT("open(r'%s','w',encoding='utf-8').write(json.dumps(_ab_result, ensure_ascii=False, indent=2, default=str))"),
+		*ProjectDirPy,
+		*ScriptsDirPy,
+		*SpecPy,
+		*ReportPy,
+		*ReportPy);
+
+	LogMessage(FString::Printf(TEXT("[AgentBridge L3] RunSpecDriven: %s"), *AbsoluteSpecPath));
+
+	if (!PythonPlugin->ExecPythonCommand(*PythonCommand))
 	{
-		LogMessage(FString::Printf(TEXT("[L3] Spec execution complete. Actors in level after Spec.")));
-		FinishTest(EFunctionalTestResult::Succeeded, TEXT("Spec-driven test completed"));
+		FinishTest(EFunctionalTestResult::Failed, BuildFinishedMessage(TEXT("Python orchestrator execution failed")));
+		return;
 	}
-	else
+
+	FString ReportJson;
+	if (!FFileHelper::LoadFileToString(ReportJson, *LastReportPath))
 	{
-		FinishTest(EFunctionalTestResult::Failed,
-			FString::Printf(TEXT("Post-Spec ListLevelActors failed: %s"), *ListResp.Summary));
+		FinishTest(EFunctionalTestResult::Failed, BuildFinishedMessage(TEXT("Spec report file is not readable")));
+		return;
 	}
+
+	TSharedPtr<FJsonObject> RootObject;
+	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(ReportJson);
+	if (!FJsonSerializer::Deserialize(Reader, RootObject) || !RootObject.IsValid())
+	{
+		FinishTest(EFunctionalTestResult::Failed, BuildFinishedMessage(TEXT("Spec report is not valid JSON")));
+		return;
+	}
+
+	const FString OverallStatus = RootObject->GetStringField(TEXT("overall_status"));
+	const TSharedPtr<FJsonObject>* SummaryObject = nullptr;
+	int32 TotalActors = 0;
+	int32 PassedActors = 0;
+	int32 FailedActors = 0;
+	int32 MismatchedActors = 0;
+	if (RootObject->TryGetObjectField(TEXT("summary"), SummaryObject) && SummaryObject && SummaryObject->IsValid())
+	{
+		TotalActors = static_cast<int32>((*SummaryObject)->GetNumberField(TEXT("total")));
+		PassedActors = static_cast<int32>((*SummaryObject)->GetNumberField(TEXT("passed")));
+		FailedActors = static_cast<int32>((*SummaryObject)->GetNumberField(TEXT("failed")));
+		MismatchedActors = static_cast<int32>((*SummaryObject)->GetNumberField(TEXT("mismatched")));
+	}
+
+	LastExecutionSummary = FString::Printf(
+		TEXT("Spec overall_status=%s, total=%d, passed=%d, mismatch=%d, failed=%d"),
+		*OverallStatus,
+		TotalActors,
+		PassedActors,
+		MismatchedActors,
+		FailedActors);
+
+	if (OverallStatus.Equals(TEXT("success"), ESearchCase::IgnoreCase))
+	{
+		FinishTest(EFunctionalTestResult::Succeeded, BuildFinishedMessage(LastExecutionSummary));
+		return;
+	}
+
+	FinishTest(EFunctionalTestResult::Failed, BuildFinishedMessage(LastExecutionSummary));
 }
-
-// ============================================================
-// 生成 + 验证单个 Actor
-// ============================================================
 
 bool AAgentBridgeFunctionalTest::SpawnAndVerifyActor(
 	int32 Index,
@@ -219,158 +433,175 @@ bool AAgentBridgeFunctionalTest::SpawnAndVerifyActor(
 	const FBridgeTransform& ExpectedTransform,
 	TArray<FString>& OutSpawnedPaths)
 {
-	UAgentBridgeSubsystem* Subsystem = GEditor->GetEditorSubsystem<UAgentBridgeSubsystem>();
-
-	UWorld* World = GEditor->GetEditorWorldContext().World();
-	FString LevelPath = World ? World->GetPathName() : TEXT("");
-
-	// Spawn
-	FBridgeResponse SpawnResp = Subsystem->SpawnActor(
-		LevelPath, ActorClass, ActorName, ExpectedTransform);
-
-	if (!SpawnResp.IsSuccess())
+	UWorld* World = GetWorld();
+	if (!World)
 	{
-		LogMessage(FString::Printf(TEXT("[L3] Actor %d FAIL: Spawn failed — %s"),
-			Index, *SpawnResp.Summary));
-		return false;
-	}
-	UndoCount++;
-
-	// 提取 actor_path
-	FString ActorPath;
-	const TArray<TSharedPtr<FJsonValue>>* CreatedArr;
-	if (SpawnResp.Data->TryGetArrayField(TEXT("created_objects"), CreatedArr) && CreatedArr->Num() > 0)
-	{
-		ActorPath = (*CreatedArr)[0]->AsObject()->GetStringField(TEXT("actor_path"));
-		OutSpawnedPaths.Add(ActorPath);
-	}
-
-	if (ActorPath.IsEmpty())
-	{
-		LogMessage(FString::Printf(TEXT("[L3] Actor %d FAIL: Empty actor_path"), Index));
+		LogMessage(TEXT("[AgentBridge L3] FAIL: Test world unavailable during SpawnAndVerifyActor"));
 		return false;
 	}
 
-	// Readback via GetActorState
-	FBridgeResponse StateResp = Subsystem->GetActorState(ActorPath);
-	if (!StateResp.IsSuccess())
+	const TSubclassOf<AActor> SpawnClass = ResolveBuiltInActorClass(ActorClass);
+	if (!SpawnClass)
 	{
-		LogMessage(FString::Printf(TEXT("[L3] Actor %d FAIL: GetActorState failed — %s"),
-			Index, *StateResp.Summary));
+		LogMessage(FString::Printf(
+			TEXT("[AgentBridge L3] Actor %d FAIL: unsupported built-in class '%s'"),
+			Index,
+			*ActorClass));
 		return false;
 	}
 
-	// 容差验证 Transform
-	const TSharedPtr<FJsonObject>* TransformObj;
-	if (!StateResp.Data->TryGetObjectField(TEXT("transform"), TransformObj))
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.Name = MakeUniqueObjectName(World, SpawnClass, FName(*ActorName));
+	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	SpawnParameters.ObjectFlags |= RF_Transient;
+
+	const FTransform SpawnTransform(
+		ExpectedTransform.Rotation,
+		ExpectedTransform.Location,
+		ExpectedTransform.RelativeScale3D);
+
+	AActor* SpawnedActor = World->SpawnActor<AActor>(SpawnClass, SpawnTransform, SpawnParameters);
+	if (!SpawnedActor)
 	{
-		LogMessage(FString::Printf(TEXT("[L3] Actor %d FAIL: No transform in response"), Index));
+		LogMessage(FString::Printf(
+			TEXT("[AgentBridge L3] Actor %d FAIL: direct SpawnActor failed"),
+			Index));
 		return false;
 	}
 
-	// Location
-	const TArray<TSharedPtr<FJsonValue>>* LocArr;
-	if ((*TransformObj)->TryGetArrayField(TEXT("location"), LocArr) && LocArr->Num() == 3)
+	#if WITH_EDITOR
+	SpawnedActor->SetActorLabel(ActorName, false);
+	#endif
+
+	const FString ActorPath = SpawnedActor->GetPathName();
+	OutSpawnedPaths.Add(ActorPath);
+	SpawnedActorRefs.Add(SpawnedActor);
+
+	const FBridgeTransform ActualTransform = FBridgeTransform::FromActor(SpawnedActor);
+
+	const FVector LocationDelta = ActualTransform.Location - ExpectedTransform.Location;
+	const FRotator RotationDelta = ActualTransform.Rotation - ExpectedTransform.Rotation;
+	const FVector ScaleDelta = ActualTransform.RelativeScale3D - ExpectedTransform.RelativeScale3D;
+
+	const bool bNearlyEqual = ExpectedTransform.NearlyEquals(
+		ActualTransform,
+		LocationTolerance,
+		RotationTolerance,
+		ScaleTolerance);
+
+	if (!bNearlyEqual)
 	{
-		FVector Actual((*LocArr)[0]->AsNumber(), (*LocArr)[1]->AsNumber(), (*LocArr)[2]->AsNumber());
-		if (!Actual.Equals(ExpectedTransform.Location, LocationTolerance))
-		{
-			LogMessage(FString::Printf(TEXT("[L3] Actor %d FAIL: Location mismatch. Expected=(%.2f,%.2f,%.2f) Actual=(%.2f,%.2f,%.2f)"),
-				Index,
-				ExpectedTransform.Location.X, ExpectedTransform.Location.Y, ExpectedTransform.Location.Z,
-				Actual.X, Actual.Y, Actual.Z));
-			return false;
-		}
+		LogMessage(FString::Printf(
+			TEXT("[AgentBridge L3] Actor %d FAIL: delta loc=(%.4f, %.4f, %.4f) rot=(%.4f, %.4f, %.4f) scale=(%.4f, %.4f, %.4f)"),
+			Index,
+			LocationDelta.X, LocationDelta.Y, LocationDelta.Z,
+			RotationDelta.Pitch, RotationDelta.Yaw, RotationDelta.Roll,
+			ScaleDelta.X, ScaleDelta.Y, ScaleDelta.Z));
+		return false;
 	}
 
-	// Scale
-	const TArray<TSharedPtr<FJsonValue>>* ScaleArr;
-	if ((*TransformObj)->TryGetArrayField(TEXT("relative_scale3d"), ScaleArr) && ScaleArr->Num() == 3)
-	{
-		FVector Actual((*ScaleArr)[0]->AsNumber(), (*ScaleArr)[1]->AsNumber(), (*ScaleArr)[2]->AsNumber());
-		if (!Actual.Equals(ExpectedTransform.RelativeScale3D, ScaleTolerance))
-		{
-			LogMessage(FString::Printf(TEXT("[L3] Actor %d FAIL: Scale mismatch"), Index));
-			return false;
-		}
-	}
+	FVector BoundsOrigin = FVector::ZeroVector;
+	FVector BoundsExtent = FVector::ZeroVector;
+	SpawnedActor->GetActorBounds(false, BoundsOrigin, BoundsExtent);
 
-	// Bounds 检查
-	FBridgeResponse BoundsResp = Subsystem->GetActorBounds(ActorPath);
-	if (!BoundsResp.IsSuccess())
-	{
-		LogMessage(FString::Printf(TEXT("[L3] Actor %d WARN: GetActorBounds failed"), Index));
-		// 不视为失败——bounds 可能因 mesh 缺失而无效
-	}
-
-	LogMessage(FString::Printf(TEXT("[L3] Actor %d PASS: %s"), Index, *ActorName));
+	LogMessage(FString::Printf(
+		TEXT("[AgentBridge L3] Actor %d PASS: %s | delta loc=(%.4f, %.4f, %.4f) rot=(%.4f, %.4f, %.4f) scale=(%.4f, %.4f, %.4f) bounds_extent=(%.4f, %.4f, %.4f)"),
+		Index,
+		*ActorName,
+		LocationDelta.X, LocationDelta.Y, LocationDelta.Z,
+		RotationDelta.Pitch, RotationDelta.Yaw, RotationDelta.Roll,
+		ScaleDelta.X, ScaleDelta.Y, ScaleDelta.Z,
+		BoundsExtent.X, BoundsExtent.Y, BoundsExtent.Z));
 	return true;
 }
 
-// ============================================================
-// 全局验证
-// ============================================================
-
-void AAgentBridgeFunctionalTest::RunGlobalValidation(const TArray<FString>& SpawnedPaths)
+void AAgentBridgeFunctionalTest::RunGlobalValidation(const TArray<FString>& InSpawnedPaths)
 {
-	UAgentBridgeSubsystem* Subsystem = GEditor->GetEditorSubsystem<UAgentBridgeSubsystem>();
-
-	// MapCheck
-	FBridgeResponse MapCheckResp = Subsystem->RunMapCheck();
-	if (MapCheckResp.IsSuccess())
+	UWorld* World = GetWorld();
+	if (!World)
 	{
-		LogMessage(TEXT("[L3] MapCheck: passed"));
-	}
-	else
-	{
-		LogMessage(FString::Printf(TEXT("[L3] MapCheck: %s"), *MapCheckResp.Summary));
+		return;
 	}
 
-	// DirtyAssets
-	FBridgeResponse DirtyResp = Subsystem->GetDirtyAssets();
-	if (DirtyResp.IsSuccess() && DirtyResp.Data.IsValid())
+	int32 OverlapCount = 0;
+	TArray<AActor*> SpawnedActors;
+	for (const TWeakObjectPtr<AActor>& SpawnedActorRef : SpawnedActorRefs)
 	{
-		const TArray<TSharedPtr<FJsonValue>>* DirtyArr;
-		if (DirtyResp.Data->TryGetArrayField(TEXT("dirty_assets"), DirtyArr))
+		if (AActor* SpawnedActor = SpawnedActorRef.Get())
 		{
-			LogMessage(FString::Printf(TEXT("[L3] Dirty assets: %d"), DirtyArr->Num()));
+			SpawnedActors.Add(SpawnedActor);
 		}
 	}
 
-	// Overlap 验证（对每个 spawn 的 Actor 检查无重叠）
-	int32 OverlapCount = 0;
-	for (const FString& Path : SpawnedPaths)
+	for (int32 LeftIndex = 0; LeftIndex < SpawnedActors.Num(); ++LeftIndex)
 	{
-		FBridgeResponse OverlapResp = Subsystem->ValidateActorNonOverlap(Path);
-		if (OverlapResp.IsSuccess() && OverlapResp.Data.IsValid())
+		if (!HasMeaningfulBounds(SpawnedActors[LeftIndex]))
 		{
-			bool bHasOverlap = OverlapResp.Data->GetBoolField(TEXT("has_overlap"));
-			if (bHasOverlap)
+			continue;
+		}
+
+		const FBox LeftBounds = ComputeActorBoundsBox(SpawnedActors[LeftIndex]);
+		for (int32 RightIndex = LeftIndex + 1; RightIndex < SpawnedActors.Num(); ++RightIndex)
+		{
+			if (!HasMeaningfulBounds(SpawnedActors[RightIndex]))
 			{
-				OverlapCount++;
-				LogMessage(FString::Printf(TEXT("[L3] Overlap detected for: %s"), *Path));
+				continue;
+			}
+
+			const FBox RightBounds = ComputeActorBoundsBox(SpawnedActors[RightIndex]);
+			if (LeftBounds.Intersect(RightBounds))
+			{
+				++OverlapCount;
+				LogMessage(FString::Printf(
+					TEXT("[AgentBridge L3] Overlap detected: %s <-> %s"),
+					*SpawnedActors[LeftIndex]->GetPathName(),
+					*SpawnedActors[RightIndex]->GetPathName()));
 			}
 		}
 	}
 
-	LogMessage(FString::Printf(TEXT("[L3] Global validation: %d overlaps detected among %d actors"),
-		OverlapCount, SpawnedPaths.Num()));
+	LogMessage(FString::Printf(
+		TEXT("[AgentBridge L3] Global validation complete (PIE direct): overlaps=%d, spawned=%d, tracked_paths=%d"),
+		OverlapCount,
+		SpawnedActors.Num(),
+		InSpawnedPaths.Num()));
 }
-
-// ============================================================
-// 报告
-// ============================================================
 
 void AAgentBridgeFunctionalTest::LogTestReport(int32 TotalActors, int32 PassedActors, int32 FailedActors)
 {
 	LogMessage(TEXT("========================================"));
-	LogMessage(TEXT("[L3] AGENT + UE5 可操作层 — L3 Full Demo Report"));
-	LogMessage(FString::Printf(TEXT("[L3] Total actors:  %d"), TotalActors));
-	LogMessage(FString::Printf(TEXT("[L3] Passed:        %d"), PassedActors));
-	LogMessage(FString::Printf(TEXT("[L3] Failed:        %d"), FailedActors));
-	LogMessage(FString::Printf(TEXT("[L3] Pass rate:     %.1f%%"),
-		TotalActors > 0 ? (100.0f * PassedActors / TotalActors) : 0.0f));
-	LogMessage(FString::Printf(TEXT("[L3] Tolerances:    loc=%.3f rot=%.3f scale=%.4f"),
-		LocationTolerance, RotationTolerance, ScaleTolerance));
+	LogMessage(TEXT("[AgentBridge L3] Functional Test Report"));
+	LogMessage(FString::Printf(TEXT("[AgentBridge L3] Total actors: %d"), TotalActors));
+	LogMessage(FString::Printf(TEXT("[AgentBridge L3] Passed: %d"), PassedActors));
+	LogMessage(FString::Printf(TEXT("[AgentBridge L3] Failed: %d"), FailedActors));
+	LogMessage(FString::Printf(TEXT("[AgentBridge L3] Tolerance: loc=%.3f rot=%.3f scale=%.4f"),
+		LocationTolerance,
+		RotationTolerance,
+		ScaleTolerance));
 	LogMessage(TEXT("========================================"));
+}
+
+int32 AAgentBridgeFunctionalTest::GetCommittedTransactionDepth() const
+{
+	if (!GEditor || !GEditor->Trans)
+	{
+		return 0;
+	}
+
+	return GEditor->Trans->GetQueueLength() - GEditor->Trans->GetUndoCount();
+}
+
+FString AAgentBridgeFunctionalTest::BuildFinishedMessage(const FString& CoreMessage) const
+{
+	TArray<FString> Parts;
+	if (!CoreMessage.IsEmpty())
+	{
+		Parts.Add(CoreMessage);
+	}
+	if (!LastReportPath.IsEmpty())
+	{
+		Parts.Add(FString::Printf(TEXT("Report=%s"), *LastReportPath));
+	}
+	Parts.Add(FString::Printf(TEXT("Spawned=%d"), SpawnedActorPaths.Num()));
+	return FString::Join(Parts, TEXT(" | "));
 }

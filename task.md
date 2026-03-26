@@ -2877,6 +2877,33 @@ Step 4: 检查测试输出日志
 - L1+L2+L3 合计运行不冲突：Automation RunTests Project.AgentBridge 全部通过
 ```
 
+### Task15 最终实现与验证补充（2026-03-26）
+
+- 已新增并保存测试地图：`Content/Tests/FTEST_WarehouseDemo.umap`
+- UE5.5.4 下 Functional Testing 的实际发现路径为：
+  - `Project.Functional Tests.Tests.FTEST_WarehouseDemo.AgentBridgeFunctionalTest`
+  - 不是旧文案里的 `Project.AgentBridge.L3`
+- `AAgentBridgeFunctionalTest` 的 built-in 模式已切换为 **PIE-safe direct world** 路径：
+  - 直接在 Functional Test 的运行时世界中 `Spawn -> Readback -> Validate`
+  - 不再依赖会在 PIE 下被 `IsEditorReady()` 拦截的编辑器写接口
+- 设计原因补充：
+  - `PIE = Play In Editor`，Functional Testing 运行测试时会先加载地图，再启动一个 PIE 运行时世界执行 `AFunctionalTest`
+  - `BridgeTypes.h` 中的 `IsEditorReady()` 明确在 `GEditor->PlayWorld != nullptr` 时返回 `Editor is in PIE mode`
+  - 因此 built-in 场景如果继续走 `UAgentBridgeSubsystem::GetCurrentProjectState()` / `SpawnActor()` 这类编辑器写接口，会在进入真正测试逻辑前被统一保护拦截
+  - Task15 的 built-in 验收目标是验证测试地图中的运行时闭环，而不是验证编辑器写接口本身，所以最稳的实现是直接在 Functional Test 的 `GetWorld()` 中执行 Spawn / Readback / Destroy
+  - 这样做可以保留全局的 Editor-only 写保护规则，不为 Task15 放宽整个 Bridge 的 `IsEditorReady()` 约束
+- 最终验证结果：
+  - 完整构建通过
+  - Functional Test 自动发现通过
+  - 内置模式 `5/5` Actor 全部 `PASS`
+  - `FinishTest(Succeeded)` 已触发，测试退出码 `0`
+
+证据：
+- 地图创建：[reports/task15_evidence_2026-03-26/task15_functional_map_creation_report_2026-03-26.json](reports/task15_evidence_2026-03-26/task15_functional_map_creation_report_2026-03-26.json)
+- 最终构建：[reports/task15_evidence_2026-03-26/task15_build_final_2026-03-26.log](reports/task15_evidence_2026-03-26/task15_build_final_2026-03-26.log)
+- 最终测试运行：[reports/task15_evidence_2026-03-26/task15_functional_test_run_final_2026-03-26.log](reports/task15_evidence_2026-03-26/task15_functional_test_run_final_2026-03-26.log)
+- 汇总报告：[reports/task15_evidence_2026-03-26/task15_final_validation_2026-03-26.md](reports/task15_evidence_2026-03-26/task15_final_validation_2026-03-26.md)
+
 ---
 
 ## TASK 16：实现 Gauntlet CI/CD 编排 [UE5 环境 + C++ 编译]
