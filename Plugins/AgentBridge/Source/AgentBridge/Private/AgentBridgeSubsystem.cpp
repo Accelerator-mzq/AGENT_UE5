@@ -16,8 +16,12 @@
 #include "Engine/OverlapResult.h"
 #include "EngineUtils.h"
 #include "GameFramework/Actor.h"
+#include "Components/ActorComponent.h"
 #include "Components/BoxComponent.h"
+#include "Components/MeshComponent.h"
 #include "Components/PrimitiveComponent.h"
+#include "Components/SceneComponent.h"
+#include "Materials/MaterialInterface.h"
 
 #include "EditorAssetLibrary.h"
 #include "AssetToolsModule.h"
@@ -131,6 +135,106 @@ namespace
 
 		OutVector = FVector(Parsed[0], Parsed[1], Parsed[2]);
 		return true;
+	}
+
+	static TArray<TSharedPtr<FJsonValue>> VectorToJsonArray(const FVector& V)
+	{
+		TArray<TSharedPtr<FJsonValue>> Arr;
+		Arr.Add(MakeShareable(new FJsonValueNumber(V.X)));
+		Arr.Add(MakeShareable(new FJsonValueNumber(V.Y)));
+		Arr.Add(MakeShareable(new FJsonValueNumber(V.Z)));
+		return Arr;
+	}
+
+	static TArray<TSharedPtr<FJsonValue>> RotatorToJsonArray(const FRotator& R)
+	{
+		TArray<TSharedPtr<FJsonValue>> Arr;
+		Arr.Add(MakeShareable(new FJsonValueNumber(R.Pitch)));
+		Arr.Add(MakeShareable(new FJsonValueNumber(R.Yaw)));
+		Arr.Add(MakeShareable(new FJsonValueNumber(R.Roll)));
+		return Arr;
+	}
+
+	static UActorComponent* FindActorComponentByName(const AActor* Actor, const FString& ComponentName)
+	{
+		if (!Actor)
+		{
+			return nullptr;
+		}
+
+		TInlineComponentArray<UActorComponent*> Components;
+		Actor->GetComponents(Components);
+		for (UActorComponent* Component : Components)
+		{
+			if (Component && Component->GetName().Equals(ComponentName, ESearchCase::CaseSensitive))
+			{
+				return Component;
+			}
+		}
+		return nullptr;
+	}
+
+	static UMeshComponent* FindPrimaryMeshComponent(const AActor* Actor)
+	{
+		if (!Actor)
+		{
+			return nullptr;
+		}
+
+		if (const UMeshComponent* RootMesh = Cast<UMeshComponent>(Actor->GetRootComponent()))
+		{
+			return const_cast<UMeshComponent*>(RootMesh);
+		}
+
+		return Actor->FindComponentByClass<UMeshComponent>();
+	}
+
+	static FString GetCurrentLevelPackagePath(const UWorld* World)
+	{
+		if (World && World->GetOutermost())
+		{
+			return World->GetOutermost()->GetName();
+		}
+		return TEXT("");
+	}
+
+	static bool TryParseCollisionEnabledName(
+		const FString& InValue,
+		ECollisionEnabled::Type& OutValue,
+		FString& OutNormalizedName)
+	{
+		const FString Normalized = InValue.TrimStartAndEnd();
+		if (Normalized.IsEmpty())
+		{
+			return false;
+		}
+
+		struct FCollisionEnabledEntry
+		{
+			const TCHAR* Name;
+			ECollisionEnabled::Type Value;
+		};
+
+		static const FCollisionEnabledEntry Entries[] = {
+			{TEXT("NoCollision"), ECollisionEnabled::NoCollision},
+			{TEXT("QueryOnly"), ECollisionEnabled::QueryOnly},
+			{TEXT("PhysicsOnly"), ECollisionEnabled::PhysicsOnly},
+			{TEXT("QueryAndPhysics"), ECollisionEnabled::QueryAndPhysics},
+			{TEXT("ProbeOnly"), ECollisionEnabled::ProbeOnly},
+			{TEXT("QueryAndProbe"), ECollisionEnabled::QueryAndProbe},
+		};
+
+		for (const FCollisionEnabledEntry& Entry : Entries)
+		{
+			if (Normalized.Equals(Entry.Name, ESearchCase::IgnoreCase))
+			{
+				OutValue = Entry.Value;
+				OutNormalizedName = Entry.Name;
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
 
@@ -598,6 +702,121 @@ FBridgeResponse UAgentBridgeSubsystem::RunMapCheck()
 }
 
 // ============================================================
+// 查询接口 8: GetComponentState
+// UE5 依赖: Actor->GetComponents() + USceneComponent::GetRelativeTransform()
+// ============================================================
+
+FBridgeResponse UAgentBridgeSubsystem::GetComponentState(
+	const FString& ActorPath,
+	const FString& ComponentName)
+{
+	FBridgeResponse ValidationError;
+	if (!AgentBridge::ValidateRequiredString(ActorPath, TEXT("ActorPath"), ValidationError))
+	{
+		return ValidationError;
+	}
+	if (!AgentBridge::ValidateRequiredString(ComponentName, TEXT("ComponentName"), ValidationError))
+	{
+		return ValidationError;
+	}
+	if (!AgentBridge::IsEditorReady(ValidationError))
+	{
+		return ValidationError;
+	}
+
+	AActor* Actor = FindActorByPath(ActorPath);
+	if (!Actor)
+	{
+		return AgentBridge::MakeFailed(
+			TEXT("Actor not found"),
+			EBridgeErrorCode::ActorNotFound,
+			FString::Printf(TEXT("No actor at path: %s"), *ActorPath));
+	}
+
+	UActorComponent* Component = FindActorComponentByName(Actor, ComponentName);
+	if (!Component)
+	{
+		return AgentBridge::MakeFailed(
+			TEXT("Component not found"),
+			EBridgeErrorCode::ToolExecutionFailed,
+			FString::Printf(TEXT("No component named '%s' on actor '%s'"), *ComponentName, *ActorPath));
+	}
+
+	USceneComponent* SceneComponent = Cast<USceneComponent>(Component);
+	if (!SceneComponent)
+	{
+		return AgentBridge::MakeFailed(
+			TEXT("Component is not a scene component"),
+			EBridgeErrorCode::ToolExecutionFailed,
+			FString::Printf(TEXT("Component '%s' does not expose relative transform"), *ComponentName));
+	}
+
+	TSharedPtr<FJsonObject> Data = MakeShareable(new FJsonObject());
+	Data->SetStringField(TEXT("component_name"), SceneComponent->GetName());
+	Data->SetStringField(TEXT("component_class"), SceneComponent->GetClass()->GetPathName());
+	Data->SetArrayField(TEXT("relative_location"), VectorToJsonArray(SceneComponent->GetRelativeLocation()));
+	Data->SetArrayField(TEXT("relative_rotation"), RotatorToJsonArray(SceneComponent->GetRelativeRotation()));
+	Data->SetArrayField(TEXT("relative_scale"), VectorToJsonArray(SceneComponent->GetRelativeScale3D()));
+
+	return AgentBridge::MakeSuccess(TEXT("Component state fetched successfully"), Data);
+}
+
+// ============================================================
+// 查询接口 9: GetMaterialAssignment
+// UE5 依赖: UMeshComponent::GetNumMaterials / GetMaterial()
+// ============================================================
+
+FBridgeResponse UAgentBridgeSubsystem::GetMaterialAssignment(const FString& ActorPath)
+{
+	FBridgeResponse ValidationError;
+	if (!AgentBridge::ValidateRequiredString(ActorPath, TEXT("ActorPath"), ValidationError))
+	{
+		return ValidationError;
+	}
+	if (!AgentBridge::IsEditorReady(ValidationError))
+	{
+		return ValidationError;
+	}
+
+	AActor* Actor = FindActorByPath(ActorPath);
+	if (!Actor)
+	{
+		return AgentBridge::MakeFailed(
+			TEXT("Actor not found"),
+			EBridgeErrorCode::ActorNotFound,
+			FString::Printf(TEXT("No actor at path: %s"), *ActorPath));
+	}
+
+	UMeshComponent* MeshComponent = FindPrimaryMeshComponent(Actor);
+	if (!MeshComponent)
+	{
+		return AgentBridge::MakeFailed(
+			TEXT("MeshComponent not found"),
+			EBridgeErrorCode::ToolExecutionFailed,
+			FString::Printf(TEXT("Actor '%s' has no MeshComponent"), *ActorPath));
+	}
+
+	TArray<TSharedPtr<FJsonValue>> MaterialsArray;
+	const int32 MaterialCount = MeshComponent->GetNumMaterials();
+	for (int32 SlotIndex = 0; SlotIndex < MaterialCount; ++SlotIndex)
+	{
+		UMaterialInterface* Material = MeshComponent->GetMaterial(SlotIndex);
+
+		TSharedPtr<FJsonObject> Entry = MakeShareable(new FJsonObject());
+		Entry->SetNumberField(TEXT("slot_index"), SlotIndex);
+		Entry->SetStringField(TEXT("material_path"), Material ? Material->GetPathName() : TEXT(""));
+		Entry->SetStringField(TEXT("material_name"), Material ? Material->GetName() : TEXT(""));
+		MaterialsArray.Add(MakeShareable(new FJsonValueObject(Entry)));
+	}
+
+	TSharedPtr<FJsonObject> Data = MakeShareable(new FJsonObject());
+	Data->SetStringField(TEXT("actor_path"), ActorPath);
+	Data->SetArrayField(TEXT("materials"), MaterialsArray);
+
+	return AgentBridge::MakeSuccess(TEXT("Material assignment retrieved"), Data);
+}
+
+// ============================================================
 // 写接口 1: SpawnActor
 // UE5 依赖: UEditorLevelLibrary::SpawnActorFromClass()
 // Transaction: FScopedTransaction（自动纳入 Undo）
@@ -941,6 +1160,208 @@ FBridgeResponse UAgentBridgeSubsystem::CreateBlueprintChild(
 
 	return FinalizeWriteResponse(AgentBridge::MakeSuccess(
 		FString::Printf(TEXT("Created Blueprint at %s"), *CreatedPath), Data));
+}
+
+// ============================================================
+// 写接口 5: SetActorCollision
+// UE5 依赖: UPrimitiveComponent::SetCollisionProfileName / SetCollisionEnabled / SetCanEverAffectNavigation
+// Transaction: FScopedTransaction
+// ============================================================
+
+FBridgeResponse UAgentBridgeSubsystem::SetActorCollision(
+	const FString& ActorPath,
+	const FString& CollisionProfileName,
+	const FString& CollisionEnabledName,
+	bool bCanAffectNavigation,
+	bool bDryRun)
+{
+	FBridgeResponse ValidationError;
+	if (!AgentBridge::ValidateRequiredString(ActorPath, TEXT("ActorPath"), ValidationError)) return FinalizeWriteResponse(ValidationError);
+	if (!AgentBridge::ValidateRequiredString(CollisionProfileName, TEXT("CollisionProfileName"), ValidationError)) return FinalizeWriteResponse(ValidationError);
+	if (!AgentBridge::ValidateRequiredString(CollisionEnabledName, TEXT("CollisionEnabledName"), ValidationError)) return FinalizeWriteResponse(ValidationError);
+	if (!AgentBridge::IsEditorReady(ValidationError)) return FinalizeWriteResponse(ValidationError);
+
+	ECollisionEnabled::Type CollisionEnabled = ECollisionEnabled::QueryAndPhysics;
+	FString NormalizedCollisionEnabledName;
+	if (!TryParseCollisionEnabledName(CollisionEnabledName, CollisionEnabled, NormalizedCollisionEnabledName))
+	{
+		return FinalizeWriteResponse(AgentBridge::MakeValidationError(
+			TEXT("CollisionEnabledName"),
+			FString::Printf(
+				TEXT("Unsupported collision enabled value '%s'. Expected one of: NoCollision, QueryOnly, PhysicsOnly, QueryAndPhysics, ProbeOnly, QueryAndProbe"),
+				*CollisionEnabledName)));
+	}
+
+	AActor* Actor = FindActorByPath(ActorPath);
+	if (!Actor)
+	{
+		return FinalizeWriteResponse(AgentBridge::MakeFailed(
+			TEXT("Actor not found"),
+			EBridgeErrorCode::ActorNotFound,
+			FString::Printf(TEXT("No actor at path: %s"), *ActorPath)));
+	}
+
+	UPrimitiveComponent* PrimitiveComponent = Cast<UPrimitiveComponent>(Actor->GetRootComponent());
+	if (!PrimitiveComponent)
+	{
+		return FinalizeWriteResponse(AgentBridge::MakeFailed(
+			TEXT("PrimitiveComponent not found"),
+			EBridgeErrorCode::ToolExecutionFailed,
+			FString::Printf(TEXT("Actor '%s' root component is not a PrimitiveComponent"), *ActorPath)));
+	}
+
+	TSharedPtr<FJsonObject> OldCollision = ReadCollisionToJson(Actor);
+
+	if (bDryRun)
+	{
+		TSharedPtr<FJsonObject> Data = MakeEmptyWriteData();
+		TArray<TSharedPtr<FJsonValue>> ModifiedArray;
+		TSharedPtr<FJsonObject> ModifiedRef = MakeShareable(new FJsonObject());
+		ModifiedRef->SetStringField(TEXT("actor_path"), ActorPath);
+		ModifiedArray.Add(MakeShareable(new FJsonValueObject(ModifiedRef)));
+		Data->SetArrayField(TEXT("modified_objects"), ModifiedArray);
+		Data->SetObjectField(TEXT("old_collision"), OldCollision);
+
+		TSharedPtr<FJsonObject> PreviewCollision = MakeShareable(new FJsonObject(*OldCollision));
+		PreviewCollision->SetStringField(TEXT("collision_profile_name"), CollisionProfileName);
+		PreviewCollision->SetStringField(TEXT("collision_enabled"), NormalizedCollisionEnabledName);
+		PreviewCollision->SetBoolField(TEXT("can_affect_navigation"), bCanAffectNavigation);
+		Data->SetObjectField(TEXT("preview_collision"), PreviewCollision);
+
+		return FinalizeWriteResponse(AgentBridge::MakeSuccess(TEXT("Dry run: would modify collision"), Data));
+	}
+
+	FScopedTransaction Transaction(FText::FromString(
+		FString::Printf(TEXT("AgentBridge: SetCollision %s"), *Actor->GetActorNameOrLabel())));
+
+	Actor->Modify();
+	PrimitiveComponent->Modify();
+	PrimitiveComponent->SetCollisionProfileName(FName(*CollisionProfileName));
+	PrimitiveComponent->SetCollisionEnabled(CollisionEnabled);
+	PrimitiveComponent->SetCanEverAffectNavigation(bCanAffectNavigation);
+
+	TSharedPtr<FJsonObject> ActualCollision = ReadCollisionToJson(Actor);
+	TSharedPtr<FJsonObject> Data = MakeEmptyWriteData();
+
+	TArray<TSharedPtr<FJsonValue>> ModifiedArray;
+	TSharedPtr<FJsonObject> ModifiedRef = MakeShareable(new FJsonObject());
+	ModifiedRef->SetStringField(TEXT("actor_path"), ActorPath);
+	ModifiedArray.Add(MakeShareable(new FJsonValueObject(ModifiedRef)));
+	Data->SetArrayField(TEXT("modified_objects"), ModifiedArray);
+	Data->SetObjectField(TEXT("old_collision"), OldCollision);
+	Data->SetObjectField(TEXT("actual_collision"), ActualCollision);
+
+	TArray<TSharedPtr<FJsonValue>> DirtyArray;
+	const FString LevelPath = GetCurrentLevelPackagePath(GetEditorWorld());
+	if (!LevelPath.IsEmpty())
+	{
+		DirtyArray.Add(MakeShareable(new FJsonValueString(LevelPath)));
+	}
+	Data->SetArrayField(TEXT("dirty_assets"), DirtyArray);
+
+	return FinalizeWriteResponse(AgentBridge::MakeSuccess(TEXT("Collision updated"), Data));
+}
+
+// ============================================================
+// 写接口 6: AssignMaterial
+// UE5 依赖: LoadObject<UMaterialInterface>() + UMeshComponent::SetMaterial()
+// Transaction: FScopedTransaction
+// ============================================================
+
+FBridgeResponse UAgentBridgeSubsystem::AssignMaterial(
+	const FString& ActorPath,
+	const FString& MaterialPath,
+	int32 SlotIndex,
+	bool bDryRun)
+{
+	FBridgeResponse ValidationError;
+	if (!AgentBridge::ValidateRequiredString(ActorPath, TEXT("ActorPath"), ValidationError)) return FinalizeWriteResponse(ValidationError);
+	if (!AgentBridge::ValidateRequiredString(MaterialPath, TEXT("MaterialPath"), ValidationError)) return FinalizeWriteResponse(ValidationError);
+	if (SlotIndex < 0)
+	{
+		return FinalizeWriteResponse(AgentBridge::MakeValidationError(TEXT("SlotIndex"), TEXT("SlotIndex must be >= 0")));
+	}
+	if (!AgentBridge::IsEditorReady(ValidationError)) return FinalizeWriteResponse(ValidationError);
+
+	AActor* Actor = FindActorByPath(ActorPath);
+	if (!Actor)
+	{
+		return FinalizeWriteResponse(AgentBridge::MakeFailed(
+			TEXT("Actor not found"),
+			EBridgeErrorCode::ActorNotFound,
+			FString::Printf(TEXT("No actor at path: %s"), *ActorPath)));
+	}
+
+	UMeshComponent* MeshComponent = FindPrimaryMeshComponent(Actor);
+	if (!MeshComponent)
+	{
+		return FinalizeWriteResponse(AgentBridge::MakeFailed(
+			TEXT("MeshComponent not found"),
+			EBridgeErrorCode::ToolExecutionFailed,
+			FString::Printf(TEXT("Actor '%s' has no MeshComponent"), *ActorPath)));
+	}
+
+	if (SlotIndex >= MeshComponent->GetNumMaterials())
+	{
+		return FinalizeWriteResponse(AgentBridge::MakeValidationError(
+			TEXT("SlotIndex"),
+			FString::Printf(TEXT("SlotIndex %d is out of range. NumMaterials=%d"), SlotIndex, MeshComponent->GetNumMaterials())));
+	}
+
+	UMaterialInterface* Material = LoadObject<UMaterialInterface>(nullptr, *MaterialPath);
+	if (!Material)
+	{
+		return FinalizeWriteResponse(AgentBridge::MakeFailed(
+			FString::Printf(TEXT("Material not found: %s"), *MaterialPath),
+			EBridgeErrorCode::AssetNotFound,
+			FString::Printf(TEXT("Cannot load material asset: %s"), *MaterialPath)));
+	}
+
+	UMaterialInterface* OldMaterial = MeshComponent->GetMaterial(SlotIndex);
+
+	if (bDryRun)
+	{
+		TSharedPtr<FJsonObject> Data = MakeEmptyWriteData();
+		TArray<TSharedPtr<FJsonValue>> ModifiedArray;
+		TSharedPtr<FJsonObject> ModifiedRef = MakeShareable(new FJsonObject());
+		ModifiedRef->SetStringField(TEXT("actor_path"), ActorPath);
+		ModifiedArray.Add(MakeShareable(new FJsonValueObject(ModifiedRef)));
+		Data->SetArrayField(TEXT("modified_objects"), ModifiedArray);
+		Data->SetStringField(TEXT("old_material_path"), OldMaterial ? OldMaterial->GetPathName() : TEXT(""));
+		Data->SetStringField(TEXT("preview_material_path"), Material->GetPathName());
+		Data->SetNumberField(TEXT("slot_index"), SlotIndex);
+		return FinalizeWriteResponse(AgentBridge::MakeSuccess(TEXT("Dry run: would assign material"), Data));
+	}
+
+	FScopedTransaction Transaction(FText::FromString(
+		FString::Printf(TEXT("AgentBridge: AssignMaterial %s"), *Actor->GetActorNameOrLabel())));
+
+	Actor->Modify();
+	MeshComponent->Modify();
+	MeshComponent->SetMaterial(SlotIndex, Material);
+
+	UMaterialInterface* ActualMaterial = MeshComponent->GetMaterial(SlotIndex);
+
+	TSharedPtr<FJsonObject> Data = MakeEmptyWriteData();
+	TArray<TSharedPtr<FJsonValue>> ModifiedArray;
+	TSharedPtr<FJsonObject> ModifiedRef = MakeShareable(new FJsonObject());
+	ModifiedRef->SetStringField(TEXT("actor_path"), ActorPath);
+	ModifiedArray.Add(MakeShareable(new FJsonValueObject(ModifiedRef)));
+	Data->SetArrayField(TEXT("modified_objects"), ModifiedArray);
+	Data->SetStringField(TEXT("old_material_path"), OldMaterial ? OldMaterial->GetPathName() : TEXT(""));
+	Data->SetStringField(TEXT("actual_material_path"), ActualMaterial ? ActualMaterial->GetPathName() : TEXT(""));
+	Data->SetStringField(TEXT("actual_material_name"), ActualMaterial ? ActualMaterial->GetName() : TEXT(""));
+	Data->SetNumberField(TEXT("slot_index"), SlotIndex);
+
+	TArray<TSharedPtr<FJsonValue>> DirtyArray;
+	const FString LevelPath = GetCurrentLevelPackagePath(GetEditorWorld());
+	if (!LevelPath.IsEmpty())
+	{
+		DirtyArray.Add(MakeShareable(new FJsonValueString(LevelPath)));
+	}
+	Data->SetArrayField(TEXT("dirty_assets"), DirtyArray);
+
+	return FinalizeWriteResponse(AgentBridge::MakeSuccess(TEXT("Material assigned"), Data));
 }
 
 // ============================================================

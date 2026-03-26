@@ -3202,6 +3202,24 @@ Step 5: dry_run 测试
 - Mock 模式 4 个新接口全部返回 success
 ```
 
+### Task17 最终验证补充（2026-03-26）
+
+- Task17 当前实现已通过编译、Mock 和真机闭环验证：
+  - `UnrealBuildTool` 编译 `Mvpv4TestCodexEditor` 通过，新增的 `AgentBridgeSubsystem` Phase 2 接口已成功参与 UHT/编译/链接。
+  - Mock 模式下，`get_component_state / get_material_assignment / set_actor_collision / assign_material` 4 个新增接口全部返回 `success`。
+  - `cpp_plugin` 真机验证中，`get_component_state` 可正常读取 `StaticMeshComponent0` 的相对变换；`set_actor_collision` 和 `assign_material` 均完成了“dry_run 不修改 -> apply 写后读回 -> Undo 恢复”的闭环。
+- 本轮对 `SetActorCollision` 做了一个重要口径调整：
+  - 原提案中的 `CollisionEnabled` 为 C++ 枚举入参；
+  - 实际落地时改成了 `CollisionEnabledName` 字符串入参，并在 C++ 内部显式解析为 `ECollisionEnabled::Type`；
+  - 原因是 RC/JSON 到 BlueprintCallable 枚举参数的绑定稳定性不如字符串，显式解析更稳，也更便于返回 `validation_error`。
+- 本轮真机验证是在当前 Editor 世界 `/Temp/Untitled_1` 中完成的，验证对象为现有关卡 Actor `SM_SkySphere`，Undo 后材质与碰撞均恢复到原值。
+
+证据：
+- 最终汇总：[reports/task17_evidence_2026-03-26/task17_final_validation_2026-03-26.md](reports/task17_evidence_2026-03-26/task17_final_validation_2026-03-26.md)
+- 编译日志：[reports/task17_evidence_2026-03-26/task17_build_2026-03-26.log](reports/task17_evidence_2026-03-26/task17_build_2026-03-26.log)
+- Mock 汇总：[reports/task17_evidence_2026-03-26/task17_mock_validation_2026-03-26.md](reports/task17_evidence_2026-03-26/task17_mock_validation_2026-03-26.md)
+- 真机汇总：[reports/task17_evidence_2026-03-26/task17_runtime_validation_2026-03-26.md](reports/task17_evidence_2026-03-26/task17_runtime_validation_2026-03-26.md)
+
 ---
 
 ## TASK 18：扩展 Schema + validate_all [无需 UE5 环境]

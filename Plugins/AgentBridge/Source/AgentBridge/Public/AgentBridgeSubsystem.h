@@ -108,6 +108,23 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AgentBridge|Query")
 	FBridgeResponse RunMapCheck();
 
+	/**
+	 * 读取指定组件的相对变换状态。
+	 * UE5 依赖：Actor->GetComponents() + USceneComponent::GetRelativeTransform()
+	 */
+	UFUNCTION(BlueprintCallable, Category = "AgentBridge|Query")
+	FBridgeResponse GetComponentState(
+		const FString& ActorPath,
+		const FString& ComponentName
+	);
+
+	/**
+	 * 读取 Actor 当前的材质分配结果。
+	 * UE5 依赖：UMeshComponent::GetNumMaterials / GetMaterial()
+	 */
+	UFUNCTION(BlueprintCallable, Category = "AgentBridge|Query")
+	FBridgeResponse GetMaterialAssignment(const FString& ActorPath);
+
 	// ============================================================
 	// 写接口（4 个核心写操作）
 	// UE5 官方能力：UEditorLevelLibrary / UAssetToolsHelpers / UBlueprintFactory
@@ -177,6 +194,33 @@ public:
 	FBridgeResponse CreateBlueprintChild(
 		const FString& ParentClass,
 		const FString& PackagePath,
+		bool bDryRun = false
+	);
+
+	/**
+	 * 设置 Actor 根 PrimitiveComponent 的碰撞配置。
+	 * UE5 依赖：UPrimitiveComponent::SetCollisionProfileName / SetCollisionEnabled / SetCanEverAffectNavigation
+	 * Transaction：自动纳入 Undo（FScopedTransaction）
+	 */
+	UFUNCTION(BlueprintCallable, Category = "AgentBridge|Write")
+	FBridgeResponse SetActorCollision(
+		const FString& ActorPath,
+		const FString& CollisionProfileName,
+		const FString& CollisionEnabledName = TEXT("QueryAndPhysics"),
+		bool bCanAffectNavigation = true,
+		bool bDryRun = false
+	);
+
+	/**
+	 * 为 Actor 的 MeshComponent 指定材质。
+	 * UE5 依赖：LoadObject<UMaterialInterface>() + UMeshComponent::SetMaterial()
+	 * Transaction：自动纳入 Undo（FScopedTransaction）
+	 */
+	UFUNCTION(BlueprintCallable, Category = "AgentBridge|Write")
+	FBridgeResponse AssignMaterial(
+		const FString& ActorPath,
+		const FString& MaterialPath,
+		int32 SlotIndex = 0,
 		bool bDryRun = false
 	);
 

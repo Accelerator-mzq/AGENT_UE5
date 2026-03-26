@@ -38,6 +38,8 @@ _CPP_WRITE_MAP = {
     "set_actor_transform": "SetActorTransform",
     "import_assets": "ImportAssets",
     "create_blueprint_child": "CreateBlueprintChild",
+    "set_actor_collision": "SetActorCollision",
+    "assign_material": "AssignMaterial",
 }
 
 
@@ -501,4 +503,173 @@ def _create_blueprint_child_python(parent_class, package_path, dry_run) -> dict:
             "modified_objects": [], "deleted_objects": [],
             "dirty_assets": [created_path], "validation": {},
         },
+    )
+
+
+# ============================================================
+# 5. set_actor_collision
+# UE5 依赖: UPrimitiveComponent::SetCollisionProfileName / SetCollisionEnabled
+# ============================================================
+
+def set_actor_collision(actor_path: str, profile_name: str,
+                        collision_enabled: str = "QueryAndPhysics",
+                        can_affect_navigation: bool = True,
+                        dry_run: bool = False) -> dict:
+    err = validate_required_string(actor_path, "actor_path")
+    if err:
+        return err
+    err = validate_required_string(profile_name, "profile_name")
+    if err:
+        return err
+
+    return _dispatch_write(
+        "set_actor_collision",
+        lambda: _set_actor_collision_python(actor_path, profile_name, collision_enabled, can_affect_navigation, dry_run),
+        lambda: _set_actor_collision_rc(actor_path, profile_name, collision_enabled, can_affect_navigation, dry_run),
+        cpp_params={
+            "ActorPath": actor_path,
+            "CollisionProfileName": profile_name,
+            "CollisionEnabledName": collision_enabled,
+            "bCanAffectNavigation": can_affect_navigation,
+            "bDryRun": dry_run,
+        },
+    )
+
+
+def _set_actor_collision_python(actor_path, profile_name, collision_enabled, can_affect_navigation, dry_run) -> dict:
+    import unreal
+    from ue_helpers import find_actor_by_path, check_editor_ready, read_collision
+
+    ready_err = check_editor_ready()
+    if ready_err:
+        return ready_err
+
+    actor = find_actor_by_path(actor_path)
+    if actor is None:
+        return make_response(
+            status="failed", summary="Actor not found", data=dict(_EMPTY_WRITE_DATA),
+            errors=[make_error("ACTOR_NOT_FOUND", f"No actor at: {actor_path}")])
+
+    component = actor.get_root_component()
+    if component is None or not isinstance(component, unreal.PrimitiveComponent):
+        return make_response(
+            status="failed", summary="PrimitiveComponent not found", data=dict(_EMPTY_WRITE_DATA),
+            errors=[make_error("TOOL_EXECUTION_FAILED", f"Actor '{actor_path}' root component is not a PrimitiveComponent")])
+
+    old_collision = read_collision(actor)
+    if dry_run:
+        data = dict(_EMPTY_WRITE_DATA)
+        data["modified_objects"] = [{"actor_path": actor_path}]
+        data["old_collision"] = old_collision
+        data["preview_collision"] = {
+            **old_collision,
+            "collision_profile_name": profile_name,
+            "collision_enabled": collision_enabled,
+            "can_affect_navigation": can_affect_navigation,
+        }
+        return make_response(status="success", summary="Dry run: would modify collision", data=data)
+
+    component.set_collision_profile_name(profile_name)
+    component.set_collision_enabled(getattr(unreal.CollisionEnabled, collision_enabled))
+    component.set_can_ever_affect_navigation(can_affect_navigation)
+
+    data = dict(_EMPTY_WRITE_DATA)
+    data["modified_objects"] = [{"actor_path": actor_path}]
+    data["old_collision"] = old_collision
+    data["actual_collision"] = read_collision(actor)
+    return make_response(status="success", summary="Collision updated", data=data)
+
+
+def _set_actor_collision_rc(actor_path, profile_name, collision_enabled, can_affect_navigation, dry_run) -> dict:
+    return make_response(
+        status="failed",
+        summary="set_actor_collision not supported via direct Remote Control",
+        data=dict(_EMPTY_WRITE_DATA),
+        errors=[make_error("TOOL_EXECUTION_FAILED", "Use channel C (cpp_plugin) for set_actor_collision")],
+    )
+
+
+# ============================================================
+# 6. assign_material
+# UE5 依赖: UMeshComponent::SetMaterial
+# ============================================================
+
+def assign_material(actor_path: str, material_path: str,
+                    slot_index: int = 0, dry_run: bool = False) -> dict:
+    err = validate_required_string(actor_path, "actor_path")
+    if err:
+        return err
+    err = validate_required_string(material_path, "material_path")
+    if err:
+        return err
+
+    return _dispatch_write(
+        "assign_material",
+        lambda: _assign_material_python(actor_path, material_path, slot_index, dry_run),
+        lambda: _assign_material_rc(actor_path, material_path, slot_index, dry_run),
+        cpp_params={
+            "ActorPath": actor_path,
+            "MaterialPath": material_path,
+            "SlotIndex": slot_index,
+            "bDryRun": dry_run,
+        },
+    )
+
+
+def _assign_material_python(actor_path, material_path, slot_index, dry_run) -> dict:
+    import unreal
+    from ue_helpers import find_actor_by_path, check_editor_ready
+
+    ready_err = check_editor_ready()
+    if ready_err:
+        return ready_err
+
+    actor = find_actor_by_path(actor_path)
+    if actor is None:
+        return make_response(
+            status="failed", summary="Actor not found", data=dict(_EMPTY_WRITE_DATA),
+            errors=[make_error("ACTOR_NOT_FOUND", f"No actor at: {actor_path}")])
+
+    mesh_component = None
+    components = actor.get_components_by_class(unreal.MeshComponent)
+    if components:
+        mesh_component = components[0]
+
+    if mesh_component is None:
+        return make_response(
+            status="failed", summary="MeshComponent not found", data=dict(_EMPTY_WRITE_DATA),
+            errors=[make_error("TOOL_EXECUTION_FAILED", f"Actor '{actor_path}' has no MeshComponent")])
+
+    material = unreal.EditorAssetLibrary.load_asset(material_path)
+    if material is None:
+        return make_response(
+            status="failed", summary=f"Material not found: {material_path}", data=dict(_EMPTY_WRITE_DATA),
+            errors=[make_error("ASSET_NOT_FOUND", f"Cannot load material: {material_path}")])
+
+    old_material = mesh_component.get_material(slot_index)
+    if dry_run:
+        data = dict(_EMPTY_WRITE_DATA)
+        data["modified_objects"] = [{"actor_path": actor_path}]
+        data["old_material_path"] = old_material.get_path_name() if old_material else ""
+        data["preview_material_path"] = material.get_path_name()
+        data["slot_index"] = slot_index
+        return make_response(status="success", summary="Dry run: would assign material", data=data)
+
+    mesh_component.set_material(slot_index, material)
+    actual_material = mesh_component.get_material(slot_index)
+    data = dict(_EMPTY_WRITE_DATA)
+    data["modified_objects"] = [{"actor_path": actor_path}]
+    data["old_material_path"] = old_material.get_path_name() if old_material else ""
+    data["actual_material_path"] = actual_material.get_path_name() if actual_material else ""
+    data["actual_material_name"] = actual_material.get_name() if actual_material else ""
+    data["slot_index"] = slot_index
+    return make_response(status="success", summary="Material assigned", data=data)
+
+
+def _assign_material_rc(actor_path, material_path, slot_index, dry_run) -> dict:
+    return make_response(
+        status="failed",
+        summary="assign_material not supported via direct Remote Control",
+        data=dict(_EMPTY_WRITE_DATA),
+        errors=[make_error("TOOL_EXECUTION_FAILED", "Use channel C (cpp_plugin) for assign_material")],
     )
