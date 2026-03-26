@@ -2293,6 +2293,20 @@ Step 3: L3 宽容差
 - verify_actor_state 根据 execution_method 自动选择容差（semantic→DEFAULT / ui_tool→L3）
 ```
 
+### Task12 执行结果（2026-03-26）
+
+- 结论：PASS（纯 Python 验收项全部通过）
+- 本次实现文件：
+  - `Scripts/orchestrator/verifier.py`
+- 本次实现要点：
+  - `verify_transform()` 将 transform 拆为 9 个分量检查项，逐项输出 `field / expected / actual / delta / tolerance / pass`
+  - `verify_transform()` 任一分量超差时返回 `status="mismatch"`，并输出带字段名与数值的 `mismatches`
+  - `verify_actor_state()` 会根据 `execution_method` 自动切换容差：`semantic -> DEFAULT_TOLERANCES`，`ui_tool -> L3_TOLERANCES`
+  - 如 Spec 含 `collision`，则继续比对 collision 标量字段与 `collision_box_extent`
+- 证据：
+  - `reports/task12_evidence_2026-03-26/task12_verifier_validation_2026-03-26.md`
+  - `reports/task12_evidence_2026-03-26/task12_verifier_validation_2026-03-26.log`
+
 ---
 
 ## TASK 13：实现报告生成器 [无需 UE5 环境]
