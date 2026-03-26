@@ -1654,6 +1654,16 @@ Step 7: 确认 L1+L2 顺序执行不冲突（替代聚合命令）
 - BridgeChannel 包含 CPP_PLUGIN
 ```
 
+### Task09 执行结果（2026-03-26）
+
+- 结论：PASS（纯 Python 验收项全部通过）
+- 本次额外同步：
+  - `Scripts/bridge/uat_runner.py` 的 `run_automation_tests()` 已切换到 UE5.5 实际可用的 `BuildCookRun -run -editortest` 路径
+  - `UATRunner.engine_dir` 现在兼容 UE 安装根目录（如 `E:\Epic Games\UE_5.5`）和 `...\Engine` 目录两种写法
+- 证据：
+  - `reports/task09_evidence_2026-03-26/task09_python_bridge_validation_2026-03-26.md`
+  - `reports/task09_evidence_2026-03-26/task09_python_bridge_validation_2026-03-26.log`
+
 ---
 
 ## TASK 10：实现 Spec 读取器 [无需 UE5 环境]
