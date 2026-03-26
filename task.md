@@ -2147,6 +2147,20 @@ Step 3: UI_TOOL 不受 existing 影响
 - ACTION_CREATE / ACTION_UPDATE / ACTION_UI_TOOL / ACTION_SKIP 常量可导入
 ```
 
+### Task11 执行结果（2026-03-26）
+
+- 结论：PASS（纯 Python 验收项全部通过）
+- 本次实现文件：
+  - `Scripts/orchestrator/plan_generator.py`
+- 本次实现要点：
+  - 语义 Actor 通过 `actor_name` 命中 existing 索引后生成 `UPDATE`
+  - 未命中 existing 的语义 Actor 生成 `CREATE`
+  - `execution_method == "ui_tool"` 的条目始终生成 `UI_TOOL`，不受 existing 影响
+  - 返回的每个计划条目均包含 `actor_spec / action / execution_method / existing_actor_path / reason`
+- 证据：
+  - `reports/task11_evidence_2026-03-26/task11_plan_generator_validation_2026-03-26.md`
+  - `reports/task11_evidence_2026-03-26/task11_plan_generator_validation_2026-03-26.log`
+
 ---
 
 ## TASK 12：实现验证器 [无需 UE5 环境]
