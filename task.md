@@ -3037,6 +3037,41 @@ Step 5: Gauntlet 日志确认
 - Controller 的 OnInit/OnTick/EndTest 生命周期正确
 ```
 
+### Task16 最终验证补充（2026-03-26）
+
+- `SmokeTests` 已跑通：
+  - `RunUnreal -test=SmokeTests` 最终 `UAT_EXIT=0`
+  - 控制器汇总为 `Selected=22 LeafReports=22 Passed=18 Warnings=4 Failed=0 NotRun=0 InProcess=0`
+- `AllTests` 已跑通：
+  - `RunUnreal -test=AllTests` 最终 `UAT_EXIT=0`
+  - 控制器汇总为 `Selected=27 LeafReports=27 Passed=22 Warnings=5 Failed=0 NotRun=0 InProcess=0`
+  - 覆盖 `Project.AgentBridge` 树以及 `Project.Functional Tests.Tests.FTEST_WarehouseDemo`
+- Task16 的最终修复点共 4 个：
+  - `AgentBridgeConfigBase` 对 Editor 会话显式补 `-PIE`，因为 UE5.5.4 的 Gauntlet 控制器在 Editor 下依赖 `PreBeginPIE` 才会真正实例化
+  - `SmokeTestsConfig` 显式补 `-NullRHI`，避免仅依赖 `Nullrhi=true` 的隐式命令行拼接
+  - `AgentBridgeGauntletController` 去掉会导致过早收尾的 `OnTestsComplete` 依赖，并移除会清空发现树的 `ClearAutomationReports()` 路径
+  - `AllTestsConfig` 显式覆写 `[/Script/Engine.AutomationTestSettings]` 的交互帧率门槛：
+    - `DefaultInteractiveFramerate=1`
+    - `DefaultInteractiveFramerateDuration=1`
+    - `DefaultInteractiveFramerateWaitTime=30`
+    这样在保留真实渲染路径、且不使用 `-NullRHI` 的前提下，避免 Gauntlet 会话长期卡在 `FWaitForInteractiveFrameRate`
+- 当前 Task16 可按验收标准判定通过：
+  - 编译通过
+  - SmokeTests `exit code 0`
+  - AllTests `exit code 0`
+  - Gauntlet 自动完成“启动 Editor -> 运行测试 -> 收集结果 -> 停止 Editor”
+  - SmokeTests 使用 `-NullRHI`
+  - AllTests 不使用 `-NullRHI`
+  - Controller 日志与最终 ExitCode 汇总可在运行日志中审计
+
+证据：
+- Task16 汇总报告：[reports/task16_evidence_2026-03-26/task16_final_validation_2026-03-26.md](reports/task16_evidence_2026-03-26/task16_final_validation_2026-03-26.md)
+- Smoke 构建：[reports/task16_evidence_2026-03-26/task16_build_after_gauntlet_flow_fix_2026-03-26.log](reports/task16_evidence_2026-03-26/task16_build_after_gauntlet_flow_fix_2026-03-26.log)
+- Smoke 运行：[reports/task16_evidence_2026-03-26/task16_smoke_rununreal_after_flow_fix_2026-03-26.log](reports/task16_evidence_2026-03-26/task16_smoke_rununreal_after_flow_fix_2026-03-26.log)
+- AllTests 首次失败定位：[reports/task16_evidence_2026-03-26/task16_alltests_rununreal_2026-03-26.log](reports/task16_evidence_2026-03-26/task16_alltests_rununreal_2026-03-26.log)
+- AllTests 最终成功：[reports/task16_evidence_2026-03-26/task16_alltests_rununreal_after_interactivefps_fix_2026-03-26.log](reports/task16_evidence_2026-03-26/task16_alltests_rununreal_after_interactivefps_fix_2026-03-26.log)
+- AllTests 前构建：[reports/task16_evidence_2026-03-26/task16_build_before_alltests_2026-03-26.log](reports/task16_evidence_2026-03-26/task16_build_before_alltests_2026-03-26.log)
+
 ---
 
 ## TASK 17：实现 Phase 2 接口 [UE5 环境 + C++ 编译]
