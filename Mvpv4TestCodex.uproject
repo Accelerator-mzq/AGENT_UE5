@@ -12,14 +12,14 @@
 	],
 	"Plugins": [
 		{
-			"Name": "AgentBridge",
+			"Name": "AgentUE5Framework",
 			"Enabled": true,
 			"TargetAllowList": [
 				"Editor"
 			]
 		},
 		{
-			"Name": "AgentBridgeTests",
+			"Name": "AgentUE5FrameworkTests",
 			"Enabled": true,
 			"TargetAllowList": [
 				"Editor"

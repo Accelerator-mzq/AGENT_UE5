@@ -8,6 +8,7 @@ Binaries/
 Intermediate/
 Saved/
 DerivedDataCache/
+Build/
 
 # 插件构建产物（双保险）
 Plugins/*/Binaries/

@@ -7,12 +7,14 @@ import unreal
 
 # 说明：
 # 1. 本脚本通过 UE 官方 -ExecutePythonScript= 入口执行。
-# 2. 目标是创建 Task15 所需的 Functional Test 地图，并放置 AAgentBridgeFunctionalTest。
+# 2. 目标是创建 Task15 所需的 Functional Test 地图，并放置 AAgentUE5FrameworkFunctionalTest。
 # 3. 脚本会输出结构化 JSON 报告，便于后续审计与回归复跑。
 
 MAP_PATH = "/Game/Tests/FTEST_WarehouseDemo"
-ACTOR_CLASS_PATH = "/Script/AgentBridgeTests.AgentBridgeFunctionalTest"
+PLUGIN_RELATIVE_PATH = os.path.join("Plugins", "AgentUE5Framework")
+ACTOR_CLASS_PATH = "/Script/AgentUE5FrameworkTests.AgentUE5FrameworkFunctionalTest"
 REPORT_RELATIVE_PATH = os.path.join(
+    PLUGIN_RELATIVE_PATH,
     "reports",
     "task15_evidence_2026-03-26",
     "task15_functional_map_creation_report_2026-03-26.json",
@@ -78,7 +80,7 @@ def main():
         if actor is None:
             raise RuntimeError("SpawnActorFromClass 返回空，未能放置 Functional Test Actor")
 
-        actor.set_actor_label("AgentBridgeFunctionalTest")
+        actor.set_actor_label("AgentUE5FrameworkFunctionalTest")
         result["actor_label"] = actor.get_actor_label()
         result["actor_path"] = actor.get_path_name()
 
