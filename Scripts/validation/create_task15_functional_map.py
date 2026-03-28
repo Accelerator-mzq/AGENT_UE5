@@ -11,8 +11,10 @@ import unreal
 # 3. 脚本会输出结构化 JSON 报告，便于后续审计与回归复跑。
 
 MAP_PATH = "/Game/Tests/FTEST_WarehouseDemo"
+PLUGIN_RELATIVE_PATH = os.path.join("Plugins", "AgentBridge")
 ACTOR_CLASS_PATH = "/Script/AgentBridgeTests.AgentBridgeFunctionalTest"
 REPORT_RELATIVE_PATH = os.path.join(
+    PLUGIN_RELATIVE_PATH,
     "reports",
     "task15_evidence_2026-03-26",
     "task15_functional_map_creation_report_2026-03-26.json",

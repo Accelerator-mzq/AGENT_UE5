@@ -10,16 +10,13 @@
 			"LoadingPhase": "Default"
 		}
 	],
+	"AdditionalPluginDirectories": [
+		"Plugins/AgentBridge",
+		"Plugins/AgentBridge/AgentBridgeTests"
+	],
 	"Plugins": [
 		{
 			"Name": "AgentBridge",
-			"Enabled": true,
-			"TargetAllowList": [
-				"Editor"
-			]
-		},
-		{
-			"Name": "AgentBridgeTests",
 			"Enabled": true,
 			"TargetAllowList": [
 				"Editor"
