@@ -14,6 +14,22 @@ Build/
 Plugins/*/Binaries/
 Plugins/*/Intermediate/
 
+# AgentBridge 插件本地产物
+Plugins/AgentBridge/Binaries/
+Plugins/AgentBridge/Intermediate/
+Plugins/AgentBridge/Saved/
+Plugins/AgentBridge/DerivedDataCache/
+Plugins/AgentBridge/Scripts/bridge/__pycache__/
+Plugins/AgentBridge/Scripts/orchestrator/__pycache__/
+Plugins/AgentBridge/**/__pycache__/
+Plugins/AgentBridge/**/*.pyc
+Plugins/AgentBridge/**/*.pyo
+Plugins/AgentBridge/Gauntlet/obj/
+Plugins/AgentBridge/Gauntlet/bin/
+Plugins/AgentBridge/reports/
+Plugins/AgentBridge/AgentBridgeTests/Binaries/
+Plugins/AgentBridge/AgentBridgeTests/Intermediate/
+
 # 本地报告与证据目录（如需保留可删除此行）
 reports/
 
@@ -45,3 +61,25 @@ Gauntlet/obj/
 # 系统文件
 .DS_Store
 Thumbs.db
+
+# AgentBridge 插件源码/文档保护
+!Plugins/AgentBridge/.gitignore
+!Plugins/AgentBridge/AGENTS.md
+!Plugins/AgentBridge/README.md
+!Plugins/AgentBridge/AgentBridge.uplugin
+!Plugins/AgentBridge/Docs/**/*.md
+!Plugins/AgentBridge/Roadmap/**/*.md
+!Plugins/AgentBridge/Schemas/**/*.json
+!Plugins/AgentBridge/Scripts/**/*.py
+!Plugins/AgentBridge/Scripts/**/*.ps1
+!Plugins/AgentBridge/Source/**/*.h
+!Plugins/AgentBridge/Source/**/*.cpp
+!Plugins/AgentBridge/Specs/**/*.md
+!Plugins/AgentBridge/Specs/**/*.yaml
+!Plugins/AgentBridge/Gauntlet/**/*.cs
+!Plugins/AgentBridge/Gauntlet/**/*.csproj
+!Plugins/AgentBridge/AgentBridgeTests/.gitignore
+!Plugins/AgentBridge/AgentBridgeTests/**/*.uplugin
+!Plugins/AgentBridge/AgentBridgeTests/**/*.Build.cs
+!Plugins/AgentBridge/AgentBridgeTests/**/*.h
+!Plugins/AgentBridge/AgentBridgeTests/**/*.cpp
