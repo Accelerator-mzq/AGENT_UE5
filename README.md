@@ -113,14 +113,14 @@ Mvpv4TestCodex/
 - ✅ UE5 Automation Test 验证层
 - ✅ Schema 校验链
 
-### Phase 3（进行中）
+### Phase 3（已完成 — simulated 模式）
 - ✅ Skill Compiler Plane 最小框架
 - ✅ Reviewed Handoff Schema + Builder
 - ✅ Run Plan Schema + Builder
 - ✅ Orchestrator Handoff Runner 桥接
 - ✅ Greenfield + Boardgame simulated 模式跑通
-- ⬜ UE5 真实调用联调
-- ⬜ Brownfield 能力（占位，后续实装）
+- ⬜ UE5 真实调用联调（Phase 4 前置）
+- ⬜ Brownfield 能力（Phase 5）
 
 ## 相关链接
 

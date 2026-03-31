@@ -1,7 +1,7 @@
 # CLAUDE.md — Mvpv4TestCodex 项目
 
 > 本文件供 Claude Code / Codex / 其他 AI Agent 在进入本项目时自动读取。
-> 最后更新：2026-03-30
+> 最后更新：2026-03-31
 
 ## 项目概述
 
@@ -121,5 +121,6 @@ python compiler_main.py
 
 ## 当前阶段
 
-Phase 3 — Greenfield + Boardgame + Reviewed Handoff 最小闭环
+Phase 3 — Greenfield + Boardgame + Reviewed Handoff 最小闭环（已完成）
+下一阶段：Phase 4 — Static Spec Base + Spec 自动生成
 详见 `task1.md`

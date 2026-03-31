@@ -1,29 +1,55 @@
 # 系统架构概述
 
-> 目标引擎版本：UE5.5.4 | 文档版本：v0.3 | 适用范围：AGENT + UE5 可操作层
+> 目标引擎版本：UE5.5.4 | 文档版本：v0.4.0 | 适用范围：AgentBridge 通用 Agent 开发框架
 
 ---
 
 ## 1. 核心定位
 
-**AGENT + UE5 可操作层**不是 UE5 内置模块，而是**位于 AI Agent 与 UE5 官方能力之间的受控编排层**。
+**AgentBridge** 是一套面向不同 UE5 项目的**通用 Agent 开发框架插件**。它不只是工具接口封装层，而是包含编译前端、交接物机制、执行编排、受控工具体系、验证与恢复框架的完整 Agent 框架。
 
-它的全部执行能力来自 UE5 官方 API。我们不创造新的引擎 API——每个操作接口都是对 UE5 官方能力的结构化封装，增加参数约束、权限控制、执行护栏、验证闭环与审计能力。
+### 1.1 总链路（v0.4.0）
 
-### 1.1 v0.3 核心变更
+```
+Design Inputs + Existing Project State Inputs
+→ Skill Compiler Plane（编译前端）
+  ├── Design & Project State Intake
+  ├── Mode Routing（Greenfield / Brownfield）
+  └── Handoff Assembly
+→ Reviewed Handoff（正式交接物）
+→ Execution Orchestrator Plane（执行编排）
+  ├── Run Plan Builder → Run Plan
+  ├── Handoff Runner → Bridge 工具调用
+  └── Report Generator
+→ Build Workflows（L1/L2/L3 受控工具）
+→ Validation / Report
+→ Playable Template
+```
 
-v0.3 的核心变更是**将 Bridge 封装层从 Python 脚本升级为 C++ Editor Plugin**，同时将全部 10 个 UE5 官方模块从"文档提及"变为"代码实装"：
+### 1.2 双模式
 
-| 维度 | v0.2 | v0.3 |
-|---|---|---|
-| Bridge 核心 | Python 脚本（调用 `unreal` 模块 / HTTP） | **C++ Editor Plugin**（UE5 原生模块） |
-| 工具分层 | 无分层（统称"受控工具"） | **三层体系**：L1 语义工具 > L2 编辑器服务工具 > L3 UI 工具 |
-| 验证层 | Python 自建（脚本手工调用） | **UE5 Automation Test Framework**（引擎原生） |
-| UI 自动化 | 完全排除 | **L3 UI 工具**：Automation Driver 作为受约束执行后端纳入 |
-| 无头执行 | 无 | **Commandlet**（引擎原生批处理） |
-| 构建自动化 | 无 | **UAT**（引擎原生构建工具） |
-| CI/CD 编排 | 无 | **Gauntlet**（引擎原生测试会话框架） |
-| Python 定位 | Bridge 核心实现 | 轻量客户端（通过 RC API 调用 C++ Plugin） |
+| 模式 | 说明 | 链路差异 |
+|------|------|---------|
+| **Greenfield Bootstrap** | 从零启动新样板 | 全量编译 → Full Dynamic Spec Tree |
+| **Brownfield Expansion** | 已有 demo 的二次开发 | 基线理解 + 差量编译 → Delta Dynamic Spec Tree |
+
+Phase 3 已实装 Greenfield 最小闭环。Brownfield 为 Phase 5 目标。
+
+### 1.3 分层原则
+
+| 层次 | 职责 | 位置 |
+|------|------|------|
+| **项目层** | 输入源、配置、实例、治理 | 工程根目录（ProjectInputs / ProjectState / Docs） |
+| **插件层** | 通用编译、执行、验证框架 | Plugins/AgentBridge/ |
+
+**核心原则**：项目层保存实例，插件层提供机制。GDD 文件在项目层，GDD 解析机制在插件层。
+
+### 1.4 版本变更摘要
+
+| 版本 | 核心变更 |
+|------|---------|
+| v0.3 | Bridge 从 Python 升级为 C++ Editor Plugin；全部 10 个 UE5 模块代码实装；三层工具体系 |
+| v0.4.0 | 新增 Skill Compiler Plane；新增 Reviewed Handoff 机制；新增 Run Plan / Handoff Runner；项目层/插件层双层架构确立 |
 
 ---
 
@@ -468,13 +494,14 @@ Gauntlet（C# 编排器）
 
 | 文档 | 职责 |
 |---|---|
-| **本文档** | 系统架构全图（C++ Plugin 中心） |
+| **本文档** | 系统架构全图 |
+| `compiler_design.md` | Skill Compiler Plane 设计（v0.4.0 新增） |
+| `reviewed_handoff_design.md` | Reviewed Handoff 机制设计（v0.4.0 新增） |
+| `greenfield_pipeline.md` | Greenfield E2E 管线（v0.4.0 新增） |
+| `skills_and_specs_overview.md` | Skills / Specs 体系概述（v0.4.0 新增） |
+| `orchestrator_design.md` | Orchestrator 编排逻辑 + Handoff Runner + Gauntlet |
 | `ue5_capability_map.md` | 10 个 UE5 官方模块详细说明 + 与本方案的映射 |
-| `bridge_implementation_plan.md` | AgentBridge Plugin 的详细实现方案（C++ 代码结构） |
-| `mvp_smoke_test_plan.md` | 测试层（Automation Test / Spec / Functional Testing）详细方案 |
-| `orchestrator_design.md` | Orchestrator 编排逻辑 + Gauntlet 集成 |
 | `tool_contract_v0_1.md` | 15 个工具的参数、响应、UE5 依赖契约 |
 | `AGENTS.md` | Agent 行为规则（如何调用工具、遵守什么约束） |
-
-> 完整的 v0.3 文件清单参见 `v0.3_file_manifest.md`。
+| `Archive/Phase1-2/` | Phase 1-2 历史文档（bridge_implementation_plan / mvp_smoke_test_plan） |
 

@@ -1,12 +1,15 @@
 # Orchestrator 设计方案
 
-> 目标引擎版本：UE5.5.4 | 文档版本：v0.3 | 适用范围：AGENT + UE5 可操作层
+> 目标引擎版本：UE5.5.4 | 文档版本：v0.4.0 | 适用范围：AgentBridge Execution Orchestrator Plane
 
 ## 1. 文档目的
 
-本文档定义 Orchestrator（Agent 编排层）的实现方案：如何读取结构化 Spec、选择工具、组织"查询 → 执行 → 读回 → 验证 → 报告"闭环。
+本文档定义 Execution Orchestrator Plane 的实现方案。Orchestrator 提供两条执行入口：
 
-本文档是第 4 周的实现参考。第 2-3 周应先完成 Bridge 函数和手工闭环验证，第 4 周再将手工流程固化为 Orchestrator 自动编排。
+1. **Spec 驱动入口**（`orchestrator.py`）：直接读取 YAML Spec 文件执行（Phase 1-2 已稳定）
+2. **Handoff 驱动入口**（`handoff_runner.py`）：消费 Reviewed Handoff 执行（Phase 3 新增）
+
+两条入口共享 Bridge 工具层、验证层和报告层。
 
 ---
 
@@ -92,31 +95,28 @@ Orchestrator 依赖：
 ### 3.1 目录布局
 
 ```
-Scripts/
-├── bridge/                  # Bridge 层（已有）
-│   ├── bridge_core.py
-│   ├── query_tools.py
-│   ├── write_tools.py
-│   ├── validation_tools.py
-│   └── ue_helpers.py
-└── orchestrator/            # 编排层（新增）
-    ├── __init__.py
-    ├── orchestrator.py      # 主编排逻辑
-    ├── spec_reader.py       # Spec 文件解析
-    ├── plan_generator.py    # 执行计划生成
-    ├── verifier.py          # 验证逻辑（actual vs expected）
-    └── report_generator.py  # 报告生成
+Scripts/orchestrator/
+├── __init__.py
+├── orchestrator.py      # 主编排逻辑（Spec 驱动入口，Phase 1-2 已稳定）
+├── spec_reader.py       # Spec 文件解析（已稳定）
+├── plan_generator.py    # 执行计划生成（已稳定）
+├── verifier.py          # 验证逻辑（actual vs expected）（已稳定）
+├── report_generator.py  # 报告生成（已稳定）
+├── handoff_runner.py    # ★ Handoff 执行入口（Phase 3 新增）
+└── run_plan_builder.py  # ★ Run Plan 生成器（Phase 3 新增）
 ```
 
 ### 3.2 模块职责
 
 | 模块 | 职责 | 不做 |
 |---|---|---|
-| `orchestrator.py` | 主循环：读 Spec → 生成计划 → 逐步执行 → 汇总报告 | 不做 UE API 调用 |
+| `orchestrator.py` | Spec 驱动主循环：读 Spec → 生成计划 → 逐步执行 → 汇总报告 | 不做 UE API 调用 |
 | `spec_reader.py` | 解析 YAML Spec 文件，输出结构化的 Actor 列表和约束 | 不做 Spec 生成 |
 | `plan_generator.py` | 对比 Spec 与当前状态，决定每个 Actor 的操作类型 | 不做执行 |
 | `verifier.py` | 将读回的 actual 值与 Spec 中的 expected 值比对，输出判定 | 不做业务规划 |
 | `report_generator.py` | 汇总执行过程生成结构化报告 | 不做执行或验证 |
+| **`handoff_runner.py`** | **Handoff 驱动执行：读取 approved Handoff → 生成 Run Plan → 调用 Bridge → 报告** | **不回读 GDD** |
+| **`run_plan_builder.py`** | **从 Reviewed Handoff 生成结构化 Run Plan（workflow_sequence）** | **不做执行** |
 
 ---
 
@@ -786,7 +786,70 @@ Bridge 函数已通过 `safe_execute` 包装（见 `bridge_implementation_plan.m
 
 ---
 
-## 9. 与路线图的对应
+## 9. Handoff Runner（Phase 3 新增）
+
+### 9.1 定位
+
+`handoff_runner.py` 是 Orchestrator 的第二条执行入口。它消费 Reviewed Handoff（而非 YAML Spec），通过 Run Plan Builder 生成执行计划，再调用 Bridge 工具执行。
+
+### 9.2 与 orchestrator.py 的关系
+
+| 维度 | orchestrator.py | handoff_runner.py |
+|------|----------------|-------------------|
+| 输入 | YAML Spec 文件 | Reviewed Handoff YAML |
+| 计划生成 | plan_generator.py | run_plan_builder.py |
+| 执行 | 直接调用 Bridge | 根据 Run Plan 调用 Bridge |
+| 适用场景 | 手工 Spec 驱动 | Compiler → Handoff → 自动执行 |
+
+两条入口共享：Bridge 工具层、verifier.py、report_generator.py。
+
+### 9.3 执行模式
+
+| 模式 | 说明 |
+|------|------|
+| `simulated` | 不调用真实 Bridge，打印模拟输出（默认） |
+| `bridge_python` | 通过通道 A（Python import unreal）调用 Bridge |
+| `bridge_rc_api` | 通过通道 B（HTTP REST :30010）调用 Bridge |
+
+### 9.4 执行流程
+
+```
+approved Handoff YAML
+    ↓
+run_plan_builder.py → Run Plan（workflow_sequence）
+    ↓
+handoff_runner.py 遍历 workflow_sequence
+    ↓ 对每个 step：
+    ├── kind: create → spawn_actor()
+    ├── kind: update → set_actor_transform()
+    └── kind: validate → 验证检查点
+    ↓
+Report 输出
+```
+
+---
+
+## 10. Run Plan Builder（Phase 3 新增）
+
+### 10.1 定位
+
+`run_plan_builder.py` 从 Reviewed Handoff 生成符合 `run_plan.schema.json` 的结构化执行计划。
+
+### 10.2 输入与输出
+
+**输入**：approved Handoff YAML（符合 `reviewed_handoff.schema.json`）
+
+**输出**：Run Plan 字典，包含：
+- `workflow_sequence`：有序执行步骤列表
+- 每个步骤包含：`step_id` / `kind`（create / update / validate）/ `target` / `params` / `dependencies` / `preconditions` / `postconditions`
+
+### 10.3 Schema
+
+Run Plan 格式由 `Schemas/run_plan.schema.json` 约束。
+
+---
+
+## 11. 与路线图的对应
 
 | 周次 | Orchestrator 相关任务 |
 |---|---|

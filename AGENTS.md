@@ -70,7 +70,6 @@ Agent 在本项目中需要参考的文档：
 | 项目基线 | `Docs/Current/01_Project_Baseline.md` |
 | Phase 3 目标 | `Docs/Current/02_Current_Phase_Goals.md` |
 | 实施边界 | `Docs/Current/05_Implementation_Boundary.md` |
-| 实施方案 | `Docs/Proposals/Phase3_Implementation_Plan.md` |
 | 当前任务 | `task1.md` |
 
 **插件层文档**：
@@ -164,5 +163,5 @@ Agent 不得：
 
 ### 3.7 附加说明
 
-- `Plugins/AgentBridge/Roadmap/` 下的内容为历史开发计划，不作为当前开发依据
+- `Plugins/AgentBridge/Roadmap/Archive/` 下的内容为历史开发计划，不作为当前开发依据
 - 设计文档均位于插件内部，完整列表见第 2.6 节

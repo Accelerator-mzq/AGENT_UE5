@@ -28,6 +28,8 @@
 ```
 Schemas/
 ├── README.md              # 本文件
+├── reviewed_handoff.schema.json   # ★ Reviewed Handoff Schema（Phase 3 新增）
+├── run_plan.schema.json           # ★ Run Plan Schema（Phase 3 新增）
 ├── common/                # 通用基础 Schema
 │   ├── primitives.schema.json    # status / vector3 / rotator / string_array
 │   ├── transform.schema.json     # transform 结构
@@ -147,13 +149,18 @@ Schemas/
 
 `write_operation_feedback`
 
-### Examples（10 个）
+### Phase 3 新增（2 个，根级）
 
-与上述 9 个 feedback + 1 个 write_feedback 一一对应。
+- `reviewed_handoff.schema.json` — Reviewed Handoff 格式契约（Compiler → Orchestrator 交接物）
+- `run_plan.schema.json` — Run Plan 格式契约（Handoff → 执行计划）
+
+### Examples（12 个）
+
+与上述 9 个 feedback + 1 个 write_feedback + 2 个 Phase 3 新增（reviewed_handoff_greenfield + run_plan_greenfield）一一对应。
 
 ### 校验状态
 
-`validate_examples.py --strict` → 10 checked / 10 passed / 0 failed ✅
+`validate_examples.py --strict` → 12 checked / 12 passed / 0 failed ✅
 
 ---
 

@@ -1,6 +1,6 @@
 # MVP Scope
 
-> 目标引擎版本：UE5.5.4 | 文档版本：v0.3 | 适用范围：AGENT + UE5 可操作层
+> 目标引擎版本：UE5.5.4 | 文档版本：v0.4.0 | 适用范围：AgentBridge 通用 Agent 开发框架
 
 ## 1. 文档目的
 
@@ -154,15 +154,61 @@ AGENT + UE5 可操作层不是替代 UE5 官方能力的自定义系统，而是
 |---|---|---|
 | 1 | 本地 schema/example/validate 校验链跑通 | ✅ 已完成 |
 | 2 | 确定 MVP 核心接口集合（4 写 + 7 读） | ✅ 已确定 |
-| 3 | 落地最小 Python Bridge | ⬜ 下一步 |
-| 4 | 跑通 spawn_actor → get_actor_state → get_actor_bounds 最小闭环 | ⬜ |
-| 5 | Phase 2 接口实现 | ⬜ |
-| 6 | 验证增强（inside_bounds / non_overlap / screenshot） | ⬜ |
-| 7 | MVP 集成演示 | ⬜ |
+| 3 | 落地最小 Python Bridge | ✅ 已完成 |
+| 4 | 跑通 spawn_actor → get_actor_state → get_actor_bounds 最小闭环 | ✅ 已完成 |
+| 5 | Phase 2 接口实现 | ⬜ 待做 |
+| 6 | 验证增强（inside_bounds / non_overlap / screenshot） | ⬜ 待做 |
+| 7 | MVP 集成演示 | ✅ 已完成 |
 
 ---
 
-## 7. 后续版本方向
+## 7. Phase 3 扩展 Scope
+
+Phase 3 在 MVP 基础上扩展了以下能力：
+
+### 7.1 Skill Compiler Plane（编译前端）
+
+- Design Input Intake：GDD 解析（boardgame 类型）
+- Project State Intake：项目状态采集（模拟数据）
+- Mode Router：Greenfield / Brownfield 模式路由
+- Handoff Builder + Serializer：构建并序列化 Reviewed Handoff
+
+### 7.2 Reviewed Handoff + Run Plan
+
+- `reviewed_handoff.schema.json` + `run_plan.schema.json`
+- Handoff 作为 Compiler → Orchestrator 的唯一正式交接物
+- Run Plan 作为 Handoff 的执行计划视图
+
+### 7.3 Orchestrator 桥接
+
+- `handoff_runner.py`：Handoff 驱动执行入口
+- `run_plan_builder.py`：从 Handoff 生成 Run Plan
+- 支持 simulated / bridge_python / bridge_rc_api 三种执行模式
+
+### 7.4 端到端管线
+
+- `run_greenfield_demo.py`：Greenfield E2E 入口
+- 已验证：GDD → Compiler → Handoff → Run Plan → 模拟执行 → Report
+
+### 7.5 Phase 3 成功标准
+
+1. simulated 模式端到端 demo 可运行
+2. Reviewed Handoff 通过 Schema 校验
+3. Run Plan 通过 Schema 校验
+4. Report 结构化输出
+5. 现有 MVP 不受影响（Automation Test 通过、Schema 校验通过）
+
+### 7.6 Phase 3 不包含（后续阶段）
+
+- Brownfield 模式（Phase 5）
+- Static Spec Base 实装（Phase 4）
+- Spec 自动生成（Phase 4）
+- Genre Skill Pack 完整化（Phase 6）
+- 治理闭环（Phase 7）
+
+---
+
+## 8. 后续版本方向
 
 MVP 之后可考虑扩展：
 
