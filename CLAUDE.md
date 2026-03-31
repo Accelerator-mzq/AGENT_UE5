@@ -91,6 +91,15 @@ AgentBridge 不只是工具接口插件，而是包含编译前端（Skill Compi
 # Schema 校验（验证现有 MVP 不破坏）
 python Plugins/AgentBridge/Scripts/validation/validate_examples.py --strict
 
+# 系统测试：一键执行全部 9 个 Stage（134 条用例）
+python Plugins/AgentBridge/Tests/run_system_tests.py
+
+# 系统测试：交互模式（选择 Stage）
+python Plugins/AgentBridge/Tests/run_system_tests.py --interactive
+
+# 系统测试：仅纯 Python Stage（不需要 Editor）
+python Plugins/AgentBridge/Tests/run_system_tests.py --no-editor
+
 # Greenfield 端到端运行（simulated 模式）
 python run_greenfield_demo.py
 
