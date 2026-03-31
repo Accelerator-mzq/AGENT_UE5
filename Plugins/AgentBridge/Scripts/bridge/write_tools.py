@@ -170,7 +170,7 @@ def _spawn_actor_rc(level_path, actor_class, actor_name, transform, dry_run) -> 
                              data=dict(_EMPTY_WRITE_DATA))
 
     from remote_control_client import (
-        rc_spawn_actor_from_class, get_property, set_property, check_connection,
+        rc_spawn_actor_from_class, call_function, check_connection,
     )
 
     if not check_connection():
@@ -195,15 +195,23 @@ def _spawn_actor_rc(level_path, actor_class, actor_name, transform, dry_run) -> 
                              data=dict(_EMPTY_WRITE_DATA),
                              errors=[make_error("TOOL_EXECUTION_FAILED", "empty ReturnValue")])
 
-    # 设置缩放（纳入 Undo）
-    set_property(actor_path, "RelativeScale3D",
-                 {"X": scale[0], "Y": scale[1], "Z": scale[2]},
-                 generate_transaction=True)
+    # 注意：Actor 对象上无法直接通过 RC 访问 RelativeLocation/RelativeScale3D 属性，
+    # 这里统一改为函数调用，避免 400（property could not be resolved）。
+    call_function(
+        actor_path, "SetActorScale3D",
+        parameters={"NewScale3D": {"X": scale[0], "Y": scale[1], "Z": scale[2]}},
+        generate_transaction=True,
+    )
+    call_function(
+        actor_path, "SetActorLabel",
+        parameters={"NewActorLabel": actor_name, "bMarkDirty": True},
+        generate_transaction=True,
+    )
 
-    # 写后读回
-    rl = get_property(actor_path, "RelativeLocation").get("RelativeLocation", {})
-    rr = get_property(actor_path, "RelativeRotation").get("RelativeRotation", {})
-    rs = get_property(actor_path, "RelativeScale3D").get("RelativeScale3D", {})
+    # 写后读回（从 UE5 API 函数返回值读取）
+    rl = call_function(actor_path, "GetActorLocation").get("ReturnValue", {})
+    rr = call_function(actor_path, "GetActorRotation").get("ReturnValue", {})
+    rs = call_function(actor_path, "GetActorScale3D").get("ReturnValue", {})
 
     return make_response(
         status="success", summary=f"Spawned actor via RC: {actor_name}",

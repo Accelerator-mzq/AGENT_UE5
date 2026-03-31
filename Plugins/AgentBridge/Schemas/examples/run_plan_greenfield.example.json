@@ -1,0 +1,69 @@
+{
+  "run_plan_version": "2.0",
+  "run_plan_id": "runplan.tictactoe.prototype.001",
+  "source_handoff_id": "handoff.tictactoe.prototype.001",
+  "mode": "greenfield_bootstrap",
+  "status": "planned",
+  "context": {
+    "project_name": "Mvpv4TestCodex",
+    "execution_mode": "greenfield_bootstrap"
+  },
+  "workflow_sequence": [
+    {
+      "step_id": "spawn_Board",
+      "workflow_type": "spawn_actor",
+      "params": {
+        "actor_name": "Board",
+        "actor_class": "/Script/Engine.StaticMeshActor",
+        "transform": {
+          "location": [0, 0, 0],
+          "rotation": [0, 0, 0],
+          "relative_scale3d": [3, 3, 0.1]
+        }
+      }
+    },
+    {
+      "step_id": "spawn_PieceX_1",
+      "workflow_type": "spawn_actor",
+      "params": {
+        "actor_name": "PieceX_1",
+        "actor_class": "/Script/Engine.StaticMeshActor",
+        "transform": {
+          "location": [-100, -100, 50],
+          "rotation": [0, 0, 0],
+          "relative_scale3d": [0.5, 0.5, 0.5]
+        }
+      },
+      "depends_on": ["spawn_Board"]
+    },
+    {
+      "step_id": "spawn_PieceO_1",
+      "workflow_type": "spawn_actor",
+      "params": {
+        "actor_name": "PieceO_1",
+        "actor_class": "/Script/Engine.StaticMeshActor",
+        "transform": {
+          "location": [100, 100, 50],
+          "rotation": [0, 0, 0],
+          "relative_scale3d": [0.5, 0.5, 0.5]
+        }
+      },
+      "depends_on": ["spawn_Board"]
+    }
+  ],
+  "validation_checkpoints": [
+    {
+      "checkpoint_id": "validate_all_actors_spawned",
+      "after_step": "spawn_PieceO_1",
+      "validation_type": "actor_count_check"
+    }
+  ],
+  "recovery_policies": {},
+  "reporting": {
+    "output_path": "ProjectState/Reports/"
+  },
+  "metadata": {
+    "generated_at": "2026-03-30T12:00:00Z",
+    "generator": "AgentBridge.Orchestrator.v0.1"
+  }
+}

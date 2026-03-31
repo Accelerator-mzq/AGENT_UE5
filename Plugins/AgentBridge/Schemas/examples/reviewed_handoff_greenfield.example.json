@@ -1,0 +1,60 @@
+{
+  "handoff_version": "1.0",
+  "handoff_id": "handoff.tictactoe.prototype.001",
+  "handoff_mode": "greenfield_bootstrap",
+  "status": "approved_for_execution",
+  "project_context": {
+    "project_name": "Mvpv4TestCodex",
+    "game_type": "boardgame",
+    "target_platform": "Win64"
+  },
+  "routing_context": {
+    "mode": "greenfield_bootstrap",
+    "genre": "boardgame",
+    "activated_skill_packs": ["boardgame"]
+  },
+  "dynamic_spec_tree": {
+    "scene_spec": {
+      "actors": [
+        {
+          "actor_name": "Board",
+          "actor_class": "/Script/Engine.StaticMeshActor",
+          "transform": {
+            "location": [0, 0, 0],
+            "rotation": [0, 0, 0],
+            "relative_scale3d": [3, 3, 0.1]
+          }
+        },
+        {
+          "actor_name": "PieceX_1",
+          "actor_class": "/Script/Engine.StaticMeshActor",
+          "transform": {
+            "location": [-100, -100, 50],
+            "rotation": [0, 0, 0],
+            "relative_scale3d": [0.5, 0.5, 0.5]
+          }
+        },
+        {
+          "actor_name": "PieceO_1",
+          "actor_class": "/Script/Engine.StaticMeshActor",
+          "transform": {
+            "location": [100, 100, 50],
+            "rotation": [0, 0, 0],
+            "relative_scale3d": [0.5, 0.5, 0.5]
+          }
+        }
+      ]
+    }
+  },
+  "review_summary": {
+    "reviewed": true,
+    "reviewer": "human",
+    "review_notes": "井字棋最小场景，包含棋盘和示例棋子"
+  },
+  "capability_gaps": {},
+  "governance_context": {},
+  "metadata": {
+    "generated_at": "2026-03-30T12:00:00Z",
+    "generator": "AgentBridge.Compiler.v0.1"
+  }
+}

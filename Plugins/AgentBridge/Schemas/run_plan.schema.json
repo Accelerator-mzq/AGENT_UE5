@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Run Plan Schema",
+  "description": "Execution Orchestrator Plane 基于 Reviewed Handoff 生成的结构化执行计划",
+  "type": "object",
+  "required": [
+    "run_plan_version",
+    "run_plan_id",
+    "source_handoff_id",
+    "mode",
+    "workflow_sequence"
+  ],
+  "properties": {
+    "run_plan_version": {
+      "type": "string",
+      "description": "Run Plan schema 版本",
+      "example": "2.0"
+    },
+    "run_plan_id": {
+      "type": "string",
+      "description": "全局或局部唯一的 Run Plan 标识",
+      "pattern": "^runplan\\.[a-z0-9_]+\\.[a-z0-9_]+\\.[a-z0-9]+$",
+      "example": "runplan.monopoly.prototype.001"
+    },
+    "source_handoff_id": {
+      "type": "string",
+      "description": "来源 Handoff 的 ID"
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["greenfield_bootstrap", "brownfield_expansion"],
+      "description": "执行模式"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["planned", "executing", "validating", "succeeded", "failed", "rolled_back"],
+      "description": "执行状态"
+    },
+    "context": {
+      "type": "object",
+      "description": "执行上下文"
+    },
+    "workflow_sequence": {
+      "type": "array",
+      "description": "Workflow 执行序列",
+      "items": {
+        "type": "object",
+        "required": ["step_id", "workflow_type", "params"],
+        "properties": {
+          "step_id": {
+            "type": "string",
+            "description": "步骤唯一标识"
+          },
+          "workflow_type": {
+            "type": "string",
+            "description": "Workflow 类型",
+            "enum": ["spawn_actor", "set_actor_transform", "import_assets", "create_blueprint_child"]
+          },
+          "params": {
+            "type": "object",
+            "description": "Workflow 参数"
+          },
+          "depends_on": {
+            "type": "array",
+            "description": "依赖的步骤 ID",
+            "items": {"type": "string"}
+          }
+        }
+      }
+    },
+    "validation_checkpoints": {
+      "type": "array",
+      "description": "验证检查点",
+      "items": {
+        "type": "object",
+        "properties": {
+          "checkpoint_id": {"type": "string"},
+          "after_step": {"type": "string"},
+          "validation_type": {"type": "string"}
+        }
+      }
+    },
+    "recovery_policies": {
+      "type": "object",
+      "description": "恢复策略"
+    },
+    "reporting": {
+      "type": "object",
+      "description": "报告配置"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "元信息"
+    }
+  }
+}

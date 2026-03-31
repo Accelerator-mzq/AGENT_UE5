@@ -11,6 +11,7 @@
 - [1. 测试分类说明](#1-测试分类说明)
 - [2. Schema 验证（SV）](#2-schema-验证sv)
 - [3. 编译与加载（BL）](#3-编译与加载bl)
+- [3.1 通用执行约束（适用于 Q/W/CL/UI）](#31-通用执行约束适用于-qwclui)
 - [4. L1 查询接口（Q）](#4-l1-查询接口q)
 - [5. L1 写接口（W）](#5-l1-写接口w)
 - [6. L2 闭环验证（CL）](#6-l2-闭环验证cl)
@@ -31,18 +32,18 @@
 | 前缀 | 分类 | 环境要求 | 自动化方式 |
 |------|------|----------|-----------|
 | SV | Schema 验证 | Python | `python validate_examples.py --strict` / pytest |
-| BL | 编译与加载 | UE5 + VS2022 | `Build.bat` + `start_ue_editor_project.ps1` + HTTP 探测 |
-| Q | L1 查询接口 | UE5 Editor + RC API | UE5 Automation Test (T1-01~07) |
-| W | L1 写接口 | UE5 Editor + RC API | UE5 Automation Test (T1-08~11) |
-| CL | L2 闭环验证 | UE5 Editor | UE5 Automation Spec (LT-01~03) |
-| UI | L3 UI 工具 | UE5 Editor + Automation Driver | UE5 Automation Test (T1-12~15) + Spec (LT-04~05) |
-| CMD | Commandlet | UE5 命令行（无头） | `UnrealEditor-Cmd.exe -run=AgentBridge` + `start_ue_editor_cmd_project.ps1` |
+| BL | 编译与加载 | UE5 + VS2022 | `Build.bat` + `Scripts/validation/start_ue_editor_project.ps1` + HTTP 探测 |
+| Q | L1 查询接口 | UE5 Editor + RC API | `-run=AgentBridge -RunTests=Project.AgentBridge.L1.Query` |
+| W | L1 写接口 | UE5 Editor + RC API | `-run=AgentBridge -RunTests=Project.AgentBridge.L1.Write` |
+| CL | L2 闭环验证 | UE5 Editor | `-run=AgentBridge -RunTests=Project.AgentBridge.L2` |
+| UI | L3 UI 工具 | UE5 Editor + Automation Driver | `-run=AgentBridge -RunTests=Project.AgentBridge.L1.UITool` + `Project.AgentBridge.L2.UITool` |
+| CMD | Commandlet | UE5 命令行（无头） | `UnrealEditor-Cmd.exe -run=AgentBridge` + `Scripts/validation/start_ue_editor_cmd_project.ps1` |
 | PY | Python 客户端 | Python | pytest / `ast.parse` / Mock 模式调用 |
 | ORC | Orchestrator | Python + UE5 | pytest / `orchestrator.py --channel mock` |
 | GA | Gauntlet CI/CD | UE5 + UAT | `RunUAT.bat RunUnreal -test=SmokeTests/AllTests` |
 | E2E | 端到端集成 | 全栈 | 多步流水线（Schema→Cmd→Gauntlet→三通道脚本） |
 
-> 全部 134 条用例均已实现自动化。证据见 `Plugins/AgentBridge/reports/` 目录。
+> 全部 134 条用例均已实现自动化。证据目录分层为：`ProjectState/Reports/`（当期执行）+ `Docs/History/reports/AgentBridgeEvidence/`（历史归档）。
 
 ---
 
@@ -68,11 +69,24 @@
 | 编号 | 用例名称 | 前置条件 | 测试步骤 | 预期结果 | 自动化命令 |
 |------|---------|---------|---------|---------|-----------|
 | BL-01 | Plugin 编译零 error | VS2022 / UE5.5.4 | UBT 编译 | 零 error（允许引擎自身 warning） | `Build.bat Mvpv4TestCodexEditor Win64 Development -Project=...uproject` |
-| BL-02 | Plugin 加载日志 | Editor 启动 | grep Editor log | 出现 `[AgentBridge] Plugin loaded, version 0.3.0` | `start_ue_editor_project.ps1` → 检查 `Saved/Logs/*.log` |
+| BL-02 | Plugin 加载日志 | Editor 启动 | grep Editor log | 出现 `[AgentBridge] Plugin loaded, version 0.3.0` | `Scripts/validation/start_ue_editor_project.ps1` → 检查 `Saved/Logs/*.log` |
 | BL-03 | BridgeTypes.h 可被外部引用 | BL-01 通过 | 编译含 `#include "BridgeTypes.h"` 的模块 | 编译通过 | BL-01 的 UBT 编译隐含验证（AgentBridgeTests 引用 BridgeTypes.h） |
-| BL-04 | EBridgeStatus 枚举完整 | BL-01 通过 | UE5 Automation Test 检查枚举值 | 5 个值：Success/Warning/Failed/Mismatch/ValidationError | `Automation RunTests Project.AgentBridge.L1` |
-| BL-05 | EBridgeErrorCode 枚举完整 | BL-01 通过 | UE5 Automation Test 检查枚举值 | 12 个值（含 3 个 L3 专用） | `Automation RunTests Project.AgentBridge.L1` |
-| BL-06 | Remote Control API 可用 | Editor 运行 | HTTP GET 探测 | 返回有效 JSON | `start_ue_editor_project.ps1` → `curl http://localhost:30010/remote/info` |
+| BL-04 | EBridgeStatus 枚举完整 | BL-01 通过 | UE5 Automation Test 检查枚举值 | 5 个值：Success/Warning/Failed/Mismatch/ValidationError | `UnrealEditor-Cmd.exe ... -run=AgentBridge -RunTests=Project.AgentBridge.L1 -NullRHI` |
+| BL-05 | EBridgeErrorCode 枚举完整 | BL-01 通过 | UE5 Automation Test 检查枚举值 | 12 个值（含 3 个 L3 专用） | `UnrealEditor-Cmd.exe ... -run=AgentBridge -RunTests=Project.AgentBridge.L1 -NullRHI` |
+| BL-06 | Remote Control API 可用 | Editor 运行 | HTTP GET 探测 | 返回有效 JSON | `Scripts/validation/start_ue_editor_project.ps1` → `curl http://localhost:30010/remote/info` |
+
+---
+
+### 3.1 通用执行约束（适用于 Q/W/CL/UI）
+
+| 约束编号 | 常见阻塞现象 | 约束说明 | 统一处理 |
+|------|------|------|------|
+| C1 | 日志出现 `Unable to load plugin 'AgentBridgeTests'`，测试未真正开始 | `AgentBridgeTests` 位于嵌套路径 `Plugins/AgentBridge/AgentBridgeTests/`，仅写 `-EnablePlugins=AgentBridgeTests` 无法稳定定位 | 显式传 `-PLUGIN=<绝对路径>/AgentBridgeTests.uplugin` |
+| C2 | 日志出现 `Unknown Automation command 'Automation RunTests ...'` | 在无头/Commandlet 场景混用了 Editor Console 指令 | 统一使用 `-run=AgentBridge -RunTests=<Filter>` |
+| C3 | 启动脚本参数被误绑定，出现 `Resolve-Path ... -PLUGIN=...` | 未显式传 `-ProjectPath`，剩余参数可能被 PowerShell 绑定到位置参数 | 显式传 `-ProjectPath=<uproject>`，其后再传运行参数 |
+
+推荐无头基线命令（适用于 4~7 分类）：
+`Scripts/validation/start_ue_editor_cmd_project.ps1 -EngineRoot "<UE_ROOT>" -ProjectPath "<UPROJECT>" -PLUGIN="<UPLUGIN>" -run=AgentBridge -RunTests=Project.AgentBridge.L1.Query -NullRHI -Unattended -NoPause -stdout -FullStdOutLogOutput`
 
 ---
 
@@ -80,7 +94,8 @@
 
 > 来源：TASK 04, TASK 07
 > UE5 Automation Test 编号：T1-01 ~ T1-07
-> 自动化命令：`Automation RunTests Project.AgentBridge.L1.Query` 或 `UnrealEditor-Cmd.exe -run=AgentBridge -RunTests=Project.AgentBridge.L1`
+> 自动化命令（推荐无头）：`UnrealEditor-Cmd.exe ... -run=AgentBridge -RunTests=Project.AgentBridge.L1.Query -NullRHI`
+> 已打开 Editor 的交互会话可使用：`Automation RunTests Project.AgentBridge.L1.Query`
 
 | 编号 | 用例名称 | UE5 Test ID | 测试步骤 | 预期结果 |
 |------|---------|------------|---------|---------|
@@ -103,7 +118,8 @@
 
 > 来源：TASK 05, TASK 07, TASK 17
 > UE5 Automation Test 编号：T1-08 ~ T1-11
-> 自动化命令：`Automation RunTests Project.AgentBridge.L1.Write` 或 `UnrealEditor-Cmd.exe -run=AgentBridge -RunTests=Project.AgentBridge.L1`
+> 自动化命令（推荐无头）：`UnrealEditor-Cmd.exe ... -run=AgentBridge -RunTests=Project.AgentBridge.L1.Write -NullRHI`
+> 已打开 Editor 的交互会话可使用：`Automation RunTests Project.AgentBridge.L1.Write`
 
 | 编号 | 用例名称 | UE5 Test ID | 测试步骤 | 预期结果 |
 |------|---------|------------|---------|---------|
@@ -134,7 +150,8 @@
 
 > 来源：TASK 08
 > UE5 Automation Spec 编号：LT-01 ~ LT-03
-> 自动化命令：`Automation RunTests Project.AgentBridge.L2` 或 `UnrealEditor-Cmd.exe -run=AgentBridge -RunTests=Project.AgentBridge.L2`
+> 自动化命令（推荐无头）：`UnrealEditor-Cmd.exe ... -run=AgentBridge -RunTests=Project.AgentBridge.L2 -NullRHI`
+> 已打开 Editor 的交互会话可使用：`Automation RunTests Project.AgentBridge.L2`
 
 ### Spec 1: SpawnReadbackLoop (LT-01, 5 个 It)
 
@@ -169,7 +186,8 @@
 
 > 来源：TASK 20
 > UE5 Automation Test 编号：T1-12 ~ T1-15, Spec: LT-04 ~ LT-05
-> 自动化命令：`Automation RunTests Project.AgentBridge.L1.UITool` + `Automation RunTests Project.AgentBridge.L2.UITool`
+> 自动化命令（推荐无头）：`UnrealEditor-Cmd.exe ... -run=AgentBridge -RunTests=Project.AgentBridge.L1.UITool -NullRHI` 与 `Project.AgentBridge.L2.UITool`
+> 已打开 Editor 的交互会话可使用：`Automation RunTests Project.AgentBridge.L1.UITool` / `Project.AgentBridge.L2.UITool`
 > Gauntlet AllTests 模式（需 GPU）自动覆盖
 
 ### L1 UITool 测试
@@ -214,7 +232,7 @@
 | CMD-07 | UATRunner 可用性 | `IsUATAvailable()` 通过 Commandlet 调用 | 返回 true |
 | CMD-08 | FUATRunResult.IsSuccess() | bLaunched+bCompleted+ExitCode==0 | 返回 true |
 
-> 证据：`reports/task06_evidence_2026-03-28/` 下含每个用例的 `.log` + `_report.json`
+> 证据：`Docs/History/reports/AgentBridgeEvidence/task06_evidence_2026-03-28/` 下含每个用例的 `.log` + `_report.json`
 
 ---
 
@@ -236,7 +254,7 @@
 | PY-09 | _CPP_QUERY_MAP 映射数 | `len(_CPP_QUERY_MAP)` | 7 个映射 |
 | PY-10 | _CPP_WRITE_MAP 映射数 | `len(_CPP_WRITE_MAP)` | 4 个映射 |
 
-> 证据：`reports/task09_evidence_2026-03-28/`
+> 证据：`Docs/History/reports/AgentBridgeEvidence/task09_evidence_2026-03-28/`
 
 ---
 
@@ -256,7 +274,7 @@
 | ORC-05 | get_actors_by_execution_method 分组 | 4 actor spec | semantic 2 / ui_tool 2 |
 | ORC-06 | 重复 actor_id 校验 | 两个相同 actor_id | validate_spec 返回 False |
 
-> 证据：`reports/task10_evidence_2026-03-28/`
+> 证据：`Docs/History/reports/AgentBridgeEvidence/task10_evidence_2026-03-28/`
 
 ### Plan Generator (TASK 11)
 
@@ -267,7 +285,7 @@
 | ORC-09 | ui_tool Actor 不受 existing 影响 | existing 中含 ui_tool actor | 始终 UI_TOOL |
 | ORC-10 | plan entry 字段完整 | 检查返回结构 | 含 actor_spec/action/execution_method/existing_actor_path/reason |
 
-> 证据：`reports/task11_evidence_2026-03-28/`
+> 证据：`Docs/History/reports/AgentBridgeEvidence/task11_evidence_2026-03-28/`
 
 ### Verifier (TASK 12)
 
@@ -279,7 +297,7 @@
 | ORC-14 | checks 列表字段完整 | 检查返回的 checks 数组 | field/expected/actual/delta/tolerance/pass |
 | ORC-15 | verify_actor_state 自动选择容差 | 分别传 semantic 和 ui_tool | semantic→DEFAULT, ui_tool→L3 |
 
-> 证据：`reports/task12_evidence_2026-03-28/`
+> 证据：`Docs/History/reports/AgentBridgeEvidence/task12_evidence_2026-03-28/`
 
 ### Report Generator (TASK 13)
 
@@ -294,7 +312,7 @@
 | ORC-22 | 报告含时间戳 | 检查 timestamp 字段 | ISO 8601 格式 |
 | ORC-23 | L3 操作含 cross_verification | L3 actor entry | actors entry 含 cross_verification 字段 |
 
-> 证据：`reports/task13_evidence_2026-03-28/`
+> 证据：`Docs/History/reports/AgentBridgeEvidence/task13_evidence_2026-03-28/`
 
 ### Orchestrator 主编排 (TASK 14)
 
@@ -309,7 +327,7 @@
 | ORC-30 | CLI 参数 | `--channel mock --report path` | 正常工作 |
 | ORC-31 | 退出码 | 检查 exit code | success→0, failed→1 |
 
-> 证据：`reports/task14_evidence_2026-03-28/`
+> 证据：`Docs/History/reports/AgentBridgeEvidence/task14_evidence_2026-03-28/`
 
 ---
 
@@ -327,7 +345,7 @@
 | GA-05 | AllTests 不使用 -NullRHI | 检查 TestConfig.cs AllTests 配置 | L1+L2+L3+FunctionalTest, 需 GPU, 900s timeout |
 | GA-06 | Controller 生命周期 | 检查 Editor log | OnInit→test discovery→RunTests→Finish ExitCode=0 |
 
-> 证据：`reports/task16_evidence_2026-03-28/` 含 `task16_smoke_rununreal_*.log` + `task16_alltests_rununreal_*.log`
+> 证据：`Docs/History/reports/AgentBridgeEvidence/task16_evidence_2026-03-28/` 含 `task16_smoke_rununreal_*.log` + `task16_alltests_rununreal_*.log`
 
 ---
 
@@ -343,23 +361,23 @@
 | E2E-01 | FTEST_WarehouseDemo 可发现 | `RunUAT.bat RunUnreal -test=AllTests`（Gauntlet 自动发现） | Session Frontend 可见 |
 | E2E-02 | 5 个内置 Actor 全部 Spawn→Verify→PASS | Gauntlet AllTests 自动运行 | FinishTest(Succeeded), 5/5 actors verified |
 | E2E-03 | bUndoAfterTest 清理无残留 | Gauntlet AllTests 自动运行 | CleanUp 执行 Undo |
-| E2E-04 | L1+L2+L3 联合运行无冲突 | `Automation RunTests Project.AgentBridge` 或 Gauntlet AllTests | 全部通过 |
+| E2E-04 | L1+L2+L3 联合运行无冲突 | `UnrealEditor-Cmd.exe ... -run=AgentBridge -RunTests=Project.AgentBridge -NullRHI` 或 Gauntlet AllTests | 全部通过 |
 
-> 证据：`reports/task15_evidence_2026-03-28/`
+> 证据：`Docs/History/reports/AgentBridgeEvidence/task15_evidence_2026-03-28/`
 
 ### 完整 Demo 验证 (TASK 19, 7 步)
 
 | 编号 | 用例名称 | 验证步骤 | 自动化命令 | 预期结果 |
 |------|---------|---------|-----------|---------|
 | E2E-05 | Schema 全量验证 | Step 1/7 | `python Scripts/validation/validate_examples.py --strict` | 10/10 pass, exit 0 |
-| E2E-06 | L1+L2 全绿 | Step 2/7 | `UnrealEditor-Cmd.exe ... -ExecCmds="Automation RunTests Project.AgentBridge.L1;Quit" -NullRHI` | ≥15 绿灯, SKIP 仅限 UITool/Import |
+| E2E-06 | L1+L2 全绿 | Step 2/7 | `UnrealEditor-Cmd.exe ... -run=AgentBridge -RunTests=Project.AgentBridge.L1 -NullRHI` | ≥15 绿灯, SKIP 仅限 UITool/Import |
 | E2E-07 | L3 Functional Test | Step 3/7 | `RunUAT.bat RunUnreal -test=AllTests`（含 FTEST_WarehouseDemo） | 5 Actors PASS, 或无 map 时 SKIP |
 | E2E-08 | Orchestrator E2E | Step 4/7 | `python orchestrator.py --channel cpp_plugin --spec scene_spec.yaml --report report.json` | 4 actors (2 semantic+2 ui_tool), 报告含 overall_status |
 | E2E-09 | Commandlet 无头执行 | Step 5/7 | `UnrealEditor-Cmd.exe -run=AgentBridge -Tool=GetCurrentProjectState -NullRHI` | Mode 3 JSON+exit 0; Mode 2 L1+exit 0 |
 | E2E-10 | Gauntlet CI/CD | Step 6/7 | `RunUAT.bat RunUnreal -test=SmokeTests` + `-test=AllTests` | SmokeTests exit 0; AllTests exit 0 |
 | E2E-11 | 三通道一致性 | Step 7/7 | Python 脚本：Channel A(`import unreal`) + B(`CPP_PLUGIN`) + C(`REMOTE_CONTROL`) 查询同一 Actor | transform 一致, `consistent: true` |
 
-> 证据：`reports/task19_evidence_2026-03-27/` 含 step1~step7 全部日志 + JSON
+> 证据：`Docs/History/reports/AgentBridgeEvidence/task19_evidence_2026-03-27/` 含 step1~step7 全部日志 + JSON
 
 ---
 
@@ -417,10 +435,10 @@
 | 工具 | 用途 | 覆盖分类 |
 |------|------|---------|
 | `Build.bat` (UnrealBuildTool) | C++ 编译验证 | BL-01, BL-03 |
-| `start_ue_editor_project.ps1` | 启动 Editor + RC API 就绪等待 + log 抓取 | BL-02, BL-06 |
-| `start_ue_editor_cmd_project.ps1` | 启动无头 Commandlet 编辑器 | CMD-01~08, E2E-06, E2E-09 |
+| `Scripts/validation/start_ue_editor_project.ps1` | 启动 Editor + RC API 就绪等待 + log 抓取 | BL-02, BL-06 |
+| `Scripts/validation/start_ue_editor_cmd_project.ps1` | 启动无头 Commandlet 编辑器 | CMD-01~08, E2E-06, E2E-09 |
 | `UnrealEditor-Cmd.exe -run=AgentBridge` | Commandlet 无头执行（-Tool / -RunTests） | CMD, E2E |
-| `Automation RunTests` | UE5 Editor 内 Automation Test 执行 | Q, W, CL, UI, BL-04~05 |
+| `Automation RunTests` | 仅已打开 Editor 的交互会话执行（非无头基线） | Q, W, CL, UI, BL-04~05 |
 | `RunUAT.bat RunUnreal` | Gauntlet CI/CD 全流程 | GA, E2E-07, E2E-10 |
 | `AgentBridge.TestConfig.cs` | Gauntlet C# 配置（SmokeTests/AllTests） | GA |
 | `AgentBridgeGauntletController` (C++) | Editor 内 Gauntlet 生命周期管理 | GA |
