@@ -32,6 +32,7 @@ Plugins/AgentBridge/AgentBridgeTests/Intermediate/
 
 # 本地报告与证据目录（如需保留可删除此行）
 reports/
+image/
 
 # IDE 与本地工程文件
 .vscode/
@@ -63,7 +64,6 @@ Gauntlet/obj/
 Thumbs.db
 
 # AgentBridge 插件源码/文档保护
-!Plugins/AgentBridge/.gitignore
 !Plugins/AgentBridge/AGENTS.md
 !Plugins/AgentBridge/README.md
 !Plugins/AgentBridge/AgentBridge.uplugin

@@ -86,6 +86,8 @@ Agent 在本项目中需要参考的文档：
 | Compiler 框架 | `Plugins/AgentBridge/Scripts/compiler/` |
 | Handoff Schema | `Plugins/AgentBridge/Schemas/reviewed_handoff.schema.json` |
 | Run Plan Schema | `Plugins/AgentBridge/Schemas/run_plan.schema.json` |
+| 系统测试用例总表 | `Plugins/AgentBridge/Tests/SystemTestCases.md` |
+| 系统测试入口 | `Plugins/AgentBridge/Tests/run_system_tests.py` |
 
 ---
 
