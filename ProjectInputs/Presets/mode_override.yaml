@@ -1,0 +1,22 @@
+# 模式配置
+# 用于 Mode Router 判断应该走 Greenfield 还是 Brownfield
+
+# 默认模式
+# - auto: 自动检测（根据项目状态判断）
+# - greenfield_bootstrap: 强制 Greenfield 模式
+# - brownfield_expansion: 强制 Brownfield 模式
+default_mode: "auto"
+
+# 强制模式（如果设置，覆盖自动检测）
+force_mode: null
+
+# 模式检测规则
+mode_detection_rules:
+  # 多少个 Actor 以下算空项目
+  empty_project_threshold: 0
+
+  # Brownfield 是否必须有 baseline
+  require_baseline: false
+
+  # 是否检查 Spec Registry
+  check_spec_registry: false

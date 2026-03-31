@@ -1,0 +1,46 @@
+# 编译器配置
+# 用于 Skill Compiler Plane 的行为配置
+
+# 编译器开关
+compiler:
+  enable_intake: true
+  enable_routing: true
+  enable_handoff_builder: true
+  enable_baseline_understanding: false  # 第一阶段不启用
+  enable_delta_scope_analysis: false    # 第一阶段不启用
+
+# 输入源配置
+input_sources:
+  # GDD 路径（相对于项目根目录）
+  gdd_path: "ProjectInputs/GDD/"
+
+  # GDD 格式
+  gdd_format: "markdown"  # markdown / yaml / json
+
+  # Baseline 路径
+  baseline_path: "ProjectInputs/Baselines/"
+
+# 输出配置
+output:
+  # Handoff 输出路径
+  handoff_output_path: "ProjectState/Handoffs/draft/"
+
+  # Handoff 格式
+  handoff_format: "yaml"  # yaml / json
+
+  # 是否自动生成 handoff_id
+  auto_generate_handoff_id: true
+
+# 路由配置
+routing:
+  # 默认 genre
+  default_genre: "boardgame"
+
+  # 激活的 Skill Packs
+  activated_skill_packs:
+    - "boardgame"
+
+# 日志配置
+logging:
+  level: "INFO"  # DEBUG / INFO / WARNING / ERROR
+  output_path: "ProjectState/Logs/"
