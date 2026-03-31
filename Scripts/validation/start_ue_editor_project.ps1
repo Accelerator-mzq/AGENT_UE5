@@ -14,11 +14,54 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+function Get-ProjectBuildId {
+    param(
+        [string]$ResolvedProjectPath
+    )
+
+    $projectRoot = Split-Path $ResolvedProjectPath -Parent
+    $modulesPath = Join-Path $projectRoot "Binaries\\Win64\\UnrealEditor.modules"
+    if (-not (Test-Path $modulesPath)) {
+        return ""
+    }
+
+    try {
+        $modulesJson = Get-Content -LiteralPath $modulesPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        return [string]$modulesJson.BuildId
+    }
+    catch {
+        return ""
+    }
+}
+
+function Get-EngineBuildId {
+    param(
+        [string]$CandidateRoot
+    )
+
+    $modulesPath = Join-Path $CandidateRoot "Engine\\Binaries\\Win64\\UnrealEditor.modules"
+    if (-not (Test-Path $modulesPath)) {
+        return ""
+    }
+
+    try {
+        $modulesJson = Get-Content -LiteralPath $modulesPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        return [string]$modulesJson.BuildId
+    }
+    catch {
+        return ""
+    }
+}
+
 function Get-DefaultEngineRoot {
     <#
         自动探测可用的 UE5 Editor 根目录。
-        优先 Source Build 注册表，再看 Epic Launcher 安装目录，最后走兜底路径。
+        优先匹配项目已编译产物的 BuildId；若没有匹配，再回退到注册表/安装目录/兜底路径。
     #>
+    param(
+        [string]$ResolvedProjectPath
+    )
+
     $candidates = New-Object System.Collections.Generic.List[string]
 
     $buildsKey = "HKCU:\SOFTWARE\Epic Games\Unreal Engine\Builds"
@@ -65,6 +108,7 @@ function Get-DefaultEngineRoot {
     }
 
     $seen = New-Object "System.Collections.Generic.HashSet[string]" ([System.StringComparer]::OrdinalIgnoreCase)
+    $validCandidates = New-Object System.Collections.Generic.List[string]
     foreach ($candidate in $candidates) {
         if ([string]::IsNullOrWhiteSpace($candidate)) {
             continue
@@ -77,8 +121,23 @@ function Get-DefaultEngineRoot {
 
         $editorExe = Join-Path $normalized "Engine\\Binaries\\Win64\\UnrealEditor.exe"
         if (Test-Path $editorExe) {
-            return $normalized
+            $validCandidates.Add($normalized)
         }
+    }
+
+    $projectBuildId = Get-ProjectBuildId -ResolvedProjectPath $ResolvedProjectPath
+    if (-not [string]::IsNullOrWhiteSpace($projectBuildId)) {
+        foreach ($candidate in $validCandidates) {
+            $engineBuildId = Get-EngineBuildId -CandidateRoot $candidate
+            if ($engineBuildId -eq $projectBuildId) {
+                Write-Host "[UE-Start] 已按项目 BuildId=$projectBuildId 匹配引擎: $candidate" -ForegroundColor Cyan
+                return $candidate
+            }
+        }
+    }
+
+    if ($validCandidates.Count -gt 0) {
+        return $validCandidates[0]
     }
 
     throw "未能自动探测到 Unreal Engine 根目录。请显式传入 -EngineRoot。"
@@ -301,7 +360,7 @@ else {
 }
 
 if ([string]::IsNullOrWhiteSpace($EngineRoot)) {
-    $resolvedEngineRoot = Get-DefaultEngineRoot
+    $resolvedEngineRoot = Get-DefaultEngineRoot -ResolvedProjectPath $resolvedProjectPath
 }
 else {
     $resolvedEngineRoot = (Resolve-Path $EngineRoot).Path

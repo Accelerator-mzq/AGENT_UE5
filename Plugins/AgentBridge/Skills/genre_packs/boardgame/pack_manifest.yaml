@@ -5,8 +5,8 @@
 pack_id: "genre-boardgame"
 version: "0.1.0"
 title: "Boardgame Genre Skill Pack"
-status: "minimal_skeleton"
-description: "棋盘游戏类型包，支持回合制棋盘游戏的编译与执行"
+status: "phase4_minimal_compilation"
+description: "棋盘游戏类型包，支持基于 Static Spec Base 的最小原型编译与执行"
 
 # 路由器配置
 router:
@@ -32,13 +32,18 @@ dependencies:
     - "world_level"
     - "presentation_asset"
   static_base:
-    - "GameplayFrameworkStaticSpec"
     - "WorldBuildStaticSpec"
+    - "ValidationStaticSpec"
+    - "BoardgameStaticSpec"
+    - "BoardgameValidationStaticSpec"
 
-# 必需 Skills（第一阶段占位）
-required_skills: []
+# 必需 Skills（Phase 4 仍只保留最小编译入口）
+required_skills:
+  - "design_input_intake"
+  - "world_build_projection"
+  - "boardgame_preview_policy"
 
-# 可选 Skills（第一阶段占位）
+# 可选 Skills（后续阶段完整化）
 optional_skills: []
 
 # Review 扩展（第一阶段占位）
@@ -60,6 +65,8 @@ policy:
 # 典型产物（第一阶段占位）
 outputs:
   typical_specs:
+    - "boardgame_spec"
+    - "validation_spec"
     - "scene_spec"
   typical_workflows:
     - "spawn_actor"
@@ -68,5 +75,5 @@ outputs:
 metadata:
   author: "AgentBridge Team"
   created_at: "2026-03-30"
-  last_updated: "2026-03-30"
-  note: "第一阶段只包含最小骨架，完整实现待后续补充"
+  last_updated: "2026-03-31"
+  note: "Phase 4 仅落地最小编译层，完整 Genre Skill Pack 机制延后到 Phase 6"

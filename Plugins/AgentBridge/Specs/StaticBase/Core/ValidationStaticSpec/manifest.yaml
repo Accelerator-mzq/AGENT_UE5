@@ -1,0 +1,10 @@
+spec_id: "ValidationStaticSpec"
+title: "Validation Static Spec"
+version: "1.0"
+layer: "core"
+status: "phase4_minimal"
+dependencies: []
+required_input_keys:
+  - "prototype_preview"
+emits_tree_nodes:
+  - "validation_spec"

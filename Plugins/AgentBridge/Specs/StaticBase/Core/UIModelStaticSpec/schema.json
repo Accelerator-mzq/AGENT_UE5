@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UIModelStaticSpec",
+  "type": "object",
+  "required": ["spec_id", "version", "data"],
+  "properties": {
+    "spec_id": { "type": "string", "const": "UIModelStaticSpec" },
+    "version": { "type": "string" },
+    "data": {
+      "type": "object",
+      "required": ["pages", "interaction_mode"],
+      "properties": {
+        "pages": { "type": "array", "items": { "type": "object" } },
+        "interaction_mode": { "type": "string" },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

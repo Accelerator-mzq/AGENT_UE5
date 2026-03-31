@@ -1,0 +1,20 @@
+spec_id: "BoardgameStaticSpec"
+version: "1.0"
+data:
+  board:
+    board_type: ""
+    grid_size: [3, 3]
+    cell_size_cm: [100, 100]
+    total_size_cm: [300, 300]
+  piece_catalog: []
+  preview_policy:
+    source: "default"
+    generate_preview: true
+    piece_counts:
+      X: 1
+      O: 1
+  rules:
+    turn_model: ""
+    victory_condition: ""
+  notes:
+    - "Phase 4 以 boardgame prototype 为主，不覆盖完整玩法系统"

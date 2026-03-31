@@ -1,0 +1,15 @@
+spec_id: "BoardgameStaticSpec"
+title: "Boardgame Static Spec"
+version: "1.0"
+layer: "genre"
+status: "phase4_minimal"
+dependencies:
+  - "WorldBuildStaticSpec"
+required_input_keys:
+  - "board"
+  - "piece_catalog"
+  - "rules"
+  - "prototype_preview"
+emits_tree_nodes:
+  - "boardgame_spec"
+  - "scene_spec"

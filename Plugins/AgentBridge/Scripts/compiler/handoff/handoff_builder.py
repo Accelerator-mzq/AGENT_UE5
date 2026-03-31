@@ -1,170 +1,195 @@
 """
 Handoff Builder
-组装 Reviewed Handoff
+组装 Reviewed Handoff。
 """
 
 import uuid
 from datetime import datetime
-from typing import Dict, Any
+from typing import Any, Dict, Optional
+
+from compiler.generation import generate_dynamic_spec_tree, load_skill_pack_manifest
+from compiler.review import review_dynamic_spec_tree
 
 
 def build_handoff(
     design_input: Dict[str, Any],
     mode: str,
-    project_state: Dict[str, Any] = None
+    project_state: Optional[Dict[str, Any]] = None,
+    static_base_root: Optional[str] = None,
+    pack_manifest_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-    组装 Reviewed Handoff
+    组装 Reviewed Handoff。
 
     Args:
         design_input: 设计输入包（来自 design_input_intake）
         mode: 模式（greenfield_bootstrap / brownfield_expansion）
         project_state: 项目现状快照（可选）
+        static_base_root: StaticBase 根目录（可选）
+        pack_manifest_path: 类型包 manifest 路径（可选）
 
     Returns:
         Reviewed Handoff 字典
     """
-    # 生成 handoff_id
-    handoff_id = generate_handoff_id(design_input.get("game_type", "unknown"))
-
-    # 构建 project_context
-    project_context = {
-        "project_name": project_state.get("project_name", "Unknown") if project_state else "Unknown",
-        "game_type": design_input.get("game_type"),
-        "target_platform": "Win64"
-    }
-
-    # 构建 routing_context
-    # 基于 Reviewed_Dynamic_Spec_Tree_交接模型_v2：
-    # routing_context 应包含 mode / genre / target_stage / activated_skill_packs
-    # 第一阶段只填充 mode / genre / activated_skill_packs，target_stage 留空
+    game_type = design_input.get("game_type", "unknown")
+    pack_manifest = load_skill_pack_manifest(game_type, pack_manifest_path)
+    activated_skill_packs = [pack_manifest.get("pack_id", game_type)]
     routing_context = {
         "mode": mode,
-        "genre": design_input.get("game_type"),
+        "genre": game_type,
         "target_stage": "prototype",
-        "activated_skill_packs": [design_input.get("game_type")]
+        "activated_skill_packs": activated_skill_packs,
     }
 
-    # 构建 dynamic_spec_tree（最小实现）
-    dynamic_spec_tree = build_minimal_spec_tree(design_input, mode)
+    generation_result = generate_dynamic_spec_tree(
+        design_input=design_input,
+        routing_context=routing_context,
+        static_base_root=static_base_root,
+        pack_manifest_path=pack_manifest_path,
+    )
+    dynamic_spec_tree = generation_result["dynamic_spec_tree"]
+    static_spec_context = generation_result["static_spec_context"]
 
-    # 组装 Handoff
+    # 生成器内部也会写 trace，这里同步覆盖成最终 routing_context，避免前后不一致。
+    if isinstance(dynamic_spec_tree.get("generation_trace"), dict):
+        dynamic_spec_tree["generation_trace"]["activated_skill_packs"] = activated_skill_packs
+
+    review_result = review_dynamic_spec_tree(
+        design_input=design_input,
+        dynamic_spec_tree=dynamic_spec_tree,
+        static_spec_context=static_spec_context,
+        routing_context=routing_context,
+    )
+
+    handoff_id = generate_handoff_id(game_type)
+    status = review_result.get("status", "blocked")
+    project_context = {
+        "project_name": project_state.get("project_name", "Unknown") if project_state else "Unknown",
+        "game_type": game_type,
+        "target_platform": "Win64",
+    }
+
     handoff = {
         "handoff_version": "1.0",
         "handoff_id": handoff_id,
         "handoff_mode": mode,
-        "status": "draft",
+        "status": status,
         "project_context": project_context,
         "routing_context": routing_context,
         "dynamic_spec_tree": dynamic_spec_tree,
         "review_summary": {
-            "reviewed": False,
-            # Schema 约束 reviewer/review_notes 为 string，这里用空字符串占位
-            "reviewer": "",
-            "review_notes": ""
+            "reviewed": bool(review_result.get("reviewed", False)),
+            "reviewer": review_result.get("reviewer", ""),
+            "review_notes": review_result.get("review_notes", ""),
         },
-        "capability_gaps": {},
-        "governance_context": {},
+        "capability_gaps": review_result.get("capability_gaps", {}),
+        "governance_context": {
+            "phase": "Phase 4",
+            "static_base_registry_ref": static_spec_context.get("registry", {}).get("registry_path", ""),
+            "required_static_specs": static_spec_context.get("required_spec_ids", []),
+        },
         "metadata": {
             "generated_at": datetime.now().isoformat(),
-            "generator": "AgentBridge.Compiler.v0.1",
-            "source_gdd": design_input.get("source_file")
-        }
+            "generator": "AgentBridge.Compiler.v0.4",
+            "source_gdd": design_input.get("source_file"),
+            "source_files": design_input.get("source_files", []),
+            "skill_pack_manifest": pack_manifest.get("manifest_path", ""),
+        },
     }
 
-    # 如果是 Brownfield，添加 baseline_context 和 delta_context
-    # 基于 Reviewed_Dynamic_Spec_Tree_交接模型_v2：
-    # baseline_context 应包含 baseline_id / snapshot_ref / frozen_baseline_ref / existing_spec_registry_ref
-    # delta_context 应包含 delta_intent / affected_domains / affected_specs / required_regression_checks
-    # 第一阶段只做空占位，完整实现待 Brownfield 实装阶段
     if mode == "brownfield_expansion":
         handoff["baseline_context"] = {
-            # Brownfield 占位字段先提供空字符串，避免与 schema 的 string 类型冲突
             "baseline_id": "",
             "snapshot_ref": "",
             "frozen_baseline_ref": "",
-            "existing_spec_registry_ref": ""
+            "existing_spec_registry_ref": "",
         }
         handoff["delta_context"] = {
             "delta_intent": "",
             "affected_domains": [],
             "affected_specs": [],
-            "required_regression_checks": []
+            "required_regression_checks": [],
         }
 
     return handoff
 
 
 def generate_handoff_id(game_type: str) -> str:
-    """生成 handoff_id"""
+    """生成 handoff_id。"""
     short_uuid = uuid.uuid4().hex[:8]
     return f"handoff.{game_type}.prototype.{short_uuid}"
 
 
 def build_minimal_spec_tree(design_input: Dict[str, Any], mode: str) -> Dict[str, Any]:
     """
-    构建最小 Spec Tree
+    兼容旧接口。
 
-    第一阶段：手工构造简单的 scene_spec
-    后续阶段：从 design_input 自动生成
+    Phase 4 起该函数不再手工写死 3 Actor，而是直接复用自动生成链。
     """
-    game_type = design_input.get("game_type")
-
-    if game_type == "boardgame":
-        # 井字棋最小场景
-        return {
-            "scene_spec": {
-                "actors": [
-                    {
-                        "actor_name": "Board",
-                        "actor_class": "/Script/Engine.StaticMeshActor",
-                        "transform": {
-                            "location": [0, 0, 0],
-                            "rotation": [0, 0, 0],
-                            "relative_scale3d": [3, 3, 0.1]
-                        }
-                    },
-                    {
-                        "actor_name": "PieceX_1",
-                        "actor_class": "/Script/Engine.StaticMeshActor",
-                        "transform": {
-                            "location": [-100, -100, 50],
-                            "rotation": [0, 0, 0],
-                            "relative_scale3d": [0.5, 0.5, 0.5]
-                        }
-                    },
-                    {
-                        "actor_name": "PieceO_1",
-                        "actor_class": "/Script/Engine.StaticMeshActor",
-                        "transform": {
-                            "location": [100, 100, 50],
-                            "rotation": [0, 0, 0],
-                            "relative_scale3d": [0.5, 0.5, 0.5]
-                        }
-                    }
-                ]
-            }
-        }
-    else:
-        # 默认空场景
-        return {
-            "scene_spec": {
-                "actors": []
-            }
-        }
+    routing_context = {
+        "mode": mode,
+        "genre": design_input.get("game_type", "unknown"),
+        "target_stage": "prototype",
+        "activated_skill_packs": [design_input.get("game_type", "unknown")],
+    }
+    generation_result = generate_dynamic_spec_tree(
+        design_input=design_input,
+        routing_context=routing_context,
+    )
+    return generation_result["dynamic_spec_tree"]
 
 
 if __name__ == "__main__":
-    # 测试代码
     test_design_input = {
         "game_type": "boardgame",
-        "scene_requirements": [],
-        "source_file": "test.md"
+        "feature_tags": ["boardgame", "prototype_preview"],
+        "board": {
+            "board_name": "Board",
+            "board_type": "3x3 网格",
+            "grid_size": [3, 3],
+            "cell_size_cm": [100, 100],
+            "total_size_cm": [300, 300],
+            "location": [0.0, 0.0, 0.0],
+            "material": "简单平面",
+        },
+        "piece_catalog": [
+            {
+                "piece_id": "piece_x",
+                "symbol": "X",
+                "actor_name_prefix": "PieceX",
+                "dimensions_cm": [50.0, 50.0, 50.0],
+                "actor_class": "/Script/Engine.StaticMeshActor",
+            },
+            {
+                "piece_id": "piece_o",
+                "symbol": "O",
+                "actor_name_prefix": "PieceO",
+                "dimensions_cm": [50.0, 50.0, 50.0],
+                "actor_class": "/Script/Engine.StaticMeshActor",
+            },
+        ],
+        "rules": {
+            "rule_summary": ["3x3 棋盘", "回合制"],
+            "turn_model": "turn_based",
+            "victory_condition": "连成 3 个",
+        },
+        "initial_layout": {
+            "board_location": [0.0, 0.0, 0.0],
+            "starts_empty": True,
+        },
+        "prototype_preview": {
+            "generate_preview": True,
+            "source": "default",
+            "piece_counts": {"X": 1, "O": 1},
+        },
+        "technical_requirements": {
+            "target_engine_version": "UE5.5.4",
+            "actor_class": "/Script/Engine.StaticMeshActor",
+        },
+        "source_file": "test.md",
     }
 
-    test_mode = "greenfield_bootstrap"
-
-    handoff = build_handoff(test_design_input, test_mode)
+    handoff = build_handoff(test_design_input, "greenfield_bootstrap")
     print(f"Handoff ID: {handoff['handoff_id']}")
-    print(f"Mode: {handoff['handoff_mode']}")
+    print(f"Status: {handoff['status']}")
     print(f"Actors: {len(handoff['dynamic_spec_tree']['scene_spec']['actors'])}")

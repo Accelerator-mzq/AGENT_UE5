@@ -1,0 +1,93 @@
+registry_version: "1.0"
+target_engine_version: "UE5.5.4"
+static_specs:
+  - spec_id: "GameplayFrameworkStaticSpec"
+    layer: "core"
+    category: "runtime"
+    dependencies: []
+    required_input_keys: ["game_type", "technical_requirements"]
+    template_ref: "Core/GameplayFrameworkStaticSpec/template.yaml"
+    schema_ref: "Core/GameplayFrameworkStaticSpec/schema.json"
+    emits_tree_nodes: ["gameplay_framework_spec"]
+    phase4_enabled: false
+  - spec_id: "UIModelStaticSpec"
+    layer: "core"
+    category: "ui"
+    dependencies: []
+    required_input_keys: ["game_type"]
+    template_ref: "Core/UIModelStaticSpec/template.yaml"
+    schema_ref: "Core/UIModelStaticSpec/schema.json"
+    emits_tree_nodes: ["ui_model_spec"]
+    phase4_enabled: false
+  - spec_id: "AudioEventStaticSpec"
+    layer: "core"
+    category: "audio"
+    dependencies: []
+    required_input_keys: ["game_type"]
+    template_ref: "Core/AudioEventStaticSpec/template.yaml"
+    schema_ref: "Core/AudioEventStaticSpec/schema.json"
+    emits_tree_nodes: ["audio_event_spec"]
+    phase4_enabled: false
+  - spec_id: "WorldBuildStaticSpec"
+    layer: "core"
+    category: "world"
+    dependencies: []
+    required_input_keys: ["board", "technical_requirements"]
+    template_ref: "Core/WorldBuildStaticSpec/template.yaml"
+    schema_ref: "Core/WorldBuildStaticSpec/schema.json"
+    emits_tree_nodes: ["world_build_spec", "scene_spec"]
+    phase4_enabled: true
+  - spec_id: "ConfigStaticSpec"
+    layer: "core"
+    category: "config"
+    dependencies: []
+    required_input_keys: ["technical_requirements"]
+    template_ref: "Core/ConfigStaticSpec/template.yaml"
+    schema_ref: "Core/ConfigStaticSpec/schema.json"
+    emits_tree_nodes: ["config_spec"]
+    phase4_enabled: false
+  - spec_id: "ValidationStaticSpec"
+    layer: "core"
+    category: "validation"
+    dependencies: []
+    required_input_keys: ["prototype_preview"]
+    template_ref: "Core/ValidationStaticSpec/template.yaml"
+    schema_ref: "Core/ValidationStaticSpec/schema.json"
+    emits_tree_nodes: ["validation_spec"]
+    phase4_enabled: true
+  - spec_id: "BoardgameStaticSpec"
+    layer: "genre"
+    category: "boardgame"
+    dependencies: ["WorldBuildStaticSpec"]
+    required_input_keys: ["board", "piece_catalog", "rules", "prototype_preview"]
+    template_ref: "Genres/Boardgame/BoardgameStaticSpec/template.yaml"
+    schema_ref: "Genres/Boardgame/BoardgameStaticSpec/schema.json"
+    emits_tree_nodes: ["boardgame_spec", "scene_spec"]
+    phase4_enabled: true
+  - spec_id: "BoardgameUIStaticSpec"
+    layer: "genre"
+    category: "boardgame_ui"
+    dependencies: ["UIModelStaticSpec", "BoardgameStaticSpec"]
+    required_input_keys: ["rules"]
+    template_ref: "Genres/Boardgame/BoardgameUIStaticSpec/template.yaml"
+    schema_ref: "Genres/Boardgame/BoardgameUIStaticSpec/schema.json"
+    emits_tree_nodes: ["boardgame_ui_spec"]
+    phase4_enabled: false
+  - spec_id: "BoardgameAudioStaticSpec"
+    layer: "genre"
+    category: "boardgame_audio"
+    dependencies: ["AudioEventStaticSpec", "BoardgameStaticSpec"]
+    required_input_keys: ["rules"]
+    template_ref: "Genres/Boardgame/BoardgameAudioStaticSpec/template.yaml"
+    schema_ref: "Genres/Boardgame/BoardgameAudioStaticSpec/schema.json"
+    emits_tree_nodes: ["boardgame_audio_spec"]
+    phase4_enabled: false
+  - spec_id: "BoardgameValidationStaticSpec"
+    layer: "genre"
+    category: "boardgame_validation"
+    dependencies: ["ValidationStaticSpec", "BoardgameStaticSpec"]
+    required_input_keys: ["board", "piece_catalog", "prototype_preview"]
+    template_ref: "Genres/Boardgame/BoardgameValidationStaticSpec/template.yaml"
+    schema_ref: "Genres/Boardgame/BoardgameValidationStaticSpec/schema.json"
+    emits_tree_nodes: ["validation_spec"]
+    phase4_enabled: true

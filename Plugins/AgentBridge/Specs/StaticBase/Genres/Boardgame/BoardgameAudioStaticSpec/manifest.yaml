@@ -1,0 +1,12 @@
+spec_id: "BoardgameAudioStaticSpec"
+title: "Boardgame Audio Static Spec"
+version: "1.0"
+layer: "genre"
+status: "phase4_minimal"
+dependencies:
+  - "AudioEventStaticSpec"
+  - "BoardgameStaticSpec"
+required_input_keys:
+  - "rules"
+emits_tree_nodes:
+  - "boardgame_audio_spec"

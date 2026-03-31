@@ -1,0 +1,10 @@
+spec_id: "BoardgameUIStaticSpec"
+version: "1.0"
+data:
+  ui_panels:
+    - "turn_indicator"
+    - "result_banner"
+  interaction_hints:
+    - "显示当前落子方"
+  notes:
+    - "Phase 4 不执行该节点，只保留模板与 schema"

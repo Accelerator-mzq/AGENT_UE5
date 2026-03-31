@@ -187,7 +187,7 @@ Phase 3 在 MVP 基础上扩展了以下能力：
 
 ### 7.4 端到端管线
 
-- `run_greenfield_demo.py`：Greenfield E2E 入口
+- `Scripts/run_greenfield_demo.py`：Greenfield E2E 入口
 - 已验证：GDD → Compiler → Handoff → Run Plan → 模拟执行 → Report
 
 ### 7.5 Phase 3 成功标准

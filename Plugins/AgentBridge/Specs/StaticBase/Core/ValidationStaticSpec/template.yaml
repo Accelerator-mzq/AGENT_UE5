@@ -1,0 +1,13 @@
+spec_id: "ValidationStaticSpec"
+version: "1.0"
+data:
+  required_checks:
+    - "actor_count_check"
+    - "transform_triplet_check"
+    - "preview_policy_check"
+  severity_policy:
+    block_on:
+      - "missing_required_template"
+      - "invalid_transform"
+  notes:
+    - "Phase 4 只提供最小静态审查规则集合"

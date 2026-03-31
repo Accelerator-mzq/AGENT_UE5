@@ -1,56 +1,35 @@
 # Compiler Review Module
 
 ## 当前状态
-📦 **占位目录** - 第一阶段暂未实现
+Phase 4 已实装最小 Cross-Spec Review。
 
 ## 职责
 
-Review 模块负责 Cross-Spec Review（跨 Spec 审查）。
+Review 模块负责在执行前做编译期静态审查，避免非法 `dynamic_spec_tree` 进入 Orchestrator。
 
-### 计划能力
+## 当前文件结构
 
-1. **引用完整性检查**
-   - 检查引用的 Actor 是否存在
-   - 检查引用的 Asset 是否存在
-
-2. **字段类型正确性检查**
-   - 检查 location 是否是 [x, y, z]
-   - 检查 rotation 是否是 [pitch, yaw, roll]
-
-3. **基础约束检查**
-   - Actor 名称不重复
-   - Transform 值在合理范围内
-
-4. **深度语义分析（未来）**
-   - 物理合理性检查
-   - 美学合理性检查
-   - 性能影响评估
-
-### 计划文件结构
-
-```
+```text
 review/
 ├── __init__.py
 └── cross_spec_reviewer.py
 ```
 
-## 第一阶段
+## 当前检查项
 
-第一阶段**不做 Cross-Spec Review**，原因：
-1. 需要先积累 Spec 实例，才能总结出常见的审查规则
-2. 第一阶段的 Spec 非常简单（只有 3 个 Actor），手工检查即可
-3. 避免误报率高的过度设计
+1. 必需静态基座是否存在
+2. Actor 名称是否重复
+3. `actor_class` 是否为空
+4. `transform` 是否为合法三元组
+5. 预览棋子是否与 `piece_catalog` / `prototype_preview` 一致
+6. `capability_gaps` 是否按 Phase 4 约定输出
 
-## 未来扩展方向
+## 输出语义
 
-后续阶段将实现：
-- 基础一致性检查（引用完整性 / 字段类型）
-- 约束冲突检测（如：must_not_overlap + forced_same_location）
-- 依赖关系验证（如：Actor A 依赖 Actor B，但 B 不存在）
+- 审查通过：`status=reviewed`
+- 审查失败：`status=blocked`
 
-## 与 Validation 的区别
+## 阶段边界
 
-- **Review**：编译时检查（Spec Tree 生成后，执行前）
-- **Validation**：运行时检查（执行后，读回验证）
-
-Review 是静态分析，Validation 是动态验证。
+- 当前不做深层语义分析
+- 当前不实现 Brownfield patch / regression contract 检查

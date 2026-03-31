@@ -2,7 +2,7 @@
 """
 AgentBridge 系统测试全局入口
 =================================
-一键触发全部 134 条系统测试用例，按 9 个 Stage 串行执行。
+一键触发当前登记的系统测试用例，按 9 个 Stage 串行执行。
 
 用法:
     # 全自动执行全部 Stage
@@ -110,9 +110,9 @@ STAGES = {
         'requires_build': True,
     },
     6: {
-        'name': 'Python 客户端（PY）',
-        'cases': 'PY-01 ~ PY-10',
-        'count': 10,
+        'name': 'Pure Python（PY + CP/SS）',
+        'cases': 'PY-01 ~ PY-10, CP-12 ~ CP-18, E2E-18',
+        'count': 18,
         'requires_editor': False,
         'requires_build': False,
     },
@@ -139,7 +139,7 @@ STAGES = {
     },
 }
 
-TOTAL_CASES = sum(s['count'] for s in STAGES.values())  # 134
+TOTAL_CASES = sum(s['count'] for s in STAGES.values())  # 136
 
 
 # ============================================================
@@ -505,17 +505,22 @@ def run_stage_5(result, engine_root):
 
 
 def run_stage_6(result, engine_root):
-    """Stage 6: Python 客户端（PY-01 ~ PY-10）"""
-    test_file = os.path.join(TESTS_SCRIPTS_DIR, 'test_mvp_regression.py')
-    if not os.path.exists(test_file):
+    """Stage 6: 纯 Python 测试（PY + CP/SS + Phase 4 simulated E2E）"""
+    test_files = [
+        os.path.join(TESTS_SCRIPTS_DIR, 'test_mvp_regression.py'),
+        os.path.join(TESTS_SCRIPTS_DIR, 'test_phase4_compiler.py'),
+    ]
+
+    missing_files = [test_file for test_file in test_files if not os.path.exists(test_file)]
+    if missing_files:
         result.status = 'skipped'
-        result.message = 'test_mvp_regression.py 未找到'
+        result.message = f'测试文件缺失: {missing_files}'
         return
 
     code, stdout, stderr = run_command(
-        [sys.executable, '-m', 'pytest', '-v', test_file],
+        [sys.executable, '-m', 'pytest', '-v'] + test_files,
         cwd=PROJECT_ROOT,
-        timeout=120,
+        timeout=300,
     )
     print(stdout)
     if stderr.strip():
@@ -524,11 +529,11 @@ def run_stage_6(result, engine_root):
     if code == 0:
         result.status = 'passed'
         result.exit_code = 0
-        result.message = 'Python 客户端测试全部通过'
+        result.message = '纯 Python 测试全部通过'
     else:
         result.status = 'failed'
         result.exit_code = code
-        result.message = f'Python 客户端测试失败 (exit code {code})'
+        result.message = f'纯 Python 测试失败 (exit code {code})'
 
 
 def run_stage_7(result, engine_root):
@@ -718,7 +723,7 @@ def interactive_select():
 
 def main():
     parser = argparse.ArgumentParser(
-        description='AgentBridge 系统测试全局入口 — 一键执行 134 条用例',
+        description='AgentBridge 系统测试全局入口 — 一键执行当前登记用例',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=textwrap.dedent('''
             示例:

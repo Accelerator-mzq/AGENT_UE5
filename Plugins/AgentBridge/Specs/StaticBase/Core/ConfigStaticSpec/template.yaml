@@ -1,0 +1,10 @@
+spec_id: "ConfigStaticSpec"
+version: "1.0"
+data:
+  target_engine_version: "UE5.5.4"
+  target_platforms:
+    - "Win64"
+  editor_constraints:
+    - "使用受控执行环境"
+  notes:
+    - "Phase 4 仅保留配置表达地基"

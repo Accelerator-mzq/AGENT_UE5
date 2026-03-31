@@ -1,0 +1,9 @@
+spec_id: "GameplayFrameworkStaticSpec"
+version: "1.0"
+data:
+  game_mode: ""
+  game_state: ""
+  player_controller: ""
+  pawn: ""
+  notes:
+    - "Phase 4 仅保留最小运行时表达骨架"

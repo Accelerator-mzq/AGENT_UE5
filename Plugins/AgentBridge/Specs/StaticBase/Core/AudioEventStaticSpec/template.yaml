@@ -1,0 +1,9 @@
+spec_id: "AudioEventStaticSpec"
+version: "1.0"
+data:
+  event_categories:
+    - "bgm"
+    - "gameplay_sfx"
+    - "ui_sfx"
+  notes:
+    - "Phase 4 中音频基座仅提供分类表达"

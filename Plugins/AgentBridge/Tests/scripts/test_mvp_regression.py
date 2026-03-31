@@ -26,7 +26,8 @@ class TestPythonClientSyntax:
         errors = []
         for f in py_files:
             try:
-                with open(f, encoding='utf-8') as fp:
+                # 项目中存在带 BOM 的 Python 文件，这里用 utf-8-sig 避免误判。
+                with open(f, encoding='utf-8-sig') as fp:
                     ast.parse(fp.read(), filename=f)
             except SyntaxError as e:
                 errors.append(f"{f}: {e}")
@@ -42,7 +43,8 @@ class TestPythonClientSyntax:
         errors = []
         for f in py_files:
             try:
-                with open(f, encoding='utf-8') as fp:
+                # 项目中存在带 BOM 的 Python 文件，这里用 utf-8-sig 避免误判。
+                with open(f, encoding='utf-8-sig') as fp:
                     ast.parse(fp.read(), filename=f)
             except SyntaxError as e:
                 errors.append(f"{f}: {e}")

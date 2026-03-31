@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ValidationStaticSpec",
+  "type": "object",
+  "required": ["spec_id", "version", "data"],
+  "properties": {
+    "spec_id": { "type": "string", "const": "ValidationStaticSpec" },
+    "version": { "type": "string" },
+    "data": {
+      "type": "object",
+      "required": ["required_checks", "severity_policy"],
+      "properties": {
+        "required_checks": { "type": "array", "items": { "type": "string" } },
+        "severity_policy": {
+          "type": "object",
+          "properties": {
+            "block_on": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

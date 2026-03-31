@@ -1,49 +1,35 @@
 # Compiler Generation Module
 
 ## 当前状态
-📦 **占位目录** - 第一阶段暂未实现
+Phase 4 已实装最小自动生成链。
 
 ## 职责
 
-Generation 模块负责从设计输入生成 Dynamic / Delta Spec Tree。
+Generation 模块负责在 `Static Spec Base` 约束下，将 `design_input` 转为 `dynamic_spec_tree`。
 
-### 计划能力
+## 当前文件结构
 
-1. **Spec Generation Dispatcher**
-   - 全量 Spec 生成调度（Greenfield）
-   - 根据 design_input 和 routing_context 选择合适的生成器
-
-2. **Delta Generation Dispatcher**
-   - 增量 Spec 生成调度（Brownfield）
-   - 根据 delta_scope 生成 patch / expansion plan
-
-### 计划文件结构
-
-```
+```text
 generation/
 ├── __init__.py
+├── static_base_loader.py
 ├── spec_generation_dispatcher.py
-└── delta_generation_dispatcher.py
+└── boardgame_scene_generator.py
 ```
 
-## 第一阶段
+## 当前能力
 
-第一阶段的 Spec Tree 生成采用**最小手工构造**方式：
-- 在 `handoff/handoff_builder.py` 中直接构造简单的 scene_spec
-- 不做复杂的自动生成逻辑
+1. 读取 `Specs/StaticBase/Registry/spec_type_registry.yaml`
+2. 加载 Phase 4 启用的静态基座模板 / schema / manifest
+3. 读取最小 `boardgame` 类型包 manifest
+4. 生成 richer spec 节点：
+   - `world_build_spec`
+   - `boardgame_spec`
+   - `validation_spec`
+5. 投影为兼容现有 orchestrator 的 `scene_spec.actors[]`
 
-这样可以快速验证整个链路，避免在生成逻辑上花费过多时间。
+## 阶段边界
 
-## 未来扩展方向
-
-后续阶段将实现：
-- 从 GDD 自动提取场景需求
-- 根据 boardgame 类型包规则生成棋盘布局
-- 根据 Static Spec Base 生成符合规范的 Spec
-- 支持模板化生成（基于 Specs/Templates/）
-
-## 为什么第一阶段不做深
-
-1. **验证链路优先**：先确保 Handoff → Run Plan → 执行 这条链路通
-2. **避免过度设计**：生成逻辑需要大量实例积累才能总结出规律
-3. **手工构造足够**：第一阶段只需要生成 3 个 Actor，手工构造更快
+- 当前只支持 `boardgame` 的 Greenfield prototype
+- 当前不实现完整 Skill Pack runtime
+- 当前不实现 Brownfield delta generation

@@ -1,0 +1,11 @@
+spec_id: "GameplayFrameworkStaticSpec"
+title: "Gameplay Framework Static Spec"
+version: "1.0"
+layer: "core"
+status: "phase4_minimal"
+dependencies: []
+required_input_keys:
+  - "game_type"
+  - "technical_requirements"
+emits_tree_nodes:
+  - "gameplay_framework_spec"

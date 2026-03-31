@@ -1,0 +1,12 @@
+spec_id: "BoardgameUIStaticSpec"
+title: "Boardgame UI Static Spec"
+version: "1.0"
+layer: "genre"
+status: "phase4_minimal"
+dependencies:
+  - "UIModelStaticSpec"
+  - "BoardgameStaticSpec"
+required_input_keys:
+  - "rules"
+emits_tree_nodes:
+  - "boardgame_ui_spec"

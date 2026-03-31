@@ -1,0 +1,8 @@
+spec_id: "BoardgameAudioStaticSpec"
+version: "1.0"
+data:
+  events:
+    - "piece_place"
+    - "win_announce"
+  notes:
+    - "Phase 4 不执行该节点，只保留类型包依赖表达"

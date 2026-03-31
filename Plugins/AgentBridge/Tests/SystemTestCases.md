@@ -1,6 +1,6 @@
 # AgentBridge 系统测试用例总表
 
-> 来源：task.md（v0.3 编码 Agent 任务清单）+ task1.md（Phase 3 编码 Agent 任务清单）中的验收标准与验证步骤
+> 来源：`Docs/History/Phase1_MVP/task.md` + `Docs/History/Tasks/task1_phase3.md` + `Docs/History/Tasks/task2_phase4.md` 中的验收标准与验证步骤
 > 最后更新：2026-03-31
 > 维护者：msc
 
@@ -47,7 +47,7 @@
 | GA | Gauntlet CI/CD | UE5 + UAT | `RunUAT.bat RunUnreal -test=SmokeTests/AllTests` |
 | E2E | 端到端集成 | 全栈 | 多步流水线（Schema→Cmd→Gauntlet→三通道脚本） |
 
-> 全部 164 条用例均已实现自动化。证据目录分层为：`ProjectState/Reports/`（当期执行）+ `Docs/History/reports/AgentBridgeEvidence/`（历史归档）。
+> 全部 178 条用例均已登记到当前测试总表。证据目录分层为：`ProjectState/Reports/`（当期执行）+ `Docs/History/reports/AgentBridgeEvidence/`（历史归档）。
 
 ---
 
@@ -355,7 +355,7 @@
 
 ## 11. Compiler Plane（CP）
 
-> 来源：task1.md TASK 04
+> 来源：`Docs/History/Tasks/task1_phase3.md` TASK 04 + `Docs/History/Tasks/task2_phase4.md` TASK 06~10
 > 自动化方式：pytest / `python compiler_main.py`
 > 环境要求：Python 3.x + pyyaml + jsonschema
 
@@ -372,6 +372,13 @@
 | CP-09 | handoff_builder 生成 3 Actor Handoff | `build_handoff(design_input, "greenfield_bootstrap")` | actors 数组长度 == 3，首个为 Board |
 | CP-10 | 生成 Handoff 通过 Schema 校验 | `jsonschema.validate(handoff, schema)` | 无 ValidationError |
 | CP-11 | compiler_main.py 端到端 | `python compiler_main.py` | 输出 Handoff YAML 到 ProjectState/Handoffs/draft/ |
+| CP-12 | Static Base registry 可加载 | `load_static_base_registry()` | 10 个静态基座全部可见 |
+| CP-13 | Phase 4 GDD 结构化提取 | `read_gdd(gdd_path)` | 返回 board / piece_catalog / rules / prototype_preview 等字段 |
+| CP-14 | Handoff 生成 richer spec 节点 | `build_handoff(...)` | `dynamic_spec_tree` 同时包含 `world_build_spec` / `boardgame_spec` / `validation_spec` / `scene_spec` |
+| CP-15 | GDD 显式 0 示例棋子 | 临时 GDD + `build_handoff(...)` | `scene_spec.actors[]` 仅保留 Board |
+| CP-16 | 缺失模板报 capability_gaps | `review_dynamic_spec_tree(...)` | `required_static_templates` 正确写入缺失 spec_id |
+| CP-17 | 默认示例棋子策略 | 主 GDD + `build_handoff(...)` | 未写预览规则时，默认生成 `Board + PieceX_1 + PieceO_1` |
+| CP-18 | GDD 覆盖示例棋子数量 | 临时 GDD + `build_handoff(...)` | 显式 `X=2, O=1` 时生成 `Board + PieceX_1 + PieceX_2 + PieceO_1` |
 
 > 证据：`ProjectState/Handoffs/draft/` 下生成的 Handoff YAML 文件
 
@@ -379,7 +386,7 @@
 
 ## 12. Skills & Specs（SS）
 
-> 来源：task1.md TASK 05
+> 来源：`Docs/History/Tasks/task1_phase3.md` TASK 05 + `Docs/History/Tasks/task2_phase4.md` TASK 03~05
 > 自动化方式：pytest / `yaml.safe_load`
 > 环境要求：Python 3.x + pyyaml
 
@@ -389,6 +396,9 @@
 | SS-02 | pack_manifest.yaml 可解析 | `yaml.safe_load(open(manifest_path))` | 无异常 |
 | SS-03 | pack_manifest.yaml pack_id 正确 | 检查 pack_id 字段 | "genre-boardgame" |
 | SS-04 | Specs 扩展目录完整 | 检查 StaticBase/ + Contracts/ 存在 | 目录齐全，现有 templates/ 未变 |
+| SS-05 | StaticBase registry 完整 | `yaml.safe_load(open(spec_type_registry.yaml))` | 10 个静态基座全部登记，含 phase4_enabled 字段 |
+| SS-06 | 10 个静态基座模板可解析 | 遍历 `Specs/StaticBase/**/*template.yaml` | 全部 `yaml.safe_load` 成功 |
+| SS-07 | 10 个静态基座 schema 合法 | 遍历 `Specs/StaticBase/**/*schema.json` | 全部 `json.load` 成功 |
 
 > 证据：目录结构 + YAML 解析输出
 
@@ -442,16 +452,18 @@
 
 > 证据：`Docs/History/reports/AgentBridgeEvidence/task19_evidence_2026-03-27/` 含 step1~step7 全部日志 + JSON
 
-### Greenfield 管线验证 (task1.md TASK 07, 09, 10)
+### Greenfield 管线验证（`Docs/History/Tasks/task1_phase3.md` TASK 07, 09, 10 + `Docs/History/Tasks/task2_phase4.md` TASK 09, 10）
 
 | 编号 | 用例名称 | 验证步骤 | 自动化命令 | 预期结果 |
 |------|---------|---------|-----------|---------|
-| E2E-12 | Greenfield simulated 端到端 | GDD→Compiler→Handoff→RunPlan→执行→Report | `python run_greenfield_demo.py` | 输出 "执行状态: succeeded" |
+| E2E-12 | Greenfield simulated 端到端 | GDD→Compiler→Handoff→RunPlan→执行→Report | `python Scripts/run_greenfield_demo.py` | 输出 "执行状态: succeeded" |
 | E2E-13 | Handoff draft 文件生成 | 检查 ProjectState/Handoffs/draft/ | `ls ProjectState/Handoffs/draft/*.yaml` | 有 handoff YAML 文件 |
 | E2E-14 | Handoff approved 文件生成 | 检查 ProjectState/Handoffs/approved/ | `ls ProjectState/Handoffs/approved/*.yaml` | 有 handoff YAML 文件 |
 | E2E-15 | Execution report 正确 | 检查 ProjectState/Reports/ | `python -c "import json,glob; r=json.load(open(glob.glob('ProjectState/Reports/*.json')[-1])); assert r['summary']['succeeded']==3"` | 3/3 步骤成功 |
-| E2E-16 | Greenfield bridge_python 端到端 [UE5] | `python run_greenfield_demo.py bridge_python` | 需 UE5 Editor 运行 | 3 个 Actor 在 UE5 中生成 |
+| E2E-16 | Greenfield bridge_python 端到端 [UE5] | `python Scripts/run_greenfield_demo.py bridge_python` | 需 UE5 Editor 运行 | 3 个 Actor 在 UE5 中生成 |
 | E2E-17 | UE5 Actor 位置验证 [UE5] | Bridge 查询 Board/PieceX_1/PieceO_1 | `query_tools.list_level_actors` + `get_actor_state` | Board@(0,0,0) scale(3,3,0.1), PieceX_1@(-100,-100,50), PieceO_1@(100,100,50) |
+| E2E-18 | Phase 4 simulated richer spec 端到端 | `python Scripts/run_greenfield_demo.py` | `dynamic_spec_tree` 含 richer spec 节点，且执行状态为 succeeded |
+| E2E-19 | Greenfield bridge_rc_api 真实 smoke [UE5] | `python Scripts/run_greenfield_demo.py bridge_rc_api` | 需 UE5 Editor + RC API 运行 | 3 个 Actor 在 UE5 中生成，RC API 链路闭环 |
 
 > 证据：`ProjectState/Reports/` 下执行报告 + `ProjectState/Handoffs/` 下 Handoff 文件
 
@@ -500,11 +512,11 @@
 | CMD Commandlet | 8 | 🟢 全部 |
 | PY Python 客户端 | 10 | 🟢 全部 |
 | ORC Orchestrator | 37 | 🟢 全部 |
-| CP Compiler Plane | 11 | 🟢 全部 |
-| SS Skills & Specs | 4 | 🟢 全部 |
+| CP Compiler Plane | 18 | 🟢 全部 |
+| SS Skills & Specs | 7 | 🟢 全部 |
 | GA Gauntlet | 6 | 🟢 全部 |
-| E2E 端到端 | 17 | 🟢 全部 |
-| **合计** | **166** | **🟢 166/166 (100%)** |
+| E2E 端到端 | 19 | 🟢 全部 |
+| **合计** | **178** | **🟢 178 条已登记** |
 
 ---
 
@@ -524,7 +536,7 @@
 | `pytest` | Python 单元/集成测试 | SV, PY, ORC |
 | `python orchestrator.py` | Orchestrator 主编排（Mock / Channel C） | ORC-24~31, E2E-08 |
 | `python compiler_main.py` | Compiler Plane 端到端（GDD→Handoff） | CP-11 |
-| `python run_greenfield_demo.py` | Greenfield 管线端到端（simulated / bridge_python / bridge_rc_api） | E2E-12~17 |
+| `python Scripts/run_greenfield_demo.py` | Greenfield 管线端到端（simulated / bridge_python / bridge_rc_api） | E2E-12~19 |
 | `bridge_core.py` + `query_tools.py` | Python Bridge 客户端（三通道） | PY, ORC, E2E-11, E2E-17 |
 | Python `import unreal` 脚本 | Channel A（Python Editor Scripting API） | E2E-11 |
 | HTTP `curl localhost:30010` | RC API 探测 / Channel B | BL-06, E2E-11 |

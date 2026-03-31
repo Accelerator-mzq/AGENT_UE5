@@ -1,0 +1,14 @@
+spec_id: "BoardgameValidationStaticSpec"
+title: "Boardgame Validation Static Spec"
+version: "1.0"
+layer: "genre"
+status: "phase4_minimal"
+dependencies:
+  - "ValidationStaticSpec"
+  - "BoardgameStaticSpec"
+required_input_keys:
+  - "board"
+  - "piece_catalog"
+  - "prototype_preview"
+emits_tree_nodes:
+  - "validation_spec"

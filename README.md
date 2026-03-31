@@ -33,7 +33,7 @@ AgentBridge 不只是工具接口插件，而是包含**通用编译前端（Ski
    ```
 6. 运行 Greenfield 最小闭环（simulated 模式）：
    ```bash
-   python run_greenfield_demo.py
+   python Scripts/run_greenfield_demo.py
    ```
 
 ### 项目结构
@@ -43,7 +43,9 @@ Mvpv4TestCodex/
 ├── AGENTS.md                        ← 本项目的 Agent 行为规则
 ├── README.md                        ← 本文件
 ├── task1.md                         ← Phase 3 任务清单（已归档→Docs/History/Tasks/）
-├── run_greenfield_demo.py           ← 端到端运行入口
+├── Scripts/
+│   ├── run_greenfield_demo.py       ← 项目层端到端运行入口
+│   └── validation/                  ← 项目层验证脚本
 │
 ├── ProjectInputs/                   ← ★ 项目输入源
 │   ├── GDD/                         ← 游戏设计文档
@@ -101,7 +103,7 @@ Mvpv4TestCodex/
 2. **[`Docs/Current/00_Index.md`](Docs/Current/00_Index.md)** — 当前阶段文档索引
 3. **[`Docs/Current/01_Project_Baseline.md`](Docs/Current/01_Project_Baseline.md)** — 项目基线
 4. **[`Docs/Current/05_Implementation_Boundary.md`](Docs/Current/05_Implementation_Boundary.md)** — 实施边界
-5. **[`Docs/History/Tasks/task1_phase3.md`](Docs/History/Tasks/task1_phase3.md)** — Phase 3 任务清单（已归档）
+5. **[`Docs/History/Tasks/task2_phase4.md`](Docs/History/Tasks/task2_phase4.md)** — Phase 4 任务清单（已归档）
 6. **[`Plugins/AgentBridge/README.md`](Plugins/AgentBridge/README.md)** — AgentBridge 插件说明
 7. **[`Plugins/AgentBridge/AGENTS.md`](Plugins/AgentBridge/AGENTS.md)** — 通用 Agent 规则
 
@@ -113,14 +115,23 @@ Mvpv4TestCodex/
 - ✅ UE5 Automation Test 验证层
 - ✅ Schema 校验链
 
-### Phase 3（已完成 — simulated 模式）
+### Phase 3（已完成）
 - ✅ Skill Compiler Plane 最小框架
 - ✅ Reviewed Handoff Schema + Builder
 - ✅ Run Plan Schema + Builder
 - ✅ Orchestrator Handoff Runner 桥接
 - ✅ Greenfield + Boardgame simulated 模式跑通
-- ⬜ UE5 真实调用联调（Phase 4 前置）
-- ⬜ Brownfield 能力（Phase 5）
+
+### Phase 4（已完成）
+- ✅ Static Spec Base（10 个静态基座）
+- ✅ 自动 Dynamic Spec 生成链
+- ✅ Cross-Spec Review
+- ✅ `Scripts/run_greenfield_demo.py` simulated / `bridge_rc_api` 闭环
+
+### Phase 5（进行中）
+- ⬜ Brownfield Baseline Understanding
+- ⬜ Delta Scope Analysis
+- ⬜ Contracts 最小体系
 
 ## 相关链接
 

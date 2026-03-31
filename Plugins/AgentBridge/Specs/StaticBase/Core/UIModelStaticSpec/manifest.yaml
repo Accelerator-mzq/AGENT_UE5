@@ -1,0 +1,10 @@
+spec_id: "UIModelStaticSpec"
+title: "UI Model Static Spec"
+version: "1.0"
+layer: "core"
+status: "phase4_minimal"
+dependencies: []
+required_input_keys:
+  - "game_type"
+emits_tree_nodes:
+  - "ui_model_spec"

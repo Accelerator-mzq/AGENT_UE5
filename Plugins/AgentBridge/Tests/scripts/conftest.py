@@ -16,6 +16,12 @@ def plugin_root():
 
 
 @pytest.fixture
+def project_root(plugin_root):
+    """返回项目根目录路径"""
+    return os.path.abspath(os.path.join(plugin_root, '..', '..'))
+
+
+@pytest.fixture
 def schemas_dir(plugin_root):
     """返回 Schemas 目录路径"""
     return os.path.join(plugin_root, 'Schemas')
@@ -43,3 +49,11 @@ def orchestrator_module(scripts_dir):
     if orc_path not in sys.path:
         sys.path.insert(0, orc_path)
     return orc_path
+
+
+@pytest.fixture
+def compiler_module(scripts_dir):
+    """将 compiler 所在 Scripts 目录加入 sys.path 并返回路径"""
+    if scripts_dir not in sys.path:
+        sys.path.insert(0, scripts_dir)
+    return scripts_dir

@@ -6,9 +6,13 @@ Compiler Module
 from . import intake
 from . import routing
 from . import handoff
+from . import generation
+from . import review
 
 __all__ = [
     'intake',
     'routing',
-    'handoff'
+    'handoff',
+    'generation',
+    'review'
 ]

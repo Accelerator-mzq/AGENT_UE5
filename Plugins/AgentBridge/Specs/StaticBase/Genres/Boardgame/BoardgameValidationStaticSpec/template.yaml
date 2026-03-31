@@ -1,0 +1,12 @@
+spec_id: "BoardgameValidationStaticSpec"
+version: "1.0"
+data:
+  required_checks:
+    - "board_exists"
+    - "preview_piece_count"
+    - "transform_triplet_check"
+  prototype_closure:
+    - "棋盘存在"
+    - "至少可展示示例棋子策略"
+  notes:
+    - "Phase 4 以原型闭环校验为主"

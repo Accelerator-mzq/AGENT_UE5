@@ -78,7 +78,7 @@ Handoff Runner 支持三种执行模式：
 
 ```bash
 # 从项目根目录运行
-python run_greenfield_demo.py
+python Scripts/run_greenfield_demo.py
 ```
 
 该脚本依次执行：
@@ -99,7 +99,7 @@ python compiler_main.py
 # mv ProjectState/Handoffs/draft/xxx.yaml ProjectState/Handoffs/approved/
 
 # 步骤 3：运行 Handoff Runner（需要 approved Handoff）
-# 由 run_greenfield_demo.py 内部调用
+# 由 Scripts/run_greenfield_demo.py 内部调用
 ```
 
 ---

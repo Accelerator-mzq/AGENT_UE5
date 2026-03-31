@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BoardgameUIStaticSpec",
+  "type": "object",
+  "required": ["spec_id", "version", "data"],
+  "properties": {
+    "spec_id": { "type": "string", "const": "BoardgameUIStaticSpec" },
+    "version": { "type": "string" },
+    "data": {
+      "type": "object",
+      "required": ["ui_panels"],
+      "properties": {
+        "ui_panels": { "type": "array", "items": { "type": "string" } },
+        "interaction_hints": { "type": "array", "items": { "type": "string" } },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

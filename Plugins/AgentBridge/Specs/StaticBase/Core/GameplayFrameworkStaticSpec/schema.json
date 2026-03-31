@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GameplayFrameworkStaticSpec",
+  "type": "object",
+  "required": ["spec_id", "version", "data"],
+  "properties": {
+    "spec_id": { "type": "string", "const": "GameplayFrameworkStaticSpec" },
+    "version": { "type": "string" },
+    "data": {
+      "type": "object",
+      "required": ["game_mode", "game_state"],
+      "properties": {
+        "game_mode": { "type": "string" },
+        "game_state": { "type": "string" },
+        "player_controller": { "type": "string" },
+        "pawn": { "type": "string" },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

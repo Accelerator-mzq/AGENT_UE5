@@ -1,0 +1,12 @@
+spec_id: "WorldBuildStaticSpec"
+title: "World Build Static Spec"
+version: "1.0"
+layer: "core"
+status: "phase4_minimal"
+dependencies: []
+required_input_keys:
+  - "board"
+  - "technical_requirements"
+emits_tree_nodes:
+  - "world_build_spec"
+  - "scene_spec"

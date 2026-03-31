@@ -176,10 +176,10 @@ python compiler_main.py
 
 默认读取 `ProjectInputs/GDD/` 下的 GDD 文件，输出 Handoff 到 `ProjectState/Handoffs/draft/`。
 
-### 5.2 通过 run_greenfield_demo.py 端到端运行
+### 5.2 通过 Scripts/run_greenfield_demo.py 端到端运行
 
 ```bash
-python run_greenfield_demo.py
+python Scripts/run_greenfield_demo.py
 ```
 
 完整链路：Compiler → Handoff → Run Plan → 执行 → Report。

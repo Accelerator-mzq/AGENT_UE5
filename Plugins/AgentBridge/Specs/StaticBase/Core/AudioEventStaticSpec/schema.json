@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AudioEventStaticSpec",
+  "type": "object",
+  "required": ["spec_id", "version", "data"],
+  "properties": {
+    "spec_id": { "type": "string", "const": "AudioEventStaticSpec" },
+    "version": { "type": "string" },
+    "data": {
+      "type": "object",
+      "required": ["event_categories"],
+      "properties": {
+        "event_categories": { "type": "array", "items": { "type": "string" } },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

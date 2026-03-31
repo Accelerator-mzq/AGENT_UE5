@@ -1,0 +1,9 @@
+spec_id: "UIModelStaticSpec"
+version: "1.0"
+data:
+  pages:
+    - page_id: "main"
+      widgets: []
+  interaction_mode: "minimal"
+  notes:
+    - "Phase 4 中 UI 基座仅提供最小表达骨架"
