@@ -1,0 +1,147 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Reviewed Handoff Schema",
+  "description": "Skill Compiler Plane 向 Execution Orchestrator Plane 交付的正式交接物",
+  "type": "object",
+  "required": [
+    "handoff_version",
+    "handoff_id",
+    "handoff_mode",
+    "status",
+    "dynamic_spec_tree"
+  ],
+  "properties": {
+    "handoff_version": {
+      "type": "string",
+      "description": "Handoff schema 版本",
+      "example": "1.0"
+    },
+    "handoff_id": {
+      "type": "string",
+      "description": "全局或局部唯一的 Handoff 标识",
+      "pattern": "^handoff\\.[a-z0-9_]+\\.[a-z0-9_]+\\.[a-z0-9]+$",
+      "example": "handoff.monopoly.prototype.001"
+    },
+    "handoff_mode": {
+      "type": "string",
+      "enum": ["greenfield_bootstrap", "brownfield_expansion"],
+      "description": "显式区分首建与二次开发模式"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "reviewed", "approved_for_execution", "blocked"],
+      "description": "交接状态"
+    },
+    "project_context": {
+      "type": "object",
+      "description": "项目上下文",
+      "properties": {
+        "project_name": {"type": "string"},
+        "game_type": {"type": "string"},
+        "target_platform": {"type": "string"}
+      }
+    },
+    "baseline_context": {
+      "type": "object",
+      "description": "基线上下文（Brownfield 必填，Greenfield 可为空）",
+      "properties": {
+        "baseline_id": {"type": "string", "description": "基线标识"},
+        "snapshot_ref": {"type": "string", "description": "快照引用"},
+        "frozen_baseline_ref": {"type": "string", "description": "冻结基线引用"},
+        "existing_spec_registry_ref": {"type": "string", "description": "已有 Spec Registry 引用"}
+      }
+    },
+    "routing_context": {
+      "type": "object",
+      "description": "路由、类型、阶段、激活包信息",
+      "properties": {
+        "mode": {"type": "string", "description": "执行模式"},
+        "genre": {"type": "string", "description": "游戏类型"},
+        "target_stage": {"type": "string", "description": "目标阶段（prototype / vertical_slice / production）"},
+        "activated_skill_packs": {"type": "array", "items": {"type": "string"}, "description": "激活的 Skill Packs"}
+      }
+    },
+    "delta_context": {
+      "type": "object",
+      "description": "差量上下文（Brownfield 必填，Greenfield 可为空）",
+      "properties": {
+        "delta_intent": {"type": "string", "description": "增量意图摘要"},
+        "affected_domains": {"type": "array", "items": {"type": "string"}, "description": "受影响的域"},
+        "affected_specs": {"type": "array", "items": {"type": "string"}, "description": "受影响的 Spec"},
+        "required_regression_checks": {"type": "array", "items": {"type": "string"}, "description": "需要的回归测试"}
+      }
+    },
+    "dynamic_spec_tree": {
+      "type": "object",
+      "description": "图纸树 / patch 集 / expansion plan",
+      "required": ["scene_spec"],
+      "properties": {
+        "scene_spec": {
+          "type": "object",
+          "properties": {
+            "actors": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["actor_name", "actor_class", "transform"],
+                "properties": {
+                  "actor_name": {"type": "string"},
+                  "actor_class": {"type": "string"},
+                  "transform": {
+                    "type": "object",
+                    "required": ["location", "rotation", "relative_scale3d"],
+                    "properties": {
+                      "location": {
+                        "type": "array",
+                        "items": {"type": "number"},
+                        "minItems": 3,
+                        "maxItems": 3
+                      },
+                      "rotation": {
+                        "type": "array",
+                        "items": {"type": "number"},
+                        "minItems": 3,
+                        "maxItems": 3
+                      },
+                      "relative_scale3d": {
+                        "type": "array",
+                        "items": {"type": "number"},
+                        "minItems": 3,
+                        "maxItems": 3
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "review_summary": {
+      "type": "object",
+      "description": "review 结果摘要",
+      "properties": {
+        "reviewed": {"type": "boolean"},
+        "reviewer": {"type": "string"},
+        "review_notes": {"type": "string"}
+      }
+    },
+    "capability_gaps": {
+      "type": "object",
+      "description": "缺口信息"
+    },
+    "governance_context": {
+      "type": "object",
+      "description": "治理输入种子"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "审计、来源、生成元信息",
+      "properties": {
+        "generated_at": {"type": "string", "format": "date-time"},
+        "generator": {"type": "string"}
+      }
+    }
+  }
+}

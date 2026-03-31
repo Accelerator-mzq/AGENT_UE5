@@ -64,6 +64,9 @@ PROJECT_SCRIPTS_DIR = os.path.join(PROJECT_ROOT, 'Scripts', 'validation')
 # PowerShell 启动脚本
 PS_EDITOR_CMD = os.path.join(PROJECT_SCRIPTS_DIR, 'start_ue_editor_cmd_project.ps1')
 PS_EDITOR_GUI = os.path.join(PROJECT_SCRIPTS_DIR, 'start_ue_editor_project.ps1')
+AGENTBRIDGE_TESTS_UPLUGIN = os.path.join(
+    PLUGIN_ROOT, 'AgentBridgeTests', 'AgentBridgeTests.uplugin'
+)
 
 
 # ============================================================
@@ -209,6 +212,39 @@ def run_powershell(script_path, *args, timeout=1800):
         'powershell', '-ExecutionPolicy', 'Bypass', '-File', script_path
     ] + list(args)
     return run_command(cmd, timeout=timeout)
+
+
+def build_cmd_editor_args(engine_root, *editor_args):
+    """构建无头 Editor 命令行，显式传 ProjectPath 与测试插件路径。"""
+    args = []
+    if engine_root:
+        args.extend(['-EngineRoot', engine_root])
+
+    # 显式传 ProjectPath，避免剩余参数被误绑定到脚本的位置参数导致启动失败。
+    args.extend(['-ProjectPath', UPROJECT_PATH])
+
+    # 显式传 AgentBridgeTests.uplugin，避免命令行无法定位测试插件。
+    if os.path.exists(AGENTBRIDGE_TESTS_UPLUGIN):
+        args.append(f'-PLUGIN={AGENTBRIDGE_TESTS_UPLUGIN}')
+
+    args.extend(editor_args)
+    return args
+
+
+def detect_known_stage4_blocker(output):
+    """识别 Stage 4 常见阻塞并返回可读诊断。"""
+    if "Unable to load plugin 'AgentBridgeTests'" in output:
+        return (
+            "检测到 AgentBridgeTests 插件加载失败；"
+            "请检查 -PLUGIN 参数是否指向 "
+            "Plugins/AgentBridge/AgentBridgeTests/AgentBridgeTests.uplugin。"
+        )
+    if "Unknown Automation command 'Automation RunTests" in output:
+        return (
+            "检测到错误的 Automation 命令调用；"
+            "无头模式请改用 -run=AgentBridge -RunTests=<Filter>。"
+        )
+    return ''
 
 
 def find_engine_root():
@@ -391,14 +427,13 @@ def run_stage_4(result, engine_root):
         return
 
     # 通过 Commandlet -RunTests 执行全部 UE5 Automation Test
-    args = [
+    args = build_cmd_editor_args(
+        engine_root,
         '-run=AgentBridge',
         '-RunTests=Project.AgentBridge',
         '-Unattended', '-NoPause', '-NoSound', '-NullRHI',
         '-stdout', '-FullStdOutLogOutput',
-    ]
-    if engine_root:
-        args = ['-EngineRoot', engine_root] + args
+    )
 
     print('  正在运行 L1/L2/L3 自动化测试（无头模式）...')
     code, stdout, stderr = run_powershell(PS_EDITOR_CMD, *args, timeout=900)
@@ -406,6 +441,13 @@ def run_stage_4(result, engine_root):
     # 提取测试结果摘要
     output = stdout + stderr
     print(output[-1000:] if len(output) > 1000 else output)
+
+    blocker_message = detect_known_stage4_blocker(output)
+    if blocker_message:
+        result.status = 'failed'
+        result.exit_code = code if code != 0 else 1
+        result.message = blocker_message
+        return
 
     if code == 0:
         result.status = 'passed'
@@ -440,9 +482,7 @@ def run_stage_5(result, engine_root):
     failed = 0
 
     for case_id, cmd_args, expected_exit in test_cases:
-        args = cmd_args[:]
-        if engine_root:
-            args = ['-EngineRoot', engine_root] + args
+        args = build_cmd_editor_args(engine_root, *cmd_args)
 
         print(f'  [{case_id}] 执行中...')
         code, stdout, stderr = run_powershell(PS_EDITOR_CMD, *args, timeout=300)

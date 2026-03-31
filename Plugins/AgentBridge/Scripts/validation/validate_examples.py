@@ -55,7 +55,7 @@ SCHEMAS_DIR = get_schemas_dir()
 EXAMPLES_DIR = SCHEMAS_DIR / "examples"
 
 # 显式映射：example 文件名 -> schema 文件相对路径（相对于 SCHEMAS_DIR）
-# 覆盖 MVP 全部 9 个反馈接口 + 1 个写后反馈 = 10 个 example
+# 覆盖 MVP 全部 9 个反馈接口 + 1 个写后反馈 + Phase 3 新增 2 个 example
 EXAMPLE_TO_SCHEMA: Dict[str, str] = {
     # === 反馈接口 example ===
     "get_current_project_state.example.json":
@@ -80,6 +80,12 @@ EXAMPLE_TO_SCHEMA: Dict[str, str] = {
     # === 写后反馈 example ===
     "write_operation_feedback.example.json":
         "write_feedback/write_operation_feedback.response.schema.json",
+
+    # === Phase 3 新增 example ===
+    "reviewed_handoff_greenfield.example.json":
+        "reviewed_handoff.schema.json",
+    "run_plan_greenfield.example.json":
+        "run_plan.schema.json",
 }
 
 # 这些 example 默认跳过自动 schema 校验，仅作为参考样例。

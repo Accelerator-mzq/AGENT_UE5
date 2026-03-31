@@ -189,11 +189,18 @@ def rc_spawn_actor_from_class(actor_class: str, location: dict,
 # ============================================================
 
 def check_connection() -> bool:
-    try:
-        _http_request("/remote", method="GET")
-        return True
-    except Exception:
-        return False
+    """检查 RC API 是否可达。
+
+    UE5.5.4 中 `/remote` 主要用于 OPTIONS，直接 GET 可能返回 405。
+    这里优先探测 `/remote/info`，再回退到 `/remote`，避免误判 RC 不可达。
+    """
+    for endpoint in ("/remote/info", "/remote"):
+        try:
+            _http_request(endpoint, method="GET")
+            return True
+        except Exception:
+            continue
+    return False
 
 def get_available_routes() -> dict:
     return _http_request("/remote", method="GET")

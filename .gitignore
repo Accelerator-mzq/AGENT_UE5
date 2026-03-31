@@ -32,6 +32,7 @@ Plugins/AgentBridge/AgentBridgeTests/Intermediate/
 
 # 本地报告与证据目录（如需保留可删除此行）
 reports/
+Docs/History/reports/
 image/
 
 # IDE 与本地工程文件
