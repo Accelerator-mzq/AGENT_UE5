@@ -15,3 +15,4 @@
 | Phase 1-2（MVP） | `Docs/History/Phase1_MVP/task.md` | 历史原始位置（legacy） |
 | Phase 3 | `Docs/History/Tasks/task1_phase3.md` | Greenfield + Reviewed Handoff 最小闭环 |
 | Phase 4 | `Docs/History/Tasks/task2_phase4.md` | Static Spec Base + 自动 Dynamic Spec 生成 |
+| Phase 5 | `Docs/History/Tasks/task3_phase5.md` | Brownfield 最小闭环 + 文档/证据治理 |

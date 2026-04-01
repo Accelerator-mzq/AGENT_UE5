@@ -33,7 +33,7 @@ Design Inputs + Existing Project State Inputs
 | **Greenfield Bootstrap** | 从零启动新样板 | 全量编译 → Full Dynamic Spec Tree |
 | **Brownfield Expansion** | 已有 demo 的二次开发 | 基线理解 + 差量编译 → Delta Dynamic Spec Tree |
 
-Phase 4 已完成 Greenfield 自动生成闭环。Phase 5 正在推进 Brownfield 最小闭环。
+Phase 4 已完成 Greenfield 自动生成闭环。Phase 5 已完成 Brownfield 最小闭环。Phase 6 进入 Genre Skill Packs 完整化。
 
 ### 1.3 分层原则
 
@@ -77,7 +77,8 @@ Phase 4 已完成 Greenfield 自动生成闭环。Phase 5 正在推进 Brownfiel
  │  │  Project State Intake ─┬→ Baseline / Delta 分析              │  │
  │  │                        └→ Handoff Serializer                 │  │
  │  │                                                               │  │
- │  │  generation/ / review/ 已实装；analysis/ 在 Phase 5 启用       │  │
+ │  │  generation/ / review/ / analysis/ 已实装；genre_packs/_core 在 │  │
+ │  │  Phase 6 完整化                                                │  │
  │  └──────────────────────────┬────────────────────────────────────┘  │
  │                             │ Reviewed Handoff                      │
  │                             │ （draft YAML → 审批 → approved YAML） │

@@ -1,6 +1,6 @@
 # AGENTS.md — Mvpv4TestCodex 项目
 
-> 目标引擎版本：UE5.5.4 | 文档版本：v0.5（Phase 5）
+> 目标引擎版本：UE5.5.4 | 文档版本：v0.6（Phase 6）
 >
 > 本文件定义 **本项目** 的 AI Agent 行为规则。
 > 通用的 AgentBridge 插件规则见 → `Plugins/AgentBridge/AGENTS.md`
@@ -70,7 +70,7 @@ Agent 在本项目中需要参考的文档：
 | 项目基线 | `Docs/Current/01_Project_Baseline.md` |
 | 当前阶段目标 | `Docs/Current/02_Current_Phase_Goals.md` |
 | 实施边界 | `Docs/Current/05_Implementation_Boundary.md` |
-| 当前任务 | 根目录 `task.md`（Phase 5 当前任务） |
+| 当前任务 | 根目录 `task.md`（Phase 6 当前任务） |
 
 **插件层文档**：
 
@@ -109,7 +109,7 @@ Agent 进入本项目后，按以下顺序阅读：
 3. `Docs/Current/01_Project_Baseline.md` — 项目基线
 4. `Docs/Current/02_Current_Phase_Goals.md` — 本期目标
 5. `Docs/Current/05_Implementation_Boundary.md` — 实施边界
-6. `Docs/History/Tasks/task2_phase4.md` — Phase 4 任务清单（已归档）
+6. `Docs/History/Tasks/task3_phase5.md` — Phase 5 任务清单（已归档）
 7. `Plugins/AgentBridge/README.md` — 插件定义（首次进入必读）
 8. `Plugins/AgentBridge/AGENTS.md` — 通用 Agent 规则（首次进入必读）
 9. 与当前任务相关的 `Docs/Current/*` 和 `Plugins/AgentBridge/Docs/*`

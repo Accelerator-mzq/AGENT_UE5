@@ -1,32 +1,32 @@
 # 待办与卡点
 
-> 文档版本：L1-Phase5-v2
+> 文档版本：L1-Phase6-v1
 
 ## 当前 P0 待办
 
-- 把 Brownfield append/new-actor 样板在真实 UE5 Editor 下再跑一轮带截图证据的 smoke
-- 用 Phase 5 当前 `task.md` 补齐阶段级验收记录与证据说明
-- 继续压实 patch / migration 的阻断规则，避免被误当成可执行追加
+- 产出并细化 Phase 6 正式任务清单
+- 在 `Skills/genre_packs/_core/` 落地最小 manifest loader / router base / registry
+- 明确 boardgame pack 的 `required_skills / review_extensions / validation_extensions / delta_policy` 落点与依赖顺序
 
 ## 当前 P1 待办
 
-- 细化 `project_state_intake.py` 的真实采集字段
+- 为 boardgame pack 增加首批 genre contract 设计与骨架
+- 细化 `project_state_intake.py` 的真实采集字段，服务更多 Brownfield 场景
 - 为 Brownfield 主线增加更多 append/no-change 覆盖场景
-- 视需要补 `bridge_python` 运行态验证
 
 ## 当前门禁项
 
-- Phase 4 的 StaticBase / generation / review / Greenfield E2E / RC API 已闭环
-- Phase 5 当前主门禁已经从“空壳模块”转为“真实 Brownfield smoke + 证据链”
+- Phase 5 的 Brownfield 最小闭环、真机 smoke 与截图证据链已闭环
+- Phase 6 当前主门禁转为“Genre Pack Core 机制 + boardgame pack 完整化能否接入现有编译链”
 
 ## 当前策略
 
-- Phase 5 测试用例先写在根目录 `task.md`
-- `SystemTestCases.md` 本阶段只做路径修正，不提前追加 Phase 5 用例正文
-- `ProjectState/Snapshots/` 与 `ProjectState/Evidence/Phase5/` 严格分责
+- Phase 6 测试用例先写在根目录 `task.md`
+- `SystemTestCases.md` 不提前追加 Phase 6 用例正文，待本阶段归档时统一补录
+- `ProjectState/Snapshots/` 与 `ProjectState/Evidence/Phase6/` 严格分责
 
 ## 后续阶段保留项
 
-- Genre Skill Pack 完整化：Phase 6
 - Base Skill Domains 完整化：Phase 7
 - Handoff 自动审批治理：Phase 7
+- 第二个 Genre Pack 与多类型扩展：Phase 7

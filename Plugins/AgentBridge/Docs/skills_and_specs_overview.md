@@ -171,6 +171,6 @@ Reviewed Handoff
 |------|------------|------------|
 | **Phase 3（已完成）** | boardgame 最小骨架 | 最小 pack manifest + 现有 templates |
 | **Phase 4（已完成）** | — | Static Base Layer A+B + 自动 Spec 生成 |
-| **Phase 5（进行中）** | — | Brownfield Baseline / Delta / Contracts 最小落地 |
-| **Phase 6** | Genre Pack 完整化 + _core 机制 | Boardgame Patch Contract |
+| **Phase 5（已完成）** | — | Brownfield Baseline / Delta / Contracts 最小落地 |
+| **Phase 6（进行中）** | Genre Pack 完整化 + _core 机制 | Boardgame Patch Contract |
 | **Phase 7** | Base Domains 完整实装 + 第二个类型包 | — |

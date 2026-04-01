@@ -1,6 +1,6 @@
 # Skill Compiler Plane 设计
 
-> 文档版本：v0.4.0（Phase 5 口径）
+> 文档版本：v0.4.0（Phase 6 口径）
 
 ## 1. 定位
 
@@ -87,4 +87,4 @@ GDD + Project State
 
 - Greenfield 主链不允许回归
 - Brownfield 当前只执行 append/new-actor 样板
-- `SystemTestCases.md` 的 Phase 5 用例在阶段归档时再补录
+- `SystemTestCases.md` 的 Phase 6 用例在阶段归档时再补录

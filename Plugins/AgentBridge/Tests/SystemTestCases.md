@@ -1,7 +1,7 @@
 # AgentBridge 系统测试用例总表
 
-> 来源：`Docs/History/Phase1_MVP/task.md` + `Docs/History/Tasks/task1_phase3.md` + `Docs/History/Tasks/task2_phase4.md` 中的验收标准与验证步骤
-> 最后更新：2026-03-31
+> 来源：`Docs/History/Phase1_MVP/task.md` + `Docs/History/Tasks/task1_phase3.md` + `Docs/History/Tasks/task2_phase4.md` + `Docs/History/Tasks/task3_phase5.md` 中的验收标准与验证步骤
+> 最后更新：2026-04-01
 > 维护者：msc
 
 ---
@@ -47,7 +47,7 @@
 | GA | Gauntlet CI/CD | UE5 + UAT | `RunUAT.bat RunUnreal -test=SmokeTests/AllTests` |
 | E2E | 端到端集成 | 全栈 | 多步流水线（Schema→Cmd→Gauntlet→三通道脚本） |
 
-> 全部 178 条用例均已登记到当前测试总表。证据目录分层为：`ProjectState/Reports/`（当期执行）+ `Docs/History/reports/AgentBridgeEvidence/`（历史归档）。
+> 全部 186 条用例均已登记到当前测试总表。证据目录分层为：`ProjectState/Reports/`（当期执行）+ `Docs/History/reports/AgentBridgeEvidence/`（历史归档）。
 
 ---
 
@@ -355,7 +355,7 @@
 
 ## 11. Compiler Plane（CP）
 
-> 来源：`Docs/History/Tasks/task1_phase3.md` TASK 04 + `Docs/History/Tasks/task2_phase4.md` TASK 06~10
+> 来源：`Docs/History/Tasks/task1_phase3.md` TASK 04 + `Docs/History/Tasks/task2_phase4.md` TASK 06~10 + `Docs/History/Tasks/task3_phase5.md` TASK 03~08
 > 自动化方式：pytest / `python compiler_main.py`
 > 环境要求：Python 3.x + pyyaml + jsonschema
 
@@ -379,6 +379,12 @@
 | CP-16 | 缺失模板报 capability_gaps | `review_dynamic_spec_tree(...)` | `required_static_templates` 正确写入缺失 spec_id |
 | CP-17 | 默认示例棋子策略 | 主 GDD + `build_handoff(...)` | 未写预览规则时，默认生成 `Board + PieceX_1 + PieceO_1` |
 | CP-18 | GDD 覆盖示例棋子数量 | 临时 GDD + `build_handoff(...)` | 显式 `X=2, O=1` 时生成 `Board + PieceX_1 + PieceX_2 + PieceO_1` |
+| CP-19 | project_state_intake 返回 Phase 5 快照 | `get_project_state_snapshot()` | 返回兼容字段 + `has_existing_content / baseline_refs / metadata / current_project_state_digest` |
+| CP-20 | baseline_builder 序列化 snapshot | `build_and_save_baseline_snapshot(...)` | 生成 baseline 文件且可重新加载 |
+| CP-21 | delta_scope_analyzer 识别 no_change | 目标状态与 baseline 相同 | `delta_intent == "no_change"` |
+| CP-22 | delta_scope_analyzer 识别 append_actor | baseline 为 `Board + PieceX_1` | `delta_intent == "append_actor"` 且 append 仅含 `PieceO_1` |
+| CP-23 | Contract registry 与 Common Contract 可加载 | `load_contract_registry()` + `load_contract_bundle(...)` | 3 类 Common Contract 可加载，template/schema 可解析 |
+| CP-24 | Brownfield Handoff 含 baseline/delta/tree_type | `build_handoff(..., mode=\"brownfield_expansion\")` | Handoff 通过 Schema 校验，`scene_spec.actors[]` 仅含新增 Actor |
 
 > 证据：`ProjectState/Handoffs/draft/` 下生成的 Handoff YAML 文件
 
@@ -467,6 +473,15 @@
 
 > 证据：`ProjectState/Reports/` 下执行报告 + `ProjectState/Handoffs/` 下 Handoff 文件
 
+### Brownfield 管线验证（`Docs/History/Tasks/task3_phase5.md` TASK 03~08）
+
+| 编号 | 用例名称 | 验证步骤 | 自动化命令 | 预期结果 |
+|------|---------|---------|-----------|---------|
+| E2E-20 | Brownfield simulated append-only 端到端 | baseline(`Board + PieceX_1`) → delta handoff → 执行 | `python Scripts/run_brownfield_demo.py` | 输出 `append_actor`，且仅追加 `PieceO_1` |
+| E2E-21 | Brownfield bridge_rc_api 真机 smoke + 截图证据 [UE5] | RC API 启动 → delta handoff → 执行 → 读回 → 截图取证 | `python Scripts/run_brownfield_demo.py bridge_rc_api` | `Board / PieceX_1 / PieceO_1` 在 UE5 中生成，且证据目录含 `overview_oblique + topdown_alignment + note + log` |
+
+> 证据：`ProjectState/Reports/task_phase5_brownfield_rc_smoke_2026-04-01.md` + `Docs/History/reports/AgentBridgeEvidence/phase5_evidence_2026-04-01/`
+
 ---
 
 ## 附录 A：UE5 Automation Test ID 速查表
@@ -512,11 +527,11 @@
 | CMD Commandlet | 8 | 🟢 全部 |
 | PY Python 客户端 | 10 | 🟢 全部 |
 | ORC Orchestrator | 37 | 🟢 全部 |
-| CP Compiler Plane | 18 | 🟢 全部 |
+| CP Compiler Plane | 24 | 🟢 全部 |
 | SS Skills & Specs | 7 | 🟢 全部 |
 | GA Gauntlet | 6 | 🟢 全部 |
-| E2E 端到端 | 19 | 🟢 全部 |
-| **合计** | **178** | **🟢 178 条已登记** |
+| E2E 端到端 | 21 | 🟢 全部 |
+| **合计** | **186** | **🟢 186 条已登记** |
 
 ---
 

@@ -50,12 +50,12 @@ python Scripts/run_brownfield_demo.py
 Mvpv4TestCodex/
 ├── AGENTS.md
 ├── README.md
-├── task.md                              ← 当前阶段任务入口（Phase 5）
+├── task.md                              ← 当前阶段任务入口（Phase 6）
 ├── Scripts/
 │   ├── run_greenfield_demo.py           ← 项目层 Greenfield E2E 入口
 │   ├── run_brownfield_demo.py           ← 项目层 Brownfield E2E 入口
 │   └── validation/
-│       ├── capture_phase5_evidence.py   ← Phase 5 截图证据辅助脚本
+│       ├── capture_phase5_evidence.py   ← Phase 5 截图证据脚本样板
 │       └── *.ps1
 ├── ProjectInputs/
 │   ├── GDD/
@@ -66,7 +66,7 @@ Mvpv4TestCodex/
 │   ├── Reports/
 │   ├── Snapshots/                       ← baseline/state snapshot
 │   └── Evidence/
-│       └── Phase5/                      ← 当前阶段运行截图/日志/说明
+│       └── Phase6/                      ← 当前阶段运行截图/日志/说明
 ├── Docs/
 │   ├── Current/
 │   ├── History/
@@ -98,12 +98,18 @@ Mvpv4TestCodex/
 - Cross-Spec Review
 - `Scripts/run_greenfield_demo.py` simulated / `bridge_rc_api` 闭环
 
-### Phase 5（进行中）
+### Phase 5（已完成）
 
 - Brownfield Baseline Understanding
 - Delta Scope Analysis
 - Contracts 最小体系
-- 截图证据目录与阶段归档规则
+- 真机 RC API + 截图证据目录与阶段归档规则
+
+### Phase 6（进行中）
+
+- Genre Skill Packs `_core` 机制
+- boardgame 类型包完整化
+- Boardgame genre contract 与扩展策略
 
 ## 文档入口
 
@@ -120,4 +126,5 @@ Mvpv4TestCodex/
 
 - 根目录 `task.md` 是当前阶段唯一任务入口；阶段结束后归档到 `Docs/History/Tasks/`
 - `ProjectState/Snapshots/` 只放 baseline / state snapshot，不混放截图证据
-- `ProjectState/Evidence/Phase5/` 用于 Phase 5 当前运行证据；阶段结束后整期归档
+- `ProjectState/Evidence/Phase6/` 用于 Phase 6 当前运行证据；阶段结束后整期归档
+- Phase 5 证据已归档到 `Docs/History/reports/AgentBridgeEvidence/phase5_evidence_2026-04-01/`
