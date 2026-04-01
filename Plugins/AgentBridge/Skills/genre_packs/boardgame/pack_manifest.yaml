@@ -1,31 +1,36 @@
-# Boardgame Genre Pack Manifest
-# 基于 Genre_Skill_Pack_Manifest_标准_v1
-
-# 类型包标识
 pack_id: "genre-boardgame"
-version: "0.1.0"
+version: "0.6.0"
 title: "Boardgame Genre Skill Pack"
-status: "phase4_minimal_compilation"
-description: "棋盘游戏类型包，支持基于 Static Spec Base 的最小原型编译与执行"
-
-# 路由器配置
+status: "phase6_playable_runtime"
+description: "棋盘游戏类型包，支持从 GDD 自动编译完整 Spec Tree，并投影到 preview/runtime 两种路径。"
 router:
   primary_router: "genre_boardgame_router"
   fallback_routers: []
-
-# 激活条件
 activation:
-  # 当 GDD 中包含以下关键词时，激活此类型包
   keywords:
     - "boardgame"
     - "棋盘游戏"
     - "board game"
     - "棋盘"
     - "回合制"
-  # 最小置信度（0-1）
+    - "井字棋"
   min_confidence: 0.7
-
-# 依赖
+required_skills:
+  - "board_layout"
+  - "piece_movement"
+  - "turn_system"
+optional_skills: []
+review_extensions:
+  - "boardgame_reviewer"
+validation_extensions:
+  - "boardgame_validator"
+delta_policy:
+  provider: "boardgame_delta_policy"
+  enabled: true
+policy:
+  prefer_incremental: true
+  allow_mixed_mode: false
+  default_projection_profile: "preview_static"
 dependencies:
   base_domains:
     - "product_scope"
@@ -36,44 +41,24 @@ dependencies:
     - "ValidationStaticSpec"
     - "BoardgameStaticSpec"
     - "BoardgameValidationStaticSpec"
-
-# 必需 Skills（Phase 4 仍只保留最小编译入口）
-required_skills:
-  - "design_input_intake"
-  - "world_build_projection"
-  - "boardgame_preview_policy"
-
-# 可选 Skills（后续阶段完整化）
-optional_skills: []
-
-# Review 扩展（第一阶段占位）
-review_extensions: []
-
-# Validation 扩展（第一阶段占位）
-validation_extensions: []
-
-# Delta Policy（第一阶段占位）
-delta_policy:
-  enabled: false
-  note: "Brownfield 能力待后续补充"
-
-# 通用策略偏好
-policy:
-  prefer_incremental: true
-  allow_mixed_mode: false
-
-# 典型产物（第一阶段占位）
+  genre_contracts:
+    - "TurnFlowPatchContract"
+    - "DecisionUIPatchContract"
 outputs:
   typical_specs:
+    - "world_build_spec"
     - "boardgame_spec"
+    - "board_layout_spec"
+    - "piece_movement_spec"
+    - "turn_flow_spec"
+    - "decision_ui_spec"
+    - "runtime_wiring_spec"
     - "validation_spec"
     - "scene_spec"
   typical_workflows:
     - "spawn_actor"
-
-# 元信息
 metadata:
   author: "AgentBridge Team"
   created_at: "2026-03-30"
-  last_updated: "2026-03-31"
-  note: "Phase 4 仅落地最小编译层，完整 Genre Skill Pack 机制延后到 Phase 6"
+  last_updated: "2026-04-01"
+  note: "Phase 6 起 boardgame pack 作为真实编译驱动力接入 Compiler。"

@@ -81,7 +81,10 @@ def build_workflow_sequence(actors: List[Dict[str, Any]], mode: str) -> List[Dic
             "params": {
                 "actor_name": actor.get("actor_name"),
                 "actor_class": actor.get("actor_class"),
-                "transform": actor.get("transform")
+                "transform": actor.get("transform"),
+                "runtime_config_ref": actor.get("runtime_config_ref", ""),
+                "post_spawn_actions": actor.get("post_spawn_actions", []),
+                "projection_profile": actor.get("projection_profile", ""),
             }
         }
 

@@ -5,6 +5,8 @@ pytest 共享 fixtures
 """
 import os
 import sys
+import shutil
+import uuid
 import pytest
 
 
@@ -18,7 +20,10 @@ def plugin_root():
 @pytest.fixture
 def project_root(plugin_root):
     """返回项目根目录路径"""
-    return os.path.abspath(os.path.join(plugin_root, '..', '..'))
+    root = os.path.abspath(os.path.join(plugin_root, '..', '..'))
+    if root not in sys.path:
+        sys.path.insert(0, root)
+    return root
 
 
 @pytest.fixture
@@ -57,3 +62,18 @@ def compiler_module(scripts_dir):
     if scripts_dir not in sys.path:
         sys.path.insert(0, scripts_dir)
     return scripts_dir
+
+
+@pytest.fixture
+def workspace_tmp_path(project_root):
+    """在仓库内创建临时目录，避免依赖系统默认 tmp_path。"""
+    temp_root = os.path.join(project_root, "TestArtifacts", "WorkspaceTmp")
+    os.makedirs(temp_root, exist_ok=True)
+    temp_dir = os.path.join(temp_root, f"pytest_{uuid.uuid4().hex[:8]}")
+    os.makedirs(temp_dir, exist_ok=True)
+    try:
+        from pathlib import Path
+
+        yield Path(temp_dir)
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)

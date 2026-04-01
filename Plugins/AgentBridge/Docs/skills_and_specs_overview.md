@@ -1,6 +1,6 @@
 # Skills / Specs 体系概述
 
-> 文档版本：v0.4.0 | 适用范围：AgentBridge 插件 Skills 与 Specs 体系
+> 文档版本：v0.5.0 | 适用范围：AgentBridge 插件 Skills 与 Specs 体系
 
 ---
 
@@ -59,20 +59,26 @@ Skills 和 Specs 是 AgentBridge 框架的两个互补体系：
 
 **首个类型包**：`boardgame`（棋盘游戏）
 
-**当前状态**：`Skills/genre_packs/boardgame/` 已具备最小 `pack_manifest.yaml`，完整机制延后到 Phase 6。
+**当前状态**：Phase 6 已落地 `_core` 最小机制与 `boardgame` 首个真实类型包。Compiler 现在会真正消费 pack manifest、required skills、review extensions、validation extensions 与 delta policy。
 
 ### 2.4 目录结构
 
-```
+```text
 Skills/
-├── base_domains/                    # 通用编译域（后续完整化）
+├── base_domains/                    # 通用编译域（Phase 7 完整化）
 │   └── README.md
 └── genre_packs/
-    ├── _core/                       # 类型包机制核心（后续完整化）
-    │   └── README.md
-    └── boardgame/                   # 首个类型包
-        ├── pack_manifest.yaml       # ✅ 已创建
-        └── README.md
+    ├── _core/
+    │   ├── manifest_loader.py
+    │   ├── registry.py
+    │   ├── router_base.py
+    │   └── module_loader.py
+    └── boardgame/
+        ├── pack_manifest.yaml
+        ├── required_skills/
+        ├── review_extensions/
+        ├── validation_extensions/
+        └── delta_policy/
 ```
 
 ---
@@ -117,7 +123,10 @@ Skills/
 | MigrationContract | 跨契约边界结构变更契约 | Phase 5 |
 | RegressionValidationContract | 回归验证契约 | Phase 5 |
 
-**当前状态**：`Specs/Contracts/` 已完成 Phase 5 最小落地，当前包含 registry + 3 类 Common Contract Model。
+**当前状态**：`Specs/Contracts/` 已完成 Phase 5 最小落地，并在 Phase 6 新增 Boardgame Genre Contracts：
+
+- `TurnFlowPatchContract`
+- `DecisionUIPatchContract`
 
 ### 3.4 Templates（已有）
 
@@ -172,5 +181,5 @@ Reviewed Handoff
 | **Phase 3（已完成）** | boardgame 最小骨架 | 最小 pack manifest + 现有 templates |
 | **Phase 4（已完成）** | — | Static Base Layer A+B + 自动 Spec 生成 |
 | **Phase 5（已完成）** | — | Brownfield Baseline / Delta / Contracts 最小落地 |
-| **Phase 6（进行中）** | Genre Pack 完整化 + _core 机制 | Boardgame Patch Contract |
+| **Phase 6（进行中）** | Genre Pack 完整化 + `_core` 机制 + boardgame playable pipeline | Boardgame Genre Contracts |
 | **Phase 7** | Base Domains 完整实装 + 第二个类型包 | — |

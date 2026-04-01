@@ -1,10 +1,12 @@
 """
 Boardgame Scene Generator
-在 Static Base 约束下生成最小 boardgame dynamic spec tree。
+在 Static Base + Genre Pack 约束下生成完整 boardgame dynamic spec tree。
 """
 
+from __future__ import annotations
+
 import copy
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 
 def generate_boardgame_dynamic_spec_tree(
@@ -12,76 +14,76 @@ def generate_boardgame_dynamic_spec_tree(
     routing_context: Dict[str, Any],
     static_spec_context: Dict[str, Any],
     pack_manifest: Dict[str, Any],
+    pack_modules: Optional[Dict[str, Any]] = None,
+    projection_profile: str = "preview_static",
 ) -> Dict[str, Any]:
-    """生成 boardgame prototype 所需的 dynamic spec tree。"""
+    """生成 boardgame prototype/playable 所需的完整 dynamic spec tree。"""
     loaded_specs = static_spec_context.get("loaded_specs", {})
+    pack_modules = pack_modules or {}
 
-    world_build_spec = _build_world_build_spec(design_input, loaded_specs)
-    boardgame_spec = _build_boardgame_spec(design_input, routing_context, loaded_specs, pack_manifest)
-    validation_spec = _build_validation_spec(design_input, loaded_specs)
-    scene_spec = {
-        "actors": _build_scene_actors(design_input, world_build_spec),
-    }
-
-    return {
-        "world_build_spec": world_build_spec,
-        "boardgame_spec": boardgame_spec,
-        "validation_spec": validation_spec,
-        "scene_spec": scene_spec,
+    nodes: Dict[str, Any] = {
+        "validation_spec": _build_validation_spec(design_input, loaded_specs),
         "generation_trace": {
-            "generator": "AgentBridge.Compiler.Phase4.BoardgameSceneGenerator",
+            "generator": "AgentBridge.Compiler.Phase6.BoardgameSceneGenerator",
             "activated_skill_packs": routing_context.get("activated_skill_packs", []),
             "static_spec_ids": sorted(list(loaded_specs.keys())),
             "skill_pack_id": pack_manifest.get("pack_id", "unknown"),
+            "projection_profile": projection_profile,
+            "required_skills": [],
+            "review_extensions": [
+                entry.get("module_id", "") for entry in pack_modules.get("review_extensions", [])
+            ],
+            "validation_extensions": [
+                entry.get("module_id", "") for entry in pack_modules.get("validation_extensions", [])
+            ],
+            "missing_modules": [],
         },
     }
-
-
-def _build_world_build_spec(
-    design_input: Dict[str, Any],
-    loaded_specs: Dict[str, Any],
-) -> Dict[str, Any]:
-    """基于 WorldBuildStaticSpec 模板实例化场景构建节点。"""
-    template = copy.deepcopy(loaded_specs["WorldBuildStaticSpec"]["template"])
-    board = design_input.get("board", {})
-    technical_requirements = design_input.get("technical_requirements", {})
-
-    template["data"]["board"] = {
-        "board_type": board.get("board_type", "grid_board"),
-        "grid_size": board.get("grid_size", [3, 3]),
-        "cell_size_cm": board.get("cell_size_cm", [100, 100]),
-        "total_size_cm": board.get("total_size_cm", [300, 300]),
-        "location": board.get("location", [0.0, 0.0, 0.0]),
-        "material": board.get("material", "DefaultBoardMaterial"),
+    compilation_state = {
+        "design_input": design_input,
+        "routing_context": routing_context,
+        "static_spec_context": static_spec_context,
+        "pack_manifest": pack_manifest,
+        "pack_modules": pack_modules,
+        "projection_profile": projection_profile,
+        "nodes": nodes,
     }
-    template["data"]["actor_defaults"]["actor_class"] = technical_requirements.get(
-        "actor_class",
-        "/Script/Engine.StaticMeshActor",
-    )
-    return template
 
+    for skill_entry in pack_modules.get("required_skills", []):
+        module = skill_entry.get("module")
+        if module is None or not hasattr(module, "apply_skill"):
+            nodes["generation_trace"]["missing_modules"].append(skill_entry.get("module_id", ""))
+            continue
+        module.apply_skill(compilation_state)
 
-def _build_boardgame_spec(
-    design_input: Dict[str, Any],
-    routing_context: Dict[str, Any],
-    loaded_specs: Dict[str, Any],
-    pack_manifest: Dict[str, Any],
-) -> Dict[str, Any]:
-    """实例化 boardgame 类型 spec。"""
-    template = copy.deepcopy(loaded_specs["BoardgameStaticSpec"]["template"])
+    delta_policy = {}
+    for delta_entry in pack_modules.get("delta_policies", []):
+        module = delta_entry.get("module")
+        if module is None or not hasattr(module, "build_delta_policy"):
+            continue
+        delta_policy = module.build_delta_policy(design_input, routing_context)
+        break
+    if delta_policy:
+        nodes["generation_trace"]["delta_policy"] = delta_policy
 
-    template["data"]["board"] = copy.deepcopy(design_input.get("board", {}))
-    template["data"]["piece_catalog"] = copy.deepcopy(design_input.get("piece_catalog", []))
-    template["data"]["preview_policy"] = copy.deepcopy(design_input.get("prototype_preview", {}))
-    template["data"]["rules"] = copy.deepcopy(design_input.get("rules", {}))
-    template["data"]["initial_layout"] = copy.deepcopy(design_input.get("initial_layout", {}))
-    template["data"]["feature_tags"] = list(design_input.get("feature_tags", []))
-    template["data"]["skill_pack"] = {
-        "pack_id": pack_manifest.get("pack_id", "unknown"),
-        "version": pack_manifest.get("version", "unknown"),
-        "activated_skill_packs": routing_context.get("activated_skill_packs", []),
+    for validator_entry in pack_modules.get("validation_extensions", []):
+        module = validator_entry.get("module")
+        if module is None or not hasattr(module, "build_validation_markers"):
+            continue
+        _merge_validation_markers(
+            nodes["validation_spec"],
+            module.build_validation_markers(compilation_state),
+        )
+
+    nodes["scene_spec"] = {
+        "actors": _build_scene_actors(
+            design_input=design_input,
+            world_build_spec=nodes.get("world_build_spec", {}),
+            nodes=nodes,
+            projection_profile=projection_profile,
+        ),
     }
-    return template
+    return nodes
 
 
 def _build_validation_spec(
@@ -109,6 +111,8 @@ def _build_validation_spec(
             "preview_policy": copy.deepcopy(design_input.get("prototype_preview", {})),
             "severity_policy": copy.deepcopy(base_template["data"].get("severity_policy", {})),
             "notes": base_template["data"].get("notes", []) + boardgame_template["data"].get("notes", []),
+            "runtime_smoke_checks": [],
+            "validation_markers": [],
         },
     }
 
@@ -116,8 +120,13 @@ def _build_validation_spec(
 def _build_scene_actors(
     design_input: Dict[str, Any],
     world_build_spec: Dict[str, Any],
+    nodes: Dict[str, Any],
+    projection_profile: str,
 ) -> List[Dict[str, Any]]:
     """把 richer spec 投影为当前 orchestrator 可消费的 scene_spec.actors。"""
+    if projection_profile == "runtime_playable":
+        return [_build_runtime_board_actor(design_input, nodes)]
+
     board = design_input.get("board", {})
     piece_catalog = design_input.get("piece_catalog", [])
     preview_policy = design_input.get("prototype_preview", {})
@@ -126,6 +135,42 @@ def _build_scene_actors(
     actors = [_build_board_actor(board, actor_defaults)]
     actors.extend(_build_preview_piece_actors(board, piece_catalog, preview_policy))
     return actors
+
+
+def _build_runtime_board_actor(design_input: Dict[str, Any], nodes: Dict[str, Any]) -> Dict[str, Any]:
+    """生成可玩 runtime 路径的棋盘 Actor。"""
+    board = design_input.get("board", {})
+    total_size = board.get("total_size_cm", [300.0, 300.0])
+    board_location = board.get("location", [0.0, 0.0, 0.0])
+    runtime_wiring_spec = nodes.get("runtime_wiring_spec", {}).get("data", {})
+
+    return {
+        "actor_name": "BoardRuntimeActor",
+        "actor_class": runtime_wiring_spec.get(
+            "board_runtime_actor_class",
+            "/Script/Mvpv4TestCodex.BoardgamePrototypeBoardActor",
+        ),
+        "transform": {
+            "location": [float(board_location[0]), float(board_location[1]), float(board_location[2])],
+            "rotation": [0.0, 0.0, 0.0],
+            "relative_scale3d": [
+                float(total_size[0]) / 100.0,
+                float(total_size[1]) / 100.0,
+                0.1,
+            ],
+        },
+        "projection_profile": "runtime_playable",
+        "runtime_config_ref": "__RUNTIME_CONFIG_REF__",
+        "post_spawn_actions": [
+            {
+                "action_type": "call_function",
+                "function_name": "LoadRuntimeConfigFromFile",
+                "parameters": {
+                    "RuntimeConfigPath": "__RUNTIME_CONFIG_REF__",
+                },
+            }
+        ],
+    }
 
 
 def _build_board_actor(board: Dict[str, Any], actor_defaults: Dict[str, Any]) -> Dict[str, Any]:
@@ -212,3 +257,15 @@ def _compute_piece_scale(piece: Dict[str, Any]) -> List[float]:
         float(dimensions[1]) / 100.0,
         float(dimensions[2]) / 100.0,
     ]
+
+
+def _merge_validation_markers(validation_spec: Dict[str, Any], markers: Dict[str, Any]) -> None:
+    """把 validator 输出合并进 validation_spec。"""
+    validation_data = validation_spec.setdefault("data", {})
+    for key in ["required_checks", "runtime_smoke_checks", "validation_markers", "notes"]:
+        validation_data.setdefault(key, [])
+
+    for key in ["required_checks", "runtime_smoke_checks", "validation_markers", "notes"]:
+        for item in markers.get(key, []):
+            if item not in validation_data[key]:
+                validation_data[key].append(item)

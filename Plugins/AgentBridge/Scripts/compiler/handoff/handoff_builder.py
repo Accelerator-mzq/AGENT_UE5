@@ -3,6 +3,8 @@ Handoff Builder
 组装 Reviewed Handoff。
 """
 
+import json
+import os
 import uuid
 from datetime import datetime
 from typing import Any, Dict, Optional
@@ -24,6 +26,8 @@ def build_handoff(
     pack_manifest_path: Optional[str] = None,
     snapshot_output_dir: Optional[str] = None,
     contract_root: Optional[str] = None,
+    target_stage: str = "prototype",
+    projection_profile: str = "preview_static",
 ) -> Dict[str, Any]:
     """
     组装 Reviewed Handoff。
@@ -47,8 +51,9 @@ def build_handoff(
     routing_context = {
         "mode": mode,
         "genre": game_type,
-        "target_stage": "prototype",
+        "target_stage": target_stage,
         "activated_skill_packs": activated_skill_packs,
+        "projection_profile": projection_profile,
     }
 
     baseline_snapshot = {}
@@ -67,6 +72,7 @@ def build_handoff(
         pack_manifest_path=pack_manifest_path,
         baseline_snapshot=baseline_snapshot,
         contract_root=contract_root or get_default_contract_root(),
+        projection_profile=projection_profile,
     )
     dynamic_spec_tree = generation_result["dynamic_spec_tree"]
     static_spec_context = generation_result["static_spec_context"]
@@ -111,19 +117,21 @@ def build_handoff(
         },
         "capability_gaps": review_result.get("capability_gaps", {}),
         "governance_context": {
-            "phase": "Phase 5",
+            "phase": "Phase 6",
             "static_base_registry_ref": static_spec_context.get("registry", {}).get("registry_path", ""),
             "required_static_specs": static_spec_context.get("required_spec_ids", []),
             "contract_registry_ref": contract_registry.get("registry_path", ""),
         },
         "metadata": {
             "generated_at": datetime.now().isoformat(),
-            "generator": "AgentBridge.Compiler.v0.5",
+            "generator": "AgentBridge.Compiler.v0.6",
             "source_gdd": design_input.get("source_file"),
             "source_files": design_input.get("source_files", []),
             "skill_pack_manifest": pack_manifest.get("manifest_path", ""),
             "source_project_state_digest": project_state.get("current_project_state_digest", ""),
             "baseline_snapshot_ref": baseline_snapshot_path,
+            "projection_profile": projection_profile,
+            "target_stage": target_stage,
         },
     }
 
@@ -145,6 +153,10 @@ def build_handoff(
             "unsupported_items": delta_context.get("unsupported_items", []),
         }
 
+    if projection_profile == "runtime_playable":
+        runtime_config_ref = _materialize_runtime_config(handoff, design_input)
+        handoff["metadata"]["runtime_config_ref"] = runtime_config_ref
+
     return handoff
 
 
@@ -165,12 +177,55 @@ def build_minimal_spec_tree(design_input: Dict[str, Any], mode: str) -> Dict[str
         "genre": design_input.get("game_type", "unknown"),
         "target_stage": "prototype",
         "activated_skill_packs": [design_input.get("game_type", "unknown")],
+        "projection_profile": "preview_static",
     }
     generation_result = generate_dynamic_spec_tree(
         design_input=design_input,
         routing_context=routing_context,
+        projection_profile="preview_static",
     )
     return generation_result["dynamic_spec_tree"]
+
+
+def _materialize_runtime_config(handoff: Dict[str, Any], design_input: Dict[str, Any]) -> str:
+    """将 runtime config 写入 ProjectState/RuntimeConfigs，并回填 handoff 引用。"""
+    from compiler.generation.static_base_loader import get_project_root
+
+    project_root = get_project_root()
+    runtime_dir = os.path.join(project_root, "ProjectState", "RuntimeConfigs")
+    os.makedirs(runtime_dir, exist_ok=True)
+
+    handoff_id = handoff.get("handoff_id", "unknown")
+    runtime_config_path = os.path.join(runtime_dir, f"runtime_{handoff_id}.json")
+    runtime_payload = {
+        "config_version": "1.0",
+        "handoff_id": handoff_id,
+        "game_type": design_input.get("game_type", "unknown"),
+        "board": design_input.get("board", {}),
+        "piece_catalog": design_input.get("piece_catalog", []),
+        "rules": design_input.get("rules", {}),
+        "board_layout_spec": handoff["dynamic_spec_tree"].get("board_layout_spec", {}),
+        "piece_movement_spec": handoff["dynamic_spec_tree"].get("piece_movement_spec", {}),
+        "turn_flow_spec": handoff["dynamic_spec_tree"].get("turn_flow_spec", {}),
+        "decision_ui_spec": handoff["dynamic_spec_tree"].get("decision_ui_spec", {}),
+        "runtime_wiring_spec": handoff["dynamic_spec_tree"].get("runtime_wiring_spec", {}),
+    }
+    with open(runtime_config_path, "w", encoding="utf-8") as file:
+        json.dump(runtime_payload, file, indent=2, ensure_ascii=False)
+
+    runtime_wiring_spec = handoff["dynamic_spec_tree"].setdefault("runtime_wiring_spec", {"data": {}})
+    runtime_wiring_spec.setdefault("data", {})
+    runtime_wiring_spec["data"]["runtime_config_ref"] = runtime_config_path
+
+    for actor in handoff["dynamic_spec_tree"].get("scene_spec", {}).get("actors", []):
+        if actor.get("runtime_config_ref") == "__RUNTIME_CONFIG_REF__":
+            actor["runtime_config_ref"] = runtime_config_path
+        for action in actor.get("post_spawn_actions", []):
+            parameters = action.get("parameters", {})
+            for key, value in list(parameters.items()):
+                if value == "__RUNTIME_CONFIG_REF__":
+                    parameters[key] = runtime_config_path
+    return runtime_config_path
 
 
 if __name__ == "__main__":

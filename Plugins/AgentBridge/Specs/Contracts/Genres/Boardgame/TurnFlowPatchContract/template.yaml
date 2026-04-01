@@ -1,0 +1,10 @@
+contract_id: "TurnFlowPatchContract"
+contract_kind: "patch"
+target_spec: "turn_flow_spec"
+allowed_operations:
+  - "adjust_turn_order"
+  - "adjust_terminal_condition"
+validation_requirements:
+  - "boardgame-turn-smoke-check"
+  - "boardgame-core-loop-closure-check"
+

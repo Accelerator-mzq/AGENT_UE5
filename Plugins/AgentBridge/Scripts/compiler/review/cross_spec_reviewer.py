@@ -1,6 +1,6 @@
 """
 Cross Spec Reviewer
-执行 Phase 4/5 的最小静态审查。
+执行 Phase 4/5/6 的静态审查。
 """
 
 from typing import Any, Dict, List, Optional
@@ -28,6 +28,7 @@ def review_dynamic_spec_tree(
 
     loaded_specs = static_spec_context.get("loaded_specs", {})
     required_spec_ids = static_spec_context.get("required_spec_ids", [])
+    projection_profile = dynamic_spec_tree.get("generation_trace", {}).get("projection_profile", "preview_static")
 
     for spec_id in required_spec_ids:
         if spec_id not in loaded_specs:
@@ -47,10 +48,27 @@ def review_dynamic_spec_tree(
         )
         preview_validation_actors = list(baseline_actors) + list(actors)
 
-    _validate_preview_pieces(design_input, preview_validation_actors, errors, capability_gaps)
+    _validate_preview_pieces(
+        design_input,
+        preview_validation_actors,
+        errors,
+        capability_gaps,
+        projection_profile=projection_profile,
+    )
+    if routing_context.get("genre") == "boardgame" or design_input.get("game_type") == "boardgame":
+        _validate_phase6_boardgame_nodes(dynamic_spec_tree, errors)
 
     unsupported_sections = design_input.get("parsing_notes", {}).get("unsupported_sections", [])
     capability_gaps["unsupported_gdd_sections"].extend(unsupported_sections)
+    _merge_pack_review_extensions(
+        design_input=design_input,
+        dynamic_spec_tree=dynamic_spec_tree,
+        routing_context=routing_context,
+        analysis_context=analysis_context,
+        errors=errors,
+        warnings=warnings,
+        capability_gaps=capability_gaps,
+    )
 
     if routing_context.get("mode") == "brownfield_expansion":
         _validate_brownfield_context(
@@ -122,8 +140,12 @@ def _validate_preview_pieces(
     actors: List[Dict[str, Any]],
     errors: List[str],
     capability_gaps: Dict[str, List[str]],
+    projection_profile: str = "preview_static",
 ) -> None:
     """检查示例棋子与 piece_catalog / preview_policy 是否一致。"""
+    if projection_profile == "runtime_playable":
+        return
+
     piece_catalog = design_input.get("piece_catalog", [])
     preview_policy = design_input.get("prototype_preview", {})
     piece_symbols = {piece.get("symbol"): piece for piece in piece_catalog}
@@ -219,3 +241,40 @@ def _build_review_notes(
     if reviewed:
         return f"Cross-Spec Review 通过；生成 Actor {actor_count} 个，warnings={len(warnings)}。"
     return f"Cross-Spec Review 阻塞；errors={len(errors)}，warnings={len(warnings)}。"
+
+
+def _validate_phase6_boardgame_nodes(dynamic_spec_tree: Dict[str, Any], errors: List[str]) -> None:
+    """Phase 6 下 boardgame 完整树最少要有关键节点。"""
+    required_nodes = ["turn_flow_spec", "decision_ui_spec", "runtime_wiring_spec"]
+    for node_name in required_nodes:
+        if node_name not in dynamic_spec_tree:
+            errors.append(f"Phase 6 缺少必需节点: {node_name}")
+
+
+def _merge_pack_review_extensions(
+    design_input: Dict[str, Any],
+    dynamic_spec_tree: Dict[str, Any],
+    routing_context: Dict[str, Any],
+    analysis_context: Dict[str, Any],
+    errors: List[str],
+    warnings: List[str],
+    capability_gaps: Dict[str, List[str]],
+) -> None:
+    """合并 pack review extension 的结果。"""
+    pack_modules = analysis_context.get("pack_modules", {})
+    for review_entry in pack_modules.get("review_extensions", []):
+        module = review_entry.get("module")
+        if module is None or not hasattr(module, "review_dynamic_spec_tree"):
+            continue
+
+        result = module.review_dynamic_spec_tree(
+            design_input=design_input,
+            dynamic_spec_tree=dynamic_spec_tree,
+            routing_context=routing_context,
+            analysis_context=analysis_context,
+        )
+        errors.extend(result.get("errors", []))
+        warnings.extend(result.get("warnings", []))
+        for key, values in result.get("capability_gaps", {}).items():
+            capability_gaps.setdefault(key, [])
+            capability_gaps[key].extend(values)

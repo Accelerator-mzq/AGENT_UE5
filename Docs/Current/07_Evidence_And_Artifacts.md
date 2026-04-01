@@ -1,6 +1,6 @@
 # Evidence 与 Artifacts 规则
 
-> 文档版本：L1-Phase6-v1
+> 文档版本：L1-Phase6-v2
 
 ## 目录分责
 
@@ -31,6 +31,12 @@
 - 截图：`phase6_<taskid>_<scenario>_<view>.png`
 - 说明：`phase6_<taskid>_<scenario>_evidence.md`
 
+## 当前脚本入口
+
+- 当前阶段统一截图脚本：
+  [capture_editor_evidence.py](/D:/UnrealProjects/Mvpv4TestCodex/Scripts/validation/capture_editor_evidence.py)
+- `capture_phase5_evidence.py` 继续保留为 Phase 5 历史脚本，不作为 Phase 6 默认入口
+
 ## 报告目录
 
 ### `ProjectState/Reports/`
@@ -49,11 +55,10 @@
   `Docs/History/reports/AgentBridgeEvidence/phase5_evidence_2026-04-01/`
 - Phase 6 结束后，将当前期证据目录整期归档到：
   `Docs/History/reports/AgentBridgeEvidence/phase6_evidence_<date>/`
-- 归档完成后，再把根目录 `task.md` 归档到 `Docs/History/Tasks/task4_phase6.md`
+- 归档完成后，再把根目录 `task.md` 归档到：
+  `Docs/History/Tasks/task4_phase6.md`
 
 ## 可复用方法入口
 
-- 通用截图取证方法已归档到插件层 Canonical 文档：
-  `Plugins/AgentBridge/Docs/editor_screenshot_evidence_workflow.md`
-- `Scripts/validation/capture_phase5_evidence.py` 作为 Phase 5 的历史脚本样板继续保留
-- 当前项目只在本文件定义“放哪里、怎么归档”，不重复定义完整截图实现细节
+- 通用截图取证方法见：
+  [editor_screenshot_evidence_workflow.md](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Docs/editor_screenshot_evidence_workflow.md)

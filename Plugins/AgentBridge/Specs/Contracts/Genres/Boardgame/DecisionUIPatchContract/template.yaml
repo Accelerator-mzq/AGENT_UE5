@@ -1,0 +1,10 @@
+contract_id: "DecisionUIPatchContract"
+contract_kind: "patch"
+target_spec: "decision_ui_spec"
+allowed_operations:
+  - "adjust_status_fields"
+  - "adjust_interaction_hint"
+validation_requirements:
+  - "boardgame-decision-ui-smoke-check"
+  - "boardgame-core-loop-closure-check"
+

@@ -33,7 +33,7 @@ class TestPhase5Brownfield:
         }.issubset(snapshot.keys())
         assert snapshot["metadata"]["source"] == "mock_fallback"
 
-    def test_cp20_baseline_builder_serializes_snapshot(self, compiler_module, tmp_path):
+    def test_cp20_baseline_builder_serializes_snapshot(self, compiler_module, workspace_tmp_path):
         """CP-20: baseline_builder 可构建并保存 baseline snapshot。"""
         from compiler.analysis import build_and_save_baseline_snapshot, load_baseline_snapshot
 
@@ -41,7 +41,7 @@ class TestPhase5Brownfield:
         snapshot, snapshot_path = build_and_save_baseline_snapshot(
             project_state=project_state,
             design_input={"game_type": "boardgame"},
-            output_dir=str(tmp_path),
+            output_dir=str(workspace_tmp_path),
         )
         loaded = load_baseline_snapshot(snapshot_path)
 
@@ -50,7 +50,7 @@ class TestPhase5Brownfield:
         assert loaded["snapshot_ref"] == snapshot_path
         assert len(loaded["current_project_model"]["actors"]) == 2
 
-    def test_cp21_delta_scope_reports_no_change(self, compiler_module, tmp_path):
+    def test_cp21_delta_scope_reports_no_change(self, compiler_module, workspace_tmp_path):
         """CP-21: delta_scope_analyzer 能识别 no_change。"""
         from compiler.analysis import analyze_delta_scope, build_baseline_snapshot
         from compiler.generation.boardgame_scene_generator import generate_boardgame_dynamic_spec_tree
@@ -116,18 +116,18 @@ class TestPhase5Brownfield:
 
         registry = load_contract_registry()
         contract_ids = [entry["contract_id"] for entry in registry["contracts"]]
-        assert contract_ids == [
+        assert {
             "SpecPatchContractModel",
             "MigrationContractModel",
             "RegressionValidationContractModel",
-        ]
+        }.issubset(set(contract_ids))
 
         patch_bundle = load_contract_bundle("SpecPatchContractModel", registry=registry)
         regression_bundle = load_contract_bundle("RegressionValidationContractModel", registry=registry)
         assert patch_bundle["template"]["contract_kind"] == "patch"
         assert regression_bundle["schema"]["title"] == "RegressionValidationContractModel"
 
-    def test_cp24_brownfield_handoff_contains_baseline_and_delta_context(self, compiler_module, project_root, tmp_path):
+    def test_cp24_brownfield_handoff_contains_baseline_and_delta_context(self, compiler_module, project_root, workspace_tmp_path):
         """CP-24: Brownfield Handoff 含 baseline_context / delta_context / tree_type=delta，并通过 Schema 校验。"""
         jsonschema = pytest.importorskip("jsonschema")
         from compiler.handoff import build_handoff
@@ -146,7 +146,7 @@ class TestPhase5Brownfield:
             design_input=design_input,
             mode="brownfield_expansion",
             project_state=_build_synthetic_project_state(),
-            snapshot_output_dir=str(tmp_path),
+            snapshot_output_dir=str(workspace_tmp_path),
         )
 
         with open(schema_path, "r", encoding="utf-8") as file:

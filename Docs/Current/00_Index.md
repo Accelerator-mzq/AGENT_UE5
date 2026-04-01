@@ -1,9 +1,9 @@
 # 当前阶段文档索引
 
-> 阶段名称：Phase 6 — Genre Skill Packs 完整化
+> 阶段名称：Phase 6 — 完整 Spec Tree + 可玩 Runtime
 > 状态：Active
 > 起始日期：2026-04-01
-> 文档版本：L1-Phase6-v1
+> 文档版本：L1-Phase6-v2
 
 ## 本目录文件
 
@@ -16,6 +16,7 @@
 | 05_Implementation_Boundary.md | 本阶段允许范围与保护清单 |
 | 06_Phase6_Task_List.md | 当前任务入口索引（指向根目录 task.md） |
 | 07_Evidence_And_Artifacts.md | Snapshots / Evidence / Reports 的职责边界 |
+| 08_Playable_Runtime_Acceptance.md | 完整 Spec Tree + 可玩 runtime 的验收口径 |
 
 ## 当前事实来源
 
@@ -30,6 +31,7 @@
 - Phase 6 测试用例先维护在根目录 `task.md`，不提前写入 `SystemTestCases.md`
 - `ProjectState/Snapshots/` 只保存 baseline / state snapshot
 - `ProjectState/Evidence/Phase6/` 保存当前阶段截图、日志与人工核验说明
+- `Scripts/run_boardgame_playable_demo.py` 是 Phase 6 playable runtime 主入口
 - Phase 5 证据已归档到 `Docs/History/reports/AgentBridgeEvidence/phase5_evidence_2026-04-01/`
 - UE5 Editor 截图取证的可复用方法见：
   `Plugins/AgentBridge/Docs/editor_screenshot_evidence_workflow.md`

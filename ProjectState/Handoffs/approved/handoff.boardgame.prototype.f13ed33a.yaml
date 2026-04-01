@@ -1,0 +1,511 @@
+handoff_version: '1.0'
+handoff_id: handoff.boardgame.prototype.f13ed33a
+handoff_mode: brownfield_expansion
+status: approved_for_execution
+project_context:
+  project_name: Mvpv4TestCodex
+  game_type: boardgame
+  target_platform: Win64
+  current_level: /Game/Maps/TestMap
+  has_existing_content: true
+routing_context:
+  mode: brownfield_expansion
+  genre: boardgame
+  target_stage: prototype
+  activated_skill_packs: &id001
+  - genre-boardgame
+  projection_profile: preview_static
+dynamic_spec_tree:
+  tree_type: delta
+  delta_operations:
+  - operation: append_actor
+    target_spec: scene_spec
+    actor_name: PieceO_1
+  baseline_actor_refs:
+  - Board
+  - PieceX_1
+  contract_refs:
+  - RegressionValidationContractModel
+  - SpecPatchContractModel
+  scene_spec:
+    actors:
+    - actor_name: PieceO_1
+      actor_class: /Script/Engine.StaticMeshActor
+      transform:
+        location:
+        - 100.0
+        - 100.0
+        - 50.0
+        rotation:
+        - 0.0
+        - 0.0
+        - 0.0
+        relative_scale3d:
+        - 0.5
+        - 0.5
+        - 0.5
+  boardgame_spec:
+    spec_id: BoardgameStaticSpec
+    version: '1.0'
+    data:
+      board:
+        board_name: Board
+        board_type: 3x3 网格
+        grid_size:
+        - 3
+        - 3
+        cell_size_cm:
+        - 100.0
+        - 100.0
+        total_size_cm:
+        - 300.0
+        - 300.0
+        location:
+        - 0.0
+        - 0.0
+        - 0.0
+        material: 简单平面
+      piece_catalog:
+      - piece_id: piece_x
+        symbol: X
+        display_name: X
+        actor_name_prefix: PieceX
+        shape: Cube（立方体）
+        color: 红色
+        dimensions_cm:
+        - 50.0
+        - 50.0
+        - 50.0
+        max_count: 5
+        actor_class: /Script/Engine.StaticMeshActor
+      - piece_id: piece_o
+        symbol: O
+        display_name: O
+        actor_name_prefix: PieceO
+        shape: Sphere（球体）
+        color: 蓝色
+        dimensions_cm:
+        - 50.0
+        - 50.0
+        - 50.0
+        max_count: 4
+        actor_class: /Script/Engine.StaticMeshActor
+      preview_policy:
+        generate_preview: true
+        source: default
+        piece_counts:
+          X: 1
+          O: 1
+        explicitly_defined: false
+        raw_rule: ''
+      rules:
+        rule_summary:
+        - 3x3 棋盘
+        - 2 种棋子：X 和 O
+        - 回合制：玩家轮流放置棋子
+        - 胜利条件：横/竖/斜连成 3 个
+        turn_model: turn_based
+        victory_condition: 横/竖/斜连成 3 个
+        movement_model: placement_only
+        allow_overwrite_occupied_cell: false
+        piece_spawn_mode: runtime_dynamic
+      notes:
+      - Phase 4 以 boardgame prototype 为主，不覆盖完整玩法系统
+      initial_layout:
+        board_location:
+        - 0.0
+        - 0.0
+        - 0.0
+        board_centered_at_origin: true
+        initial_pieces: []
+        starts_empty: true
+        spawn_policy: dynamic
+        layout_notes:
+        - 棋盘中心在世界原点
+        - 初始不放置棋子（空棋盘）
+        - 棋子在需要时动态生成
+      feature_tags:
+      - boardgame
+      - turn_based
+      - grid_3x3
+      - prototype_preview
+      skill_pack:
+        pack_id: genre-boardgame
+        version: 0.6.0
+        activated_skill_packs:
+        - genre-boardgame
+  validation_spec:
+    spec_id: BoardgameValidationStaticSpec
+    version: '1.0'
+    data:
+      required_checks:
+      - actor_count_check
+      - transform_triplet_check
+      - preview_policy_check
+      - board_exists
+      - preview_piece_count
+      - place_piece_on_empty_cell
+      - reject_move_on_occupied_cell
+      - alternate_turn_after_valid_move
+      - detect_win_row_or_column_or_diagonal
+      - detect_draw_when_board_full
+      - boardgame-core-loop-closure-check
+      - boardgame-decision-ui-smoke-check
+      - boardgame-turn-smoke-check
+      - existing_actor_presence
+      - map_check_clean
+      - new_actor_presence
+      prototype_closure:
+      - 棋盘存在
+      - 至少可展示示例棋子策略
+      preview_policy:
+        generate_preview: true
+        source: default
+        piece_counts:
+          X: 1
+          O: 1
+        explicitly_defined: false
+        raw_rule: ''
+      severity_policy:
+        block_on:
+        - missing_required_template
+        - invalid_transform
+      notes:
+      - Phase 4 只提供最小静态审查规则集合
+      - Phase 4 以原型闭环校验为主
+      runtime_smoke_checks:
+      - boardgame-turn-smoke-check
+      - boardgame-decision-ui-smoke-check
+      - boardgame-core-loop-closure-check
+      validation_markers:
+      - check_id: place_piece_on_empty_cell
+        expected: success
+      - check_id: reject_move_on_occupied_cell
+        expected: blocked
+      - check_id: detect_win_row_or_column_or_diagonal
+        expected: terminal_result
+      delta_intent: append_actor
+      contract_refs:
+      - RegressionValidationContractModel
+      - SpecPatchContractModel
+      contract_registry_ref: D:\UnrealProjects\Mvpv4TestCodex\Plugins\AgentBridge\Specs\Contracts\Registry\contract_type_registry.yaml
+  generation_trace:
+    generator: AgentBridge.Compiler.Phase6.BrownfieldDeltaGenerator
+    baseline_id: baseline.boardgame.20260401_121732.syntheti
+    delta_intent: append_actor
+    contract_registry_ref: D:\UnrealProjects\Mvpv4TestCodex\Plugins\AgentBridge\Specs\Contracts\Registry\contract_type_registry.yaml
+    projection_profile: preview_static
+    delta_policy:
+      preferred_delta_modes:
+      - append_actor
+      - no_change
+      - patch_existing_content
+      regression_focus:
+      - existing_actor_presence
+      - boardgame-turn-smoke-check
+      - boardgame-decision-ui-smoke-check
+      - boardgame-core-loop-closure-check
+      high_risk_breakpoints:
+      - turn_flow_changed
+      - decision_ui_changed
+      - runtime_wiring_changed
+      preferred_recovery_modes:
+      - manual_review
+      - block_handoff
+      notes:
+      - game_type=boardgame
+      - mode=brownfield_expansion
+    activated_skill_packs: *id001
+  world_build_spec:
+    spec_id: WorldBuildStaticSpec
+    version: '1.0'
+    data:
+      board:
+        board_type: 3x3 网格
+        grid_size:
+        - 3
+        - 3
+        cell_size_cm:
+        - 100.0
+        - 100.0
+        total_size_cm:
+        - 300.0
+        - 300.0
+        location:
+        - 0.0
+        - 0.0
+        - 0.0
+        material: 简单平面
+      actor_defaults:
+        actor_class: /Script/Engine.StaticMeshActor
+        board_scale_z: 0.1
+      notes:
+      - Phase 4 使用该基座驱动场景构建与 scene_spec 投影
+  board_layout_spec:
+    spec_id: BoardLayoutSpec
+    version: '1.0'
+    data:
+      grid_size:
+      - 3
+      - 3
+      cell_size_cm:
+      - 100.0
+      - 100.0
+      board_origin:
+      - 0.0
+      - 0.0
+      - 0.0
+      cell_anchors:
+      - row: 0
+        col: 0
+        world_location:
+        - -100.0
+        - -100.0
+        - 50.0
+        cell_id: cell_0_0
+      - row: 0
+        col: 1
+        world_location:
+        - 0.0
+        - -100.0
+        - 50.0
+        cell_id: cell_0_1
+      - row: 0
+        col: 2
+        world_location:
+        - 100.0
+        - -100.0
+        - 50.0
+        cell_id: cell_0_2
+      - row: 1
+        col: 0
+        world_location:
+        - -100.0
+        - 0.0
+        - 50.0
+        cell_id: cell_1_0
+      - row: 1
+        col: 1
+        world_location:
+        - 0.0
+        - 0.0
+        - 50.0
+        cell_id: cell_1_1
+      - row: 1
+        col: 2
+        world_location:
+        - 100.0
+        - 0.0
+        - 50.0
+        cell_id: cell_1_2
+      - row: 2
+        col: 0
+        world_location:
+        - -100.0
+        - 100.0
+        - 50.0
+        cell_id: cell_2_0
+      - row: 2
+        col: 1
+        world_location:
+        - 0.0
+        - 100.0
+        - 50.0
+        cell_id: cell_2_1
+      - row: 2
+        col: 2
+        world_location:
+        - 100.0
+        - 100.0
+        - 50.0
+        cell_id: cell_2_2
+      occupancy_rule: single_piece_per_cell
+  piece_movement_spec:
+    spec_id: PieceMovementSpec
+    version: '1.0'
+    data:
+      movement_model: placement_only
+      allow_overwrite_occupied_cell: false
+      alternate_piece_symbols:
+      - X
+      - O
+      piece_spawn_mode: runtime_dynamic
+      piece_catalog:
+      - piece_id: piece_x
+        symbol: X
+        display_name: X
+        actor_name_prefix: PieceX
+        shape: Cube（立方体）
+        color: 红色
+        dimensions_cm:
+        - 50.0
+        - 50.0
+        - 50.0
+        max_count: 5
+        actor_class: /Script/Engine.StaticMeshActor
+      - piece_id: piece_o
+        symbol: O
+        display_name: O
+        actor_name_prefix: PieceO
+        shape: Sphere（球体）
+        color: 蓝色
+        dimensions_cm:
+        - 50.0
+        - 50.0
+        - 50.0
+        max_count: 4
+        actor_class: /Script/Engine.StaticMeshActor
+  turn_flow_spec:
+    spec_id: TurnFlowSpec
+    version: '1.0'
+    data:
+      turn_model: alternating_turns
+      first_player: X
+      player_order:
+      - X
+      - O
+      turn_transition: advance_after_valid_move
+      terminal_conditions:
+      - win
+      - draw
+      victory_patterns:
+      - - - 0
+          - 0
+        - - 0
+          - 1
+        - - 0
+          - 2
+      - - - 1
+          - 0
+        - - 1
+          - 1
+        - - 1
+          - 2
+      - - - 2
+          - 0
+        - - 2
+          - 1
+        - - 2
+          - 2
+      - - - 0
+          - 0
+        - - 1
+          - 0
+        - - 2
+          - 0
+      - - - 0
+          - 1
+        - - 1
+          - 1
+        - - 2
+          - 1
+      - - - 0
+          - 2
+        - - 1
+          - 2
+        - - 2
+          - 2
+      - - - 0
+          - 0
+        - - 1
+          - 1
+        - - 2
+          - 2
+      - - - 0
+          - 2
+        - - 1
+          - 1
+        - - 2
+          - 0
+  decision_ui_spec:
+    spec_id: DecisionUISpec
+    version: '1.0'
+    data:
+      display_mode: minimal_status_text
+      fields:
+      - current_player
+      - game_result
+      - move_count
+      interaction_hint: click_board_to_place_piece
+  runtime_wiring_spec:
+    spec_id: RuntimeWiringSpec
+    version: '1.0'
+    data:
+      projection_profile: preview_static
+      board_runtime_actor_class: /Script/Mvpv4TestCodex.BoardgamePrototypeBoardActor
+      input_binding: click_board_cell
+      runtime_config_ref: ''
+      runtime_functions:
+      - LoadRuntimeConfigFromFile
+      - ApplyMoveByCell
+      - GetBoardRuntimeState
+      - ResetBoard
+review_summary:
+  reviewed: true
+  reviewer: AgentBridge.Compiler.CrossSpecReviewer.v0.5
+  review_notes: Cross-Spec Review 通过；生成 Actor 1 个，warnings=0。
+capability_gaps:
+  required_static_templates: []
+  unresolved_refs: []
+  unsupported_gdd_sections: []
+  missing_patch_contracts: []
+  missing_migration_contracts: []
+  unsupported_regression_checks: []
+governance_context:
+  phase: Phase 6
+  static_base_registry_ref: D:\UnrealProjects\Mvpv4TestCodex\Plugins\AgentBridge\Specs\StaticBase\Registry\spec_type_registry.yaml
+  required_static_specs:
+  - WorldBuildStaticSpec
+  - ValidationStaticSpec
+  - BoardgameStaticSpec
+  - BoardgameValidationStaticSpec
+  contract_registry_ref: D:\UnrealProjects\Mvpv4TestCodex\Plugins\AgentBridge\Specs\Contracts\Registry\contract_type_registry.yaml
+metadata:
+  generated_at: '2026-04-01T12:17:32.058896'
+  generator: AgentBridge.Compiler.v0.6
+  source_gdd: D:\UnrealProjects\Mvpv4TestCodex\ProjectInputs\GDD\boardgame_tictactoe_v1.md
+  source_files:
+  - D:\UnrealProjects\Mvpv4TestCodex\ProjectInputs\GDD\boardgame_tictactoe_v1.md
+  skill_pack_manifest: D:\UnrealProjects\Mvpv4TestCodex\Plugins\AgentBridge\Skills\genre_packs\boardgame\pack_manifest.yaml
+  source_project_state_digest: synthetic-brownfield-demo
+  baseline_snapshot_ref: D:\UnrealProjects\Mvpv4TestCodex\ProjectState\Snapshots\baseline.boardgame.20260401_121732.syntheti.yaml
+  projection_profile: preview_static
+  target_stage: prototype
+baseline_context:
+  baseline_id: baseline.boardgame.20260401_121732.syntheti
+  snapshot_ref: D:\UnrealProjects\Mvpv4TestCodex\ProjectState\Snapshots\baseline.boardgame.20260401_121732.syntheti.yaml
+  frozen_baseline_ref: D:\UnrealProjects\Mvpv4TestCodex\ProjectState\Snapshots\baseline.boardgame.20260401_121732.syntheti.yaml
+  existing_spec_registry_ref: D:\UnrealProjects\Mvpv4TestCodex\Plugins\AgentBridge\Specs\Contracts\Registry\contract_type_registry.yaml
+  current_project_state_digest: synthetic-brownfield-demo
+delta_context:
+  delta_intent: append_actor
+  affected_domains:
+  - world
+  - validation
+  - governance
+  - runtime
+  - ui
+  affected_specs:
+  - boardgame_spec
+  - decision_ui_spec
+  - runtime_wiring_spec
+  - scene_spec
+  - turn_flow_spec
+  - validation_spec
+  required_regression_checks:
+  - boardgame-core-loop-closure-check
+  - boardgame-decision-ui-smoke-check
+  - boardgame-turn-smoke-check
+  - existing_actor_presence
+  - map_check_clean
+  - new_actor_presence
+  delta_scope:
+    baseline_actor_count: 2
+    target_actor_count: 3
+    append_count: 1
+    patch_count: 0
+    replace_count: 0
+  contract_refs:
+  - RegressionValidationContractModel
+  - SpecPatchContractModel
+  unsupported_items: []

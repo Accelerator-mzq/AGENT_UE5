@@ -46,15 +46,25 @@ def generate_brownfield_delta_tree(
             contract_registry=contract_registry,
         ),
         "generation_trace": {
-            "generator": "AgentBridge.Compiler.Phase5.BrownfieldDeltaGenerator",
+            "generator": "AgentBridge.Compiler.Phase6.BrownfieldDeltaGenerator",
             "baseline_id": baseline_snapshot.get("baseline_id", ""),
             "delta_intent": delta_context.get("delta_intent", ""),
             "contract_registry_ref": contract_registry.get("registry_path", ""),
+            "projection_profile": full_target_tree.get("generation_trace", {}).get("projection_profile", "preview_static"),
+            "delta_policy": delta_context.get("delta_policy", {}),
         },
     }
 
-    if "world_build_spec" in full_target_tree:
-        delta_tree["world_build_spec"] = copy.deepcopy(full_target_tree["world_build_spec"])
+    for node_name in [
+        "world_build_spec",
+        "board_layout_spec",
+        "piece_movement_spec",
+        "turn_flow_spec",
+        "decision_ui_spec",
+        "runtime_wiring_spec",
+    ]:
+        if node_name in full_target_tree:
+            delta_tree[node_name] = copy.deepcopy(full_target_tree[node_name])
 
     return delta_tree
 

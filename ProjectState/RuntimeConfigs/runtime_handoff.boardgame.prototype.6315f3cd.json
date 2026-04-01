@@ -1,0 +1,386 @@
+{
+  "config_version": "1.0",
+  "handoff_id": "handoff.boardgame.prototype.6315f3cd",
+  "game_type": "boardgame",
+  "board": {
+    "board_name": "Board",
+    "board_type": "3x3 网格",
+    "grid_size": [
+      3,
+      3
+    ],
+    "cell_size_cm": [
+      100.0,
+      100.0
+    ],
+    "total_size_cm": [
+      300.0,
+      300.0
+    ],
+    "location": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "material": "简单平面"
+  },
+  "piece_catalog": [
+    {
+      "piece_id": "piece_x",
+      "symbol": "X",
+      "display_name": "X",
+      "actor_name_prefix": "PieceX",
+      "shape": "Cube（立方体）",
+      "color": "红色",
+      "dimensions_cm": [
+        50.0,
+        50.0,
+        50.0
+      ],
+      "max_count": 5,
+      "actor_class": "/Script/Engine.StaticMeshActor"
+    },
+    {
+      "piece_id": "piece_o",
+      "symbol": "O",
+      "display_name": "O",
+      "actor_name_prefix": "PieceO",
+      "shape": "Sphere（球体）",
+      "color": "蓝色",
+      "dimensions_cm": [
+        50.0,
+        50.0,
+        50.0
+      ],
+      "max_count": 4,
+      "actor_class": "/Script/Engine.StaticMeshActor"
+    }
+  ],
+  "rules": {
+    "rule_summary": [
+      "3x3 棋盘",
+      "2 种棋子：X 和 O",
+      "回合制：玩家轮流放置棋子",
+      "胜利条件：横/竖/斜连成 3 个"
+    ],
+    "turn_model": "turn_based",
+    "victory_condition": "横/竖/斜连成 3 个"
+  },
+  "board_layout_spec": {
+    "spec_id": "BoardLayoutSpec",
+    "version": "1.0",
+    "data": {
+      "grid_size": [
+        3,
+        3
+      ],
+      "cell_size_cm": [
+        100.0,
+        100.0
+      ],
+      "board_origin": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "cell_anchors": [
+        {
+          "row": 0,
+          "col": 0,
+          "world_location": [
+            -100.0,
+            -100.0,
+            50.0
+          ],
+          "cell_id": "cell_0_0"
+        },
+        {
+          "row": 0,
+          "col": 1,
+          "world_location": [
+            0.0,
+            -100.0,
+            50.0
+          ],
+          "cell_id": "cell_0_1"
+        },
+        {
+          "row": 0,
+          "col": 2,
+          "world_location": [
+            100.0,
+            -100.0,
+            50.0
+          ],
+          "cell_id": "cell_0_2"
+        },
+        {
+          "row": 1,
+          "col": 0,
+          "world_location": [
+            -100.0,
+            0.0,
+            50.0
+          ],
+          "cell_id": "cell_1_0"
+        },
+        {
+          "row": 1,
+          "col": 1,
+          "world_location": [
+            0.0,
+            0.0,
+            50.0
+          ],
+          "cell_id": "cell_1_1"
+        },
+        {
+          "row": 1,
+          "col": 2,
+          "world_location": [
+            100.0,
+            0.0,
+            50.0
+          ],
+          "cell_id": "cell_1_2"
+        },
+        {
+          "row": 2,
+          "col": 0,
+          "world_location": [
+            -100.0,
+            100.0,
+            50.0
+          ],
+          "cell_id": "cell_2_0"
+        },
+        {
+          "row": 2,
+          "col": 1,
+          "world_location": [
+            0.0,
+            100.0,
+            50.0
+          ],
+          "cell_id": "cell_2_1"
+        },
+        {
+          "row": 2,
+          "col": 2,
+          "world_location": [
+            100.0,
+            100.0,
+            50.0
+          ],
+          "cell_id": "cell_2_2"
+        }
+      ],
+      "occupancy_rule": "single_piece_per_cell"
+    }
+  },
+  "piece_movement_spec": {
+    "spec_id": "PieceMovementSpec",
+    "version": "1.0",
+    "data": {
+      "movement_model": "placement_only",
+      "allow_overwrite_occupied_cell": false,
+      "alternate_piece_symbols": [
+        "X",
+        "O"
+      ],
+      "piece_spawn_mode": "runtime_dynamic",
+      "piece_catalog": [
+        {
+          "piece_id": "piece_x",
+          "symbol": "X",
+          "display_name": "X",
+          "actor_name_prefix": "PieceX",
+          "shape": "Cube（立方体）",
+          "color": "红色",
+          "dimensions_cm": [
+            50.0,
+            50.0,
+            50.0
+          ],
+          "max_count": 5,
+          "actor_class": "/Script/Engine.StaticMeshActor"
+        },
+        {
+          "piece_id": "piece_o",
+          "symbol": "O",
+          "display_name": "O",
+          "actor_name_prefix": "PieceO",
+          "shape": "Sphere（球体）",
+          "color": "蓝色",
+          "dimensions_cm": [
+            50.0,
+            50.0,
+            50.0
+          ],
+          "max_count": 4,
+          "actor_class": "/Script/Engine.StaticMeshActor"
+        }
+      ]
+    }
+  },
+  "turn_flow_spec": {
+    "spec_id": "TurnFlowSpec",
+    "version": "1.0",
+    "data": {
+      "turn_model": "alternating_turns",
+      "first_player": "X",
+      "player_order": [
+        "X",
+        "O"
+      ],
+      "turn_transition": "advance_after_valid_move",
+      "terminal_conditions": [
+        "win",
+        "draw"
+      ],
+      "victory_patterns": [
+        [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        [
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            1
+          ]
+        ],
+        [
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        [
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            0
+          ]
+        ]
+      ]
+    }
+  },
+  "decision_ui_spec": {
+    "spec_id": "DecisionUISpec",
+    "version": "1.0",
+    "data": {
+      "display_mode": "minimal_status_text",
+      "fields": [
+        "current_player",
+        "game_result",
+        "move_count"
+      ],
+      "interaction_hint": "click_board_to_place_piece"
+    }
+  },
+  "runtime_wiring_spec": {
+    "spec_id": "RuntimeWiringSpec",
+    "version": "1.0",
+    "data": {
+      "projection_profile": "runtime_playable",
+      "board_runtime_actor_class": "/Script/Mvpv4TestCodex.BoardgamePrototypeBoardActor",
+      "input_binding": "click_board_cell",
+      "runtime_config_ref": "",
+      "runtime_functions": [
+        "LoadRuntimeConfigFromFile",
+        "ApplyMoveByCell",
+        "GetBoardRuntimeState",
+        "ResetBoard"
+      ]
+    }
+  }
+}

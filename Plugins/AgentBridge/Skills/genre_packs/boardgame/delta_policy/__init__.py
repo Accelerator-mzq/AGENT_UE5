@@ -1,0 +1,4 @@
+"""
+Boardgame delta policy。
+"""
+

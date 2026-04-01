@@ -1,0 +1,6 @@
+contract_id: "DecisionUIPatchContract"
+contract_kind: "patch"
+target_spec_family:
+  - "decision_ui_spec"
+description: "用于约束 boardgame 决策 UI 变更的 genre contract"
+

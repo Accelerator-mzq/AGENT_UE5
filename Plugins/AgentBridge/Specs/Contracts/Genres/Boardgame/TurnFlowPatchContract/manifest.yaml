@@ -1,0 +1,7 @@
+contract_id: "TurnFlowPatchContract"
+contract_kind: "patch"
+target_spec_family:
+  - "turn_flow_spec"
+  - "runtime_wiring_spec"
+description: "用于约束 boardgame 回合流修改的 genre contract"
+

@@ -13,6 +13,7 @@ Handoff Runner
 """
 
 import os
+import json
 from datetime import datetime
 from typing import Dict, Any, List
 from .run_plan_builder import build_run_plan_from_handoff
@@ -104,6 +105,10 @@ def execute_run_plan(run_plan: Dict[str, Any], bridge_mode: str = "simulated") -
         # 桥接到现有 Bridge 接口
         if workflow_type == "spawn_actor":
             result = execute_spawn_actor(params, bridge_mode)
+            if result.get("status") == "success":
+                action_results = execute_post_spawn_actions(result, params, bridge_mode)
+                if action_results:
+                    result["post_spawn_actions"] = action_results
         elif workflow_type == "set_actor_transform":
             result = execute_set_actor_transform(params, bridge_mode)
         else:
@@ -140,6 +145,7 @@ def execute_spawn_actor(params: Dict[str, Any], bridge_mode: str) -> Dict[str, A
         return {
             "status": "success",
             "actor_name": params.get("actor_name"),
+            "actor_path": f"/Temp/Simulated.{params.get('actor_name', 'Actor')}",
             "actual_transform": params.get("transform"),
             "message": "模拟执行成功"
         }
@@ -156,7 +162,7 @@ def execute_spawn_actor(params: Dict[str, Any], bridge_mode: str) -> Dict[str, A
                 transform=params.get("transform"),
                 dry_run=bool(params.get("dry_run", False)),
             )
-            return result
+            return _normalize_spawn_feedback(result, params)
         except ImportError:
             return {
                 "status": "failed",
@@ -179,7 +185,7 @@ def execute_spawn_actor(params: Dict[str, Any], bridge_mode: str) -> Dict[str, A
                     "bDryRun": bool(params.get("dry_run", False)),
                 },
             )
-            return _normalize_rc_call_response(rc_response)
+            return _normalize_spawn_feedback(_normalize_rc_call_response(rc_response), params)
         except ImportError:
             return {
                 "status": "failed",
@@ -188,6 +194,38 @@ def execute_spawn_actor(params: Dict[str, Any], bridge_mode: str) -> Dict[str, A
 
     else:
         return {"status": "failed", "error": f"未知的 bridge_mode: {bridge_mode}"}
+
+
+def execute_post_spawn_actions(
+    spawn_result: Dict[str, Any],
+    params: Dict[str, Any],
+    bridge_mode: str,
+) -> List[Dict[str, Any]]:
+    """在 Actor 生成后执行最小后处理动作。"""
+    post_actions = params.get("post_spawn_actions", [])
+    if not post_actions:
+        return []
+
+    actor_path = _extract_actor_path_from_result(spawn_result)
+    if not actor_path:
+        return [{"status": "failed", "reason": "缺少 actor_path，无法执行 post_spawn_actions"}]
+
+    results: List[Dict[str, Any]] = []
+    for action in post_actions:
+        if action.get("action_type") != "call_function":
+            results.append({"status": "skipped", "reason": f"未实现的 action_type: {action.get('action_type')}"})
+            continue
+
+        resolved_parameters = _resolve_post_action_parameters(action.get("parameters", {}), params)
+        results.append(
+            _execute_actor_function(
+                actor_path=actor_path,
+                function_name=action.get("function_name", ""),
+                parameters=resolved_parameters,
+                bridge_mode=bridge_mode,
+            )
+        )
+    return results
 
 
 def execute_set_actor_transform(params: Dict[str, Any], bridge_mode: str) -> Dict[str, Any]:
@@ -230,6 +268,81 @@ def _normalize_rc_call_response(rc_response: Dict[str, Any]) -> Dict[str, Any]:
                     pass
 
     return response
+
+
+def _normalize_spawn_feedback(result: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
+    """把不同通道的 spawn 结果统一为可读结构。"""
+    normalized = dict(result)
+    if "actor_path" not in normalized:
+        normalized["actor_path"] = _extract_actor_path_from_result(result) or ""
+    if "actor_name" not in normalized:
+        normalized["actor_name"] = params.get("actor_name", "")
+    return normalized
+
+
+def _extract_actor_path_from_result(result: Dict[str, Any]) -> str:
+    """从写反馈或桥接结果中提取 actor_path。"""
+    if isinstance(result.get("actor_path"), str) and result.get("actor_path"):
+        return result["actor_path"]
+
+    data = result.get("data", {})
+    if isinstance(data, dict):
+        created_objects = data.get("created_objects", [])
+        if created_objects:
+            return created_objects[0].get("actor_path", "")
+    return ""
+
+
+def _resolve_post_action_parameters(parameters: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
+    """解析 post action 中的占位参数。"""
+    resolved = json.loads(json.dumps(parameters))
+    runtime_config_ref = params.get("runtime_config_ref", "")
+    for key, value in list(resolved.items()):
+        if value == "__RUNTIME_CONFIG_REF__":
+            resolved[key] = runtime_config_ref
+    return resolved
+
+
+def _execute_actor_function(
+    actor_path: str,
+    function_name: str,
+    parameters: Dict[str, Any],
+    bridge_mode: str,
+) -> Dict[str, Any]:
+    """调用 Actor 上的 BlueprintCallable 函数。"""
+    if bridge_mode == "simulated":
+        return {
+            "status": "success",
+            "actor_path": actor_path,
+            "function_name": function_name,
+            "parameters": parameters,
+            "message": "模拟执行 post_spawn_action 成功",
+        }
+
+    if bridge_mode == "bridge_rc_api":
+        try:
+            from bridge.remote_control_client import call_function
+            response = call_function(actor_path, function_name, parameters)
+            return {
+                "status": "success",
+                "actor_path": actor_path,
+                "function_name": function_name,
+                "response": _normalize_rc_call_response(response),
+            }
+        except Exception as exc:
+            return {
+                "status": "failed",
+                "actor_path": actor_path,
+                "function_name": function_name,
+                "error": str(exc),
+            }
+
+    return {
+        "status": "skipped",
+        "actor_path": actor_path,
+        "function_name": function_name,
+        "reason": f"当前 bridge_mode 不支持 actor function 调用: {bridge_mode}",
+    }
 
 
 def _to_cpp_bridge_transform(transform: Dict[str, Any]) -> Dict[str, Any]:

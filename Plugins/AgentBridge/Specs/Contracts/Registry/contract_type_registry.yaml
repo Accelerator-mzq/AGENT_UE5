@@ -33,3 +33,24 @@ contracts:
       - "evidence_requirements"
     template_ref: "Common/RegressionValidationContractModel/template.yaml"
     schema_ref: "Common/RegressionValidationContractModel/schema.json"
+  - contract_id: "TurnFlowPatchContract"
+    contract_kind: "patch"
+    target_spec_family:
+      - "turn_flow_spec"
+      - "runtime_wiring_spec"
+    required_fields:
+      - "target_spec"
+      - "allowed_operations"
+      - "validation_requirements"
+    template_ref: "Genres/Boardgame/TurnFlowPatchContract/template.yaml"
+    schema_ref: "Genres/Boardgame/TurnFlowPatchContract/schema.json"
+  - contract_id: "DecisionUIPatchContract"
+    contract_kind: "patch"
+    target_spec_family:
+      - "decision_ui_spec"
+    required_fields:
+      - "target_spec"
+      - "allowed_operations"
+      - "validation_requirements"
+    template_ref: "Genres/Boardgame/DecisionUIPatchContract/template.yaml"
+    schema_ref: "Genres/Boardgame/DecisionUIPatchContract/schema.json"

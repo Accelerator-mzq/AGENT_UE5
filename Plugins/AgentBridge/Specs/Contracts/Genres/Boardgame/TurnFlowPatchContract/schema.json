@@ -1,0 +1,35 @@
+{
+  "title": "TurnFlowPatchContract",
+  "type": "object",
+  "required": [
+    "contract_id",
+    "contract_kind",
+    "target_spec",
+    "allowed_operations",
+    "validation_requirements"
+  ],
+  "properties": {
+    "contract_id": {
+      "type": "string"
+    },
+    "contract_kind": {
+      "type": "string"
+    },
+    "target_spec": {
+      "type": "string"
+    },
+    "allowed_operations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "validation_requirements": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
+

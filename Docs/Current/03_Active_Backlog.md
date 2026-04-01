@@ -1,32 +1,28 @@
 # 待办与卡点
 
-> 文档版本：L1-Phase6-v1
+> 文档版本：L1-Phase6-v2
 
 ## 当前 P0 待办
 
-- 产出并细化 Phase 6 正式任务清单
-- 在 `Skills/genre_packs/_core/` 落地最小 manifest loader / router base / registry
-- 明确 boardgame pack 的 `required_skills / review_extensions / validation_extensions / delta_policy` 落点与依赖顺序
+- 清理本轮 Phase 6 本地产生的临时 handoff / report / runtime config 产物
+- 继续观察真实 UE5 runtime smoke 的稳定性，确认多次重复执行无漂移
+- 为 runtime actor 增加更稳的人工点击验证说明
 
 ## 当前 P1 待办
 
-- 为 boardgame pack 增加首批 genre contract 设计与骨架
-- 细化 `project_state_intake.py` 的真实采集字段，服务更多 Brownfield 场景
-- 为 Brownfield 主线增加更多 append/no-change 覆盖场景
+- 为 runtime actor 增加更丰富的 UI 反馈
+- 为 Brownfield runtime / turn/ui patch 增加更细的 contract 与 reviewer 规则
+- 视后续进展决定是否扩展更通用的 boardgame runtime 骨架
 
 ## 当前门禁项
 
-- Phase 5 的 Brownfield 最小闭环、真机 smoke 与截图证据链已闭环
-- Phase 6 当前主门禁转为“Genre Pack Core 机制 + boardgame pack 完整化能否接入现有编译链”
+- Python / simulated / UBT 编译 已通过
+- 真实 UE5 `bridge_rc_api` playable runtime smoke 已通过
+- Phase 6 截图证据已落盘到 `ProjectState/Evidence/Phase6/`
+- 当前已无 Phase 6 P0 阻塞门禁
 
 ## 当前策略
 
 - Phase 6 测试用例先写在根目录 `task.md`
 - `SystemTestCases.md` 不提前追加 Phase 6 用例正文，待本阶段归档时统一补录
 - `ProjectState/Snapshots/` 与 `ProjectState/Evidence/Phase6/` 严格分责
-
-## 后续阶段保留项
-
-- Base Skill Domains 完整化：Phase 7
-- Handoff 自动审批治理：Phase 7
-- 第二个 Genre Pack 与多类型扩展：Phase 7

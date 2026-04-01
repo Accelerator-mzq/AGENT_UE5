@@ -1,0 +1,53 @@
+{
+  "status": "success",
+  "generated_at": "2026-04-01T12:34:34.445548",
+  "phase": "Phase6",
+  "workflow_ref": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Docs\\editor_screenshot_evidence_workflow.md",
+  "current_level": "/Temp/Untitled_1",
+  "handoff_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\approved\\handoff.boardgame.prototype.9546f07f.yaml",
+  "report_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\phase6_runtime_smoke_20260401_123410.json",
+  "rc_info_path": "",
+  "captured_items": [
+    {
+      "view": "overview_oblique",
+      "camera_location": [
+        -650.0,
+        -650.0,
+        450.0
+      ],
+      "camera_rotation": [
+        -25.0,
+        45.0,
+        0.0
+      ],
+      "camera_actor_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.CameraActor_UAID_78465C3B14CE72CD02_1262854040",
+      "capture_backend": "AutomationBlueprintFunctionLibrary.TakeHighResScreenshot",
+      "task_object_path": "/Engine/Transient.AutomationEditorTask_0",
+      "source_output_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\Saved\\Screenshots\\WindowsEditor\\phase6_task_phase6_boardgame_playable_demo_runtime_playable_overview_oblique.png",
+      "evidence_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Evidence\\Phase6\\screenshots\\phase6_task_phase6_boardgame_playable_demo_runtime_playable_overview_oblique.png",
+      "evidence_file_size": 1269167,
+      "evidence_sha256": "9ad15720d72f2b5638a4034f695a783609aa390ce48f4a985601d5e7065ba568"
+    },
+    {
+      "view": "topdown_alignment",
+      "camera_location": [
+        0.0,
+        0.0,
+        1400.0
+      ],
+      "camera_rotation": [
+        -90.0,
+        0.0,
+        0.0
+      ],
+      "camera_actor_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.CameraActor_UAID_78465C3B14CE72CD02_1276186041",
+      "capture_backend": "AutomationBlueprintFunctionLibrary.TakeHighResScreenshot",
+      "task_object_path": "/Engine/Transient.AutomationEditorTask_1",
+      "source_output_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\Saved\\Screenshots\\WindowsEditor\\phase6_task_phase6_boardgame_playable_demo_runtime_playable_topdown_alignment.png",
+      "evidence_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Evidence\\Phase6\\screenshots\\phase6_task_phase6_boardgame_playable_demo_runtime_playable_topdown_alignment.png",
+      "evidence_file_size": 1268665,
+      "evidence_sha256": "47092697fa770b7dc137c4725b84500d30a28e8370368ae11084ae8c53a736af"
+    }
+  ],
+  "note_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Evidence\\Phase6\\notes\\phase6_task_phase6_boardgame_playable_demo_runtime_playable_evidence.md"
+}

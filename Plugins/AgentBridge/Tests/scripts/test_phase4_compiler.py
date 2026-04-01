@@ -105,12 +105,12 @@ class TestPhase4Compiler:
         assert design_input["prototype_preview"]["piece_counts"] == {"X": 1, "O": 1}
         assert actor_names == ["Board", "PieceX_1", "PieceO_1"]
 
-    def test_cp18_explicit_preview_counts_follow_gdd(self, compiler_module, tmp_path):
+    def test_cp18_explicit_preview_counts_follow_gdd(self, compiler_module, workspace_tmp_path):
         """CP-18: GDD 显式定义示例棋子数量时，自动生成链按 GDD 执行。"""
         from compiler.handoff import build_handoff
         from compiler.intake import read_gdd
 
-        gdd_path = tmp_path / "boardgame_preview_override.md"
+        gdd_path = workspace_tmp_path / "boardgame_preview_override.md"
         gdd_path.write_text(
             "\n".join(
                 [
@@ -168,12 +168,12 @@ class TestPhase4Compiler:
         assert design_input["prototype_preview"]["piece_counts"] == {"X": 2, "O": 1}
         assert actor_names == ["Board", "PieceX_1", "PieceX_2", "PieceO_1"]
 
-    def test_cp15_preview_zero_generates_only_board(self, compiler_module, tmp_path):
+    def test_cp15_preview_zero_generates_only_board(self, compiler_module, workspace_tmp_path):
         """CP-15: GDD 显式写 0 个示例棋子时，不生成预览棋子。"""
         from compiler.handoff import build_handoff
         from compiler.intake import read_gdd
 
-        gdd_path = tmp_path / "boardgame_preview_zero.md"
+        gdd_path = workspace_tmp_path / "boardgame_preview_zero.md"
         gdd_path.write_text(
             "\n".join(
                 [
