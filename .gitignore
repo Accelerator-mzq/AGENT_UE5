@@ -36,7 +36,14 @@ Docs/History/reports/
 image/
 
 # IDE 与本地工程文件
-.vscode/
+# 仅纳入 VS Code 的稳定配置文件，继续忽略自动生成目录
+.vscode/*
+!.vscode/c_cpp_properties.json
+!.vscode/compileCommands_Default.json
+!.vscode/compileCommands_Mvpv4TestCodex.json
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/tasks.json
 *.code-workspace
 *.sln
 *.suo

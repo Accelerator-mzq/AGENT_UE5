@@ -1,0 +1,130 @@
+[
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Source\\AgentBridge\\AgentBridge.Build.cs",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Default\\AgentBridge.2.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Source\\AgentBridge\\Private\\AgentBridgeCommandlet.cpp",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Default\\AgentBridge.2.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Source\\AgentBridge\\Private\\AgentBridgeModule.cpp",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Default\\AgentBridge.2.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Source\\AgentBridge\\Private\\AgentBridgeSubsystem.cpp",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Default\\AgentBridge.2.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Source\\AgentBridge\\Private\\AutomationDriverAdapter.cpp",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Default\\AgentBridge.2.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Source\\AgentBridge\\Private\\UATRunner.cpp",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Default\\AgentBridge.2.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Source\\AgentBridge\\Public\\AgentBridgeCommandlet.h",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Default\\AgentBridge.2.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Source\\AgentBridge\\Public\\AgentBridgeSubsystem.h",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Default\\AgentBridge.2.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Source\\AgentBridge\\Public\\AutomationDriverAdapter.h",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Default\\AgentBridge.2.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Source\\AgentBridge\\Public\\BridgeTypes.h",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Default\\AgentBridge.2.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Source\\AgentBridge\\Public\\UATRunner.h",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Default\\AgentBridge.2.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\BoardgamePrototypeBoardActor.cpp",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Default\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\BoardgamePrototypeBoardActor.h",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Default\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\Mvpv4TestCodex.Build.cs",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Default\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\Mvpv4TestCodex.cpp",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Default\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\Mvpv4TestCodex.h",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Default\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	}
+]
