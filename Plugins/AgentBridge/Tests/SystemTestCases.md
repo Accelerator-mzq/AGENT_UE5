@@ -1,7 +1,7 @@
 # AgentBridge 系统测试用例总表
 
-> 来源：`Docs/History/Phase1_MVP/task.md` + `Docs/History/Tasks/task1_phase3.md` + `Docs/History/Tasks/task2_phase4.md` + `Docs/History/Tasks/task3_phase5.md` 中的验收标准与验证步骤
-> 最后更新：2026-04-01
+> 来源：`Docs/History/Phase1_MVP/task.md` + `Docs/History/Tasks/task1_phase3.md` + `Docs/History/Tasks/task2_phase4.md` + `Docs/History/Tasks/task3_phase5.md` + `Docs/History/Tasks/task4_phase6.md` 中的验收标准与验证步骤  
+> 最后更新：2026-04-02
 > 维护者：msc
 
 ---
@@ -47,7 +47,7 @@
 | GA | Gauntlet CI/CD | UE5 + UAT | `RunUAT.bat RunUnreal -test=SmokeTests/AllTests` |
 | E2E | 端到端集成 | 全栈 | 多步流水线（Schema→Cmd→Gauntlet→三通道脚本） |
 
-> 全部 186 条用例均已登记到当前测试总表。证据目录分层为：`ProjectState/Reports/`（当期执行）+ `Docs/History/reports/AgentBridgeEvidence/`（历史归档）。
+> 全部 206 条用例均已登记到当前测试总表。证据目录分层为：`ProjectState/Reports/`（当期执行）+ `Docs/History/reports/AgentBridgeEvidence/`（历史归档）。
 
 ---
 
@@ -355,7 +355,7 @@
 
 ## 11. Compiler Plane（CP）
 
-> 来源：`Docs/History/Tasks/task1_phase3.md` TASK 04 + `Docs/History/Tasks/task2_phase4.md` TASK 06~10 + `Docs/History/Tasks/task3_phase5.md` TASK 03~08
+> 来源：`Docs/History/Tasks/task1_phase3.md` TASK 04 + `Docs/History/Tasks/task2_phase4.md` TASK 06~10 + `Docs/History/Tasks/task3_phase5.md` TASK 03~08 + `Docs/History/Tasks/task4_phase6.md` TASK 04~08
 > 自动化方式：pytest / `python compiler_main.py`
 > 环境要求：Python 3.x + pyyaml + jsonschema
 
@@ -385,6 +385,13 @@
 | CP-22 | delta_scope_analyzer 识别 append_actor | baseline 为 `Board + PieceX_1` | `delta_intent == "append_actor"` 且 append 仅含 `PieceO_1` |
 | CP-23 | Contract registry 与 Common Contract 可加载 | `load_contract_registry()` + `load_contract_bundle(...)` | 3 类 Common Contract 可加载，template/schema 可解析 |
 | CP-24 | Brownfield Handoff 含 baseline/delta/tree_type | `build_handoff(..., mode=\"brownfield_expansion\")` | Handoff 通过 Schema 校验，`scene_spec.actors[]` 仅含新增 Actor |
+| CP-25 | 默认 `preview_static` 生成完整 10 节点 Spec Tree | `pytest Tests/scripts/test_phase6_playable_runtime.py::TestPhase6PlayableRuntime::test_cp25_preview_static_generates_full_spec_tree` | `dynamic_spec_tree` 含 10 个 Phase 6 关键节点，`scene_spec` 默认为 `Board + PieceX_1 + PieceO_1` |
+| CP-26 | `runtime_playable` 生成 runtime actor 与 runtime config | `pytest Tests/scripts/test_phase6_playable_runtime.py::TestPhase6PlayableRuntime::test_cp26_runtime_playable_handoff_writes_runtime_config` | handoff 为 reviewed，`BoardRuntimeActor` 存在，`runtime_config_ref` 文件落盘 |
+| CP-27 | runtime actor 暴露最小 callable 接口 | `pytest Tests/scripts/test_phase6_playable_runtime.py::TestPhase6PlayableRuntime::test_cp27_runtime_actor_exposes_minimum_callable_interfaces` | 头文件中存在 `LoadRuntimeConfigFromFile / ApplyMoveByCell / GetBoardRuntimeState / ResetBoard` |
+| CP-28 | 缺少 runtime 关键节点时 reviewer 阻断 | `pytest Tests/scripts/test_phase6_playable_runtime.py::TestPhase6PlayableRuntime::test_cp28_reviewer_blocks_missing_phase6_runtime_nodes` | 缺少 `turn_flow_spec / decision_ui_spec / runtime_wiring_spec` 时 status=`blocked` |
+| CP-29 | Brownfield patch 缺少 genre contract 时 reviewer 阻断 | `pytest Tests/scripts/test_phase6_playable_runtime.py::TestPhase6PlayableRuntime::test_cp29_brownfield_patch_without_genre_contracts_is_blocked` | 缺少 `TurnFlowPatchContract / DecisionUIPatchContract` 时 status=`blocked` |
+| CP-30 | delta policy 影响 Brownfield trace 与 regression focus | `pytest Tests/scripts/test_phase6_playable_runtime.py::TestPhase6PlayableRuntime::test_cp30_delta_policy_flows_into_brownfield_trace_and_regression_focus` | `delta_policy`、`high_risk_breakpoints`、`required_regression_checks` 均正确下沉 |
+| CP-31 | 合同 registry 中 Common + Genre 路径可读 | `pytest Tests/scripts/test_phase6_playable_runtime.py::TestPhase6PlayableRuntime::test_cp31_contract_registry_common_and_genre_paths_are_readable` | Common 与 Boardgame 合同 manifest/template/schema 路径均存在且可读取 |
 
 > 证据：`ProjectState/Handoffs/draft/` 下生成的 Handoff YAML 文件
 
@@ -392,7 +399,7 @@
 
 ## 12. Skills & Specs（SS）
 
-> 来源：`Docs/History/Tasks/task1_phase3.md` TASK 05 + `Docs/History/Tasks/task2_phase4.md` TASK 03~05
+> 来源：`Docs/History/Tasks/task1_phase3.md` TASK 05 + `Docs/History/Tasks/task2_phase4.md` TASK 03~05 + `Docs/History/Tasks/task4_phase6.md` TASK 02~05
 > 自动化方式：pytest / `yaml.safe_load`
 > 环境要求：Python 3.x + pyyaml
 
@@ -405,6 +412,12 @@
 | SS-05 | StaticBase registry 完整 | `yaml.safe_load(open(spec_type_registry.yaml))` | 10 个静态基座全部登记，含 phase4_enabled 字段 |
 | SS-06 | 10 个静态基座模板可解析 | 遍历 `Specs/StaticBase/**/*template.yaml` | 全部 `yaml.safe_load` 成功 |
 | SS-07 | 10 个静态基座 schema 合法 | 遍历 `Specs/StaticBase/**/*schema.json` | 全部 `json.load` 成功 |
+| SS-08 | `_core` registry 能发现 `genre-boardgame` | `pytest Tests/scripts/test_phase6_playable_runtime.py::TestPhase6PlayableRuntime::test_ss08_pack_registry_and_modules_load` | registry 含 `genre-boardgame`，且 required skills 可加载 |
+| SS-09 | `boardgame` manifest 覆盖完整 Phase 6 字段 | `pytest Tests/scripts/test_phase6_playable_runtime.py::TestPhase6PlayableRuntime::test_ss09_boardgame_manifest_is_phase6_complete` | manifest 含 status / review / validation / delta policy 等 Phase 6 字段 |
+| SS-10 | 3 个 required skills 模块可加载 | `pytest Tests/scripts/test_phase6_playable_runtime.py::TestPhase6PlayableRuntime::test_ss10_required_skills_modules_load` | `board_layout / piece_movement / turn_system` 均存在且可导入 |
+| SS-11 | review / validation / delta policy 模块可加载 | `pytest Tests/scripts/test_phase6_playable_runtime.py::TestPhase6PlayableRuntime::test_ss11_review_validation_and_delta_policy_modules_load` | `boardgame_reviewer / boardgame_validator / boardgame_delta_policy` 均可导入 |
+| SS-12 | Genre contracts 已登记到 contract registry | `pytest Tests/scripts/test_phase6_playable_runtime.py::TestPhase6PlayableRuntime::test_ss12_genre_contracts_registered_in_contract_registry` | registry 含 `TurnFlowPatchContract / DecisionUIPatchContract` |
+| SS-13 | Common + Genre contract bundle 均可加载 | `pytest Tests/scripts/test_phase6_playable_runtime.py::TestPhase6PlayableRuntime::test_ss13_common_and_genre_contract_bundles_load` | Common 与 Boardgame 合同 bundle 均可解析与加载 |
 
 > 证据：目录结构 + YAML 解析输出
 
@@ -430,7 +443,7 @@
 
 ## 14. 端到端集成（E2E）
 
-> 来源：TASK 15, TASK 19
+> 来源：TASK 15, TASK 19 + `Docs/History/Tasks/task4_phase6.md` TASK 06~08
 > 自动化方式：多步流水线，每步独立可执行
 
 ### L3 Functional Test (TASK 15)
@@ -482,6 +495,20 @@
 
 > 证据：`ProjectState/Reports/task_phase5_brownfield_rc_smoke_2026-04-01.md` + `Docs/History/reports/AgentBridgeEvidence/phase5_evidence_2026-04-01/`
 
+### Phase 6 Playable Runtime 验证（`Docs/History/Tasks/task4_phase6.md` TASK 06~08）
+
+| 编号 | 用例名称 | 验证步骤 | 自动化命令 | 预期结果 |
+|------|---------|---------|-----------|---------|
+| E2E-22 | Phase 6 Greenfield simulated 回归 | Greenfield compiler → handoff → 执行 | `python Scripts/run_greenfield_demo.py` | 输出执行状态 `succeeded`，作为 Phase 6 基线回归 |
+| E2E-23 | Brownfield simulated append-only 回归 | Brownfield baseline → delta handoff → 执行 | `python Scripts/run_brownfield_demo.py` | 输出 `append_actor`、`PieceO_1`，且执行状态 `succeeded` |
+| E2E-24 | playable runtime simulated 最小闭环 | `runtime_playable` handoff → 执行 | `python Scripts/run_boardgame_playable_demo.py` | 输出 `BoardRuntimeActor`，且执行状态 `succeeded` |
+| E2E-25 | 真实 UE5 中成功生成 `BoardRuntimeActor` [UE5] | 启动 UE5 → `bridge_rc_api` playable demo → 写 acceptance report | `python Scripts/run_boardgame_playable_demo.py bridge_rc_api` | `phase6_runtime_acceptance_*.json` 中 `E2E-25.status == passed` |
+| E2E-26 | 自动落子后终局可读回 [UE5] | `ApplyMoveByCell` 序列 → `GetBoardRuntimeState()` | `python Scripts/run_boardgame_playable_demo.py bridge_rc_api` | smoke 报告中 `result_state` 为 `X_wins / O_wins / draw` |
+| E2E-27 | 真实截图证据链落盘 [UE5] | `bridge_rc_api` 成功后触发统一截图脚本 | `python Scripts/run_boardgame_playable_demo.py bridge_rc_api` | `ProjectState/Evidence/Phase6/` 与历史归档中均存在 `overview_oblique + topdown_alignment + note + log` |
+| E2E-28 | 棋类顶视图证据完整性 [UE5] | 人工核验 `topdown_alignment` | 参考 `task_phase6_e2e28_fix_and_rerun_2026-04-02.md` | 顶视图完整覆盖棋盘边界与全部棋子，且可直接判断棋子与格位对应关系 |
+
+> 证据：`ProjectState/Reports/task_phase6_doc_gap_and_entry_backfill_2026-04-02.md` + `ProjectState/Reports/phase6_runtime_acceptance_20260402_025815.json` + `Docs/History/reports/AgentBridgeEvidence/phase6_evidence_2026-04-02/`
+
 ---
 
 ## 附录 A：UE5 Automation Test ID 速查表
@@ -527,11 +554,11 @@
 | CMD Commandlet | 8 | 🟢 全部 |
 | PY Python 客户端 | 10 | 🟢 全部 |
 | ORC Orchestrator | 37 | 🟢 全部 |
-| CP Compiler Plane | 24 | 🟢 全部 |
-| SS Skills & Specs | 7 | 🟢 全部 |
+| CP Compiler Plane | 31 | 🟢 全部 |
+| SS Skills & Specs | 13 | 🟢 全部 |
 | GA Gauntlet | 6 | 🟢 全部 |
-| E2E 端到端 | 21 | 🟢 全部 |
-| **合计** | **186** | **🟢 186 条已登记** |
+| E2E 端到端 | 28 | 🟢 全部 |
+| **合计** | **206** | **🟢 206 条已登记** |
 
 ---
 

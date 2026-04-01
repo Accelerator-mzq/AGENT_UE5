@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "附加到 UnrealEditor.exe",
+      "type": "cppvsdbg",
+      "request": "attach",
+      "processName": "UnrealEditor.exe",
+      "preLaunchTask": "UE: 启动 Editor + RC"
+    },
+    {
+      "name": "Python：当前文件",
+      "type": "python",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

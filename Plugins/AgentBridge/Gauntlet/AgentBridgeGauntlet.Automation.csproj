@@ -4,9 +4,10 @@
     <EngineRoot Condition="'$(EngineRoot)' == '' and '$(uebp_LOCAL_ROOT)' != ''">$(uebp_LOCAL_ROOT)</EngineRoot>
     <EngineRoot Condition="'$(EngineRoot)' == '' and '$(UEBP_LOCAL_ROOT)' != ''">$(UEBP_LOCAL_ROOT)</EngineRoot>
     <EngineRoot Condition="'$(EngineRoot)' == '' and '$(UE_ENGINE_ROOT)' != ''">$(UE_ENGINE_ROOT)</EngineRoot>
-    <!-- 当前仓库既可能跑安装版引擎，也可能跑源码版引擎；两条本地常用路径都给出显式回退。 -->
-    <EngineRoot Condition="'$(EngineRoot)' == '' and Exists('E:\GameProject\UE5-SourceCode-5.5.4\UnrealEngine\Engine\Source\Programs\Shared\UnrealEngine.csproj.props')">E:\GameProject\UE5-SourceCode-5.5.4\UnrealEngine</EngineRoot>
+    <!-- 当前仓库既可能跑安装版引擎，也可能跑源码版引擎； -->
+    <!-- 对安装版 5.5 的优先级必须更高，否则 RunUAT 在安装版会话里会错误吸到旧源码版路径。 -->
     <EngineRoot Condition="'$(EngineRoot)' == '' and Exists('E:\Epic Games\UE_5.5\Engine\Source\Programs\Shared\UnrealEngine.csproj.props')">E:\Epic Games\UE_5.5</EngineRoot>
+    <EngineRoot Condition="'$(EngineRoot)' == '' and Exists('E:\GameProject\UE5-SourceCode-5.5.4\UnrealEngine\Engine\Source\Programs\Shared\UnrealEngine.csproj.props')">E:\GameProject\UE5-SourceCode-5.5.4\UnrealEngine</EngineRoot>
   </PropertyGroup>
 
   <Import Project="$(EngineRoot)\Engine\Source\Programs\Shared\UnrealEngine.csproj.props" />

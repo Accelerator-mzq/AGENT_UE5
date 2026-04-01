@@ -1,28 +1,28 @@
 # 待办与卡点
 
-> 文档版本：L1-Phase6-v2
+> 文档版本：L1-Phase7Prep-v1
 
 ## 当前 P0 待办
 
-- 清理本轮 Phase 6 本地产生的临时 handoff / report / runtime config 产物
-- 继续观察真实 UE5 runtime smoke 的稳定性，确认多次重复执行无漂移
-- 为 runtime actor 增加更稳的人工点击验证说明
+- 明确下一阶段主题与成功标准
+- 决定下一阶段测试编号是直接进入 `SystemTestCases.md`，还是先在根目录 `task.md` 维护
+- 继续观察真实 UE5 playable smoke 的重复稳定性，确认是否需要单列长期回归门禁
 
 ## 当前 P1 待办
 
-- 为 runtime actor 增加更丰富的 UI 反馈
-- 为 Brownfield runtime / turn/ui patch 增加更细的 contract 与 reviewer 规则
-- 视后续进展决定是否扩展更通用的 boardgame runtime 骨架
+- 评估 `BoardgamePrototypeBoardActor` 是否需要向更通用的 boardgame runtime 抽象
+- 评估 Brownfield runtime / turn/ui patch 是否进入真实执行阶段
+- 整理下一阶段需要复用的 Phase 6 证据与报告清单
 
 ## 当前门禁项
 
-- Python / simulated / UBT 编译 已通过
-- 真实 UE5 `bridge_rc_api` playable runtime smoke 已通过
-- Phase 6 截图证据已落盘到 `ProjectState/Evidence/Phase6/`
-- 当前已无 Phase 6 P0 阻塞门禁
+- `Phase 6` 任务、证据与测试入口已归档
+- `Phase 6` 真实 UE5 `bridge_rc_api` smoke、截图证据与顶视图门禁已通过
+- 当前没有阻止归档的 P0 阻塞项
+- 当前阶段的主要门禁转为“下一阶段范围未冻结，不进入新功能开发”
 
 ## 当前策略
 
-- Phase 6 测试用例先写在根目录 `task.md`
-- `SystemTestCases.md` 不提前追加 Phase 6 用例正文，待本阶段归档时统一补录
-- `ProjectState/Snapshots/` 与 `ProjectState/Evidence/Phase6/` 严格分责
+- 根目录 `task.md` 只维护下一阶段准备期任务
+- `SystemTestCases.md` 已补录 `Phase 6` 用例，后续按统一总表继续演进
+- `ProjectState/Snapshots/` 与历史证据归档继续严格分责

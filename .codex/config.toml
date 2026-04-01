@@ -1,0 +1,16 @@
+#approval_policy = "never"
+#sandbox_mode = "workspace-write"
+#web_search = "cached"
+#file_opener = "vscode"
+#project_root_markers = [".git"]
+
+#[sandbox_workspace_write]
+#writable_roots = [
+#  'D:\UnrealProjects\Mvpv4TestCodex',
+#  'E:\Epic Games\UE_5.5'
+#]
+#network_access = true
+
+#[windows]
+#sandbox = "elevated"
+#sandbox_private_desktop = true

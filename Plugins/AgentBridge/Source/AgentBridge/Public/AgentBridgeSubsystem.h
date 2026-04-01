@@ -303,6 +303,34 @@ public:
 	FBridgeResponse CaptureViewportScreenshot(const FString& ScreenshotName);
 
 	/**
+	 * 按指定机位截取主关卡视口截图。
+	 * UE5 依赖：LevelEditorViewportClient + FViewport::ReadPixels()
+	 * @param ScreenshotName 截图文件名
+	 * @param CameraLocation 目标机位位置
+	 * @param CameraRotation 目标机位旋转
+	 * @param bUseGameView 是否临时启用 Game View 以隐藏编辑器图标
+	 * @param bDisableDynamicShadows 是否临时关闭动态阴影，让证据图更干净
+	 * @param bUseUnlitView 是否临时切到 Unlit，让棋盘格位关系更清楚
+	 */
+	UFUNCTION(BlueprintCallable, Category = "AgentBridge|Utility")
+	FBridgeResponse CaptureLevelViewportScreenshot(
+		const FString& ScreenshotName,
+		const FVector& CameraLocation,
+		const FRotator& CameraRotation,
+		bool bUseGameView = true,
+		bool bDisableDynamicShadows = false,
+		bool bUseUnlitView = false
+	);
+
+	/**
+	 * 在编辑器世界中执行控制台命令。
+	 * UE5 依赖：IConsoleManager::ProcessUserConsoleInput() + GEditor->Exec()
+	 * @param Command 控制台命令字符串
+	 */
+	UFUNCTION(BlueprintCallable, Category = "AgentBridge|Utility")
+	FBridgeResponse ExecuteEditorConsoleCommand(const FString& Command);
+
+	/**
 	 * 撤销最近的 Transaction（可通过 RC API 自动触发回滚闭环）。
 	 * UE5 依赖：GEditor->UndoTransaction()
 	 * @param Steps 需要撤销的步数，默认 1

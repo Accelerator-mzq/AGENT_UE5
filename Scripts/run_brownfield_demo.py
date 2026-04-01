@@ -23,11 +23,11 @@ from orchestrator.handoff_runner import run_from_handoff
 def run_brownfield_demo(
     bridge_mode: str = "simulated",
     capture_evidence: bool = True,
-):
+) -> Dict[str, Any]:
     """
     运行 Brownfield append/new-actor 最小闭环。
 
-    样板约束：
+    模板约束：
     - baseline 已有 Board + PieceX_1
     - 目标设计要求 Board + PieceX_1 + PieceO_1
     - delta tree 只应生成 PieceO_1
@@ -47,7 +47,7 @@ def run_brownfield_demo(
     design_input = read_gdd_from_directory(gdd_dir)
     project_state = _build_demo_project_state()
 
-    print("\n[1/4] 使用 Brownfield 样板 baseline...")
+    print("\n[1/4] 使用 Brownfield 模板 baseline...")
     print(f"  当前关卡: {project_state['current_level']}")
     print(f"  当前 Actor: {[actor['actor_name'] for actor in project_state['actors']]}")
 
@@ -82,18 +82,20 @@ def run_brownfield_demo(
     )
     print(f"  执行状态: {result['status']}")
 
-    if capture_evidence and bridge_mode in {"bridge_python", "bridge_rc_api"} and result.get("status") == "succeeded":
+    # Phase 6 统一把真实截图证据收敛到 capture_editor_evidence。
+    if capture_evidence and bridge_mode == "bridge_rc_api" and result.get("status") == "succeeded":
         _try_capture_evidence(
             approved_path=approved_path,
             report_dir=report_dir,
             handoff=handoff,
+            design_input=design_input,
         )
 
     return result
 
 
 def _build_demo_project_state() -> Dict[str, Any]:
-    """构造 Brownfield append-only 样板的 baseline 项目状态。"""
+    """构造 Brownfield append-only 模板的 baseline 项目状态。"""
     actors = [
         {
             "actor_name": "Board",
@@ -140,23 +142,25 @@ def _build_demo_project_state() -> Dict[str, Any]:
     }
 
 
-def _try_capture_evidence(approved_path: str, report_dir: str, handoff: Dict[str, Any]) -> None:
-    """在真实 UE5 环境中尝试采集截图证据。"""
+def _try_capture_evidence(
+    approved_path: str,
+    report_dir: str,
+    handoff: Dict[str, Any],
+    design_input: Dict[str, Any],
+) -> None:
+    """在真实 UE5 环境里采集 Phase 6 统一截图证据。"""
     try:
-        from validation.capture_phase5_evidence import (
-            capture_phase5_scene_evidence,
-            find_latest_phase5_rc_info_report,
-        )
+        from validation.capture_editor_evidence import capture_editor_scene_evidence
 
         latest_report = _find_latest_report(report_dir, handoff["handoff_id"])
-        capture_result = capture_phase5_scene_evidence(
-            task_id="task_phase5_brownfield_demo",
+        capture_result = capture_editor_scene_evidence(
+            phase_name="Phase6",
+            task_id="task_phase6_brownfield_demo",
             scenario="append_piece_o",
             actor_names=["Board", "PieceX_1", "PieceO_1"],
             handoff_path=approved_path,
             report_path=latest_report,
-            board_center=[0.0, 0.0, 0.0],
-            rc_info_path=find_latest_phase5_rc_info_report(PROJECT_ROOT),
+            board_center=list(design_input.get("board", {}).get("location", [0.0, 0.0, 0.0])),
         )
         print(f"  证据说明: {capture_result['note_path']}")
         print(f"  证据日志: {capture_result['log_path']}")

@@ -1,7 +1,7 @@
 # CLAUDE.md — Mvpv4TestCodex 项目
 
 > 本文件供 Claude Code / Codex / 其他 AI Agent 在进入本项目时自动读取。
-> 最后更新：2026-03-31
+> 最后更新：2026-04-02
 
 ## 项目概述
 
@@ -77,6 +77,12 @@ AgentBridge 不只是工具接口插件，而是包含编译前端（Skill Compi
 - `ProjectInputs/` — 项目输入源（GDD / Presets / Baselines）
 - `ProjectState/` — 项目运行实例（Handoffs / Reports / Snapshots）
 - `Docs/` — 项目治理文档
+
+## 项目外写入限制
+
+- 默认允许增删改的范围仅限于项目根目录 `D:\UnrealProjects\Mvpv4TestCodex` 及其子目录。
+- 项目目录外的路径默认只允许读取、检查、诊断，不允许直接新增、删除、修改。
+- 如果任务确实需要改动项目目录外路径，必须先向用户说明目标路径、具体动作和原因，并在得到明确允许后再执行。
 
 ## 关键技术栈
 

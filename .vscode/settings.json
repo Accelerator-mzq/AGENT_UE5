@@ -1,0 +1,36 @@
+{
+  "ue5.engineRoot": "E:\\Epic Games\\UE_5.5",
+  "files.encoding": "utf8",
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "files.associations": {
+    "*.uproject": "json",
+    "*.uplugin": "json",
+    "*.Build.cs": "csharp",
+    "*.Target.cs": "csharp"
+  },
+  "files.watcherExclude": {
+    "**/Binaries/**": true,
+    "**/Intermediate/**": true,
+    "**/Saved/**": true,
+    "**/DerivedDataCache/**": true,
+    "**/__pycache__/**": true,
+    "**/TestArtifacts/**": true
+  },
+  "search.exclude": {
+    "**/Binaries": true,
+    "**/Intermediate": true,
+    "**/Saved": true,
+    "**/DerivedDataCache": true,
+    "**/__pycache__": true,
+    "**/TestArtifacts": true
+  },
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}",
+    "${workspaceFolder}\\Plugins\\AgentBridge",
+    "${workspaceFolder}\\Plugins\\AgentBridge\\Scripts"
+  ],
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestArgs": [
+    "Plugins\\AgentBridge\\Tests\\scripts"
+  ]
+}

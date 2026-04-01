@@ -28,10 +28,25 @@ if (-not (Test-Path $ResolvedProjectPath)) {
     throw ".uproject not found: $ResolvedProjectPath"
 }
 
-$ExistingCmdProcesses = @(
-    Get-CimInstance Win32_Process |
-        Where-Object { $_.Name -like "UnrealEditor-Cmd*" }
-)
+# 受限环境里 Win32_Process 的 CIM 查询可能被拒绝，这里先尝试完整探测，失败时退化到 Get-Process。
+$ExistingCmdProcesses = @()
+try {
+    $ExistingCmdProcesses = @(
+        Get-CimInstance Win32_Process -ErrorAction Stop |
+            Where-Object { $_.Name -like "UnrealEditor-Cmd*" }
+    )
+}
+catch {
+    $ExistingCmdProcesses = @(
+        Get-Process -Name "UnrealEditor-Cmd*" -ErrorAction SilentlyContinue |
+            ForEach-Object {
+                [PSCustomObject]@{
+                    ProcessId   = $_.Id
+                    CommandLine = ""
+                }
+            }
+    )
+}
 
 $FormattedArgs = New-Object System.Collections.Generic.List[string]
 $FormattedArgs.Add($DoubleQuote + $ResolvedProjectPath + $DoubleQuote)
@@ -124,10 +139,12 @@ $LaunchedProcess = Start-Process `
 Start-Sleep -Seconds 1
 
 try {
-    $ActualCommandLine = (Get-CimInstance Win32_Process -Filter "ProcessId = $($LaunchedProcess.Id)").CommandLine
+    $ActualCommandLine = (
+        Get-CimInstance Win32_Process -Filter "ProcessId = $($LaunchedProcess.Id)" -ErrorAction Stop
+    ).CommandLine
 }
 catch {
-    $ActualCommandLine = "[process exited before command line probe]"
+    $ActualCommandLine = "[command line unavailable in current environment]"
 }
 
 Write-Host "[UE-Cmd] PID=$($LaunchedProcess.Id)"

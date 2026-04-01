@@ -9,7 +9,7 @@ import json
 import os
 import sys
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -83,12 +83,27 @@ def run_boardgame_playable_demo(
     if smoke_report_path:
         print(f"  Runtime Smoke: {smoke_report_path}")
 
+    evidence_result: Optional[Dict[str, Any]] = None
     if capture_evidence and bridge_mode == "bridge_rc_api" and result.get("status") == "succeeded":
-        _try_capture_phase6_evidence(
+        evidence_result = _try_capture_phase6_evidence(
             approved_path=approved_path,
             report_path=smoke_report_path or _find_latest_report(report_dir, handoff["handoff_id"]),
             design_input=design_input,
         )
+
+    acceptance_report_path = _write_phase6_acceptance_report(
+        result=result,
+        bridge_mode=bridge_mode,
+        smoke_report_path=smoke_report_path,
+        evidence_result=evidence_result,
+        report_dir=report_dir,
+    )
+    if acceptance_report_path:
+        print(f"  Phase 6 Acceptance: {acceptance_report_path}")
+
+    result["smoke_report_path"] = smoke_report_path
+    result["evidence_result"] = evidence_result or {}
+    result["phase6_acceptance_report_path"] = acceptance_report_path
 
     print("\n[4/4] 完成。")
     return result
@@ -134,7 +149,7 @@ def _run_runtime_smoke(result: Dict[str, Any], bridge_mode: str, report_dir: str
 
 
 def _find_runtime_actor_path(result: Dict[str, Any]) -> str:
-    """从执行结果中找到 runtime actor。"""
+    """从执行结果里找到 runtime actor。"""
     for step in result.get("step_results", []):
         step_result = step.get("result", {})
         if step_result.get("actor_name") == "BoardRuntimeActor":
@@ -146,8 +161,8 @@ def _try_capture_phase6_evidence(
     approved_path: str,
     report_path: str,
     design_input: Dict[str, Any],
-) -> None:
-    """在真实 UE5 环境中采集 Phase 6 截图证据。"""
+) -> Dict[str, Any]:
+    """在真实 UE5 环境里采集 Phase 6 截图证据。"""
     try:
         from validation.capture_editor_evidence import capture_editor_scene_evidence
 
@@ -162,8 +177,131 @@ def _try_capture_phase6_evidence(
         )
         print(f"  证据说明: {capture_result['note_path']}")
         print(f"  证据日志: {capture_result['log_path']}")
+        return capture_result
     except Exception as exc:
         print(f"  [警告] Phase 6 截图证据采集失败: {exc}")
+        return {
+            "status": "failed",
+            "error": str(exc),
+        }
+
+
+def _write_phase6_acceptance_report(
+    result: Dict[str, Any],
+    bridge_mode: str,
+    smoke_report_path: str,
+    evidence_result: Optional[Dict[str, Any]],
+    report_dir: str,
+) -> str:
+    """把真实运行结果收敛成 E2E-25~27 的结构化验收报告。"""
+    smoke_report = _load_json_file(smoke_report_path)
+    runtime_state = _extract_runtime_state(smoke_report)
+    result_state = runtime_state.get("result_state", "") if isinstance(runtime_state, dict) else ""
+    actor_path = _find_runtime_actor_path(result)
+
+    captured_items = evidence_result.get("captured_items", []) if isinstance(evidence_result, dict) else []
+    screenshot_by_view = {
+        item.get("view", ""): item.get("evidence_path", "")
+        for item in captured_items
+        if isinstance(item, dict)
+    }
+    note_path = evidence_result.get("note_path", "") if isinstance(evidence_result, dict) else ""
+    log_path = evidence_result.get("log_path", "") if isinstance(evidence_result, dict) else ""
+
+    checks = {
+        "E2E-25": {
+            "name": "真实 UE5 Editor 中成功生成 BoardRuntimeActor",
+            "status": "passed" if bridge_mode == "bridge_rc_api" and bool(actor_path) else (
+                "not_applicable" if bridge_mode != "bridge_rc_api" else "failed"
+            ),
+            "details": {
+                "bridge_mode": bridge_mode,
+                "actor_path": actor_path,
+            },
+        },
+        "E2E-26": {
+            "name": "自动落子序列后 GetBoardRuntimeState() 返回终局结果",
+            "status": "passed" if bridge_mode == "bridge_rc_api" and result_state in {"X_wins", "O_wins", "draw"} else (
+                "not_applicable" if bridge_mode != "bridge_rc_api" else "failed"
+            ),
+            "details": {
+                "bridge_mode": bridge_mode,
+                "result_state": result_state,
+                "runtime_state": runtime_state,
+                "smoke_report_path": smoke_report_path,
+            },
+        },
+        "E2E-27": {
+            "name": "真实截图证据写入 ProjectState/Evidence/Phase6/",
+            "status": "passed" if bridge_mode == "bridge_rc_api" and _has_required_phase6_evidence(
+                note_path=note_path,
+                log_path=log_path,
+                overview_path=screenshot_by_view.get("overview_oblique", ""),
+                topdown_path=screenshot_by_view.get("topdown_alignment", ""),
+            ) else ("not_applicable" if bridge_mode != "bridge_rc_api" else "failed"),
+            "details": {
+                "bridge_mode": bridge_mode,
+                "note_path": note_path,
+                "log_path": log_path,
+                "overview_oblique": screenshot_by_view.get("overview_oblique", ""),
+                "topdown_alignment": screenshot_by_view.get("topdown_alignment", ""),
+            },
+        },
+    }
+
+    report = {
+        "report_type": "phase6_runtime_acceptance",
+        "generated_at": datetime.now().isoformat(),
+        "bridge_mode": bridge_mode,
+        "overall_status": "passed" if all(
+            item["status"] in {"passed", "not_applicable"} for item in checks.values()
+        ) else "failed",
+        "checks": checks,
+    }
+
+    output_path = os.path.join(
+        report_dir,
+        f"phase6_runtime_acceptance_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+    )
+    with open(output_path, "w", encoding="utf-8") as file:
+        json.dump(report, file, indent=2, ensure_ascii=False)
+    return output_path
+
+
+def _load_json_file(file_path: str) -> Dict[str, Any]:
+    """安全读取 JSON 文件，失败时返回空字典。"""
+    if not file_path or not os.path.exists(file_path):
+        return {}
+    with open(file_path, "r", encoding="utf-8") as file:
+        return json.load(file)
+
+
+def _extract_runtime_state(smoke_report: Dict[str, Any]) -> Dict[str, Any]:
+    """把 smoke 报告里的 ReturnValue 展开成可断言的字典。"""
+    runtime_state = smoke_report.get("runtime_state", {})
+    if not isinstance(runtime_state, dict):
+        return {}
+
+    return_value = runtime_state.get("ReturnValue")
+    if isinstance(return_value, dict):
+        return return_value
+    if isinstance(return_value, str) and return_value.strip():
+        try:
+            return json.loads(return_value)
+        except json.JSONDecodeError:
+            return {"raw_return_value": return_value}
+    return {}
+
+
+def _has_required_phase6_evidence(
+    note_path: str,
+    log_path: str,
+    overview_path: str,
+    topdown_path: str,
+) -> bool:
+    """检查 E2E-27 所需的最小证据链是否完整存在。"""
+    required_paths = [note_path, log_path, overview_path, topdown_path]
+    return all(required_paths) and all(os.path.exists(path) for path in required_paths)
 
 
 def _find_latest_report(report_dir: str, handoff_id: str) -> str:

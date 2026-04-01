@@ -1,0 +1,91 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "UE: 生成 VS Code 工程文件",
+      "type": "shell",
+      "command": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "& '${config:ue5.engineRoot}\\Engine\\Binaries\\DotNET\\UnrealBuildTool\\UnrealBuildTool.exe' -projectfiles -project='${workspaceFolder}\\Mvpv4TestCodex.uproject' -game -engine -vscode"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "UE: 编译 Editor Win64 Development",
+      "type": "shell",
+      "command": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "& '${config:ue5.engineRoot}\\Engine\\Binaries\\DotNET\\UnrealBuildTool\\UnrealBuildTool.exe' Mvpv4TestCodexEditor Win64 Development -Project='${workspaceFolder}\\Mvpv4TestCodex.uproject'"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [
+        "$msCompile"
+      ]
+    },
+    {
+      "label": "UE: 启动 Editor + RC",
+      "type": "shell",
+      "command": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\Scripts\\validation\\start_ue_editor_project.ps1",
+        "-ProjectPath",
+        "${workspaceFolder}\\Mvpv4TestCodex.uproject",
+        "-RcOutputPath",
+        "${workspaceFolder}\\ProjectState\\Reports\\vscode_rc_info.json"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Phase6: Playable Demo（simulated）",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "${workspaceFolder}\\Scripts\\run_boardgame_playable_demo.py",
+        "simulated"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Pytest: Phase6 Playable Runtime",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "-m",
+        "pytest",
+        "Plugins\\AgentBridge\\Tests\\scripts\\test_phase6_playable_runtime.py",
+        "-q"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
