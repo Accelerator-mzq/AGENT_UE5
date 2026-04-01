@@ -8,7 +8,10 @@ from typing import Any, Dict, Optional
 
 import yaml
 
+from compiler.analysis import analyze_delta_scope, load_contract_registry
+
 from .boardgame_scene_generator import generate_boardgame_dynamic_spec_tree
+from .brownfield_delta_generator import generate_brownfield_delta_tree
 from .static_base_loader import get_project_root, load_phase4_static_specs
 
 
@@ -39,6 +42,8 @@ def generate_dynamic_spec_tree(
     routing_context: Dict[str, Any],
     static_base_root: Optional[str] = None,
     pack_manifest_path: Optional[str] = None,
+    baseline_snapshot: Optional[Dict[str, Any]] = None,
+    contract_root: Optional[str] = None,
 ) -> Dict[str, Any]:
     """统一生成 dynamic spec tree。"""
     static_spec_context = load_phase4_static_specs(static_base_root)
@@ -49,19 +54,55 @@ def generate_dynamic_spec_tree(
     static_spec_context["required_spec_ids"] = required_spec_ids
 
     if game_type == "boardgame":
-        dynamic_spec_tree = generate_boardgame_dynamic_spec_tree(
+        full_target_tree = generate_boardgame_dynamic_spec_tree(
             design_input=design_input,
             routing_context=routing_context,
             static_spec_context=static_spec_context,
             pack_manifest=pack_manifest,
         )
+        analysis_context = {}
+
+        if routing_context.get("mode") == "brownfield_expansion":
+            contract_registry = load_contract_registry(contract_root)
+            delta_context = analyze_delta_scope(
+                design_input=design_input,
+                baseline_snapshot=baseline_snapshot or {},
+                target_scene_actors=full_target_tree.get("scene_spec", {}).get("actors", []),
+            )
+            dynamic_spec_tree = generate_brownfield_delta_tree(
+                full_target_tree=full_target_tree,
+                baseline_snapshot=baseline_snapshot or {},
+                delta_context=delta_context,
+                contract_registry=contract_registry,
+            )
+            analysis_context = {
+                "baseline_snapshot": baseline_snapshot or {},
+                "delta_context": delta_context,
+                "contract_registry": contract_registry,
+                "full_target_tree": full_target_tree,
+            }
+        else:
+            dynamic_spec_tree = full_target_tree
+            analysis_context = {
+                "baseline_snapshot": baseline_snapshot or {},
+                "delta_context": {},
+                "contract_registry": {},
+                "full_target_tree": full_target_tree,
+            }
     else:
         dynamic_spec_tree = {"scene_spec": {"actors": []}}
+        analysis_context = {
+            "baseline_snapshot": baseline_snapshot or {},
+            "delta_context": {},
+            "contract_registry": {},
+            "full_target_tree": dynamic_spec_tree,
+        }
 
     return {
         "dynamic_spec_tree": dynamic_spec_tree,
         "static_spec_context": static_spec_context,
         "pack_manifest": pack_manifest,
+        "analysis_context": analysis_context,
     }
 
 

@@ -1,0 +1,11 @@
+contract_id: "RegressionValidationContractModel"
+title: "Regression Validation Contract Model"
+version: "1.0"
+contract_kind: "regression_validation"
+status: "phase5_minimal"
+target_spec_family:
+  - "validation_spec"
+  - "scene_spec"
+required_fields:
+  - "required_checks"
+  - "evidence_requirements"

@@ -1,32 +1,30 @@
 # 当前风险
 
-> 文档版本：L1-Phase5-v1
+> 文档版本：L1-Phase5-v2
 
-## 风险清单
+## 活跃风险
 
-### 活跃风险
+1. `project_state_intake.py` 虽已接入真实结构，但 Editor 会话、当前关卡和 Bridge 通道状态仍可能影响采集完整性。
+2. Phase 5 当前只安全支持 append/new-actor，如果 patch / replace 判定不准，仍有把存量内容误当成新建内容的风险。
+3. Contract 体系当前是最小模型，如果后续场景变复杂，可能需要更细的 Contract 实例化规则。
+4. 截图证据依赖视口相机和真实 Editor 运行态；若 Editor 未就绪或相机设置失败，证据采集会退化为日志而不是 PNG。
+5. 真机 RC API 虽已在本机通过，但换机或更换引擎安装仍可能因为 BuildId / Editor 启动层问题重新触发连接失败。
 
-1. Brownfield 基线理解如果读取不全，后续 delta 分析会把“已有内容”误当成“待新建内容”。
-2. Contract 体系若定义过宽，会放大误修改风险；若定义过窄，又会阻塞合法增量开发。
-3. `project_state_intake.py` 从 mock 切到真实 Bridge 后，容易受到当前关卡状态、Editor 会话和 RC 通道稳定性的影响。
-4. Brownfield Handoff 需要同时满足 `baseline_context`、`delta_context` 和现有执行兼容性，若设计不慎，会造成“编译能过、执行不可落地”。
-5. 真实 UE5 Editor / RC API 虽已在 2026-03-31 完成 Phase 4 闭环，但换机或更换引擎安装后仍可能因为 BuildId 不匹配重新触发启动层问题。
+## 已缓解风险
 
-### 已缓解风险
-
-- Phase 4 的 Static Base 已落地，Phase 5 不再需要补 Phase 4 的基础表达地基
-- Phase 4 的 generation / review / handoff / simulated E2E 已通过
-- `python Scripts/run_greenfield_demo.py bridge_rc_api` 已在 2026-03-31 本机验证通过
-- `start_ue_editor_project.ps1` 已修复为优先匹配项目 BuildId
+- Greenfield 主链已稳定，可作为 Phase 5 回归基线
+- Brownfield 空壳模块（analysis / Contracts / delta tree）已替换为最小可运行实现
+- `Scripts/run_brownfield_demo.py` 已能验证 append-only 样板
+- `ProjectState/Snapshots/` 与 `ProjectState/Evidence/Phase5/` 已明确分责
 
 ## 已验证假设
 
-1. Greenfield 主链已经具备继续复用的稳定基础。
-2. Static Spec Base 可以在现有仓库中被 registry + loader 正常消费。
-3. `Scripts/run_greenfield_demo.py` 作为项目层入口适合承接 GDD → Handoff → Runner 的端到端验证。
+1. Brownfield Handoff 可以在不修改稳定 Schema 的前提下扩展 `baseline_context` / `delta_context`
+2. `scene_spec.actors[]` 只放新增 Actor 时，现有 `run_plan_builder.py` 仍可消费
+3. 当前 Contracts 最小模型足以支撑 append/new-actor 场景的审查与阻断
 
 ## 待验证假设
 
-1. 真实项目状态采集能稳定支持 Brownfield 基线构建。
-2. 最小 Contract 体系足以约束 Brownfield 样例，不会只停留在占位表达。
-3. Delta Scope Analyzer 能输出足够细的差量范围，而不只是笼统标记“需要修改”。
+1. 真机 `bridge_rc_api` + 截图证据脚本能稳定跑完 Brownfield smoke
+2. `project_state_intake.py` 的真实采集字段足以支撑更多 Brownfield 类型，而不只是 boardgame append 样板
+3. 当前回归检查集合足够防止 append 场景误伤已有 Actor

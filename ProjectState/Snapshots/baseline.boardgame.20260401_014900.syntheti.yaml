@@ -1,0 +1,155 @@
+baseline_id: baseline.boardgame.20260401_014900.syntheti
+snapshot_ref: D:\UnrealProjects\Mvpv4TestCodex\ProjectState\Snapshots\baseline.boardgame.20260401_014900.syntheti.yaml
+project_context:
+  project_name: Mvpv4TestCodex
+  game_type: boardgame
+  current_level: /Game/Maps/TestMap
+  engine_version: UE5.5.4
+current_project_model:
+  current_level: /Game/Maps/TestMap
+  actor_count: 2
+  actors:
+  - actor_name: Board
+    actor_path: /Game/Maps/TestMap.TestMap:PersistentLevel.Board
+    actor_class: /Script/Engine.StaticMeshActor
+    transform:
+      location:
+      - 0.0
+      - 0.0
+      - 0.0
+      rotation:
+      - 0.0
+      - 0.0
+      - 0.0
+      relative_scale3d:
+      - 3.0
+      - 3.0
+      - 0.1
+    tags:
+    - Baseline
+  - actor_name: PieceX_1
+    actor_path: /Game/Maps/TestMap.TestMap:PersistentLevel.PieceX_1
+    actor_class: /Script/Engine.StaticMeshActor
+    transform:
+      location:
+      - -100.0
+      - -100.0
+      - 50.0
+      rotation:
+      - 0.0
+      - 0.0
+      - 0.0
+      relative_scale3d:
+      - 0.5
+      - 0.5
+      - 0.5
+    tags:
+    - Baseline
+    - PreviewPiece
+  dirty_assets: []
+  map_check_summary:
+    map_errors: []
+    map_warnings: []
+current_spec_baseline:
+  scene_spec:
+    actors:
+    - actor_name: Board
+      actor_class: /Script/Engine.StaticMeshActor
+      transform:
+        location:
+        - 0.0
+        - 0.0
+        - 0.0
+        rotation:
+        - 0.0
+        - 0.0
+        - 0.0
+        relative_scale3d:
+        - 3.0
+        - 3.0
+        - 0.1
+      actor_path: /Game/Maps/TestMap.TestMap:PersistentLevel.Board
+    - actor_name: PieceX_1
+      actor_class: /Script/Engine.StaticMeshActor
+      transform:
+        location:
+        - -100.0
+        - -100.0
+        - 50.0
+        rotation:
+        - 0.0
+        - 0.0
+        - 0.0
+        relative_scale3d:
+        - 0.5
+        - 0.5
+        - 0.5
+      actor_path: /Game/Maps/TestMap.TestMap:PersistentLevel.PieceX_1
+current_capability_map:
+  supported_delta_operations:
+  - no_change
+  - append_actor
+  blocked_delta_operations:
+  - patch
+  - replace
+  - migrate
+source_project_state:
+  project_name: Mvpv4TestCodex
+  engine_version: UE5.5.4
+  current_level: /Game/Maps/TestMap
+  actor_count: 2
+  is_empty: false
+  actors:
+  - actor_name: Board
+    actor_path: /Game/Maps/TestMap.TestMap:PersistentLevel.Board
+    class: /Script/Engine.StaticMeshActor
+    transform:
+      location:
+      - 0.0
+      - 0.0
+      - 0.0
+      rotation:
+      - 0.0
+      - 0.0
+      - 0.0
+      relative_scale3d:
+      - 3.0
+      - 3.0
+      - 0.1
+    tags:
+    - Baseline
+  - actor_name: PieceX_1
+    actor_path: /Game/Maps/TestMap.TestMap:PersistentLevel.PieceX_1
+    class: /Script/Engine.StaticMeshActor
+    transform:
+      location:
+      - -100.0
+      - -100.0
+      - 50.0
+      rotation:
+      - 0.0
+      - 0.0
+      - 0.0
+      relative_scale3d:
+      - 0.5
+      - 0.5
+      - 0.5
+    tags:
+    - Baseline
+    - PreviewPiece
+  has_existing_content: true
+  has_baseline: false
+  baseline_refs: []
+  registry_refs: []
+  known_issues_summary: []
+  metadata:
+    source: synthetic_brownfield_demo
+  current_project_state_digest: synthetic-brownfield-demo
+  dirty_assets: []
+  map_check_summary:
+    map_errors: []
+    map_warnings: []
+metadata:
+  generated_at: '2026-04-01T01:49:00.599773'
+  generator: AgentBridge.Compiler.Phase5.BaselineBuilder
+  source_digest: synthetic-brownfield-demo

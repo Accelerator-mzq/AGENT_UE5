@@ -1,0 +1,258 @@
+handoff_version: '1.0'
+handoff_id: handoff.boardgame.prototype.c6fbbad9
+handoff_mode: brownfield_expansion
+status: approved_for_execution
+project_context:
+  project_name: Mvpv4TestCodex
+  game_type: boardgame
+  target_platform: Win64
+  current_level: /Game/Maps/TestMap
+  has_existing_content: true
+routing_context:
+  mode: brownfield_expansion
+  genre: boardgame
+  target_stage: prototype
+  activated_skill_packs: &id001
+  - genre-boardgame
+dynamic_spec_tree:
+  tree_type: delta
+  delta_operations:
+  - operation: append_actor
+    target_spec: scene_spec
+    actor_name: PieceO_1
+  baseline_actor_refs:
+  - Board
+  - PieceX_1
+  contract_refs:
+  - SpecPatchContractModel
+  - RegressionValidationContractModel
+  scene_spec:
+    actors:
+    - actor_name: PieceO_1
+      actor_class: /Script/Engine.StaticMeshActor
+      transform:
+        location:
+        - 100.0
+        - 100.0
+        - 50.0
+        rotation:
+        - 0.0
+        - 0.0
+        - 0.0
+        relative_scale3d:
+        - 0.5
+        - 0.5
+        - 0.5
+  boardgame_spec:
+    spec_id: BoardgameStaticSpec
+    version: '1.0'
+    data:
+      board:
+        board_name: Board
+        board_type: 3x3 网格
+        grid_size:
+        - 3
+        - 3
+        cell_size_cm:
+        - 100.0
+        - 100.0
+        total_size_cm:
+        - 300.0
+        - 300.0
+        location:
+        - 0.0
+        - 0.0
+        - 0.0
+        material: 简单平面
+      piece_catalog:
+      - piece_id: piece_x
+        symbol: X
+        display_name: X
+        actor_name_prefix: PieceX
+        shape: Cube（立方体）
+        color: 红色
+        dimensions_cm:
+        - 50.0
+        - 50.0
+        - 50.0
+        max_count: 5
+        actor_class: /Script/Engine.StaticMeshActor
+      - piece_id: piece_o
+        symbol: O
+        display_name: O
+        actor_name_prefix: PieceO
+        shape: Sphere（球体）
+        color: 蓝色
+        dimensions_cm:
+        - 50.0
+        - 50.0
+        - 50.0
+        max_count: 4
+        actor_class: /Script/Engine.StaticMeshActor
+      preview_policy:
+        generate_preview: true
+        source: default
+        piece_counts:
+          X: 1
+          O: 1
+        explicitly_defined: false
+        raw_rule: ''
+      rules:
+        rule_summary:
+        - 3x3 棋盘
+        - 2 种棋子：X 和 O
+        - 回合制：玩家轮流放置棋子
+        - 胜利条件：横/竖/斜连成 3 个
+        turn_model: turn_based
+        victory_condition: 横/竖/斜连成 3 个
+      notes:
+      - Phase 4 以 boardgame prototype 为主，不覆盖完整玩法系统
+      initial_layout:
+        board_location:
+        - 0.0
+        - 0.0
+        - 0.0
+        board_centered_at_origin: true
+        initial_pieces: []
+        starts_empty: true
+        spawn_policy: dynamic
+        layout_notes:
+        - 棋盘中心在世界原点
+        - 初始不放置棋子（空棋盘）
+        - 棋子在需要时动态生成
+      feature_tags:
+      - boardgame
+      - turn_based
+      - grid_3x3
+      - prototype_preview
+      skill_pack:
+        pack_id: genre-boardgame
+        version: 0.1.0
+        activated_skill_packs:
+        - genre-boardgame
+  validation_spec:
+    spec_id: BoardgameValidationStaticSpec
+    version: '1.0'
+    data:
+      required_checks:
+      - actor_count_check
+      - transform_triplet_check
+      - preview_policy_check
+      - board_exists
+      - preview_piece_count
+      - existing_actor_presence
+      - new_actor_presence
+      - map_check_clean
+      prototype_closure:
+      - 棋盘存在
+      - 至少可展示示例棋子策略
+      preview_policy:
+        generate_preview: true
+        source: default
+        piece_counts:
+          X: 1
+          O: 1
+        explicitly_defined: false
+        raw_rule: ''
+      severity_policy:
+        block_on:
+        - missing_required_template
+        - invalid_transform
+      notes:
+      - Phase 4 只提供最小静态审查规则集合
+      - Phase 4 以原型闭环校验为主
+      delta_intent: append_actor
+      contract_refs:
+      - SpecPatchContractModel
+      - RegressionValidationContractModel
+      contract_registry_ref: D:\UnrealProjects\Mvpv4TestCodex\Plugins\AgentBridge\Specs\Contracts\Registry\contract_type_registry.yaml
+  generation_trace:
+    generator: AgentBridge.Compiler.Phase5.BrownfieldDeltaGenerator
+    baseline_id: baseline.boardgame.20260401_014900.syntheti
+    delta_intent: append_actor
+    contract_registry_ref: D:\UnrealProjects\Mvpv4TestCodex\Plugins\AgentBridge\Specs\Contracts\Registry\contract_type_registry.yaml
+    activated_skill_packs: *id001
+  world_build_spec:
+    spec_id: WorldBuildStaticSpec
+    version: '1.0'
+    data:
+      board:
+        board_type: 3x3 网格
+        grid_size:
+        - 3
+        - 3
+        cell_size_cm:
+        - 100.0
+        - 100.0
+        total_size_cm:
+        - 300.0
+        - 300.0
+        location:
+        - 0.0
+        - 0.0
+        - 0.0
+        material: 简单平面
+      actor_defaults:
+        actor_class: /Script/Engine.StaticMeshActor
+        board_scale_z: 0.1
+      notes:
+      - Phase 4 使用该基座驱动场景构建与 scene_spec 投影
+review_summary:
+  reviewed: true
+  reviewer: AgentBridge.Compiler.CrossSpecReviewer.v0.5
+  review_notes: Cross-Spec Review 通过；生成 Actor 1 个，warnings=0。
+capability_gaps:
+  required_static_templates: []
+  unresolved_refs: []
+  unsupported_gdd_sections: []
+  missing_patch_contracts: []
+  missing_migration_contracts: []
+  unsupported_regression_checks: []
+governance_context:
+  phase: Phase 5
+  static_base_registry_ref: D:\UnrealProjects\Mvpv4TestCodex\Plugins\AgentBridge\Specs\StaticBase\Registry\spec_type_registry.yaml
+  required_static_specs:
+  - WorldBuildStaticSpec
+  - ValidationStaticSpec
+  - BoardgameStaticSpec
+  - BoardgameValidationStaticSpec
+  contract_registry_ref: D:\UnrealProjects\Mvpv4TestCodex\Plugins\AgentBridge\Specs\Contracts\Registry\contract_type_registry.yaml
+metadata:
+  generated_at: '2026-04-01T01:49:00.611773'
+  generator: AgentBridge.Compiler.v0.5
+  source_gdd: D:\UnrealProjects\Mvpv4TestCodex\ProjectInputs\GDD\boardgame_tictactoe_v1.md
+  source_files:
+  - D:\UnrealProjects\Mvpv4TestCodex\ProjectInputs\GDD\boardgame_tictactoe_v1.md
+  skill_pack_manifest: D:\UnrealProjects\Mvpv4TestCodex\Plugins\AgentBridge\Skills\genre_packs\boardgame\pack_manifest.yaml
+  source_project_state_digest: synthetic-brownfield-demo
+  baseline_snapshot_ref: D:\UnrealProjects\Mvpv4TestCodex\ProjectState\Snapshots\baseline.boardgame.20260401_014900.syntheti.yaml
+baseline_context:
+  baseline_id: baseline.boardgame.20260401_014900.syntheti
+  snapshot_ref: D:\UnrealProjects\Mvpv4TestCodex\ProjectState\Snapshots\baseline.boardgame.20260401_014900.syntheti.yaml
+  frozen_baseline_ref: D:\UnrealProjects\Mvpv4TestCodex\ProjectState\Snapshots\baseline.boardgame.20260401_014900.syntheti.yaml
+  existing_spec_registry_ref: D:\UnrealProjects\Mvpv4TestCodex\Plugins\AgentBridge\Specs\Contracts\Registry\contract_type_registry.yaml
+  current_project_state_digest: synthetic-brownfield-demo
+delta_context:
+  delta_intent: append_actor
+  affected_domains:
+  - world
+  - validation
+  - governance
+  affected_specs:
+  - boardgame_spec
+  - scene_spec
+  - validation_spec
+  required_regression_checks:
+  - existing_actor_presence
+  - new_actor_presence
+  - map_check_clean
+  delta_scope:
+    baseline_actor_count: 2
+    target_actor_count: 3
+    append_count: 1
+    patch_count: 0
+    replace_count: 0
+  contract_refs:
+  - SpecPatchContractModel
+  - RegressionValidationContractModel
+  unsupported_items: []

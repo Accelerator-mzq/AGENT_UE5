@@ -1,0 +1,12 @@
+contract_id: "SpecPatchContractModel"
+title: "Spec Patch Contract Model"
+version: "1.0"
+contract_kind: "patch"
+status: "phase5_minimal"
+target_spec_family:
+  - "scene_spec"
+  - "boardgame_spec"
+required_fields:
+  - "target_spec"
+  - "allowed_operations"
+  - "validation_requirements"

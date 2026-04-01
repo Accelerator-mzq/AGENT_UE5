@@ -41,7 +41,7 @@ Skills 和 Specs 是 AgentBridge 框架的两个互补体系：
 | QA & Validation | 测试和验证 | P1 |
 | Planning & Governance | 规划和治理 | P2 |
 
-**当前状态**：占位目录 `Skills/base_domains/`，Phase 7 完整实装。
+**当前状态**：目录已保留，Phase 7 完整实装。
 
 ### 2.3 Genre Skill Packs（类型包）
 
@@ -59,16 +59,16 @@ Skills 和 Specs 是 AgentBridge 框架的两个互补体系：
 
 **首个类型包**：`boardgame`（棋盘游戏）
 
-**当前状态**：`Skills/genre_packs/boardgame/` 最小骨架已创建（仅 `pack_manifest.yaml`），Phase 6 完整实装。
+**当前状态**：`Skills/genre_packs/boardgame/` 已具备最小 `pack_manifest.yaml`，完整机制延后到 Phase 6。
 
 ### 2.4 目录结构
 
 ```
 Skills/
-├── base_domains/                    # 通用编译域（占位）
+├── base_domains/                    # 通用编译域（后续完整化）
 │   └── README.md
 └── genre_packs/
-    ├── _core/                       # 类型包机制核心（占位）
+    ├── _core/                       # 类型包机制核心（后续完整化）
     │   └── README.md
     └── boardgame/                   # 首个类型包
         ├── pack_manifest.yaml       # ✅ 已创建
@@ -105,7 +105,7 @@ Skills/
 9. BoardgameAudioStaticSpec — 棋盘游戏音频表达
 10. BoardgameValidationStaticSpec — 棋盘游戏验证表达
 
-**当前状态**：占位目录 `Specs/StaticBase/`，Phase 4 按滚动扩展策略实装。
+**当前状态**：`Specs/StaticBase/` 已完成 Phase 4 最小落地，并继续作为后续扩展地基。
 
 ### 3.3 Contracts
 
@@ -117,7 +117,7 @@ Skills/
 | MigrationContract | 跨契约边界结构变更契约 | Phase 5 |
 | RegressionValidationContract | 回归验证契约 | Phase 5 |
 
-**当前状态**：占位目录 `Specs/Contracts/`，Phase 5 实装。
+**当前状态**：`Specs/Contracts/` 已完成 Phase 5 最小落地，当前包含 registry + 3 类 Common Contract Model。
 
 ### 3.4 Templates（已有）
 
@@ -130,9 +130,9 @@ Phase 1-2 创建的 Spec 模板：
 
 ```
 Specs/
-├── StaticBase/                      # 静态基座（占位）
+├── StaticBase/                      # 静态基座（已落地）
 │   └── README.md
-├── Contracts/                       # 契约模型（占位）
+├── Contracts/                       # 契约模型（已落地最小体系）
 │   └── README.md
 └── templates/                       # Spec 模板（已有）
     ├── scene_spec_template.yaml
@@ -169,8 +169,8 @@ Reviewed Handoff
 
 | 阶段 | Skills 进展 | Specs 进展 |
 |------|------------|------------|
-| **Phase 3（已完成）** | boardgame 最小骨架 | 占位目录 + 现有 templates |
-| **Phase 4** | — | Static Base Layer A+B 实装 |
-| **Phase 5** | — | Patch / Regression Contract 实装 |
+| **Phase 3（已完成）** | boardgame 最小骨架 | 最小 pack manifest + 现有 templates |
+| **Phase 4（已完成）** | — | Static Base Layer A+B + 自动 Spec 生成 |
+| **Phase 5（进行中）** | — | Brownfield Baseline / Delta / Contracts 最小落地 |
 | **Phase 6** | Genre Pack 完整化 + _core 机制 | Boardgame Patch Contract |
 | **Phase 7** | Base Domains 完整实装 + 第二个类型包 | — |

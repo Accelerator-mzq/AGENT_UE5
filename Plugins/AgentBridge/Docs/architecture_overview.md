@@ -33,7 +33,7 @@ Design Inputs + Existing Project State Inputs
 | **Greenfield Bootstrap** | 从零启动新样板 | 全量编译 → Full Dynamic Spec Tree |
 | **Brownfield Expansion** | 已有 demo 的二次开发 | 基线理解 + 差量编译 → Delta Dynamic Spec Tree |
 
-Phase 3 已实装 Greenfield 最小闭环。Brownfield 为 Phase 5 目标。
+Phase 4 已完成 Greenfield 自动生成闭环。Phase 5 正在推进 Brownfield 最小闭环。
 
 ### 1.3 分层原则
 
@@ -62,8 +62,9 @@ Phase 3 已实装 Greenfield 最小闭环。Brownfield 为 Phase 5 目标。
  │  ProjectInputs/                    ProjectState/                    │
  │  ├── GDD/（设计文档）              ├── Handoffs/draft/（草稿）       │
  │  ├── Presets/（编译配置）          ├── Handoffs/approved/（已批准）  │
- │  └── Baselines/（基线快照）        ├── Reports/（执行报告）         │
- │                                    └── Snapshots/（状态快照）       │
+ │  └── Baselines/（人工基线）        ├── Reports/（执行报告）         │
+ │                                    ├── Snapshots/（状态快照）       │
+ │                                    └── Evidence/（阶段证据）        │
  └──────────────┬──────────────────────────────┬───────────────────────┘
                 │ 设计输入                      ▲ 实例输出
  ┌──────────────▼──────────────────────────────┴───────────────────────┐
@@ -73,10 +74,10 @@ Phase 3 已实装 Greenfield 最小闭环。Brownfield 为 Phase 5 目标。
  │  │              Skill Compiler Plane（编译前端）                  │  │
  │  │                                                               │  │
  │  │  Design Input Intake ─→ Mode Router ─→ Handoff Builder       │  │
- │  │  Project State Intake ──┘  (GF/BF)    └→ Handoff Serializer  │  │
+ │  │  Project State Intake ─┬→ Baseline / Delta 分析              │  │
+ │  │                        └→ Handoff Serializer                 │  │
  │  │                                                               │  │
- │  │  占位：analysis/（Phase 5） generation/（Phase 4）             │  │
- │  │        review/（Phase 4）                                     │  │
+ │  │  generation/ / review/ 已实装；analysis/ 在 Phase 5 启用       │  │
  │  └──────────────────────────┬────────────────────────────────────┘  │
  │                             │ Reviewed Handoff                      │
  │                             │ （draft YAML → 审批 → approved YAML） │

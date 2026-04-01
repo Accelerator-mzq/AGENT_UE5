@@ -1,0 +1,12 @@
+contract_id: "MigrationContractModel"
+contract_kind: "migration"
+target_spec_family:
+  - "scene_spec"
+data:
+  migration_scope: "blocked_until_phase6"
+  preconditions:
+    - "baseline_snapshot_exists"
+    - "manual_review_completed"
+  rollback_expectations:
+    - "must_keep_existing_actor_paths"
+    - "must_produce_regression_report"

@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RegressionValidationContractModel",
+  "type": "object",
+  "required": ["contract_id", "contract_kind", "target_spec_family", "data"],
+  "properties": {
+    "contract_id": {"type": "string"},
+    "contract_kind": {"type": "string", "const": "regression_validation"},
+    "target_spec_family": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "data": {
+      "type": "object",
+      "required": ["required_checks", "evidence_requirements"],
+      "properties": {
+        "required_checks": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "evidence_requirements": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    }
+  }
+}

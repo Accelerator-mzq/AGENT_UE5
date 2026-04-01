@@ -1,0 +1,13 @@
+contract_id: "MigrationContractModel"
+title: "Migration Contract Model"
+version: "1.0"
+contract_kind: "migration"
+status: "phase5_minimal"
+target_spec_family:
+  - "scene_spec"
+  - "boardgame_spec"
+  - "validation_spec"
+required_fields:
+  - "migration_scope"
+  - "preconditions"
+  - "rollback_expectations"

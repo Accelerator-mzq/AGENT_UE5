@@ -1,26 +1,32 @@
 # 待办与卡点
 
-> 文档版本：L1-Phase5-v1
+> 文档版本：L1-Phase5-v2
 
 ## 当前 P0 待办
 
-- 将 `project_state_intake.py` 接到真实 Bridge 查询，产出可复用的 Brownfield 项目状态快照
-- 在 `Scripts/compiler/analysis/` 中实装 `baseline_builder.py` 与 `delta_scope_analyzer.py`
-- 在 `Specs/Contracts/` 中落地最小 Contract 体系，并明确 Brownfield Handoff 的引用方式
+- 把 Brownfield append/new-actor 样板在真实 UE5 Editor 下再跑一轮带截图证据的 smoke
+- 用 Phase 5 当前 `task.md` 补齐阶段级验收记录与证据说明
+- 继续压实 patch / migration 的阻断规则，避免被误当成可执行追加
 
 ## 当前 P1 待办
 
-- 为 Brownfield 模式补最小 `baseline_context` / `delta_context` 组装逻辑
-- 为 Phase 5 新增 Python 测试、系统测试条目与样例报告
-- 视需要为 `bridge_python` 再做一轮真机 Editor 运行态验证
+- 细化 `project_state_intake.py` 的真实采集字段
+- 为 Brownfield 主线增加更多 append/no-change 覆盖场景
+- 视需要补 `bridge_python` 运行态验证
 
 ## 当前门禁项
 
-- Phase 4 的 StaticBase / generation / review / simulated E2E / 真实 RC API 链路均已闭环
-- Phase 5 当前的主门禁是：Brownfield 基线理解与 Contract 体系尚未落地
+- Phase 4 的 StaticBase / generation / review / Greenfield E2E / RC API 已闭环
+- Phase 5 当前主门禁已经从“空壳模块”转为“真实 Brownfield smoke + 证据链”
+
+## 当前策略
+
+- Phase 5 测试用例先写在根目录 `task.md`
+- `SystemTestCases.md` 本阶段只做路径修正，不提前追加 Phase 5 用例正文
+- `ProjectState/Snapshots/` 与 `ProjectState/Evidence/Phase5/` 严格分责
 
 ## 后续阶段保留项
 
-- Genre Skill Pack 完整机制延后到 Phase 6
-- Base Skill Domains 完整机制延后到 Phase 7
-- Handoff 自动审批治理延后到 Phase 7
+- Genre Skill Pack 完整化：Phase 6
+- Base Skill Domains 完整化：Phase 7
+- Handoff 自动审批治理：Phase 7

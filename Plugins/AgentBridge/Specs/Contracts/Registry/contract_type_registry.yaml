@@ -1,0 +1,35 @@
+registry_version: "1.0"
+contracts:
+  - contract_id: "SpecPatchContractModel"
+    contract_kind: "patch"
+    target_spec_family:
+      - "scene_spec"
+      - "boardgame_spec"
+    required_fields:
+      - "target_spec"
+      - "allowed_operations"
+      - "validation_requirements"
+    template_ref: "Common/SpecPatchContractModel/template.yaml"
+    schema_ref: "Common/SpecPatchContractModel/schema.json"
+  - contract_id: "MigrationContractModel"
+    contract_kind: "migration"
+    target_spec_family:
+      - "scene_spec"
+      - "boardgame_spec"
+      - "validation_spec"
+    required_fields:
+      - "migration_scope"
+      - "preconditions"
+      - "rollback_expectations"
+    template_ref: "Common/MigrationContractModel/template.yaml"
+    schema_ref: "Common/MigrationContractModel/schema.json"
+  - contract_id: "RegressionValidationContractModel"
+    contract_kind: "regression_validation"
+    target_spec_family:
+      - "validation_spec"
+      - "scene_spec"
+    required_fields:
+      - "required_checks"
+      - "evidence_requirements"
+    template_ref: "Common/RegressionValidationContractModel/template.yaml"
+    schema_ref: "Common/RegressionValidationContractModel/schema.json"

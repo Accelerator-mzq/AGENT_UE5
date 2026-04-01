@@ -1,57 +1,45 @@
 # Patch / Migration / Regression Contracts
 
-## 当前状态
-📦 **占位目录** - 第一阶段暂未实现
+> 状态：Phase 5 已启用最小 Contract 体系
 
-## 职责
+## 目录职责
 
-Contracts 定义 Brownfield 模式下的核心受控边界：
-- Patch Contract（如何安全地修改现有 Spec）
-- Migration Contract（如何迁移旧版本 Spec）
-- Regression Contract（如何验证修改不破坏现有功能）
+`Specs/Contracts/` 负责承载 Brownfield 模式下的受控修改边界：
 
-### 计划目录结构
+- `SpecPatchContractModel`：约束允许的 patch 范围
+- `MigrationContractModel`：表达结构迁移或升级要求
+- `RegressionValidationContractModel`：表达 Brownfield 回归验证要求
 
-```
+## 当前目录结构
+
+```text
 Contracts/
-├── Common/
-│   ├── SpecPatchContractModel/
-│   │   ├── schema.json
-│   │   ├── template.yaml
-│   │   └── examples/
-│   ├── MigrationContractModel/
-│   └── RegressionValidationContractModel/
-└── Genres/
-    └── Boardgame/
-        ├── DecisionUIPatchContract/
-        ├── TurnFlowPatchContract/
-        └── BoardgameRegressionContractModel/
+├── Registry/
+│   └── contract_type_registry.yaml
+└── Common/
+    ├── SpecPatchContractModel/
+    │   ├── manifest.yaml
+    │   ├── template.yaml
+    │   └── schema.json
+    ├── MigrationContractModel/
+    └── RegressionValidationContractModel/
 ```
 
-## 为什么必须在插件层
+## Phase 5 实施边界
 
-这些 Contract 是框架级约束，是 Skill / Planner / Workflow / Validator 的共同语言。
-如果留给项目层临时决定，Brownfield 会退化成"项目自己 patch，插件只执行"。
+- 当前只真正支持 `append/new-actor` 的最小 Brownfield 执行闭环
+- `patch / migration` 在 Phase 5 只做到“可表达、可校验、可阻断”
+- Genre 级 Contract 延后到 Phase 6+
 
-## 第一阶段
+## Registry 约定
 
-第一阶段只支持 Greenfield 模式，不需要 Patch / Migration Contract。
-这些能力将在 Brownfield 实装阶段补充。
+`Registry/contract_type_registry.yaml` 统一登记：
 
-## 最小示例（未来）
+- `contract_id`
+- `contract_kind`
+- `target_spec_family`
+- `required_fields`
+- `template_ref`
+- `schema_ref`
 
-```yaml
-# SpecPatchContractModel 示例
-patch_type: "add_actor"
-target_spec: "scene_spec"
-operation:
-  type: "add"
-  path: "/actors/-"
-  value:
-    actor_name: "NewActor"
-    actor_class: "/Script/Engine.StaticMeshActor"
-    transform: {...}
-validation:
-  - no_name_conflict
-  - no_position_overlap
-```
+Contract registry 由编译期加载，不应由项目层临时改写为一次性规则。

@@ -36,27 +36,76 @@ def determine_mode(config: Dict[str, Any], project_state: Dict[str, Any]) -> str
     Returns:
         模式字符串：greenfield_bootstrap 或 brownfield_expansion
     """
+    return resolve_mode(config, project_state)["selected_mode"]
+
+
+def resolve_mode(config: Dict[str, Any], project_state: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    返回结构化模式解析结果。
+
+    Returns:
+        {
+          "selected_mode": "...",
+          "source": "force_mode/default_mode/auto_detect",
+          "detection_result": {...},
+          "warnings": [],
+          "notes": []
+        }
+    """
+    warnings = []
+    notes = []
+
     # 优先级 1: Explicit User Override
-    # 开发者显式指定，系统不应推翻
     force_mode = config.get("force_mode")
     if force_mode:
-        if force_mode in VALID_MODES:
-            return force_mode
-        else:
+        if force_mode not in VALID_MODES:
             raise ValueError(f"无效的 force_mode: {force_mode}，合法值: {VALID_MODES}")
+        return {
+            "selected_mode": force_mode,
+            "source": "force_mode",
+            "detection_result": {
+                "actor_count": project_state.get("actor_count", 0),
+                "has_existing_content": project_state.get("has_existing_content", False),
+                "has_baseline": project_state.get("has_baseline", False),
+            },
+            "warnings": warnings,
+            "notes": notes + ["使用显式 force_mode，自动检测结果不参与决策"],
+        }
 
     # 优先级 2: Project / Profile Preset
     default_mode = config.get("default_mode", "auto")
-
     if default_mode in VALID_MODES:
-        return default_mode
+        return {
+            "selected_mode": default_mode,
+            "source": "default_mode",
+            "detection_result": {
+                "actor_count": project_state.get("actor_count", 0),
+                "has_existing_content": project_state.get("has_existing_content", False),
+                "has_baseline": project_state.get("has_baseline", False),
+            },
+            "warnings": warnings,
+            "notes": notes + ["使用 preset.default_mode，跳过自动检测"],
+        }
 
-    # 优先级 3: Auto Detection Fallback
-    # 仅当 default_mode == "auto" 时进入自动判定
-    if default_mode == "auto":
-        return auto_detect_mode(config, project_state)
+    if default_mode != "auto":
+        raise ValueError(f"无效的 default_mode: {default_mode}，合法值: {VALID_MODES + ['auto']}")
 
-    raise ValueError(f"无效的 default_mode: {default_mode}，合法值: {VALID_MODES + ['auto']}")
+    selected_mode = auto_detect_mode(config, project_state)
+    detection_result = {
+        "actor_count": project_state.get("actor_count", 0),
+        "has_existing_content": project_state.get("has_existing_content", False),
+        "has_baseline": project_state.get("has_baseline", False),
+    }
+    if detection_result["has_existing_content"] and not detection_result["has_baseline"]:
+        warnings.append("检测到已有内容但尚未发现 baseline snapshot；Brownfield 将先生成当前快照")
+
+    return {
+        "selected_mode": selected_mode,
+        "source": "auto_detect",
+        "detection_result": detection_result,
+        "warnings": warnings,
+        "notes": notes,
+    }
 
 
 def auto_detect_mode(config: Dict[str, Any], project_state: Dict[str, Any]) -> str:
@@ -73,15 +122,20 @@ def auto_detect_mode(config: Dict[str, Any], project_state: Dict[str, Any]) -> s
     detection_rules = config.get("mode_detection_rules", {})
     empty_threshold = detection_rules.get("empty_project_threshold", 0)
 
-    # 检查项目是否为空
     actor_count = project_state.get("actor_count", 0)
+    has_existing_content = project_state.get("has_existing_content", actor_count > 0)
+    has_baseline = project_state.get("has_baseline", False)
+    require_baseline = detection_rules.get("require_baseline", False)
 
-    if actor_count <= empty_threshold:
+    if (not has_existing_content) and actor_count <= empty_threshold:
         # 空项目 → Greenfield
         return "greenfield_bootstrap"
-    else:
-        # 非空项目 → Brownfield
+
+    if require_baseline and not has_baseline:
+        # 自动检测阶段不强行报错，回落到 Brownfield 并由后续基线构建补齐。
         return "brownfield_expansion"
+
+    return "brownfield_expansion"
 
 
 def load_mode_config(config_path: str) -> Dict[str, Any]:

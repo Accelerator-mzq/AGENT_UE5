@@ -10,7 +10,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from compiler.intake import get_project_state_snapshot, read_gdd_from_directory
-from compiler.routing import determine_mode, load_mode_config
+from compiler.routing import determine_mode, load_mode_config, resolve_mode
 from compiler.handoff import build_handoff, serialize_handoff
 
 
@@ -48,8 +48,12 @@ def run_compiler(
 
     print("\n[3/5] 判断模式...")
     mode_config = load_mode_config(mode_config_path)
+    mode_resolution = resolve_mode(mode_config, project_state)
     mode = determine_mode(mode_config, project_state)
     print(f"  检测到的模式: {mode}")
+    print(f"  模式来源: {mode_resolution['source']}")
+    if mode_resolution.get("warnings"):
+        print(f"  模式警告: {mode_resolution['warnings']}")
 
     print("\n[4/5] 构建 Handoff...")
     handoff = build_handoff(design_input, mode, project_state)
@@ -60,6 +64,9 @@ def run_compiler(
     print(f"  Handoff Status: {handoff['status']}")
     print(f"  Actor 数量: {len(scene_actors)}")
     print(f"  Richer Spec 节点: {rich_nodes}")
+    if mode == "brownfield_expansion":
+        print(f"  Baseline: {handoff.get('baseline_context', {}).get('snapshot_ref', '')}")
+        print(f"  Delta Intent: {handoff.get('delta_context', {}).get('delta_intent', '')}")
 
     print("\n[5/5] 保存 Handoff...")
     output_file = serialize_handoff(handoff, output_dir, output_format)

@@ -9,5 +9,5 @@ __all__ = [
     'read_gdd',
     'read_gdd_from_directory',
     'get_project_state_snapshot',
-    'check_baseline_exists'
+    'check_baseline_exists',
 ]

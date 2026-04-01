@@ -1,0 +1,60 @@
+{
+  "report_version": "1.0",
+  "report_type": "execution_report",
+  "source_handoff_id": "handoff.boardgame.prototype.c6fbbad9",
+  "source_run_plan_id": "runplan.boardgame.57451e99",
+  "handoff_mode": "brownfield_expansion",
+  "execution_status": "succeeded",
+  "step_results": [
+    {
+      "step_id": "spawn_PieceO_1",
+      "result": {
+        "status": "success",
+        "summary": "Spawned actor: PieceO_1",
+        "data": {
+          "created_objects": [
+            {
+              "actor_name": "PieceO_1",
+              "actor_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CE4ECD02_1205340703"
+            }
+          ],
+          "modified_objects": [],
+          "deleted_objects": [],
+          "dirty_assets": [
+            "/Game/Maps/TestMap"
+          ],
+          "validation": {},
+          "actual_transform": {
+            "location": [
+              100,
+              100,
+              50
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "relative_scale3d": [
+              0.5,
+              0.5,
+              0.5
+            ]
+          }
+        },
+        "warnings": [],
+        "errors": []
+      }
+    }
+  ],
+  "summary": {
+    "total_steps": 1,
+    "succeeded": 1,
+    "failed": 0,
+    "skipped": 0
+  },
+  "metadata": {
+    "generated_at": "2026-04-01T01:49:02.744573",
+    "generator": "AgentBridge.Orchestrator.v0.1"
+  }
+}

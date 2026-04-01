@@ -1,9 +1,9 @@
 """
 Cross Spec Reviewer
-执行 Phase 4 的最小静态审查。
+执行 Phase 4/5 的最小静态审查。
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 
 def review_dynamic_spec_tree(
@@ -11,15 +11,18 @@ def review_dynamic_spec_tree(
     dynamic_spec_tree: Dict[str, Any],
     static_spec_context: Dict[str, Any],
     routing_context: Dict[str, Any],
+    analysis_context: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """对 dynamic spec tree 做最小但可判定的编译期审查。"""
     errors: List[str] = []
     warnings: List[str] = []
+    analysis_context = analysis_context or {}
     capability_gaps = {
         "required_static_templates": [],
         "unresolved_refs": [],
         "unsupported_gdd_sections": [],
         "missing_patch_contracts": [],
+        "missing_migration_contracts": [],
         "unsupported_regression_checks": [],
     }
 
@@ -33,14 +36,30 @@ def review_dynamic_spec_tree(
 
     actors = dynamic_spec_tree.get("scene_spec", {}).get("actors", [])
     _validate_actor_list(actors, errors)
-    _validate_preview_pieces(design_input, actors, errors, capability_gaps)
+
+    preview_validation_actors = list(actors)
+    if routing_context.get("mode") == "brownfield_expansion":
+        baseline_actors = (
+            analysis_context.get("baseline_snapshot", {})
+            .get("current_spec_baseline", {})
+            .get("scene_spec", {})
+            .get("actors", [])
+        )
+        preview_validation_actors = list(baseline_actors) + list(actors)
+
+    _validate_preview_pieces(design_input, preview_validation_actors, errors, capability_gaps)
 
     unsupported_sections = design_input.get("parsing_notes", {}).get("unsupported_sections", [])
     capability_gaps["unsupported_gdd_sections"].extend(unsupported_sections)
 
     if routing_context.get("mode") == "brownfield_expansion":
-        capability_gaps["missing_patch_contracts"].append("Phase 4 尚未实现 Brownfield Patch Contract")
-        capability_gaps["unsupported_regression_checks"].append("Phase 4 尚未实现 Brownfield Regression Contract")
+        _validate_brownfield_context(
+            dynamic_spec_tree=dynamic_spec_tree,
+            analysis_context=analysis_context,
+            errors=errors,
+            warnings=warnings,
+            capability_gaps=capability_gaps,
+        )
 
     reviewed = len(errors) == 0
     review_notes = _build_review_notes(
@@ -53,7 +72,7 @@ def review_dynamic_spec_tree(
     return {
         "status": "reviewed" if reviewed else "blocked",
         "reviewed": reviewed,
-        "reviewer": "AgentBridge.Compiler.CrossSpecReviewer.v0.4",
+        "reviewer": "AgentBridge.Compiler.CrossSpecReviewer.v0.5",
         "review_notes": review_notes,
         "errors": errors,
         "warnings": warnings,
@@ -132,6 +151,55 @@ def _validate_preview_pieces(
                 )
     elif any(actual_counts.values()):
         errors.append("GDD 显式要求不生成示例棋子，但 scene_spec 中仍存在预览棋子")
+
+
+def _validate_brownfield_context(
+    dynamic_spec_tree: Dict[str, Any],
+    analysis_context: Dict[str, Any],
+    errors: List[str],
+    warnings: List[str],
+    capability_gaps: Dict[str, List[str]],
+) -> None:
+    """检查 Brownfield delta 所需的 baseline / contract / regression 信息。"""
+    baseline_snapshot = analysis_context.get("baseline_snapshot", {})
+    delta_context = analysis_context.get("delta_context", {})
+    contract_registry = analysis_context.get("contract_registry", {})
+
+    if not baseline_snapshot.get("baseline_id"):
+        errors.append("Brownfield 模式缺少 baseline_snapshot.baseline_id")
+
+    if dynamic_spec_tree.get("tree_type") != "delta":
+        errors.append("Brownfield 模式的 dynamic_spec_tree 必须声明 tree_type=delta")
+
+    required_contract_refs = list(delta_context.get("contract_refs", []))
+    available_contract_ids = {
+        entry.get("contract_id")
+        for entry in contract_registry.get("contracts", [])
+        if entry.get("contract_id")
+    }
+
+    for contract_id in required_contract_refs:
+        if contract_id not in available_contract_ids:
+            if contract_id == "MigrationContractModel":
+                capability_gaps["missing_migration_contracts"].append(contract_id)
+            elif contract_id == "RegressionValidationContractModel":
+                capability_gaps["unsupported_regression_checks"].append(
+                    f"缺少回归 Contract: {contract_id}"
+                )
+            else:
+                capability_gaps["missing_patch_contracts"].append(contract_id)
+            errors.append(f"Brownfield 缺少必需 Contract: {contract_id}")
+
+    unsupported_items = delta_context.get("unsupported_items", [])
+    for item in unsupported_items:
+        capability_gaps["unsupported_regression_checks"].append(item)
+        errors.append(item)
+
+    if delta_context.get("delta_intent") == "append_actor" and not dynamic_spec_tree.get("scene_spec", {}).get("actors"):
+        errors.append("Brownfield append_actor 模式下 scene_spec.actors 不能为空")
+
+    if delta_context.get("delta_intent") == "no_change" and dynamic_spec_tree.get("scene_spec", {}).get("actors"):
+        warnings.append("Brownfield no_change 模式下 scene_spec.actors 应为空；当前包含多余 Actor")
 
 
 def _extract_piece_symbol(actor_name: str) -> str:

@@ -1,0 +1,13 @@
+contract_id: "RegressionValidationContractModel"
+contract_kind: "regression_validation"
+target_spec_family:
+  - "validation_spec"
+data:
+  required_checks:
+    - "existing_actor_presence"
+    - "new_actor_presence"
+    - "map_check_clean"
+  evidence_requirements:
+    - "execution_report"
+    - "phase5_screenshot_overview_oblique"
+    - "phase5_screenshot_topdown_alignment"

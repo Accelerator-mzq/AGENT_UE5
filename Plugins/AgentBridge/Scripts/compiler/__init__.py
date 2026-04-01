@@ -8,11 +8,13 @@ from . import routing
 from . import handoff
 from . import generation
 from . import review
+from . import analysis
 
 __all__ = [
     'intake',
     'routing',
     'handoff',
     'generation',
-    'review'
+    'review',
+    'analysis',
 ]

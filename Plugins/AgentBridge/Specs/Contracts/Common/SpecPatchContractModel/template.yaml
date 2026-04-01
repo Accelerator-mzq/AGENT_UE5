@@ -1,0 +1,15 @@
+contract_id: "SpecPatchContractModel"
+contract_kind: "patch"
+target_spec_family:
+  - "scene_spec"
+data:
+  target_spec: "scene_spec"
+  allowed_operations:
+    - "append_actor"
+  protected_fields:
+    - "actor_name"
+    - "actor_class"
+  validation_requirements:
+    - "actor_name_unique"
+    - "transform_triplet_valid"
+    - "existing_actor_presence"

@@ -1,0 +1,36 @@
+{
+  "status": "success",
+  "captured_items": [
+    {
+      "view": "overview_oblique",
+      "camera_location": [
+        -650.0,
+        -650.0,
+        450.0
+      ],
+      "camera_rotation": [
+        -25.0,
+        45.0,
+        0.0
+      ],
+      "source_output_path": "D:/UnrealProjects/Mvpv4TestCodex/Saved/Automation/Screenshots/phase5_task_phase5_brownfield_demo_append_piece_o_overview_oblique.png",
+      "evidence_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Evidence\\Phase5\\screenshots\\phase5_task_phase5_brownfield_demo_append_piece_o_overview_oblique.png"
+    },
+    {
+      "view": "topdown_alignment",
+      "camera_location": [
+        0.0,
+        0.0,
+        1400.0
+      ],
+      "camera_rotation": [
+        -90.0,
+        0.0,
+        0.0
+      ],
+      "source_output_path": "D:/UnrealProjects/Mvpv4TestCodex/Saved/Automation/Screenshots/phase5_task_phase5_brownfield_demo_append_piece_o_topdown_alignment.png",
+      "evidence_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Evidence\\Phase5\\screenshots\\phase5_task_phase5_brownfield_demo_append_piece_o_topdown_alignment.png"
+    }
+  ],
+  "note_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Evidence\\Phase5\\notes\\phase5_task_phase5_brownfield_demo_append_piece_o_evidence.md"
+}
