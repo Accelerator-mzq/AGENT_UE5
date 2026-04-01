@@ -26,13 +26,12 @@
 
 ## 当前阶段
 
-当前处于 **Phase 6 — 完整 Spec Tree + 可玩 Runtime**：
+当前处于 **Phase 7 — 准备期（待定义）**：
 
-- 从 [boardgame_tictactoe_v1.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectInputs/GDD/boardgame_tictactoe_v1.md) 自动编译完整 boardgame Spec Tree
-- 保留 `preview_static` 投影，继续兼容 Phase 4/5 Greenfield/Brownfield 回归
-- 新增 `runtime_playable` 投影，生成最小可玩井字棋 runtime
-- 使用项目层 `BoardgamePrototypeBoardActor` 作为运行时承载体
-- 截图证据统一走 [capture_editor_evidence.py](/D:/UnrealProjects/Mvpv4TestCodex/Scripts/validation/capture_editor_evidence.py)
+- `Phase 6` 的完整 Spec Tree、`runtime_playable`、真实 UE5 smoke 与截图证据已完成归档
+- 当前重点是冻结下一阶段目标、边界与测试编号策略
+- `preview_static` / `runtime_playable` 基线继续保留，作为下一阶段输入
+- 历史 `Phase 6` 任务见 [task4_phase6.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task4_phase6.md)
 
 ## 常用命令
 
@@ -56,7 +55,7 @@ python Scripts/run_boardgame_playable_demo.py
 Mvpv4TestCodex/
 ├── AGENTS.md
 ├── README.md
-├── task.md                              ← 当前阶段任务入口（Phase 6）
+├── task.md                              ← 当前阶段任务入口（Phase 7 准备期）
 ├── Scripts/
 │   ├── run_greenfield_demo.py
 │   ├── run_brownfield_demo.py
@@ -94,8 +93,8 @@ Mvpv4TestCodex/
 
 ## 当前约定
 
-- 根目录 `task.md` 是 Phase 6 当前唯一任务入口
-- Phase 6 测试用例先只写在 `task.md`，不提前回写 `SystemTestCases.md`
-- `ProjectState/Snapshots/` 只放 baseline / state snapshot
-- `ProjectState/Evidence/Phase6/` 放 Phase 6 当前截图、日志与说明
-- Phase 6 结束后，`task.md` 归档到 `Docs/History/Tasks/task4_phase6.md`
+- 根目录 `task.md` 是当前阶段唯一任务入口
+- `Phase 6` 已归档到 [task4_phase6.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task4_phase6.md)
+- `Phase 6` 已验证通过的用例已补录到 [SystemTestCases.md](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Tests/SystemTestCases.md)
+- `ProjectState/Snapshots/` 继续只放 baseline / state snapshot
+- `Phase 6` 历史证据归档副本位于 [phase6_evidence_2026-04-02](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/reports/AgentBridgeEvidence/phase6_evidence_2026-04-02)

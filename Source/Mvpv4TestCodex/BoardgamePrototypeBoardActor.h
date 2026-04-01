@@ -7,6 +7,7 @@
 #include "BoardgamePrototypeBoardActor.generated.h"
 
 class UTextRenderComponent;
+class UStaticMeshComponent;
 
 UCLASS()
 class MVPV4TESTCODEX_API ABoardgamePrototypeBoardActor : public AStaticMeshActor
@@ -44,6 +45,8 @@ protected:
 	FVector GetCellWorldLocation(int32 Row, int32 Col) const;
 	FString MakePieceActorName(const FString& PieceSymbol) const;
 	bool LoadConfigJson(const FString& RuntimeConfigPath, TSharedPtr<FJsonObject>& OutJson) const;
+	void ApplyBoardVisualStyle();
+	void ApplyPieceVisualStyle(UStaticMeshComponent* MeshComponent, const FString& PieceSymbol);
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "AgentBridge|Runtime")

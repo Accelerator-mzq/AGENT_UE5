@@ -1,6 +1,6 @@
 # UE5 Editor 截图取证工作流
 
-> 目标引擎版本：UE5.5.4 | 文档版本：v0.6.0 | 适用范围：AgentBridge 框架在真实 UE5 Editor 中的截图取证
+> 目标引擎版本：UE5.5.4 | 文档版本：v0.6.1 | 适用范围：AgentBridge 框架在真实 UE5 Editor 中的截图取证
 
 ## 1. 文档目的
 
@@ -100,6 +100,24 @@
   3/4 俯视总览，目标 Actor 尽量同时入镜
 - `topdown_alignment`
   顶视或近顶视，用于核对布局、相对位置和对齐关系
+
+### 5.1 棋类 / boardgame 的附加硬规则
+
+如果取证对象是棋类、boardgame、格子对位玩法或任何依赖“全局棋局可判读”的场景，则：
+
+- `topdown_alignment` 必须存在，不能省略
+- `topdown_alignment` 必须完整覆盖棋盘边界
+- `topdown_alignment` 必须让全部已生成棋子同时入镜
+- `topdown_alignment` 必须能直接判断棋子和格子 / 棋盘坐标的对应关系
+
+此时：
+
+- `overview_oblique` 负责证明 3D 场景和对象真实存在
+- `topdown_alignment` 负责证明棋局布局正确
+
+结论：
+
+- 对棋类 / boardgame，`topdown_alignment` 是硬性验收证据，不是可选补充图
 
 ## 6. 证据说明文件必须包含的信息
 

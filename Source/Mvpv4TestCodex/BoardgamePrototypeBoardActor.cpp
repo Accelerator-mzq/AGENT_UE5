@@ -9,10 +9,98 @@
 #include "Engine/StaticMeshActor.h"
 #include "GameFramework/PlayerController.h"
 #include "InputCoreTypes.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "Materials/MaterialInterface.h"
 #include "Misc/FileHelper.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 #include "UObject/ConstructorHelpers.h"
+
+namespace
+{
+	// 证据截图优先可读性：棋盘保持浅色，X/O 用高对比度颜色区分。
+	const FLinearColor BoardTintColor(0.82f, 0.82f, 0.78f, 1.0f);
+	const FLinearColor PieceXTintColor(0.14f, 0.40f, 0.90f, 1.0f);
+	const FLinearColor PieceOTintColor(0.95f, 0.46f, 0.14f, 1.0f);
+
+	UMaterialInterface* LoadBasicShapeMaterial()
+	{
+		return LoadObject<UMaterialInterface>(nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
+	}
+
+	UMaterialInterface* LoadBoardMaterial()
+	{
+		return LoadObject<UMaterialInterface>(nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial_Inst.BasicShapeMaterial_Inst"));
+	}
+
+	UMaterialInterface* LoadPieceMaterial(const FString& PieceSymbol)
+	{
+		const TCHAR* MaterialPath =
+			PieceSymbol == TEXT("O")
+				? TEXT("/Engine/TemplateResources/MI_Template_BaseOrange.MI_Template_BaseOrange")
+				: TEXT("/Engine/TemplateResources/MI_Template_BaseBlue.MI_Template_BaseBlue");
+		return LoadObject<UMaterialInterface>(nullptr, MaterialPath);
+	}
+
+	bool TryApplyTintMaterial(UStaticMeshComponent* MeshComponent, const FLinearColor& TintColor)
+	{
+		if (!MeshComponent)
+		{
+			return false;
+		}
+
+		UMaterialInterface* BaseMaterial = MeshComponent->GetMaterial(0);
+		if (!BaseMaterial)
+		{
+			BaseMaterial = LoadBasicShapeMaterial();
+		}
+		if (!BaseMaterial)
+		{
+			return false;
+		}
+
+		TArray<FMaterialParameterInfo> VectorParameterInfos;
+		TArray<FGuid> ParameterIds;
+		BaseMaterial->GetAllVectorParameterInfo(VectorParameterInfos, ParameterIds);
+
+		static const FName CandidateParameterNames[] = {
+			TEXT("Color"),
+			TEXT("BaseColor"),
+			TEXT("Tint"),
+			TEXT("TintColor"),
+		};
+
+		FName SelectedParameterName = NAME_None;
+		for (const FName& CandidateParameterName : CandidateParameterNames)
+		{
+			const bool bMatched = VectorParameterInfos.ContainsByPredicate(
+				[&CandidateParameterName](const FMaterialParameterInfo& Info)
+				{
+					return Info.Name == CandidateParameterName;
+				});
+			if (bMatched)
+			{
+				SelectedParameterName = CandidateParameterName;
+				break;
+			}
+		}
+
+		if (SelectedParameterName.IsNone())
+		{
+			return false;
+		}
+
+		UMaterialInstanceDynamic* DynamicMaterial = UMaterialInstanceDynamic::Create(BaseMaterial, MeshComponent);
+		if (!DynamicMaterial)
+		{
+			return false;
+		}
+
+		DynamicMaterial->SetVectorParameterValue(SelectedParameterName, TintColor);
+		MeshComponent->SetMaterial(0, DynamicMaterial);
+		return true;
+	}
+}
 
 ABoardgamePrototypeBoardActor::ABoardgamePrototypeBoardActor()
 {
@@ -29,6 +117,7 @@ ABoardgamePrototypeBoardActor::ABoardgamePrototypeBoardActor()
 		MeshComponent->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
 		MeshComponent->SetGenerateOverlapEvents(false);
 	}
+	ApplyBoardVisualStyle();
 
 	StatusTextComponent = CreateDefaultSubobject<UTextRenderComponent>(TEXT("StatusTextComponent"));
 	StatusTextComponent->SetupAttachment(GetStaticMeshComponent());
@@ -364,6 +453,7 @@ bool ABoardgamePrototypeBoardActor::SpawnPieceActor(int32 Row, int32 Col, const 
 		const FVector* PieceScale = PieceScaleMap.Find(PieceSymbol);
 		PieceActor->SetActorScale3D(PieceScale ? *PieceScale : FVector(0.5f, 0.5f, 0.5f));
 		MeshComponent->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
+		ApplyPieceVisualStyle(MeshComponent, PieceSymbol);
 	}
 
 	SpawnedPieces.Add(PieceActor);
@@ -420,6 +510,37 @@ FString ABoardgamePrototypeBoardActor::MakePieceActorName(const FString& PieceSy
 		}
 	}
 	return FString::Printf(TEXT("Piece%s_%d"), *PieceSymbol, PieceCount);
+}
+
+void ABoardgamePrototypeBoardActor::ApplyBoardVisualStyle()
+{
+	if (UStaticMeshComponent* MeshComponent = GetStaticMeshComponent())
+	{
+		// 棋盘保持中性底色，并尽量保留基础形状材质自带的格纹可读性。
+		if (UMaterialInterface* BoardMaterial = LoadBoardMaterial())
+		{
+			MeshComponent->SetMaterial(0, BoardMaterial);
+		}
+		TryApplyTintMaterial(MeshComponent, BoardTintColor);
+	}
+}
+
+void ABoardgamePrototypeBoardActor::ApplyPieceVisualStyle(UStaticMeshComponent* MeshComponent, const FString& PieceSymbol)
+{
+	if (!MeshComponent)
+	{
+		return;
+	}
+
+	// 棋子优先使用引擎内置的稳定彩色材质，保证证据截图里 X/O 一眼可区分。
+	if (UMaterialInterface* PieceMaterial = LoadPieceMaterial(PieceSymbol))
+	{
+		MeshComponent->SetMaterial(0, PieceMaterial);
+		return;
+	}
+
+	const FLinearColor TargetColor = PieceSymbol == TEXT("O") ? PieceOTintColor : PieceXTintColor;
+	TryApplyTintMaterial(MeshComponent, TargetColor);
 }
 
 bool ABoardgamePrototypeBoardActor::LoadConfigJson(const FString& RuntimeConfigPath, TSharedPtr<FJsonObject>& OutJson) const

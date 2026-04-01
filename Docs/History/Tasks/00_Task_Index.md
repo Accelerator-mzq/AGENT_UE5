@@ -16,3 +16,4 @@
 | Phase 3 | `Docs/History/Tasks/task1_phase3.md` | Greenfield + Reviewed Handoff 最小闭环 |
 | Phase 4 | `Docs/History/Tasks/task2_phase4.md` | Static Spec Base + 自动 Dynamic Spec 生成 |
 | Phase 5 | `Docs/History/Tasks/task3_phase5.md` | Brownfield 最小闭环 + 文档/证据治理 |
+| Phase 6 | `Docs/History/Tasks/task4_phase6.md` | 完整 Spec Tree + 可玩 Runtime + 真机截图证据闭环 |

@@ -11,8 +11,7 @@
 		}
 	],
 	"AdditionalPluginDirectories": [
-		"Plugins/AgentBridge",
-		"Plugins/AgentBridge/AgentBridgeTests"
+		"Plugins/AgentBridge"
 	],
 	"Plugins": [
 		{

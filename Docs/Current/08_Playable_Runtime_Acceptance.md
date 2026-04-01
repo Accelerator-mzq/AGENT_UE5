@@ -1,6 +1,7 @@
 # Playable Runtime 验收口径
 
-> 文档版本：L1-Phase6-v1
+> 文档版本：L1-Phase7Prep-v1  
+> 说明：本文件保留为已归档 `Phase 6` 的 playable runtime 验收参考基线
 
 ## 1. 本期“完整 Spec Tree”的最低定义
 
@@ -48,6 +49,16 @@ Phase 6 验收时，boardgame 编译结果至少要同时具备以下节点：
 - `overview_oblique`
 - `topdown_alignment`
 
+如果目标是棋类 / boardgame 场景，则 `topdown_alignment` 不是辅助图，而是必需图。  
+该截图必须同时满足以下条件：
+
+1. 能看见完整棋盘边界
+2. 能看见当前局面中的全部棋子
+3. 能直接判断棋子与格子 / 棋盘坐标的对应关系
+
+`overview_oblique` 继续作为辅助证据，用于证明 3D 场景已正确生成；  
+但它不能替代 `topdown_alignment` 对“棋局是否可判读”的验证职责。
+
 截图与说明写入：
 
 - `ProjectState/Evidence/Phase6/screenshots/`
@@ -66,3 +77,7 @@ Phase 6 验收时，boardgame 编译结果至少要同时具备以下节点：
 2. `LoadRuntimeConfigFromFile` 自动执行成功
 3. 自动落子序列后 `GetBoardRuntimeState()` 返回可解析终局
 4. `overview_oblique` 与 `topdown_alignment` 两张图落盘
+
+对于棋类 / boardgame，还必须额外满足：
+
+5. `topdown_alignment` 能完整覆盖棋盘与全部棋子，且肉眼可判断当前棋局布局是否正确

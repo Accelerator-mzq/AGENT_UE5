@@ -1,7 +1,7 @@
 # 项目基线
 
-> 文档版本：L1-Phase6-v2
-> 基线状态：Phase 5 已归档，Phase 6 已进入“完整 Spec Tree + 可玩 Runtime”阶段
+> 文档版本：L1-Phase7Prep-v1  
+> 基线状态：Phase 6 已归档，当前处于 Phase 7 准备期
 
 ## 已实装能力
 
@@ -20,36 +20,15 @@
 - `Specs/Contracts/` 已具备 Common Contract registry 与 3 类 Common Contract Model
 - `Scripts/run_greenfield_demo.py` 与 `Scripts/run_brownfield_demo.py` 已支持 simulated 最小闭环
 
-### Phase 6 当前起点已经落地的能力
+### Phase 6 已归档基线
 
-- `Skills/genre_packs/_core/` 已有：
-  - `manifest_loader.py`
-  - `registry.py`
-  - `router_base.py`
-  - `module_loader.py`
-- `Skills/genre_packs/boardgame/` 已有：
-  - 完整 `pack_manifest.yaml`
-  - `required_skills/board_layout.py`
-  - `required_skills/piece_movement.py`
-  - `required_skills/turn_system.py`
-  - `review_extensions/boardgame_reviewer.py`
-  - `validation_extensions/boardgame_validator.py`
-  - `delta_policy/boardgame_delta_policy.py`
-- `dynamic_spec_tree` 当前可生成 10 个关键节点：
-  - `world_build_spec`
-  - `boardgame_spec`
-  - `board_layout_spec`
-  - `piece_movement_spec`
-  - `turn_flow_spec`
-  - `decision_ui_spec`
-  - `runtime_wiring_spec`
-  - `validation_spec`
-  - `scene_spec`
-  - `generation_trace`
-- 项目层 `Source/Mvpv4TestCodex/BoardgamePrototypeBoardActor.*` 已提供最小 runtime actor
-- `ProjectState/RuntimeConfigs/` 已作为 runtime config 输出目录接入 handoff
-- `Scripts/run_boardgame_playable_demo.py` 已作为 Phase 6 playable runtime 主入口
+- `_core + boardgame pack` 已接入 Compiler 主链
+- `dynamic_spec_tree` 已稳定生成 10 个关键节点
+- 项目层 `BoardgamePrototypeBoardActor.*` 已提供最小 runtime actor
+- `runtime_playable` handoff 已接入 `ProjectState/RuntimeConfigs/`
+- `Scripts/run_boardgame_playable_demo.py` 已作为 playable runtime 主入口
 - `Scripts/validation/capture_editor_evidence.py` 已作为阶段无关截图脚本接入
+- `Phase 6` 真实 `bridge_rc_api` playable smoke、自动落子读回、截图证据与顶视图规则已完成闭环
 
 ## 当前架构状态
 
@@ -76,9 +55,12 @@ Design Inputs + Existing Project State
 - `python Scripts/run_brownfield_demo.py`
 - `python Scripts/run_boardgame_playable_demo.py`
 - UBT 编译 `Mvpv4TestCodexEditor` 通过
+- `Phase 6` 真机验收与截图证据已归档，见
+  [phase6_runtime_acceptance_20260402_025815.json](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/phase6_runtime_acceptance_20260402_025815.json)
 
 ## 当前限制
 
-- `runtime_playable` 目前只针对井字棋样板，不泛化到所有 boardgame
+- `runtime_playable` 仍然是井字棋样板实现，不等于通用 boardgame runtime
 - `patch / replace / migrate` 仍然只做到表达、校验与阻断
-- Phase 6 当前尚未完成真实 UE5 playable smoke 与 Phase 6 截图证据
+- Brownfield 的 runtime / turn/ui patch 仍未自动执行
+- 下一阶段功能范围尚未冻结，当前只允许继续做基线整理、稳定性观察与任务立项

@@ -1,0 +1,46 @@
+{
+  "report_type": "phase6_runtime_smoke",
+  "generated_at": "2026-04-02T02:57:56.238586",
+  "bridge_mode": "bridge_rc_api",
+  "actor_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.BoardgamePrototypeBoardActor_UAID_78465C3B14CEA2CD02_1542481487",
+  "moves": [
+    {
+      "row": 0,
+      "col": 0,
+      "response": {
+        "ReturnValue": true
+      }
+    },
+    {
+      "row": 1,
+      "col": 1,
+      "response": {
+        "ReturnValue": true
+      }
+    },
+    {
+      "row": 0,
+      "col": 1,
+      "response": {
+        "ReturnValue": true
+      }
+    },
+    {
+      "row": 2,
+      "col": 2,
+      "response": {
+        "ReturnValue": true
+      }
+    },
+    {
+      "row": 0,
+      "col": 2,
+      "response": {
+        "ReturnValue": true
+      }
+    }
+  ],
+  "runtime_state": {
+    "ReturnValue": "{\r\n\t\"current_player\": \"X\",\r\n\t\"result_state\": \"X_wins\",\r\n\t\"runtime_config_path\": \"D:\\\\UnrealProjects\\\\Mvpv4TestCodex\\\\ProjectState\\\\RuntimeConfigs\\\\runtime_handoff.boardgame.prototype.2b3c9e60.json\",\r\n\t\"rows\": 3,\r\n\t\"cols\": 3,\r\n\t\"move_count\": 5,\r\n\t\"board\": [\r\n\t\t[\r\n\t\t\t\"X\",\r\n\t\t\t\"X\",\r\n\t\t\t\"X\"\r\n\t\t],\r\n\t\t[\r\n\t\t\t\"\",\r\n\t\t\t\"O\",\r\n\t\t\t\"\"\r\n\t\t],\r\n\t\t[\r\n\t\t\t\"\",\r\n\t\t\t\"\",\r\n\t\t\t\"O\"\r\n\t\t]\r\n\t]\r\n}"
+  }
+}

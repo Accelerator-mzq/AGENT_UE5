@@ -11,8 +11,6 @@ import json
 import os
 import shutil
 import sys
-import time
-import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
@@ -26,11 +24,7 @@ from bridge.remote_control_client import call_function
 
 
 _AGENT_BRIDGE_SUBSYSTEM = "/Script/AgentBridge.Default__AgentBridgeSubsystem"
-_AUTOMATION_BP_LIBRARY = "/Script/FunctionalTesting.Default__AutomationBlueprintFunctionLibrary"
-_HIGH_RES_SCREENSHOT_DIR = os.path.join(PROJECT_ROOT, "Saved", "Screenshots", "WindowsEditor")
 _DEFAULT_SCREENSHOT_RESOLUTION: Tuple[int, int] = (1280, 720)
-_AUTOMATION_TASK_TIMEOUT_SECONDS = 45.0
-_SCREENSHOT_READY_TIMEOUT_SECONDS = 20.0
 _WORKFLOW_DOC_REF = os.path.join(
     PROJECT_ROOT,
     "Plugins",
@@ -194,7 +188,8 @@ def _build_view_configs(board_center: Sequence[float]) -> List[Dict[str, Any]]:
             "camera_location": [
                 float(board_center[0]),
                 float(board_center[1]),
-                float(board_center[2]) + 1400.0,
+                # 棋类顶视图优先让棋盘占据画面主体，保留少量边缘余量即可。
+                float(board_center[2]) + 340.0,
             ],
             "camera_rotation": [-90.0, 0.0, 0.0],
         },
@@ -212,14 +207,14 @@ def _capture_single_view(
     camera_rotation: List[float],
     screenshot_resolution: Tuple[int, int],
 ) -> Dict[str, Any]:
-    """通过临时 CameraActor 采集单张截图。"""
+    """通过编辑器活动视口采集单张截图。"""
     screenshot_name = f"{phase_name.lower()}_{task_id}_{scenario}_{view}"
-    capture_result = _capture_high_res_screenshot_with_camera(
+    capture_result = _capture_high_res_screenshot_from_viewport(
         screenshot_name=screenshot_name,
-        current_level=current_level,
         camera_location=camera_location,
         camera_rotation=camera_rotation,
         screenshot_resolution=screenshot_resolution,
+        view=view,
     )
     source_output_path = capture_result["source_output_path"]
 
@@ -229,7 +224,7 @@ def _capture_single_view(
         "view": view,
         "camera_location": camera_location,
         "camera_rotation": camera_rotation,
-        "camera_actor_path": capture_result["camera_actor_path"],
+        "camera_actor_path": capture_result.get("camera_actor_path", ""),
         "capture_backend": capture_result["capture_backend"],
         "task_object_path": capture_result["task_object_path"],
         "source_output_path": source_output_path,
@@ -239,32 +234,44 @@ def _capture_single_view(
     }
 
 
-def _capture_high_res_screenshot_with_camera(
+def _capture_high_res_screenshot_from_viewport(
     screenshot_name: str,
-    current_level: str,
     camera_location: List[float],
     camera_rotation: List[float],
     screenshot_resolution: Tuple[int, int],
+    view: str,
 ) -> Dict[str, str]:
-    """生成临时 CameraActor 并调用高分截图。"""
-    capture_started_at = time.time()
-    camera_actor_path = _spawn_temporary_camera_actor(
-        level_path=current_level,
-        actor_name=f"{screenshot_name}_ShotCam_{uuid.uuid4().hex[:8]}",
-        camera_location=camera_location,
-        camera_rotation=camera_rotation,
+    """调用项目内专用关卡视口截图接口。
+
+    该接口在同一个同步调用里完成：
+    - 设置目标机位
+    - 可选关闭动态阴影
+    - 读取关卡视口像素
+    - 恢复视口状态
+    """
+    response = call_function(
+        _AGENT_BRIDGE_SUBSYSTEM,
+        "CaptureLevelViewportScreenshot",
+        {
+            "ScreenshotName": screenshot_name,
+            "CameraLocation": {"X": camera_location[0], "Y": camera_location[1], "Z": camera_location[2]},
+            "CameraRotation": {"Pitch": camera_rotation[0], "Yaw": camera_rotation[1], "Roll": camera_rotation[2]},
+            "bUseGameView": True,
+            "bDisableDynamicShadows": view == "topdown_alignment",
+            "bUseUnlitView": view == "topdown_alignment",
+        },
     )
-    task_object_path = _start_high_res_screenshot_task(
-        screenshot_name=screenshot_name,
-        camera_actor_path=camera_actor_path,
-        screenshot_resolution=screenshot_resolution,
-    )
-    _wait_for_automation_editor_task(task_object_path)
-    output_path = _wait_for_high_res_screenshot(screenshot_name, capture_started_at)
+    normalized = _normalize_cpp_response(response)
+    if normalized.get("status") not in ("success", "warning"):
+        raise RuntimeError(f"关卡视口截图失败：{response}")
+    data = normalized.get("data", {})
+    output_path = data.get("output_path", "")
+    if not isinstance(output_path, str) or not output_path or not os.path.exists(output_path):
+        raise RuntimeError(f"关卡视口截图未返回有效输出路径：{response}")
     return {
-        "camera_actor_path": camera_actor_path,
-        "capture_backend": "AutomationBlueprintFunctionLibrary.TakeHighResScreenshot",
-        "task_object_path": task_object_path,
+        "camera_actor_path": "（活动视口机位）",
+        "capture_backend": "AgentBridgeSubsystem.CaptureLevelViewportScreenshot",
+        "task_object_path": "（同步视口截图）",
         "source_output_path": output_path,
     }
 
@@ -277,111 +284,6 @@ def _get_current_level_path() -> str:
     if not current_level:
         raise RuntimeError("无法读取当前关卡路径，不能生成截图证据。")
     return current_level
-
-
-def _spawn_temporary_camera_actor(
-    level_path: str,
-    actor_name: str,
-    camera_location: List[float],
-    camera_rotation: List[float],
-) -> str:
-    """生成仅用于截图的 CameraActor。"""
-    response = call_function(
-        _AGENT_BRIDGE_SUBSYSTEM,
-        "SpawnActor",
-        {
-            "LevelPath": level_path,
-            "ActorClass": "/Script/Engine.CameraActor",
-            "ActorName": actor_name,
-            "Transform": {
-                "Location": {"X": camera_location[0], "Y": camera_location[1], "Z": camera_location[2]},
-                "Rotation": {"Pitch": camera_rotation[0], "Yaw": camera_rotation[1], "Roll": camera_rotation[2]},
-                "RelativeScale3D": {"X": 1.0, "Y": 1.0, "Z": 1.0},
-            },
-            "bDryRun": False,
-        },
-    )
-    normalized = _normalize_cpp_response(response)
-    created_objects = normalized.get("data", {}).get("created_objects", [])
-    if not created_objects:
-        raise RuntimeError("CameraActor 生成失败，无法继续截图。")
-    return created_objects[0].get("actor_path", "")
-
-
-def _start_high_res_screenshot_task(
-    screenshot_name: str,
-    camera_actor_path: str,
-    screenshot_resolution: Tuple[int, int],
-) -> str:
-    """启动高分截图任务。"""
-    response = call_function(
-        _AUTOMATION_BP_LIBRARY,
-        "TakeHighResScreenshot",
-        {
-            "ResX": screenshot_resolution[0],
-            "ResY": screenshot_resolution[1],
-            "Filename": screenshot_name,
-            "Camera": {"objectPath": camera_actor_path},
-            "Delay": 0.2,
-            "bForceGameView": True,
-        },
-    )
-    task_object_path = response.get("ReturnValue", "")
-    if not isinstance(task_object_path, str) or not task_object_path:
-        raise RuntimeError(f"高分截图任务未返回 AutomationEditorTask 路径：{response}")
-    return task_object_path
-
-
-def _wait_for_automation_editor_task(task_object_path: str) -> None:
-    """轮询截图任务直到完成。"""
-    deadline = time.time() + _AUTOMATION_TASK_TIMEOUT_SECONDS
-    while time.time() < deadline:
-        valid_response = call_function(task_object_path, "IsValidTask", {})
-        done_response = call_function(task_object_path, "IsTaskDone", {})
-        if bool(valid_response.get("ReturnValue", False)) and bool(done_response.get("ReturnValue", False)):
-            return
-        time.sleep(0.5)
-    raise RuntimeError(f"高分截图任务超时：{task_object_path}")
-
-
-def _wait_for_high_res_screenshot(screenshot_name: str, capture_started_at: float) -> str:
-    """等待截图文件落盘。"""
-    deadline = time.time() + _SCREENSHOT_READY_TIMEOUT_SECONDS
-    expected_path = os.path.join(_HIGH_RES_SCREENSHOT_DIR, f"{screenshot_name}.png")
-    while time.time() < deadline:
-        candidate = _find_recent_screenshot_file(screenshot_name, capture_started_at, expected_path)
-        if candidate:
-            return candidate
-        time.sleep(0.25)
-    raise RuntimeError(f"高分截图未按时落盘：{expected_path}")
-
-
-def _find_recent_screenshot_file(
-    screenshot_name: str,
-    capture_started_at: float,
-    expected_path: str,
-) -> str:
-    """查找本次截图生成的最新文件。"""
-    if os.path.exists(expected_path) and os.path.getmtime(expected_path) >= capture_started_at - 0.01:
-        return expected_path
-
-    saved_screenshot_root = os.path.join(PROJECT_ROOT, "Saved", "Screenshots")
-    if not os.path.isdir(saved_screenshot_root):
-        return ""
-
-    target_file_name = f"{screenshot_name}.png"
-    latest_match = ""
-    latest_mtime = 0.0
-    for root, _, files in os.walk(saved_screenshot_root):
-        for file_name in files:
-            if file_name != target_file_name:
-                continue
-            candidate_path = os.path.join(root, file_name)
-            candidate_mtime = os.path.getmtime(candidate_path)
-            if candidate_mtime >= capture_started_at - 0.01 and candidate_mtime >= latest_mtime:
-                latest_match = candidate_path
-                latest_mtime = candidate_mtime
-    return latest_match
 
 
 def _calculate_file_sha256(file_path: str) -> str:

@@ -40,14 +40,19 @@
 #include "Misc/ScopedSlowTask.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Guid.h"
+#include "HAL/IConsoleManager.h"
 #include "HAL/FileManager.h"
 #include "HAL/PlatformProcess.h"
 #include "ImageUtils.h"
+#include "LevelEditor.h"
+#include "SLevelViewport.h"
+#include "LevelEditorViewport.h"
 #include "Modules/ModuleManager.h"
 #include "ScopedTransaction.h"
 #include "UObject/Package.h"
 
 #include "Async/Async.h"
+#include "Framework/Application/SlateApplication.h"
 
 class FPendingUIOperation
 {
@@ -107,6 +112,71 @@ public:
 
 namespace
 {
+	static FLevelEditorViewportClient* GetUsableLevelViewportClient()
+	{
+		if (!GEditor)
+		{
+			return nullptr;
+		}
+
+		for (FLevelEditorViewportClient* LevelViewportClient : GEditor->GetLevelViewportClients())
+		{
+			if (LevelViewportClient && LevelViewportClient->IsPerspective() && LevelViewportClient->Viewport)
+			{
+				return LevelViewportClient;
+			}
+		}
+
+		for (FLevelEditorViewportClient* LevelViewportClient : GEditor->GetLevelViewportClients())
+		{
+			if (LevelViewportClient && LevelViewportClient->Viewport)
+			{
+				return LevelViewportClient;
+			}
+		}
+
+		return nullptr;
+	}
+
+	static TSharedPtr<SLevelViewport> GetUsableLevelViewportWidget()
+	{
+		if (!FModuleManager::Get().IsModuleLoaded(TEXT("LevelEditor")))
+		{
+			return nullptr;
+		}
+
+		FLevelEditorModule& LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>(TEXT("LevelEditor"));
+		if (TSharedPtr<SLevelViewport> ActiveViewport = LevelEditorModule.GetFirstActiveLevelViewport())
+		{
+			return ActiveViewport;
+		}
+
+		TSharedPtr<ILevelEditor> FirstLevelEditor = LevelEditorModule.GetFirstLevelEditor();
+		if (!FirstLevelEditor.IsValid())
+		{
+			return nullptr;
+		}
+
+		const TArray<TSharedPtr<SLevelViewport>> Viewports = FirstLevelEditor->GetViewports();
+		for (const TSharedPtr<SLevelViewport>& Viewport : Viewports)
+		{
+			if (Viewport.IsValid() && Viewport->GetActiveViewport() != nullptr)
+			{
+				return Viewport;
+			}
+		}
+
+		for (const TSharedPtr<SLevelViewport>& Viewport : Viewports)
+		{
+			if (Viewport.IsValid())
+			{
+				return Viewport;
+			}
+		}
+
+		return nullptr;
+	}
+
 	// 统一给写接口响应打上 transaction 标记。
 	// 注意：bTransaction 供 C++ 逻辑/测试直接读取，RC 镜像仍只同步 Schema 声明的字段。
 	static FBridgeResponse FinalizeWriteResponse(FBridgeResponse Response)
@@ -1728,6 +1798,209 @@ FBridgeResponse UAgentBridgeSubsystem::CaptureViewportScreenshot(const FString& 
 
 	return AgentBridge::MakeSuccess(
 		FString::Printf(TEXT("Screenshot captured: %s"), *ScreenshotName), Data);
+}
+
+// ============================================================
+// 辅助接口: CaptureLevelViewportScreenshot
+// UE5 依赖: LevelEditorViewportClient + FViewport::ReadPixels
+// ============================================================
+
+FBridgeResponse UAgentBridgeSubsystem::CaptureLevelViewportScreenshot(
+	const FString& ScreenshotName,
+	const FVector& CameraLocation,
+	const FRotator& CameraRotation,
+	bool bUseGameView,
+	bool bDisableDynamicShadows,
+	bool bUseUnlitView)
+{
+	FBridgeResponse ValidationError;
+	if (!AgentBridge::ValidateRequiredString(ScreenshotName, TEXT("ScreenshotName"), ValidationError)) return ValidationError;
+	if (!AgentBridge::IsEditorReady(ValidationError)) return ValidationError;
+
+	FLevelEditorViewportClient* LevelViewportClient = GetUsableLevelViewportClient();
+	if (!LevelViewportClient)
+	{
+		return AgentBridge::MakeFailed(
+			TEXT("Capture level viewport screenshot failed"),
+			EBridgeErrorCode::ToolExecutionFailed,
+			TEXT("Usable level viewport client not available"));
+	}
+
+	FViewport* TargetViewport = LevelViewportClient->Viewport;
+	if (!TargetViewport)
+	{
+		return AgentBridge::MakeFailed(
+			TEXT("Capture level viewport screenshot failed"),
+			EBridgeErrorCode::ToolExecutionFailed,
+			TEXT("Level viewport is null"));
+	}
+
+	const FVector OriginalLocation = LevelViewportClient->GetViewLocation();
+	const FRotator OriginalRotation = LevelViewportClient->GetViewRotation();
+	const bool bOriginalGameView = LevelViewportClient->IsInGameView();
+	const bool bOriginalDynamicShadows = LevelViewportClient->EngineShowFlags.DynamicShadows;
+	const EViewModeIndex OriginalViewMode = LevelViewportClient->GetViewMode();
+	FLevelEditorViewportClient* const OriginalCurrentLevelViewportClient = GCurrentLevelEditingViewportClient;
+
+	GCurrentLevelEditingViewportClient = LevelViewportClient;
+	LevelViewportClient->SetViewLocationForOrbiting(CameraLocation);
+	LevelViewportClient->SetViewLocation(CameraLocation);
+	LevelViewportClient->SetViewRotation(CameraRotation);
+	LevelViewportClient->SetGameView(bUseGameView);
+	if (bUseUnlitView)
+	{
+		// 证据截图优先保证棋盘与棋子的格位关系清晰可读，不追求场景真实光照。
+		LevelViewportClient->SetViewMode(VMI_Unlit);
+	}
+	if (bDisableDynamicShadows)
+	{
+		LevelViewportClient->EngineShowFlags.SetDynamicShadows(false);
+	}
+
+	// 直接绘制目标视口，确保读像素前机位和显示标志已经生效。
+	TargetViewport->Draw();
+	FSlateApplication::Get().Tick();
+	FPlatformProcess::Sleep(0.05f);
+	TargetViewport->Draw();
+
+	FBridgeResponse CaptureResponse;
+	{
+		const FIntPoint ViewportSize = TargetViewport->GetSizeXY();
+		if (ViewportSize.X <= 0 || ViewportSize.Y <= 0)
+		{
+			CaptureResponse = AgentBridge::MakeFailed(
+				TEXT("Capture level viewport screenshot failed"),
+				EBridgeErrorCode::ToolExecutionFailed,
+				FString::Printf(TEXT("Invalid viewport size: %d x %d"), ViewportSize.X, ViewportSize.Y));
+		}
+		else
+		{
+			TArray<FColor> Bitmap;
+			if (!TargetViewport->ReadPixels(Bitmap))
+			{
+				CaptureResponse = AgentBridge::MakeFailed(
+					TEXT("Capture level viewport screenshot failed"),
+					EBridgeErrorCode::ToolExecutionFailed,
+					TEXT("ReadPixels failed on level viewport"));
+			}
+			else
+			{
+				for (FColor& Pixel : Bitmap)
+				{
+					Pixel.A = 255;
+				}
+
+				FString ScreenshotDir = FPaths::AutomationDir() / TEXT("Screenshots");
+				FString FullPath = ScreenshotDir / (ScreenshotName + TEXT(".png"));
+
+				IFileManager::Get().MakeDirectory(*ScreenshotDir, true);
+				IFileManager::Get().Delete(*FullPath, false, true, true);
+
+				TArray64<uint8> PngData;
+				const TArrayView64<const FColor> BitmapView(Bitmap.GetData(), static_cast<int64>(Bitmap.Num()));
+				FImageUtils::PNGCompressImageArray(ViewportSize.X, ViewportSize.Y, BitmapView, PngData);
+
+				if (PngData.Num() <= 0)
+				{
+					CaptureResponse = AgentBridge::MakeFailed(
+						TEXT("Capture level viewport screenshot failed"),
+						EBridgeErrorCode::ToolExecutionFailed,
+						TEXT("PNG encoding failed"));
+				}
+				else if (!FFileHelper::SaveArrayToFile(PngData, *FullPath))
+				{
+					CaptureResponse = AgentBridge::MakeFailed(
+						TEXT("Capture level viewport screenshot failed"),
+						EBridgeErrorCode::ToolExecutionFailed,
+						FString::Printf(TEXT("SaveArrayToFile failed: %s"), *FullPath));
+				}
+				else
+				{
+					TSharedPtr<FJsonObject> Data = MakeShareable(new FJsonObject());
+					Data->SetStringField(TEXT("screenshot_name"), ScreenshotName);
+					Data->SetStringField(TEXT("output_path"), FullPath);
+					Data->SetArrayField(TEXT("camera_location"), {
+						MakeShareable(new FJsonValueNumber(CameraLocation.X)),
+						MakeShareable(new FJsonValueNumber(CameraLocation.Y)),
+						MakeShareable(new FJsonValueNumber(CameraLocation.Z))
+					});
+					Data->SetArrayField(TEXT("camera_rotation"), {
+						MakeShareable(new FJsonValueNumber(CameraRotation.Pitch)),
+						MakeShareable(new FJsonValueNumber(CameraRotation.Yaw)),
+						MakeShareable(new FJsonValueNumber(CameraRotation.Roll))
+					});
+					Data->SetBoolField(TEXT("game_view"), bUseGameView);
+					Data->SetBoolField(TEXT("dynamic_shadows_disabled"), bDisableDynamicShadows);
+					Data->SetBoolField(TEXT("unlit_view_enabled"), bUseUnlitView);
+					CaptureResponse = AgentBridge::MakeSuccess(
+						FString::Printf(TEXT("Level viewport screenshot captured: %s"), *ScreenshotName),
+						Data);
+				}
+			}
+		}
+	}
+
+	// 无论截图成功或失败，都把视口状态恢复，避免污染用户会话。
+	LevelViewportClient->SetViewLocationForOrbiting(OriginalLocation);
+	LevelViewportClient->SetViewLocation(OriginalLocation);
+	LevelViewportClient->SetViewRotation(OriginalRotation);
+	LevelViewportClient->SetGameView(bOriginalGameView);
+	LevelViewportClient->SetViewMode(OriginalViewMode);
+	LevelViewportClient->EngineShowFlags.SetDynamicShadows(bOriginalDynamicShadows);
+	GCurrentLevelEditingViewportClient = OriginalCurrentLevelViewportClient;
+	TargetViewport->Draw();
+	FSlateApplication::Get().Tick();
+
+	return CaptureResponse;
+}
+
+// ============================================================
+// 辅助接口: ExecuteEditorConsoleCommand
+// UE5 依赖: IConsoleManager::ProcessUserConsoleInput + GEditor->Exec
+// ============================================================
+
+FBridgeResponse UAgentBridgeSubsystem::ExecuteEditorConsoleCommand(const FString& Command)
+{
+	FBridgeResponse ValidationError;
+	if (!AgentBridge::ValidateRequiredString(Command, TEXT("Command"), ValidationError)) return ValidationError;
+	if (!AgentBridge::IsEditorReady(ValidationError)) return ValidationError;
+
+	UWorld* EditorWorld = GetEditorWorld();
+	if (!EditorWorld)
+	{
+		return AgentBridge::MakeFailed(
+			TEXT("Execute editor console command failed"),
+			EBridgeErrorCode::EditorNotReady,
+			TEXT("Editor world is null"));
+	}
+
+	// 先走控制台管理器，确保即使某些 Exec 路由未挂上，也能尽量命中控制台变量/命令。
+	bool bProcessed = IConsoleManager::Get().ProcessUserConsoleInput(*Command, *GLog, EditorWorld);
+
+	// 如果控制台管理器没接住，再回退到 Editor Exec。
+	if (!bProcessed)
+	{
+		bProcessed = GEditor->Exec(EditorWorld, *Command);
+	}
+
+	if (!bProcessed)
+	{
+		return AgentBridge::MakeFailed(
+			TEXT("Execute editor console command failed"),
+			EBridgeErrorCode::ToolExecutionFailed,
+			FString::Printf(TEXT("Command was not accepted by the editor: %s"), *Command));
+	}
+
+	// 控制台命令会影响当前编辑器视口状态，立即刷新可减少截图链路读取到旧帧的概率。
+	GEditor->RedrawLevelEditingViewports();
+
+	TSharedPtr<FJsonObject> Data = MakeShareable(new FJsonObject());
+	Data->SetStringField(TEXT("command"), Command);
+	Data->SetBoolField(TEXT("executed"), true);
+
+	return AgentBridge::MakeSuccess(
+		FString::Printf(TEXT("Editor console command executed: %s"), *Command),
+		Data);
 }
 
 // ============================================================
