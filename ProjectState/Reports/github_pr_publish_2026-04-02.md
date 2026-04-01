@@ -4,8 +4,8 @@
 
 - 分支：
   `feat/phase6-archive-and-followups`
-- 最新提交：
-  `751ed416c3c0357bf814cad97a23ded329343a58`
+- 主功能提交：
+  `5a4ce2370761935821abd03ea4872271f964db4d`
 - 远端推送：
   已推送到 `origin/feat/phase6-archive-and-followups`
 - Pull Request：
