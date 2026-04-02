@@ -18,3 +18,4 @@
 | Phase 5 | `Docs/History/Tasks/task3_phase5.md` | Brownfield 最小闭环 + 文档/证据治理 |
 | Phase 6 | `Docs/History/Tasks/task4_phase6.md` | 完整 Spec Tree + 可玩 Runtime + 真机截图证据闭环 |
 | Phase 7 准备期 | `Docs/History/Tasks/task5_phase7_preparation.md` | 正式开发前的目标冻结、边界梳理与编号策略确认 |
+| Phase 7 | `Docs/History/Tasks/task6_phase7.md` | 治理闭环 + JRPG 第二类型包 + P1 收敛完成 |
