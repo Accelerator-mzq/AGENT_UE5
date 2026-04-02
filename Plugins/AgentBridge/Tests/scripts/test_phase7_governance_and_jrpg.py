@@ -6,11 +6,12 @@ Phase 7 治理闭环 + JRPG 第二类型包测试
 
 from __future__ import annotations
 
-import inspect
 import json
 import os
+import re
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 
 
@@ -358,29 +359,169 @@ class TestPhase7GovernanceAndJRPG:
         assert "execution_report_" in output
         assert "succeeded" in output
 
-    def test_e2e35_jrpg_real_ue5_smoke_entry_exists_and_parameters_are_usable(self, project_root):
-        """E2E-35: JRPG 真实 UE5 smoke 入口存在且参数可用。"""
-        import Scripts.run_jrpg_turn_based_demo as jrpg_demo
+    def test_e2e35_jrpg_real_ue5_smoke_succeeds_and_writes_evidence(self, project_root):
+        """E2E-35: JRPG 真实 UE5 smoke 成功并写出 6 张证据图。"""
+        result = _run_python_script(
+            project_root,
+            "run_jrpg_turn_based_demo.py",
+            "bridge_rc_api",
+            "greenfield_bootstrap",
+        )
+        output = f"{result.stdout}\n{result.stderr}"
 
-        signature = inspect.signature(jrpg_demo.run_jrpg_turn_based_demo)
-        script_path = os.path.join(project_root, "Scripts", "run_jrpg_turn_based_demo.py")
-        with open(script_path, "r", encoding="utf-8") as file:
-            source_text = file.read()
+        assert result.returncode == 0, output
 
-        assert os.path.exists(script_path)
-        assert list(signature.parameters.keys()) == ["bridge_mode", "mode"]
-        assert "run_jrpg_turn_based_demo(bridge_mode=selected_bridge_mode, mode=selected_mode)" in source_text
-        assert 'selected_mode = "greenfield_bootstrap"' in source_text
+        smoke_report_path = _extract_report_path_from_output(output, "PHASE7_SMOKE_REPORT")
+        acceptance_report_path = _extract_report_path_from_output(output, "PHASE7_ACCEPTANCE_REPORT")
+
+        assert smoke_report_path and os.path.exists(smoke_report_path), output
+        assert acceptance_report_path and os.path.exists(acceptance_report_path), output
+
+        smoke_report = _load_json(smoke_report_path)
+        acceptance_report = _load_json(acceptance_report_path)
+        check_details = acceptance_report["checks"]["E2E-35"]["details"]
+
+        assert smoke_report["report_type"] == "phase7_jrpg_runtime_smoke"
+        assert smoke_report["bridge_mode"] == "bridge_rc_api"
+        assert smoke_report["mode"] == "greenfield_bootstrap"
+        assert smoke_report["rc_ready"] is True
+        assert smoke_report["overall_status"] == "passed"
+        assert smoke_report["layout_assertions"]["overall_passed"] is True
+        assert smoke_report["structure_assertions"]["overall_passed"] is True
+
+        for actor_name in ["BattleArena", "HeroUnit_1", "EnemyUnit_1", "CommandMenuAnchor"]:
+            assert smoke_report["actor_presence"][actor_name]["status"] == "passed"
+
+        assert acceptance_report["report_type"] == "phase7_jrpg_runtime_acceptance"
+        assert acceptance_report["overall_status"] == "passed"
+        assert acceptance_report["checks"]["E2E-35"]["status"] == "passed"
+
+        for key in [
+            "overview_oblique",
+            "topdown_alignment",
+            "actor_battlearena_closeup",
+            "actor_herounit_1_closeup",
+            "actor_enemyunit_1_closeup",
+            "actor_commandmenuanchor_closeup",
+        ]:
+            screenshot_path = check_details["screenshots"][key]
+            assert screenshot_path and os.path.exists(screenshot_path)
+
+        assert check_details["note_path"] and os.path.exists(check_details["note_path"])
+        assert check_details["log_path"] and os.path.exists(check_details["log_path"])
 
     def test_e2e36_boardgame_regression_entries_remain_runnable(self, project_root):
         """E2E-36: boardgame 回归仍保持可跑。"""
-        greenfield = _run_python_script(project_root, "run_greenfield_demo.py", "simulated")
-        brownfield = _run_python_script(project_root, "run_brownfield_demo.py", "simulated")
-        playable = _run_python_script(project_root, "run_boardgame_playable_demo.py", "simulated")
+        greenfield, greenfield_reports = _run_python_script_and_collect_reports(
+            project_root,
+            "run_greenfield_demo.py",
+            "simulated",
+        )
+        brownfield, brownfield_reports = _run_python_script_and_collect_reports(
+            project_root,
+            "run_brownfield_demo.py",
+            "simulated",
+        )
+        playable, playable_reports = _run_python_script_and_collect_reports(
+            project_root,
+            "run_boardgame_playable_demo.py",
+            "simulated",
+        )
 
         assert greenfield.returncode == 0, f"{greenfield.stdout}\n{greenfield.stderr}"
         assert brownfield.returncode == 0, f"{brownfield.stdout}\n{brownfield.stderr}"
         assert playable.returncode == 0, f"{playable.stdout}\n{playable.stderr}"
+
+        greenfield_execution_report = _find_single_report(
+            greenfield_reports, "execution_report_handoff.boardgame.prototype."
+        )
+        brownfield_execution_report = _find_single_report(
+            brownfield_reports, "execution_report_handoff.boardgame.prototype."
+        )
+        playable_execution_report = _find_single_report(
+            playable_reports, "execution_report_handoff.boardgame.prototype."
+        )
+
+        for report_path in [
+            greenfield_execution_report,
+            brownfield_execution_report,
+            playable_execution_report,
+        ]:
+            report = _load_json(report_path)
+            assert report["report_type"] == "execution_report"
+            assert report["execution_status"] == "succeeded"
+            assert report["regression_summary"]["status"] == "captured"
+            assert report["snapshot_ref"] and os.path.exists(report["snapshot_ref"])
+            assert report["promotion_status"]["current_state"] == "approved"
+            assert report["promotion_status"]["snapshot_ref"] and os.path.exists(
+                report["promotion_status"]["snapshot_ref"]
+            )
+            assert len(report["promotion_status"]["transitions"]) >= 2
+
+        playable_acceptance_report = _find_single_report(playable_reports, "phase6_runtime_acceptance_")
+        playable_acceptance = _load_json(playable_acceptance_report)
+        assert playable_acceptance["report_type"] == "phase6_runtime_acceptance"
+        assert playable_acceptance["overall_status"] == "passed"
+
+    def test_phase7_governance_audit_summary_can_cover_execution_report(
+        self, compiler_module, project_root, workspace_tmp_path
+    ):
+        """Phase 7 附加校验：治理审计摘要可统一覆盖 snapshot 与 promotion。"""
+        from Scripts.validation.phase7_governance_audit import write_governance_audit_summary
+
+        _, result = _execute_jrpg_handoff_simulated(project_root, workspace_tmp_path)
+        written = write_governance_audit_summary(
+            str(workspace_tmp_path / "reports"),
+            "phase7_pytest_governance_audit",
+            [("jrpg_simulated", result["report_path"], None)],
+        )
+
+        assert os.path.exists(written["json_path"])
+        assert os.path.exists(written["md_path"])
+        audit_payload = _load_json(written["json_path"])
+        assert audit_payload["report_type"] == "phase7_governance_audit_summary"
+        assert audit_payload["overall_status"] == "passed"
+        assert audit_payload["entries"][0]["checks"]["snapshot_manifest_complete"]["passed"] is True
+        assert audit_payload["entries"][0]["checks"]["promotion_status_complete"]["passed"] is True
+
+    def test_phase7_jrpg_pack_consistency_payload_is_stable(self, compiler_module, project_root):
+        """Phase 7 附加校验：JRPG pack 一致性负载能证明三条入口复用同一骨架。"""
+        from compiler.intake import read_gdd
+        from Plugins.AgentBridge.Skills.genre_packs._core import (
+            load_pack_manifest,
+            load_pack_modules,
+            resolve_active_pack,
+        )
+        from Scripts.validation.phase7_governance_audit import build_jrpg_pack_consistency_payload
+
+        greenfield_handoff = _build_jrpg_handoff(project_root, mode="greenfield_bootstrap")
+        brownfield_handoff = _build_jrpg_handoff(
+            project_root,
+            mode="brownfield_expansion",
+            project_state=_build_synthetic_jrpg_project_state(),
+        )
+        smoke_handoff = _build_jrpg_handoff(project_root, mode="greenfield_bootstrap")
+        design_input = read_gdd(_jrpg_gdd_path(project_root))
+        router_results = {
+            "greenfield": resolve_active_pack(design_input=design_input, routing_context=greenfield_handoff["routing_context"]),
+            "brownfield": resolve_active_pack(design_input=design_input, routing_context=brownfield_handoff["routing_context"]),
+            "smoke": resolve_active_pack(design_input=design_input, routing_context=smoke_handoff["routing_context"]),
+        }
+        pack_manifest = load_pack_manifest(_jrpg_manifest_path(project_root))
+        pack_modules = load_pack_modules(pack_manifest)
+
+        payload = build_jrpg_pack_consistency_payload(
+            greenfield_handoff=greenfield_handoff,
+            brownfield_handoff=brownfield_handoff,
+            smoke_handoff=smoke_handoff,
+            router_results=router_results,
+            pack_modules=pack_modules,
+        )
+
+        assert payload["report_type"] == "phase7_jrpg_pack_consistency"
+        assert payload["overall_status"] == "passed"
+        assert payload["checks"]["all_paths_use_same_pack_id"]["passed"] is True
+        assert payload["checks"]["router_always_hits_jrpg_pack"]["passed"] is True
 
 
 def _jrpg_manifest_path(project_root: str) -> str:
@@ -510,3 +651,58 @@ def _run_python_script(project_root: str, script_name: str, *args: str) -> subpr
         encoding="utf-8",
         errors="replace",
     )
+
+
+def _run_python_script_and_collect_reports(
+    project_root: str,
+    script_name: str,
+    *args: str,
+) -> tuple[subprocess.CompletedProcess, list[str]]:
+    """运行 demo 脚本，并收集本次新增的 report 文件。"""
+    dated_report_dir = os.path.join(
+        project_root,
+        "ProjectState",
+        "Reports",
+        datetime.now().strftime("%Y-%m-%d"),
+    )
+    os.makedirs(dated_report_dir, exist_ok=True)
+
+    before_files = {
+        os.path.join(dated_report_dir, file_name)
+        for file_name in os.listdir(dated_report_dir)
+        if file_name.endswith(".json")
+    }
+    result = _run_python_script(project_root, script_name, *args)
+    after_files = {
+        os.path.join(dated_report_dir, file_name)
+        for file_name in os.listdir(dated_report_dir)
+        if file_name.endswith(".json")
+    }
+    new_files = sorted(list(after_files - before_files), key=os.path.getmtime)
+    return result, new_files
+
+
+def _find_single_report(report_paths: list[str], file_name_prefix: str) -> str:
+    """从本轮新增报告里按前缀挑出唯一目标文件。"""
+    matches = [
+        report_path
+        for report_path in report_paths
+        if os.path.basename(report_path).startswith(file_name_prefix)
+    ]
+    assert matches, f"未找到报告前缀: {file_name_prefix}，已有: {report_paths}"
+    assert len(matches) == 1, f"报告前缀匹配不唯一: {file_name_prefix}，命中: {matches}"
+    return matches[0]
+
+
+def _extract_report_path_from_output(output: str, marker: str) -> str:
+    """从 demo 脚本标准输出中提取结构化报告路径。"""
+    match = re.search(rf"{marker}=(.+)", output)
+    if not match:
+        return ""
+    return match.group(1).strip()
+
+
+def _load_json(file_path: str) -> dict:
+    """读取 JSON 文件。"""
+    with open(file_path, "r", encoding="utf-8") as file:
+        return json.load(file)

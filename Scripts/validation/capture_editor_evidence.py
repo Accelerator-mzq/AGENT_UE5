@@ -64,6 +64,7 @@ def capture_editor_scene_evidence(
     board_center: Optional[List[float]] = None,
     rc_info_path: Optional[str] = None,
     screenshot_resolution: Tuple[int, int] = _DEFAULT_SCREENSHOT_RESOLUTION,
+    custom_view_configs: Optional[List[Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
     """采集当前阶段固定两视角截图。"""
     directories = ensure_evidence_dirs(phase_name)
@@ -71,7 +72,9 @@ def capture_editor_scene_evidence(
     current_level = _get_current_level_path()
     captured_items: List[Dict[str, Any]] = []
 
-    for view_config in _build_view_configs(resolved_board_center):
+    # 支持调用方覆写视角配置，便于 Phase 7 这类“整体图 + 单体图”组合证据复用同一工作流。
+    view_configs = custom_view_configs or _build_view_configs(resolved_board_center)
+    for view_config in view_configs:
         captured_items.append(
             _capture_single_view(
                 phase_name=phase_name,
@@ -83,6 +86,9 @@ def capture_editor_scene_evidence(
                 camera_location=view_config["camera_location"],
                 camera_rotation=view_config["camera_rotation"],
                 screenshot_resolution=screenshot_resolution,
+                use_game_view=bool(view_config.get("use_game_view", True)),
+                disable_dynamic_shadows=bool(view_config.get("disable_dynamic_shadows", False)),
+                use_unlit_view=bool(view_config.get("use_unlit_view", False)),
             )
         )
 
@@ -182,6 +188,9 @@ def _build_view_configs(board_center: Sequence[float]) -> List[Dict[str, Any]]:
                 float(board_center[2]) + 450.0,
             ],
             "camera_rotation": [-25.0, 45.0, 0.0],
+            "use_game_view": True,
+            "disable_dynamic_shadows": False,
+            "use_unlit_view": False,
         },
         {
             "view": "topdown_alignment",
@@ -192,6 +201,9 @@ def _build_view_configs(board_center: Sequence[float]) -> List[Dict[str, Any]]:
                 float(board_center[2]) + 340.0,
             ],
             "camera_rotation": [-90.0, 0.0, 0.0],
+            "use_game_view": True,
+            "disable_dynamic_shadows": True,
+            "use_unlit_view": True,
         },
     ]
 
@@ -206,6 +218,9 @@ def _capture_single_view(
     camera_location: List[float],
     camera_rotation: List[float],
     screenshot_resolution: Tuple[int, int],
+    use_game_view: bool,
+    disable_dynamic_shadows: bool,
+    use_unlit_view: bool,
 ) -> Dict[str, Any]:
     """通过编辑器活动视口采集单张截图。"""
     screenshot_name = f"{phase_name.lower()}_{task_id}_{scenario}_{view}"
@@ -215,6 +230,9 @@ def _capture_single_view(
         camera_rotation=camera_rotation,
         screenshot_resolution=screenshot_resolution,
         view=view,
+        use_game_view=use_game_view,
+        disable_dynamic_shadows=disable_dynamic_shadows,
+        use_unlit_view=use_unlit_view,
     )
     source_output_path = capture_result["source_output_path"]
 
@@ -240,6 +258,9 @@ def _capture_high_res_screenshot_from_viewport(
     camera_rotation: List[float],
     screenshot_resolution: Tuple[int, int],
     view: str,
+    use_game_view: bool,
+    disable_dynamic_shadows: bool,
+    use_unlit_view: bool,
 ) -> Dict[str, str]:
     """调用项目内专用关卡视口截图接口。
 
@@ -256,9 +277,9 @@ def _capture_high_res_screenshot_from_viewport(
             "ScreenshotName": screenshot_name,
             "CameraLocation": {"X": camera_location[0], "Y": camera_location[1], "Z": camera_location[2]},
             "CameraRotation": {"Pitch": camera_rotation[0], "Yaw": camera_rotation[1], "Roll": camera_rotation[2]},
-            "bUseGameView": True,
-            "bDisableDynamicShadows": view == "topdown_alignment",
-            "bUseUnlitView": view == "topdown_alignment",
+            "bUseGameView": use_game_view,
+            "bDisableDynamicShadows": disable_dynamic_shadows,
+            "bUseUnlitView": use_unlit_view,
         },
     )
     normalized = _normalize_cpp_response(response)

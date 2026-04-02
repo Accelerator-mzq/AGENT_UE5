@@ -36,9 +36,11 @@ Docs/History/reports/
 image/
 
 # ProjectState / 测试运行产物
+ProjectState/Evidence/
 ProjectState/Handoffs/draft/
 ProjectState/Handoffs/approved/
 ProjectState/RuntimeConfigs/
+ProjectState/Snapshots/
 ProjectState/Temp/
 ProjectState/Snapshots/*.20*.syntheti.yaml
 TestArtifacts/
