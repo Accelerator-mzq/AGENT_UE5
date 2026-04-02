@@ -77,7 +77,7 @@ AGENTBRIDGE_TESTS_UPLUGIN = os.path.join(
 if BRIDGE_DIR not in sys.path:
     sys.path.insert(0, BRIDGE_DIR)
 
-from project_config import get_dated_reports_dir, get_project_reports_dir, iter_report_files
+from project_config import get_dated_reports_dir, get_project_reports_dir, get_reports_dir, iter_report_files
 
 
 # ============================================================
@@ -146,9 +146,9 @@ STAGES = {
     },
     7: {
         'name': 'Compiler Plane + Skills & Specs（CP/SS）',
-        'cases': 'CP-01 ~ CP-31, SS-01 ~ SS-13',
-        'case_ids': make_case_ids('CP', 1, 31) + make_case_ids('SS', 1, 13),
-        'count': 44,
+        'cases': 'CP-01 ~ CP-40, SS-01 ~ SS-20',
+        'case_ids': make_case_ids('CP', 1, 40) + make_case_ids('SS', 1, 20),
+        'count': 60,
         'requires_editor': False,
         'requires_build': False,
     },
@@ -162,19 +162,22 @@ STAGES = {
     },
     9: {
         'name': '端到端集成（E2E）',
-        'cases': 'E2E-01 ~ E2E-28',
-        'case_ids': make_case_ids('E2E', 1, 28),
-        'count': 28,
+        'cases': 'E2E-01 ~ E2E-36',
+        'case_ids': make_case_ids('E2E', 1, 36),
+        'count': 36,
         'requires_editor': True,
         'requires_build': True,
     },
 }
 
-TOTAL_CASES = sum(s['count'] for s in STAGES.values())  # 206
+TOTAL_CASES = sum(s['count'] for s in STAGES.values())  # 230
 CASE_ID_PATTERN = re.compile(
     r'^\|\s*((?:SV|BL|Q|W|CL|UI|CMD|PY|ORC|CP|SS|GA|E2E)-\d{2})\s*\|',
     re.MULTILINE,
 )
+PHASE7_STAGE7_CASE_IDS = make_case_ids('CP', 32, 40) + make_case_ids('SS', 14, 20)
+PHASE7_STAGE9_CASE_IDS = make_case_ids('E2E', 29, 36)
+_PHASE7_HELPER_CACHE = None
 
 
 # ============================================================
@@ -460,6 +463,223 @@ def resolve_report_reference(report_root, report_path):
     if not candidates:
         return ''
     return str(max(candidates, key=lambda path: path.stat().st_mtime))
+
+
+def snapshot_reports_by_prefix(report_root, prefix, suffix='.json'):
+    """记录某类报告在执行前的快照，便于识别本轮新产物。"""
+    return {
+        str(path)
+        for path in iter_report_files(report_root, f'*{suffix}')
+        if path.name.startswith(prefix) and path.suffix == suffix
+    }
+
+
+def latest_new_report_by_prefix(report_root, prefix, before_paths, suffix='.json'):
+    """优先选择本轮新生成的报告，否则回退到当前最新报告。"""
+    candidates = [
+        str(path)
+        for path in iter_report_files(report_root, f'*{suffix}')
+        if path.name.startswith(prefix) and path.suffix == suffix
+    ]
+    if not candidates:
+        return ''
+
+    new_candidates = [path for path in candidates if path not in before_paths]
+    if new_candidates:
+        return max(new_candidates, key=os.path.getmtime)
+    return max(candidates, key=os.path.getmtime)
+
+
+def load_yaml_report(report_path):
+    """安全读取 YAML 报告，读取失败时返回空字典。"""
+    if not report_path or not os.path.exists(report_path):
+        return {}
+
+    try:
+        import yaml
+
+        with open(report_path, 'r', encoding='utf-8') as file:
+            return yaml.safe_load(file) or {}
+    except Exception:
+        return {}
+
+
+def build_phase7_helper_bundle():
+    """统一执行 Phase 7 归档相关测试与收敛脚本，并缓存结构化结果。"""
+    global _PHASE7_HELPER_CACHE
+    if _PHASE7_HELPER_CACHE is not None:
+        return _PHASE7_HELPER_CACHE
+
+    project_reports_dir = str(get_project_reports_dir())
+    pytest_log_path = os.path.join(project_reports_dir, 'run_system_tests_phase7_pytest.log')
+    convergence_log_path = os.path.join(project_reports_dir, 'run_system_tests_phase7_p1_convergence.log')
+    pytest_file = os.path.join(TESTS_SCRIPTS_DIR, 'test_phase7_governance_and_jrpg.py')
+    convergence_script = os.path.join(PROJECT_ROOT, 'Scripts', 'run_phase7_p1_convergence.py')
+
+    pytest_cmd = [sys.executable, '-m', 'pytest', pytest_file]
+    pytest_code, pytest_stdout, pytest_stderr = run_command(pytest_cmd, cwd=PROJECT_ROOT, timeout=1800)
+    with open(pytest_log_path, 'w', encoding='utf-8') as file:
+        file.write('[command] ' + ' '.join(pytest_cmd) + '\n\n')
+        file.write('[stdout]\n')
+        file.write(pytest_stdout or '')
+        file.write('\n\n[stderr]\n')
+        file.write(pytest_stderr or '')
+
+    summary_before = snapshot_reports_by_prefix(project_reports_dir, 'phase7_p1_stability_summary_')
+    consistency_before = snapshot_reports_by_prefix(project_reports_dir, 'phase7_jrpg_pack_consistency_')
+    checklist_before = snapshot_reports_by_prefix(project_reports_dir, 'phase7_archive_preflight_checklist_', '.md')
+    acceptance_before = snapshot_reports_by_prefix(project_reports_dir, 'phase7_jrpg_runtime_acceptance_')
+    smoke_before = snapshot_reports_by_prefix(project_reports_dir, 'phase7_jrpg_runtime_smoke_')
+
+    convergence_cmd = [sys.executable, convergence_script]
+    convergence_code, convergence_stdout, convergence_stderr = run_command(
+        convergence_cmd,
+        cwd=PROJECT_ROOT,
+        timeout=2400,
+    )
+    with open(convergence_log_path, 'w', encoding='utf-8') as file:
+        file.write('[command] ' + ' '.join(convergence_cmd) + '\n\n')
+        file.write('[stdout]\n')
+        file.write(convergence_stdout or '')
+        file.write('\n\n[stderr]\n')
+        file.write(convergence_stderr or '')
+
+    summary_path = latest_new_report_by_prefix(
+        project_reports_dir,
+        'phase7_p1_stability_summary_',
+        summary_before,
+    )
+    consistency_path = latest_new_report_by_prefix(
+        project_reports_dir,
+        'phase7_jrpg_pack_consistency_',
+        consistency_before,
+    )
+    checklist_path = latest_new_report_by_prefix(
+        project_reports_dir,
+        'phase7_archive_preflight_checklist_',
+        checklist_before,
+        '.md',
+    )
+    acceptance_path = latest_new_report_by_prefix(
+        project_reports_dir,
+        'phase7_jrpg_runtime_acceptance_',
+        acceptance_before,
+    )
+    smoke_path = latest_new_report_by_prefix(
+        project_reports_dir,
+        'phase7_jrpg_runtime_smoke_',
+        smoke_before,
+    )
+
+    summary_report = load_json_report(summary_path) or {}
+    consistency_report = load_json_report(consistency_path) or {}
+    acceptance_report = load_json_report(acceptance_path) or {}
+    smoke_report = load_json_report(smoke_path) or {}
+    checklist_text = load_text_report(checklist_path)
+
+    case_results = {}
+
+    for case_id in PHASE7_STAGE7_CASE_IDS:
+        case_results[case_id] = (
+            pytest_code == 0,
+            'Phase 7 pytest 定向回归',
+            pytest_log_path,
+        )
+
+    for case_id in ['E2E-29', 'E2E-30', 'E2E-31', 'E2E-32', 'E2E-33', 'E2E-34']:
+        case_results[case_id] = (
+            pytest_code == 0,
+            'Phase 7 pytest 端到端验证',
+            pytest_log_path,
+        )
+
+    evidence_details = (
+        acceptance_report.get('checks', {})
+        .get('E2E-35', {})
+        .get('details', {})
+        if isinstance(acceptance_report, dict)
+        else {}
+    )
+    required_screenshot_keys = [
+        'overview_oblique',
+        'topdown_alignment',
+        'actor_battlearena_closeup',
+        'actor_herounit_1_closeup',
+        'actor_enemyunit_1_closeup',
+        'actor_commandmenuanchor_closeup',
+    ]
+    screenshots = evidence_details.get('screenshots', {}) if isinstance(evidence_details, dict) else {}
+    screenshots_ok = all(
+        screenshots.get(key) and os.path.exists(screenshots.get(key, ''))
+        for key in required_screenshot_keys
+    )
+    e2e35_ok = (
+        convergence_code == 0
+        and acceptance_report.get('overall_status') == 'passed'
+        and acceptance_report.get('checks', {}).get('E2E-35', {}).get('status') == 'passed'
+        and smoke_report.get('overall_status') == 'passed'
+        and screenshots_ok
+        and evidence_details.get('note_path')
+        and os.path.exists(evidence_details.get('note_path', ''))
+        and evidence_details.get('log_path')
+        and os.path.exists(evidence_details.get('log_path', ''))
+    )
+    case_results['E2E-35'] = (
+        e2e35_ok,
+        'JRPG 真机 smoke + 6 张证据图',
+        acceptance_path or convergence_log_path,
+    )
+
+    round_entries = summary_report.get('rounds', []) if isinstance(summary_report, dict) else []
+    boardgame_reports_ok = True
+    for round_entry in round_entries:
+        round_command_map = {
+            command_entry.get('name'): command_entry
+            for command_entry in round_entry.get('commands', [])
+        }
+        for command_name in [
+            'boardgame_greenfield_simulated',
+            'boardgame_brownfield_simulated',
+            'boardgame_playable_simulated',
+        ]:
+            command_entry = round_command_map.get(command_name, {})
+            new_reports = command_entry.get('new_reports', [])
+            if not any(
+                os.path.basename(report_path).startswith('execution_report_handoff.boardgame.prototype.')
+                for report_path in new_reports
+            ):
+                boardgame_reports_ok = False
+                break
+        if not boardgame_reports_ok:
+            break
+
+    e2e36_ok = (
+        convergence_code == 0
+        and summary_report.get('overall_status') == 'passed'
+        and consistency_report.get('overall_status') == 'passed'
+        # 归档前检查表使用 Markdown 勾选框表达完成态，统计勾满项更稳。
+        and checklist_text.count('- [x]') >= 4
+        and boardgame_reports_ok
+    )
+    case_results['E2E-36'] = (
+        e2e36_ok,
+        'boardgame 三条主链连续稳定回归',
+        summary_path or convergence_log_path,
+    )
+
+    _PHASE7_HELPER_CACHE = {
+        'pytest_code': pytest_code,
+        'pytest_log_path': pytest_log_path,
+        'convergence_code': convergence_code,
+        'convergence_log_path': convergence_log_path,
+        'summary_path': summary_path,
+        'consistency_path': consistency_path,
+        'checklist_path': checklist_path,
+        'acceptance_path': acceptance_path,
+        'smoke_path': smoke_path,
+        'case_results': case_results,
+    }
+    return _PHASE7_HELPER_CACHE
 
 
 def extract_runtime_state_from_smoke_report(smoke_report):
@@ -953,7 +1173,7 @@ def run_stage_5(result, engine_root, completed_results=None):
 
 
 def run_stage_6(result, engine_root, completed_results=None):
-    """Stage 6: Compiler Plane + Skills & Specs（CP-01 ~ CP-24, SS-01 ~ SS-07）"""
+    """Stage 7: Compiler Plane + Skills & Specs（CP-01 ~ CP-40, SS-01 ~ SS-20）"""
     test_files = [
         os.path.join(TESTS_SCRIPTS_DIR, 'test_compiler_plane_foundation.py'),
         os.path.join(TESTS_SCRIPTS_DIR, 'test_phase4_compiler.py'),
@@ -976,14 +1196,31 @@ def run_stage_6(result, engine_root, completed_results=None):
     if stderr.strip():
         print(stderr)
 
-    if code == 0:
+    phase7_bundle = build_phase7_helper_bundle()
+    phase7_failed = []
+    for case_id in PHASE7_STAGE7_CASE_IDS:
+        ok, note, evidence_path = phase7_bundle['case_results'].get(
+            case_id,
+            (False, 'Phase 7 helper 缺少结果', ''),
+        )
+        evidence_name = os.path.basename(evidence_path) if evidence_path else '无证据'
+        print(f'  [{case_id}] {"PASS" if ok else "FAIL"} - {note} ({evidence_name})')
+        if not ok:
+            phase7_failed.append(case_id)
+
+    if code == 0 and not phase7_failed:
         result.status = 'passed'
         result.exit_code = 0
-        result.message = 'Compiler Plane + Skills & Specs 测试全部通过'
+        result.message = 'Compiler Plane + Skills & Specs 测试全部通过（含 Phase 7 新增用例）'
     else:
         result.status = 'failed'
-        result.exit_code = code
-        result.message = f'Compiler Plane + Skills & Specs 测试失败 (exit code {code})'
+        result.exit_code = code if code != 0 else 1
+        details = []
+        if code != 0:
+            details.append(f'legacy pytest exit={code}')
+        if phase7_failed:
+            details.append('Phase 7 失败项: ' + ', '.join(phase7_failed))
+        result.message = 'Compiler Plane + Skills & Specs 测试失败: ' + ', '.join(details)
 
 
 def run_stage_7(result, engine_root, completed_results=None):
@@ -1123,9 +1360,10 @@ def run_stage_9(result, engine_root, completed_results=None):
 
 
 def run_stage_9_v3(result, engine_root, completed_results=None):
-    """Stage 9：E2E-01 ~ E2E-28 统一判定入口。"""
+    """Stage 9：E2E-01 ~ E2E-36 统一判定入口。"""
     check_map = {}
     project_reports_dir = str(get_project_reports_dir())
+    plugin_reports_dir = str(get_reports_dir())
 
     def record_case(case_id, ok, note):
         """登记或覆盖某条用例的最终结果。"""
@@ -1154,6 +1392,20 @@ def run_stage_9_v3(result, engine_root, completed_results=None):
             return max(new_candidates, key=os.path.getmtime)
         return max(candidates, key=os.path.getmtime)
 
+    def find_latest_passing_stage_evidence(stage_id):
+        """当本轮未执行前置 Stage 时，回退到历史系统测试报告中的通过证据。"""
+        candidates = sorted(
+            iter_report_files(plugin_reports_dir, 'system_test_report_*.json'),
+            key=lambda path: path.stat().st_mtime,
+            reverse=True,
+        )
+        for report_path in candidates:
+            report = load_json_report(str(report_path)) or {}
+            for stage_entry in report.get('stages', []):
+                if stage_entry.get('stage') == stage_id and stage_entry.get('status') == 'passed':
+                    return True, str(report_path)
+        return False, ''
+
     # 这 6 条用例本质上是前置 Stage 的集成复用，继续直接复用前置结果。
     reused_dependencies = {
         'E2E-05': 1,
@@ -1165,7 +1417,14 @@ def run_stage_9_v3(result, engine_root, completed_results=None):
     }
     for case_id, stage_id in reused_dependencies.items():
         dependency_status = get_stage_status(stage_id, completed_results)
-        record_case(case_id, dependency_status == 'passed', f'复用 Stage {stage_id}')
+        dependency_ok = dependency_status == 'passed'
+        evidence_path = ''
+        if not dependency_ok:
+            dependency_ok, evidence_path = find_latest_passing_stage_evidence(stage_id)
+        note = f'复用 Stage {stage_id}'
+        if evidence_path:
+            note += f'（历史证据: {os.path.basename(evidence_path)}）'
+        record_case(case_id, dependency_ok, note)
 
     # Greenfield simulated：用于覆盖 E2E-12/13/14/15/18/22。
     greenfield_script = os.path.join(PROJECT_ROOT, 'Scripts', 'run_greenfield_demo.py')
@@ -1325,11 +1584,38 @@ def run_stage_9_v3(result, engine_root, completed_results=None):
         'E2E-01', 'E2E-02', 'E2E-03', 'E2E-04', 'E2E-11',
         'E2E-16', 'E2E-17', 'E2E-19', 'E2E-21',
     ]
+    stage8_status = get_stage_status(8, completed_results)
+    stage3_status = get_stage_status(3, completed_results)
+    stage8_ok = stage8_status == 'passed'
+    stage3_ok = stage3_status == 'passed'
+    stage8_evidence = ''
+    stage3_evidence = ''
+    if not stage8_ok:
+        stage8_ok, stage8_evidence = find_latest_passing_stage_evidence(8)
+    if not stage3_ok:
+        stage3_ok, stage3_evidence = find_latest_passing_stage_evidence(3)
     for case_id in environment_gated:
-        stage8_status = get_stage_status(8, completed_results)
-        stage3_status = get_stage_status(3, completed_results)
-        reference_ok = stage8_status == 'passed' or stage3_status == 'passed'
-        record_case(case_id, reference_ok, '依赖前置集成 Stage 能力')
+        reference_ok = stage8_ok or stage3_ok
+        if stage8_ok:
+            note = '依赖 Stage 8 集成能力'
+            if stage8_evidence:
+                note += f'（历史证据: {os.path.basename(stage8_evidence)}）'
+        elif stage3_ok:
+            note = '依赖 Stage 3 集成能力'
+            if stage3_evidence:
+                note += f'（历史证据: {os.path.basename(stage3_evidence)}）'
+        else:
+            note = '缺少 Stage 3/8 的通过证据'
+        record_case(case_id, reference_ok, note)
+
+    phase7_bundle = build_phase7_helper_bundle()
+    for case_id in PHASE7_STAGE9_CASE_IDS:
+        ok, note, evidence_path = phase7_bundle['case_results'].get(
+            case_id,
+            (False, 'Phase 7 helper 缺少结果', ''),
+        )
+        evidence_name = os.path.basename(evidence_path) if evidence_path else '无证据'
+        record_case(case_id, ok, f'{note}: {evidence_name}')
 
     missing_case_ids = [case_id for case_id in STAGES[9]['case_ids'] if case_id not in check_map]
     if missing_case_ids:

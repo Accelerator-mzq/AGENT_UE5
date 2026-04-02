@@ -1,6 +1,6 @@
 # AgentBridge 系统测试用例总表
 
-> 来源：`Docs/History/Phase1_MVP/task.md` + `Docs/History/Tasks/task1_phase3.md` + `Docs/History/Tasks/task2_phase4.md` + `Docs/History/Tasks/task3_phase5.md` + `Docs/History/Tasks/task4_phase6.md` 中的验收标准与验证步骤  
+> 来源：`Docs/History/Phase1_MVP/task.md` + `Docs/History/Tasks/task1_phase3.md` + `Docs/History/Tasks/task2_phase4.md` + `Docs/History/Tasks/task3_phase5.md` + `Docs/History/Tasks/task4_phase6.md` + `Docs/History/Tasks/task6_phase7.md` 中的验收标准与验证步骤  
 > 最后更新：2026-04-02
 > 维护者：msc
 
@@ -47,7 +47,7 @@
 | GA | Gauntlet CI/CD | UE5 + UAT | `RunUAT.bat RunUnreal -test=SmokeTests/AllTests` |
 | E2E | 端到端集成 | 全栈 | 多步流水线（Schema→Cmd→Gauntlet→三通道脚本） |
 
-> 全部 206 条用例均已登记到当前测试总表。证据目录分层为：`ProjectState/Reports/`（当期执行）+ `Docs/History/reports/AgentBridgeEvidence/`（历史归档）。
+> 全部 230 条用例均已登记到当前测试总表。证据目录分层为：`ProjectState/Reports/`（当期执行）+ `Docs/History/reports/AgentBridgeEvidence/`（历史归档）。
 
 ---
 
@@ -392,6 +392,15 @@
 | CP-29 | Brownfield patch 缺少 genre contract 时 reviewer 阻断 | `pytest Tests/scripts/test_phase6_playable_runtime.py::TestPhase6PlayableRuntime::test_cp29_brownfield_patch_without_genre_contracts_is_blocked` | 缺少 `TurnFlowPatchContract / DecisionUIPatchContract` 时 status=`blocked` |
 | CP-30 | delta policy 影响 Brownfield trace 与 regression focus | `pytest Tests/scripts/test_phase6_playable_runtime.py::TestPhase6PlayableRuntime::test_cp30_delta_policy_flows_into_brownfield_trace_and_regression_focus` | `delta_policy`、`high_risk_breakpoints`、`required_regression_checks` 均正确下沉 |
 | CP-31 | 合同 registry 中 Common + Genre 路径可读 | `pytest Tests/scripts/test_phase6_playable_runtime.py::TestPhase6PlayableRuntime::test_cp31_contract_registry_common_and_genre_paths_are_readable` | Common 与 Boardgame 合同 manifest/template/schema 路径均存在且可读取 |
+| CP-32 | `run_plan` 含 `validation_checkpoints[]` | `pytest Tests/scripts/test_phase7_governance_and_jrpg.py::TestPhase7GovernanceAndJRPG::test_cp32_run_plan_contains_validation_checkpoints` | `run_plan.status == planned` 且至少含 2 个 validation checkpoints |
+| CP-33 | `run_plan` 含 `recovery_policy_ref` | `pytest Tests/scripts/test_phase7_governance_and_jrpg.py::TestPhase7GovernanceAndJRPG::test_cp33_run_plan_contains_recovery_policy_ref` | `recovery_policy_ref` 存在且指向 JRPG recovery 策略 |
+| CP-34 | 执行报告含 `regression_summary` | `pytest Tests/scripts/test_phase7_governance_and_jrpg.py::TestPhase7GovernanceAndJRPG::test_cp34_execution_report_contains_regression_summary` | `execution_report.regression_summary.status == captured` |
+| CP-35 | 执行报告含 `snapshot_ref` | `pytest Tests/scripts/test_phase7_governance_and_jrpg.py::TestPhase7GovernanceAndJRPG::test_cp35_execution_report_contains_snapshot_ref` | `snapshot_ref` 存在且可读，manifest 含最小必需字段 |
+| CP-36 | 执行报告含 `promotion_status` | `pytest Tests/scripts/test_phase7_governance_and_jrpg.py::TestPhase7GovernanceAndJRPG::test_cp36_execution_report_contains_promotion_status` | `promotion_status.current_state == approved` 且有 transitions |
+| CP-37 | base domains 激活结果可回写治理上下文 | `pytest Tests/scripts/test_phase7_governance_and_jrpg.py::TestPhase7GovernanceAndJRPG::test_cp37_base_domains_are_written_back_to_governance_context` | `governance_context.base_domain_refs` 与 metadata 中的引用一致 |
+| CP-38 | JRPG Greenfield compile 生成最小 spec tree | `pytest Tests/scripts/test_phase7_governance_and_jrpg.py::TestPhase7GovernanceAndJRPG::test_cp38_jrpg_greenfield_compile_generates_minimal_spec_tree` | 生成 `BattleArena / HeroUnit_1 / EnemyUnit_1 / CommandMenuAnchor` 的最小 JRPG spec tree |
+| CP-39 | 缺失治理前置项时计划层可阻断 | `pytest Tests/scripts/test_phase7_governance_and_jrpg.py::TestPhase7GovernanceAndJRPG::test_cp39_missing_governance_prerequisites_block_plan` | `run_plan.status == failed` 且返回 planning blockers |
+| CP-40 | JRPG Brownfield delta 可表达最小增量 | `pytest Tests/scripts/test_phase7_governance_and_jrpg.py::TestPhase7GovernanceAndJRPG::test_cp40_jrpg_brownfield_delta_expresses_minimal_increment` | delta tree 仅表达 `EnemyUnit_1 / CommandMenuAnchor` 等最小增量 |
 
 > 证据：`ProjectState/Handoffs/draft/` 下生成的 Handoff YAML 文件
 
@@ -399,7 +408,7 @@
 
 ## 12. Skills & Specs（SS）
 
-> 来源：`Docs/History/Tasks/task1_phase3.md` TASK 05 + `Docs/History/Tasks/task2_phase4.md` TASK 03~05 + `Docs/History/Tasks/task4_phase6.md` TASK 02~05
+> 来源：`Docs/History/Tasks/task1_phase3.md` TASK 05 + `Docs/History/Tasks/task2_phase4.md` TASK 03~05 + `Docs/History/Tasks/task4_phase6.md` TASK 02~05 + `Docs/History/Tasks/task6_phase7.md` TASK 06~08
 > 自动化方式：pytest / `yaml.safe_load`
 > 环境要求：Python 3.x + pyyaml
 
@@ -418,6 +427,13 @@
 | SS-11 | review / validation / delta policy 模块可加载 | `pytest Tests/scripts/test_phase6_playable_runtime.py::TestPhase6PlayableRuntime::test_ss11_review_validation_and_delta_policy_modules_load` | `boardgame_reviewer / boardgame_validator / boardgame_delta_policy` 均可导入 |
 | SS-12 | Genre contracts 已登记到 contract registry | `pytest Tests/scripts/test_phase6_playable_runtime.py::TestPhase6PlayableRuntime::test_ss12_genre_contracts_registered_in_contract_registry` | registry 含 `TurnFlowPatchContract / DecisionUIPatchContract` |
 | SS-13 | Common + Genre contract bundle 均可加载 | `pytest Tests/scripts/test_phase6_playable_runtime.py::TestPhase6PlayableRuntime::test_ss13_common_and_genre_contract_bundles_load` | Common 与 Boardgame 合同 bundle 均可解析与加载 |
+| SS-14 | base domain registry 可发现 10 个域 | `pytest Tests/scripts/test_phase7_governance_and_jrpg.py::TestPhase7GovernanceAndJRPG::test_ss14_base_domain_registry_discovers_ten_domains` | registry 中稳定发现 10 个基础域 |
+| SS-15 | `qa_validation` 与 `planning_governance` 可真实加载 | `pytest Tests/scripts/test_phase7_governance_and_jrpg.py::TestPhase7GovernanceAndJRPG::test_ss15_governance_base_domains_load` | 两个治理域可导入，且 descriptor 能返回真实 capabilities |
+| SS-16 | JRPG manifest 字段完整且可解析 | `pytest Tests/scripts/test_phase7_governance_and_jrpg.py::TestPhase7GovernanceAndJRPG::test_ss16_jrpg_manifest_is_complete` | `pack_id / required_skills / delta_policy / dependencies` 等字段完整 |
+| SS-17 | JRPG required skills 可加载 | `pytest Tests/scripts/test_phase7_governance_and_jrpg.py::TestPhase7GovernanceAndJRPG::test_ss17_jrpg_required_skills_load` | `battle_layout / turn_queue / command_menu` 均可导入 |
+| SS-18 | JRPG review / validation / delta policy 模块可加载 | `pytest Tests/scripts/test_phase7_governance_and_jrpg.py::TestPhase7GovernanceAndJRPG::test_ss18_jrpg_review_validation_and_delta_modules_load` | `jrpg_reviewer / jrpg_validator / jrpg_delta_policy` 均可导入 |
+| SS-19 | governance schema / contract bundle 可读 | `pytest Tests/scripts/test_phase7_governance_and_jrpg.py::TestPhase7GovernanceAndJRPG::test_ss19_governance_schema_and_contract_bundle_are_readable` | `run_plan.schema / reviewed_handoff.schema / RegressionValidationContractModel` 可读取 |
+| SS-20 | JRPG router activation 可命中第二类型包 | `pytest Tests/scripts/test_phase7_governance_and_jrpg.py::TestPhase7GovernanceAndJRPG::test_ss20_jrpg_router_activation_hits_second_pack` | router 稳定命中 `genre-jrpg` |
 
 > 证据：目录结构 + YAML 解析输出
 
@@ -443,7 +459,7 @@
 
 ## 14. 端到端集成（E2E）
 
-> 来源：TASK 15, TASK 19 + `Docs/History/Tasks/task4_phase6.md` TASK 06~08
+> 来源：TASK 15, TASK 19 + `Docs/History/Tasks/task4_phase6.md` TASK 06~08 + `Docs/History/Tasks/task6_phase7.md` TASK 08
 > 自动化方式：多步流水线，每步独立可执行
 
 ### L3 Functional Test (TASK 15)
@@ -506,6 +522,14 @@
 | E2E-26 | 自动落子后终局可读回 [UE5] | `ApplyMoveByCell` 序列 → `GetBoardRuntimeState()` | `python Scripts/run_boardgame_playable_demo.py bridge_rc_api` | smoke 报告中 `result_state` 为 `X_wins / O_wins / draw` |
 | E2E-27 | 真实截图证据链落盘 [UE5] | `bridge_rc_api` 成功后触发统一截图脚本 | `python Scripts/run_boardgame_playable_demo.py bridge_rc_api` | `ProjectState/Evidence/Phase6/` 与历史归档中均存在 `overview_oblique + topdown_alignment + note + log` |
 | E2E-28 | 棋类顶视图证据完整性 [UE5] | 人工核验 `topdown_alignment` | 参考 `task_phase6_e2e28_fix_and_rerun_2026-04-02.md` | 顶视图完整覆盖棋盘边界与全部棋子，且可直接判断棋子与格位对应关系 |
+| E2E-29 | governance simulated 成功 | `pytest Tests/scripts/test_phase7_governance_and_jrpg.py::TestPhase7GovernanceAndJRPG::test_e2e29_governance_simulated_succeeds` | `run_greenfield_demo.py simulated` 可生成治理增强版 handoff / execution report |
+| E2E-30 | 失败路径可返回 recovery suggestion | `pytest Tests/scripts/test_phase7_governance_and_jrpg.py::TestPhase7GovernanceAndJRPG::test_e2e30_failure_path_returns_recovery_suggestion` | 缺失治理前置项时可返回 recovery policy 与 blocked 原因 |
+| E2E-31 | simulated 路径可写出 snapshot manifest | `pytest Tests/scripts/test_phase7_governance_and_jrpg.py::TestPhase7GovernanceAndJRPG::test_e2e31_snapshot_manifest_is_written_in_simulated_path` | simulated 执行后存在最小 snapshot manifest |
+| E2E-32 | simulated 路径可留下 minimal promotion 审计 | `pytest Tests/scripts/test_phase7_governance_and_jrpg.py::TestPhase7GovernanceAndJRPG::test_e2e32_promotion_audit_is_written_in_simulated_path` | promotion 状态推进到 approved 且保留审计记录 |
+| E2E-33 | JRPG simulated 编译成功 | `python Scripts/run_jrpg_turn_based_demo.py simulated greenfield_bootstrap` | 生成 reviewed handoff 与 draft / approved handoff 文件 |
+| E2E-34 | JRPG simulated 执行成功 | `python Scripts/run_jrpg_turn_based_demo.py simulated greenfield_bootstrap` | 生成 execution report，执行状态为 succeeded |
+| E2E-35 | JRPG 真实 UE5 smoke 成功并写出 6 张证据图 [UE5] | `python Scripts/run_jrpg_turn_based_demo.py bridge_rc_api greenfield_bootstrap` | `BattleArena / HeroUnit_1 / EnemyUnit_1 / CommandMenuAnchor` 布局与结构级 battle loop 校验通过，且 6 张图、说明和日志齐全 |
+| E2E-36 | boardgame 回归在治理字段下持续可跑 | `python Scripts/run_phase7_p1_convergence.py` | `greenfield / brownfield / playable` 三条主链连续稳定通过，且保留 `regression_summary / snapshot_ref / promotion_status` |
 
 > 证据：`ProjectState/Reports/task_phase6_doc_gap_and_entry_backfill_2026-04-02.md` + `ProjectState/Reports/phase6_runtime_acceptance_20260402_025815.json` + `Docs/History/reports/AgentBridgeEvidence/phase6_evidence_2026-04-02/`
 
@@ -554,11 +578,11 @@
 | CMD Commandlet | 8 | 🟢 全部 |
 | PY Python 客户端 | 10 | 🟢 全部 |
 | ORC Orchestrator | 37 | 🟢 全部 |
-| CP Compiler Plane | 31 | 🟢 全部 |
-| SS Skills & Specs | 13 | 🟢 全部 |
+| CP Compiler Plane | 40 | 🟢 全部 |
+| SS Skills & Specs | 20 | 🟢 全部 |
 | GA Gauntlet | 6 | 🟢 全部 |
-| E2E 端到端 | 28 | 🟢 全部 |
-| **合计** | **206** | **🟢 206 条已登记** |
+| E2E 端到端 | 36 | 🟢 全部 |
+| **合计** | **230** | **🟢 230 条已登记** |
 
 ---
 

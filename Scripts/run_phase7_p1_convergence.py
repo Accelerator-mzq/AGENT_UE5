@@ -120,7 +120,7 @@ def _run_single_round(round_index: int, report_dir: Path) -> Dict[str, Any]:
     for command_entry in commands:
         round_entries.append(_run_command_with_reports(command_entry, report_dir, round_label))
 
-    execution_entries = _build_governance_entries_from_round(round_entries)
+    execution_entries = _build_governance_entries_from_round(round_entries, report_dir)
     audit_summary = write_governance_audit_summary(
         str(report_dir),
         f"{round_label}_governance_audit",
@@ -190,6 +190,7 @@ def _run_command_with_reports(command_entry: Dict[str, Any], report_dir: Path, r
 
 def _build_governance_entries_from_round(
     round_entries: Iterable[Dict[str, Any]],
+    report_dir: Path,
 ) -> List[Tuple[str, str, Dict[str, str] | None]]:
     """从单轮命令结果中提取治理审计输入。"""
     entries: List[Tuple[str, str, Dict[str, str] | None]] = []
@@ -217,11 +218,11 @@ def _build_governance_entries_from_round(
             continue
 
         execution_prefix, extra_prefixes = report_prefix_map[entry["name"]]
-        execution_report_path = _find_single_report(entry["new_reports"], execution_prefix)
+        execution_report_path = _find_single_report(entry["new_reports"], execution_prefix, report_dir)
         extra_report_paths = None
         if extra_prefixes:
             extra_report_paths = {
-                report_name: _find_single_report(entry["new_reports"], prefix)
+                report_name: _find_single_report(entry["new_reports"], prefix, report_dir)
                 for report_name, prefix in extra_prefixes.items()
             }
         entries.append((entry["name"], execution_report_path, extra_report_paths))
@@ -260,15 +261,18 @@ def _run_jrpg_consistency_pass(report_dir: Path, rounds: List[Dict[str, Any]]) -
         latest_round,
         "jrpg_greenfield_simulated",
         "execution_report_handoff.jrpg.prototype.",
+        report_dir,
     )
     latest_smoke_report = _extract_round_report(
         latest_round,
         "jrpg_greenfield_smoke",
         "phase7_jrpg_runtime_smoke_",
+        report_dir,
     )
     brownfield_execution = _find_single_report(
         brownfield_entry["new_reports"],
         "execution_report_handoff.jrpg.prototype.",
+        report_dir,
     )
 
     greenfield_handoff = _load_approved_handoff_from_execution_report(latest_greenfield_execution)
@@ -379,19 +383,31 @@ def _snapshot_json_reports(report_dir: Path) -> set[str]:
     return {str(path) for path in report_dir.glob("*.json")}
 
 
-def _find_single_report(report_paths: Iterable[str], prefix: str) -> str:
-    """按前缀寻找唯一报告文件。"""
+def _find_single_report(report_paths: Iterable[str], prefix: str, report_dir: Path | None = None) -> str:
+    """按前缀寻找报告，优先本轮新报告，缺失时回退到当天目录中的最新同前缀报告。"""
     matches = [report_path for report_path in report_paths if Path(report_path).name.startswith(prefix)]
-    if len(matches) != 1:
-        raise RuntimeError(f"报告前缀匹配不唯一: prefix={prefix}, matches={matches}")
-    return matches[0]
+    if len(matches) == 1:
+        return matches[0]
+    if len(matches) > 1:
+        return max(matches, key=os.path.getmtime)
+
+    if report_dir and report_dir.exists():
+        fallback_matches = [
+            str(path)
+            for path in report_dir.glob("*.json")
+            if path.name.startswith(prefix)
+        ]
+        if fallback_matches:
+            return max(fallback_matches, key=os.path.getmtime)
+
+    raise RuntimeError(f"报告前缀匹配失败: prefix={prefix}, matches={matches}")
 
 
-def _extract_round_report(round_result: Dict[str, Any], entry_name: str, prefix: str) -> str:
-    """从单轮结果里按命令名和前缀提取报告。"""
+def _extract_round_report(round_result: Dict[str, Any], entry_name: str, prefix: str, report_dir: Path) -> str:
+    """从单轮结果里按命令名和前缀提取报告，缺失时回退到当天目录最新报告。"""
     for command_entry in round_result.get("commands", []):
         if command_entry["name"] == entry_name:
-            return _find_single_report(command_entry["new_reports"], prefix)
+            return _find_single_report(command_entry["new_reports"], prefix, report_dir)
     raise RuntimeError(f"未找到命令结果: {entry_name}")
 
 

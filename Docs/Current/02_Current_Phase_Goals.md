@@ -1,32 +1,23 @@
 # 当前阶段目标
 
-> 阶段：Phase 7 — 正式开发期（治理闭环 + JRPG 第二类型包）
+> 状态：Phase 7 已结项，当前仅保留过渡目标
 
-## 本期目标
+## 1. 当前目标
 
-1. 把文档和任务入口从“准备期”切换到“正式开发期”
-2. 落地最小治理闭环：
-   - Validation Inserter
-   - Recovery Planner
-   - Regression Summary
-   - Freeze / Snapshot Manifest
-   - Minimal Promotion
-3. 把 `Skills/base_domains/` 从占位目录升级为真实 registry + loader
-4. 落地第二个类型包 `JRPG Turn-Based`
-5. 给 Phase 7 建立独立测试入口，但不提前改总表
+1. 保持已归档的 `Phase 6 / Phase 7` 能力可回归、可审计、可追溯。
+2. 在下一阶段正式定义前，不虚构新的阶段名称和测试编号。
+3. 让根目录 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) 成为“下一阶段待规划”唯一入口。
+4. 保持 [SystemTestCases.md](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Tests/SystemTestCases.md) 与 [run_system_tests.py](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Tests/run_system_tests.py) 的 `230` 条严格对齐。
 
-## 成功标准
+## 2. 当前成功标准
 
-- `Docs/Current/*` 与入口文档不再出现“Phase 7 准备期”口径
-- 根目录 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) 按正式开发期结构重建
-- `run_plan` 支持 `validation_checkpoints[]` 与 `recovery_policy_ref`
-- 执行报告支持 `regression_summary`、`snapshot_ref`、`promotion_status`
-- `base_domains` 可注册 10 个域，其中 `qa_validation` 与 `planning_governance` 为真实实现
-- `jrpg` pack 能从 GDD 生成最小可玩的结构化闭环，并支持 Greenfield / Brownfield 路径
+- `Docs/Current/*` 中不再把 `Phase 7` 视为 active 阶段。
+- 所有阶段事实都能追溯到已归档任务或历史证据目录。
+- 系统总表与系统测试入口编号继续严格一致。
+- 下一阶段开始前，不因为文档空窗造成入口混乱。
 
-## 本期不做
+## 3. 默认假设
 
-- 不在阶段中途改 [SystemTestCases.md](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Tests/SystemTestCases.md)
-- 不在阶段中途改 [run_system_tests.py](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Tests/run_system_tests.py) 的 `206` 条总表口径
-- 不做完整 Promotion 流水线
-- 不做像素级回归对比
+- 当前路线图尚未定义 `Phase 8`，因此不预创建新阶段任务。
+- 若后续进入新阶段，需要重新建立阶段目标、边界、测试编号与归档策略。
+- 归档后的 carry-over 只保留长期规划问题，不再保留 Phase 7 已关闭的观察项。

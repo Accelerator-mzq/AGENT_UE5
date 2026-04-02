@@ -1,46 +1,24 @@
 # 项目基线
 
-> 文档版本：L1-Phase7-v1
-> 更新时间：2026-04-02
+> 文档版本：L1-ArchiveBridge-v1
 
-## 1. 当前阶段事实
+## 1. 当前事实
 
-- `Phase 6` 已完成并归档，完整任务见 [task4_phase6.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task4_phase6.md)
-- `Phase 7` 当前已进入正式开发期，准备期任务已归档到 [task5_phase7_preparation.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task5_phase7_preparation.md)
-- 项目层当前稳定保留三条可回归主链：
-  - Greenfield：`Scripts/run_greenfield_demo.py`
-  - Brownfield：`Scripts/run_brownfield_demo.py`
-  - Boardgame playable runtime：`Scripts/run_boardgame_playable_demo.py`
-- 插件层当前总表仍维持 `206` 条已归档测试口径，不在本阶段中途扩容
+- `Phase 6` 已完成并归档，历史任务见 [task4_phase6.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task4_phase6.md)。
+- `Phase 7` 已完成并归档，历史任务见 [task6_phase7.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task6_phase7.md)。
+- `Phase 7` 历史证据副本已归档到 [phase7_evidence_2026-04-02](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02)。
+- 插件层系统总表与系统测试入口当前统一为 `230` 条口径：
+  - [SystemTestCases.md](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Tests/SystemTestCases.md)
+  - [run_system_tests.py](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Tests/run_system_tests.py)
 
-## 2. 已稳定的 Phase 6 能力
+## 2. 已确认的项目真相
 
-- `boardgame` 已是首个真实类型包，支持 `_core` + manifest + required skills + review / validation / delta policy
-- `preview_static` 与 `runtime_playable` 双投影已落地
-- `Brownfield append/new-actor` 最小闭环已落地
-- 项目层 playable runtime、真实截图证据与顶视图验收已经落地
+- `preview_static` 与 `runtime_playable` 仍是当前稳定基线，后续阶段应以它们作为回归基础。
+- `JRPG Turn-Based` 已作为第二个 genre pack 落地，并在 Phase 7 中完成 simulated、治理闭环与真机 smoke 验证。
+- Snapshot、Promotion、治理审计和 JRPG pack 一致性都已有可审计证据，不再属于未落地能力。
 
-## 3. Phase 7 当前目标基线
+## 3. 归档后的当前状态
 
-本期不重做 Phase 6，而是在其上补齐以下最小能力：
-
-1. `Validation Inserter`
-2. `Recovery Planner`
-3. Actor 级 `Regression Summary`
-4. `Freeze / Snapshot Manifest`
-5. `Minimal Promotion`
-6. `Base Skill Domains` 最小真实化
-7. 第二个 `Genre Pack`：`JRPG Turn-Based`
-
-## 4. 当前目录与落盘约定
-
-- 项目级报告：`ProjectState/Reports/YYYY-MM-DD/`
-- 插件级报告：`Plugins/AgentBridge/reports/YYYY-MM-DD/`
-- Snapshot：`ProjectState/Snapshots/YYYY-MM-DD/`
-- 当前阶段证据与记录统一继续落在项目目录内，不扩写到项目外目录
-
-## 5. 当前不变的治理约束
-
-- `SystemTestCases.md` 与 `run_system_tests.py` 在 Phase 7 开发期保持现状，不提前写入新编号
-- 现有 `boardgame` 主链必须继续可回归
-- `Phase 7` 新增能力优先通过新增模块接入，不重写稳定核心
+- 当前处于“下一阶段待规划”过渡态，而不是新的活跃开发阶段。
+- 根目录 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) 只保留当前事实、归档指针和下一阶段规划前的固定规则。
+- 新阶段开始前，默认不再修改阶段编号体系；如需新增用例，必须同时规划总表和系统测试入口的同步策略。
