@@ -463,6 +463,66 @@ class TestPhase7GovernanceAndJRPG:
         assert playable_acceptance["report_type"] == "phase6_runtime_acceptance"
         assert playable_acceptance["overall_status"] == "passed"
 
+    def test_phase7_governance_audit_summary_can_cover_execution_report(
+        self, compiler_module, project_root, workspace_tmp_path
+    ):
+        """Phase 7 附加校验：治理审计摘要可统一覆盖 snapshot 与 promotion。"""
+        from Scripts.validation.phase7_governance_audit import write_governance_audit_summary
+
+        _, result = _execute_jrpg_handoff_simulated(project_root, workspace_tmp_path)
+        written = write_governance_audit_summary(
+            str(workspace_tmp_path / "reports"),
+            "phase7_pytest_governance_audit",
+            [("jrpg_simulated", result["report_path"], None)],
+        )
+
+        assert os.path.exists(written["json_path"])
+        assert os.path.exists(written["md_path"])
+        audit_payload = _load_json(written["json_path"])
+        assert audit_payload["report_type"] == "phase7_governance_audit_summary"
+        assert audit_payload["overall_status"] == "passed"
+        assert audit_payload["entries"][0]["checks"]["snapshot_manifest_complete"]["passed"] is True
+        assert audit_payload["entries"][0]["checks"]["promotion_status_complete"]["passed"] is True
+
+    def test_phase7_jrpg_pack_consistency_payload_is_stable(self, compiler_module, project_root):
+        """Phase 7 附加校验：JRPG pack 一致性负载能证明三条入口复用同一骨架。"""
+        from compiler.intake import read_gdd
+        from Plugins.AgentBridge.Skills.genre_packs._core import (
+            load_pack_manifest,
+            load_pack_modules,
+            resolve_active_pack,
+        )
+        from Scripts.validation.phase7_governance_audit import build_jrpg_pack_consistency_payload
+
+        greenfield_handoff = _build_jrpg_handoff(project_root, mode="greenfield_bootstrap")
+        brownfield_handoff = _build_jrpg_handoff(
+            project_root,
+            mode="brownfield_expansion",
+            project_state=_build_synthetic_jrpg_project_state(),
+        )
+        smoke_handoff = _build_jrpg_handoff(project_root, mode="greenfield_bootstrap")
+        design_input = read_gdd(_jrpg_gdd_path(project_root))
+        router_results = {
+            "greenfield": resolve_active_pack(design_input=design_input, routing_context=greenfield_handoff["routing_context"]),
+            "brownfield": resolve_active_pack(design_input=design_input, routing_context=brownfield_handoff["routing_context"]),
+            "smoke": resolve_active_pack(design_input=design_input, routing_context=smoke_handoff["routing_context"]),
+        }
+        pack_manifest = load_pack_manifest(_jrpg_manifest_path(project_root))
+        pack_modules = load_pack_modules(pack_manifest)
+
+        payload = build_jrpg_pack_consistency_payload(
+            greenfield_handoff=greenfield_handoff,
+            brownfield_handoff=brownfield_handoff,
+            smoke_handoff=smoke_handoff,
+            router_results=router_results,
+            pack_modules=pack_modules,
+        )
+
+        assert payload["report_type"] == "phase7_jrpg_pack_consistency"
+        assert payload["overall_status"] == "passed"
+        assert payload["checks"]["all_paths_use_same_pack_id"]["passed"] is True
+        assert payload["checks"]["router_always_hits_jrpg_pack"]["passed"] is True
+
 
 def _jrpg_manifest_path(project_root: str) -> str:
     """返回 JRPG pack manifest 路径。"""

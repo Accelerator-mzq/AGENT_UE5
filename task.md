@@ -268,3 +268,14 @@ Step 3：把结果写入 `ProjectState/Reports/`。
 - `E2E-34`：`python Scripts/run_jrpg_turn_based_demo.py simulated` 可执行成功
 - `E2E-35`：JRPG 真实 UE5 smoke 成功，关键 Actor 布局与结构级 battle loop 校验通过
 - `E2E-36`：`boardgame` Greenfield / Brownfield / playable 回归入口仍存在
+
+## 当前进展（2026-04-02）
+
+- `P0` 已完成，证据见 [phase7_bootstrap_implementation_2026-04-02.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-02/phase7_bootstrap_implementation_2026-04-02.md)
+- `E2E-35 / E2E-36` 已完成首轮落证，证据见 [phase7_e2e35_e2e36_validation_2026-04-02.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-02/phase7_e2e35_e2e36_validation_2026-04-02.md)
+- 当前进入 `P1` 收敛期，开发顺序固定为：
+  1. 三轮稳定性回归
+  2. Snapshot / Promotion 审计摘要
+  3. JRPG pack 跨入口一致性报告
+  4. 归档前检查表
+- 归档前检查入口见 [phase7_archive_preflight_checklist_2026-04-02.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-02/phase7_archive_preflight_checklist_2026-04-02.md)
