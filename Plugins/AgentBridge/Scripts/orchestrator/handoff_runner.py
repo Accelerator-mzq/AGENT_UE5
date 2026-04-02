@@ -14,8 +14,22 @@ Handoff Runner
 
 import os
 import json
+import sys
 from datetime import datetime
+from pathlib import Path
 from typing import Dict, Any, List
+
+# 兼容两种加载方式：
+# 1. 从 Scripts 目录直接运行，此时 bridge 已经在 sys.path
+# 2. pytest 以包模块方式单独加载 orchestrator.handoff_runner，此时需要补 Scripts 根路径
+try:
+    from bridge.project_config import get_dated_project_reports_dir, get_project_reports_dir
+except ModuleNotFoundError:
+    scripts_root = Path(__file__).resolve().parent.parent
+    if str(scripts_root) not in sys.path:
+        sys.path.insert(0, str(scripts_root))
+    from bridge.project_config import get_dated_project_reports_dir, get_project_reports_dir
+
 from .run_plan_builder import build_run_plan_from_handoff
 
 _DEFAULT_LEVEL_PATH = "/Game/Maps/TestMap"
@@ -426,12 +440,18 @@ def save_execution_report(report: Dict[str, Any], output_dir: str) -> str:
     """
     import json
 
-    os.makedirs(output_dir, exist_ok=True)
+    output_root = Path(output_dir)
+    project_reports_root = get_project_reports_dir()
+    if output_root.is_absolute() and output_root == project_reports_root:
+        # 默认项目报告目录统一增加日期层，避免根目录继续平铺。
+        output_root = get_dated_project_reports_dir()
+
+    os.makedirs(output_root, exist_ok=True)
 
     handoff_id = report.get("source_handoff_id", "unknown")
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"execution_report_{handoff_id}_{timestamp}.json"
-    output_path = os.path.join(output_dir, filename)
+    output_path = os.path.join(str(output_root), filename)
 
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(report, f, indent=2, ensure_ascii=False)
@@ -443,7 +463,7 @@ def save_execution_report(report: Dict[str, Any], output_dir: str) -> str:
 if __name__ == "__main__":
     # 测试代码
     test_handoff_path = "../../ProjectState/Handoffs/approved/handoff.test.001.yaml"
-    test_report_dir = "../../ProjectState/Reports/"
+    test_report_dir = str(get_dated_project_reports_dir())
 
     if os.path.exists(test_handoff_path):
         result = run_from_handoff(

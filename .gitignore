@@ -35,6 +35,14 @@ reports/
 Docs/History/reports/
 image/
 
+# ProjectState / 测试运行产物
+ProjectState/Handoffs/draft/
+ProjectState/Handoffs/approved/
+ProjectState/RuntimeConfigs/
+ProjectState/Temp/
+ProjectState/Snapshots/*.20*.syntheti.yaml
+TestArtifacts/
+
 # IDE 与本地工程文件
 # 仅纳入 VS Code 的稳定配置文件，继续忽略自动生成目录
 .vscode/*

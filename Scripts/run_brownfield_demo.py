@@ -17,6 +17,7 @@ if SCRIPTS_DIR not in sys.path:
 
 from compiler.handoff import build_handoff, serialize_handoff
 from compiler.intake import read_gdd_from_directory
+from bridge.project_config import get_dated_project_reports_dir, iter_report_files
 from orchestrator.handoff_runner import run_from_handoff
 
 
@@ -35,7 +36,7 @@ def run_brownfield_demo(
     gdd_dir = os.path.join(PROJECT_ROOT, "ProjectInputs", "GDD")
     handoff_draft_dir = os.path.join(PROJECT_ROOT, "ProjectState", "Handoffs", "draft")
     handoff_approved_dir = os.path.join(PROJECT_ROOT, "ProjectState", "Handoffs", "approved")
-    report_dir = os.path.join(PROJECT_ROOT, "ProjectState", "Reports")
+    report_dir = str(get_dated_project_reports_dir())
 
     for directory in [handoff_draft_dir, handoff_approved_dir, report_dir]:
         os.makedirs(directory, exist_ok=True)
@@ -171,10 +172,9 @@ def _try_capture_evidence(
 def _find_latest_report(report_dir: str, handoff_id: str) -> str:
     """找到当前 handoff 对应的最新执行报告。"""
     candidates = []
-    if os.path.isdir(report_dir):
-        for file_name in os.listdir(report_dir):
-            if handoff_id in file_name and file_name.endswith(".json"):
-                candidates.append(os.path.join(report_dir, file_name))
+    for report_path in iter_report_files(report_dir):
+        if handoff_id in report_path.name and report_path.suffix == ".json":
+            candidates.append(str(report_path))
     if not candidates:
         return ""
     return max(candidates, key=os.path.getmtime)

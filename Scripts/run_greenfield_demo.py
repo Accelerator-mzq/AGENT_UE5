@@ -18,6 +18,7 @@ from compiler.handoff import serialize_handoff
 from compiler.intake import get_project_state_snapshot, read_gdd_from_directory
 from compiler.routing import determine_mode, load_mode_config
 from compiler.handoff import build_handoff
+from bridge.project_config import get_dated_project_reports_dir
 from orchestrator.handoff_runner import run_from_handoff
 
 
@@ -35,7 +36,7 @@ def run_greenfield_demo(bridge_mode: str = "simulated"):
     mode_config_path = os.path.join(project_root, "ProjectInputs", "Presets", "mode_override.yaml")
     handoff_draft_dir = os.path.join(project_root, "ProjectState", "Handoffs", "draft")
     handoff_approved_dir = os.path.join(project_root, "ProjectState", "Handoffs", "approved")
-    report_dir = os.path.join(project_root, "ProjectState", "Reports")
+    report_dir = str(get_dated_project_reports_dir())
 
     for directory in [handoff_draft_dir, handoff_approved_dir, report_dir]:
         os.makedirs(directory, exist_ok=True)

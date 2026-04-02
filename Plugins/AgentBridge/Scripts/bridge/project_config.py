@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import os
 import pathlib
+from datetime import date
 from functools import lru_cache
 
 
@@ -77,6 +78,34 @@ def get_reports_dir() -> pathlib.Path:
     return get_plugin_root() / "reports"
 
 
+def get_project_reports_dir() -> pathlib.Path:
+    """返回 <ProjectRoot>/ProjectState/Reports/ 路径。"""
+    return get_project_root() / "ProjectState" / "Reports"
+
+
+def get_report_date_dirname(target_date: str | None = None) -> str:
+    """返回用于报告分层的日期目录名。"""
+    return target_date or date.today().isoformat()
+
+
+def get_dated_reports_dir(target_date: str | None = None) -> pathlib.Path:
+    """返回插件仓 reports/<YYYY-MM-DD>/ 路径。"""
+    return get_reports_dir() / get_report_date_dirname(target_date)
+
+
+def get_dated_project_reports_dir(target_date: str | None = None) -> pathlib.Path:
+    """返回 <ProjectRoot>/ProjectState/Reports/<YYYY-MM-DD>/ 路径。"""
+    return get_project_reports_dir() / get_report_date_dirname(target_date)
+
+
+def iter_report_files(report_dir: str | pathlib.Path, pattern: str = "*.json") -> list[pathlib.Path]:
+    """递归遍历报告目录，兼容新增的按日期子目录布局。"""
+    root = pathlib.Path(report_dir)
+    if not root.exists():
+        return []
+    return [path for path in root.rglob(pattern) if path.is_file()]
+
+
 if __name__ == "__main__":
     print("=== project_config 路径自检 ===")
     try:
@@ -87,6 +116,9 @@ if __name__ == "__main__":
         print(f"schemas_dir   : {get_schemas_dir()}")
         print(f"specs_dir     : {get_specs_dir()}")
         print(f"reports_dir   : {get_reports_dir()}")
+        print(f"reports_daily : {get_dated_reports_dir()}")
+        print(f"project_reports_dir   : {get_project_reports_dir()}")
+        print(f"project_reports_daily : {get_dated_project_reports_dir()}")
         print("\n[OK] 全部路径解析成功。")
     except RuntimeError as exc:
         print(f"\n[ERROR] {exc}")
