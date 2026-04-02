@@ -14,7 +14,7 @@ _BRIDGE_DIR = _THIS_DIR.parent / "bridge"
 if str(_BRIDGE_DIR) not in sys.path:
     sys.path.insert(0, str(_BRIDGE_DIR))
 
-from project_config import get_reports_dir
+from project_config import get_dated_reports_dir
 
 
 def generate_report(
@@ -88,7 +88,8 @@ def save_report(report: dict[str, Any], output_path: str) -> None:
     """将报告写入 JSON 文件。"""
     path = Path(output_path)
     if not path.is_absolute():
-        path = get_reports_dir() / path
+        # 相对路径统一落到当天目录，避免 reports 根目录继续平铺。
+        path = get_dated_reports_dir() / path
     path.parent.mkdir(parents=True, exist_ok=True)
 
     with path.open("w", encoding="utf-8") as handle:

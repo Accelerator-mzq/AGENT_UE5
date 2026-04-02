@@ -1,6 +1,6 @@
 # Evidence 与 Artifacts 规则
 
-> 文档版本：L1-Phase7Prep-v1
+> 文档版本：L1-Phase7Prep-v2
 
 ## 目录分责
 
@@ -27,6 +27,23 @@
 - 验收报告
 - smoke 记录
 - 阶段归档记录
+
+当前规则：
+
+- 当天新生成的报告默认写入 `ProjectState/Reports/YYYY-MM-DD/`
+- 如需引用具体报告，应优先链接到日期子目录中的实际文件
+
+### `Plugins/AgentBridge/reports/`
+
+用途：
+
+- 系统测试汇总报告
+- 插件层结构化 JSON 报告
+
+当前规则：
+
+- 当天新生成的报告默认写入 `Plugins/AgentBridge/reports/YYYY-MM-DD/`
+- 不再直接平铺写入 `Plugins/AgentBridge/reports/` 根目录
 
 ## 历史证据归档
 
