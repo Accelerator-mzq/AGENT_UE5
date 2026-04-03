@@ -440,7 +440,10 @@ bool ABoardgamePrototypeBoardActor::SpawnPieceActor(int32 Row, int32 Col, const 
 		return false;
 	}
 
+#if WITH_EDITOR
+	// Actor Label 仅用于编辑器中的可读性，运行时目标不暴露该接口。
 	PieceActor->SetActorLabel(DesiredName);
+#endif
 	if (UStaticMeshComponent* MeshComponent = PieceActor->GetStaticMeshComponent())
 	{
 		const FString* MeshPath = PieceMeshPathMap.Find(PieceSymbol);

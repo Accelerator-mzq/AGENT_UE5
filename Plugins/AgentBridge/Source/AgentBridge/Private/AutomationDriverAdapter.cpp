@@ -61,7 +61,8 @@ namespace
 		FString LocatorPath;
 	};
 
-	static TSharedPtr<SLevelViewport> GetUsableLevelViewportWidget()
+	// 使用带模块前缀的局部辅助函数名，避免 Unity Build 下与其他 cpp 的匿名静态函数重名。
+	static TSharedPtr<SLevelViewport> GetUsableLevelViewportWidgetForAutomationDriver()
 	{
 		if (!FModuleManager::Get().IsModuleLoaded(TEXT("LevelEditor")))
 		{
@@ -1359,7 +1360,7 @@ FUIOperationResult FAutomationDriverAdapter::DragAssetToViewport(
 
 	// 2. 获取一个可用的 Level Viewport。
 	// 在自动化命令行会话里，“活跃 Viewport”有时为空，但实际仍存在可渲染的 Level Viewport。
-	TSharedPtr<SLevelViewport> LevelViewportWidget = GetUsableLevelViewportWidget();
+	TSharedPtr<SLevelViewport> LevelViewportWidget = GetUsableLevelViewportWidgetForAutomationDriver();
 	if (!LevelViewportWidget.IsValid())
 	{
 		return FailAndReturn(TEXT("Usable LevelViewport widget not available"));
@@ -1549,7 +1550,7 @@ bool FAutomationDriverAdapter::WorldToScreen(const FVector& WorldLocation, FVect
 {
 	if (!GEditor) return false;
 
-	TSharedPtr<SLevelViewport> LevelViewportWidget = GetUsableLevelViewportWidget();
+	TSharedPtr<SLevelViewport> LevelViewportWidget = GetUsableLevelViewportWidgetForAutomationDriver();
 	if (!LevelViewportWidget.IsValid())
 	{
 		return false;
