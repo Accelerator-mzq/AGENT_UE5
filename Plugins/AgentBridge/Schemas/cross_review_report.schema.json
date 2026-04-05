@@ -1,0 +1,115 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Cross-Spec Review Report",
+  "description": "Cross-Spec Review 阶段对所有 Skill Fragment 的统一审查报告",
+  "type": "object",
+  "required": [
+    "review_id",
+    "review_version",
+    "input_fragment_ids",
+    "review_status",
+    "reviewed_dynamic_spec_tree",
+    "review_checks"
+  ],
+  "properties": {
+    "review_id": {
+      "type": "string",
+      "pattern": "^review\\.[a-z0-9_]+\\.[a-z0-9]+$"
+    },
+    "review_version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "input_fragment_ids": {
+      "type": "array",
+      "description": "输入的 Skill Fragment ID 列表",
+      "items": {"type": "string"}
+    },
+    "review_status": {
+      "type": "string",
+      "enum": ["approved", "approved_with_warnings", "blocked"],
+      "description": "approved=全部通过, approved_with_warnings=通过但有警告, blocked=存在阻塞问题"
+    },
+    "review_checks": {
+      "type": "array",
+      "description": "逐项审查结果",
+      "items": {
+        "type": "object",
+        "required": ["check_id", "check_name", "result"],
+        "properties": {
+          "check_id": {"type": "string"},
+          "check_name": {"type": "string", "description": "审查项名称"},
+          "result": {
+            "type": "string",
+            "enum": ["pass", "warning", "fail"]
+          },
+          "details": {"type": "string", "description": "审查细节说明"},
+          "affected_families": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "涉及的 family"
+          }
+        }
+      }
+    },
+    "issues_found": {
+      "type": "array",
+      "description": "发现的问题",
+      "items": {
+        "type": "object",
+        "required": ["issue_id", "severity", "description"],
+        "properties": {
+          "issue_id": {"type": "string"},
+          "severity": {"type": "string", "enum": ["blocker", "warning", "info"]},
+          "description": {"type": "string"},
+          "resolution": {"type": "string"},
+          "resolved": {"type": "boolean"}
+        }
+      }
+    },
+    "phase_scope_check": {
+      "type": "object",
+      "description": "Phase 范围检查",
+      "properties": {
+        "in_scope_confirmed": {"type": "boolean"},
+        "out_of_scope_violations": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "越界到 out_of_scope 的内容"
+        }
+      }
+    },
+    "reviewed_dynamic_spec_tree": {
+      "type": "object",
+      "description": "审查通过后的统一 Dynamic Spec Tree，按 family 名组织",
+      "additionalProperties": {
+        "type": "object",
+        "description": "每个 family 审查后的最终版本"
+      }
+    },
+    "capability_gap_list": {
+      "type": "array",
+      "description": "汇总所有 Skill 报告的能力缺口",
+      "items": {
+        "type": "object",
+        "properties": {
+          "gap_id": {"type": "string"},
+          "source_skill": {"type": "string"},
+          "description": {"type": "string"},
+          "severity": {"type": "string", "enum": ["blocker", "degraded", "cosmetic"]}
+        }
+      }
+    },
+    "lowering_ready": {
+      "type": "boolean",
+      "description": "审查通过且可以进入 Lowering 阶段"
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "generated_at": {"type": "string", "format": "date-time"},
+        "generator": {"type": "string"}
+      }
+    }
+  }
+}

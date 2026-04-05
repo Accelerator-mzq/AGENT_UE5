@@ -1,0 +1,76 @@
+{
+  "skill_instance_id": "skill-board",
+  "template_id": "monopoly.board_topology.phase1",
+  "phase_scope": "phase1_local_multiplayer",
+  "status": "completed",
+  "emitted_families": ["board_topology_spec"],
+  "spec_fragments": {
+    "board_topology_spec": {
+      "board_shape": "square_ring",
+      "tile_count": 28,
+      "tiles_per_side": 7,
+      "corner_count": 4,
+      "movement_direction": "clockwise",
+      "is_closed_loop": true,
+      "corner_tiles": {
+        "start": 0,
+        "jail_visit": 7,
+        "free_parking": 14,
+        "go_to_jail": 21
+      },
+      "tile_index_list": [
+        {"index": 0,  "name": "起点",       "side": "corner",  "is_corner": true},
+        {"index": 1,  "name": "地中海街",   "side": "bottom",  "is_corner": false},
+        {"index": 2,  "name": "公共基金",   "side": "bottom",  "is_corner": false},
+        {"index": 3,  "name": "波罗的海街", "side": "bottom",  "is_corner": false},
+        {"index": 4,  "name": "所得税",     "side": "bottom",  "is_corner": false},
+        {"index": 5,  "name": "东方大道",   "side": "bottom",  "is_corner": false},
+        {"index": 6,  "name": "机会",       "side": "bottom",  "is_corner": false},
+        {"index": 7,  "name": "监狱探访",   "side": "corner",  "is_corner": true},
+        {"index": 8,  "name": "佛蒙特大道", "side": "left",    "is_corner": false},
+        {"index": 9,  "name": "康涅狄格街", "side": "left",    "is_corner": false},
+        {"index": 10, "name": "圣查尔斯",   "side": "left",    "is_corner": false},
+        {"index": 11, "name": "弗吉尼亚街", "side": "left",    "is_corner": false},
+        {"index": 12, "name": "公共基金",   "side": "left",    "is_corner": false},
+        {"index": 13, "name": "田纳西街",   "side": "left",    "is_corner": false},
+        {"index": 14, "name": "免费停车",   "side": "corner",  "is_corner": true},
+        {"index": 15, "name": "纽约大道",   "side": "top",     "is_corner": false},
+        {"index": 16, "name": "机会",       "side": "top",     "is_corner": false},
+        {"index": 17, "name": "肯塔基大道", "side": "top",     "is_corner": false},
+        {"index": 18, "name": "印第安纳街", "side": "top",     "is_corner": false},
+        {"index": 19, "name": "伊利诺伊街", "side": "top",     "is_corner": false},
+        {"index": 20, "name": "奢侈税",     "side": "top",     "is_corner": false},
+        {"index": 21, "name": "前往监狱",   "side": "corner",  "is_corner": true},
+        {"index": 22, "name": "太平洋大道", "side": "right",   "is_corner": false},
+        {"index": 23, "name": "公共基金",   "side": "right",   "is_corner": false},
+        {"index": 24, "name": "北卡罗来纳", "side": "right",   "is_corner": false},
+        {"index": 25, "name": "宾夕法尼亚", "side": "right",   "is_corner": false},
+        {"index": 26, "name": "机会",       "side": "right",   "is_corner": false},
+        {"index": 27, "name": "百老汇",     "side": "right",   "is_corner": false}
+      ],
+      "adjacency_rule": "tile[i] -> tile[(i+1) % 28]"
+    }
+  },
+  "assumptions": [
+    {
+      "assumption": "棋盘从右下角起点开始，顺时针方向：底边→左边→顶边→右边",
+      "basis": "GDD §2.1 布局图"
+    }
+  ],
+  "open_questions": [],
+  "review_hints": [
+    "确认 28 格索引 0..27 无缺口",
+    "确认四角格 0/7/14/21 标记为 is_corner=true",
+    "确认 tiles_per_side=7 × 4 - 4 = 24 + 4 = 28"
+  ],
+  "capability_gaps": [],
+  "confidence": {
+    "coverage": 1.0,
+    "consistency": 1.0
+  },
+  "metadata": {
+    "generated_at": "2026-04-04T12:02:00Z",
+    "generator": "AgentBridge.Compiler.SkillRuntime.v1",
+    "template_version": "1.0.0"
+  }
+}

@@ -1,0 +1,174 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Build IR",
+  "description": "Lowering Pipeline 输出的构建中间表示",
+  "type": "object",
+  "required": [
+    "ir_version",
+    "ir_id",
+    "source_review_id",
+    "phase_scope",
+    "build_steps",
+    "lowering_report"
+  ],
+  "properties": {
+    "ir_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "ir_id": {
+      "type": "string",
+      "pattern": "^ir\\.[a-z0-9_]+\\.[a-z0-9]+$"
+    },
+    "source_review_id": {
+      "type": "string",
+      "description": "来源的 Cross-Review Report ID"
+    },
+    "phase_scope": {
+      "type": "string"
+    },
+    "build_steps": {
+      "type": "array",
+      "description": "构建步骤序列，每步表达一个构建意图",
+      "items": {
+        "type": "object",
+        "required": ["step_id", "ir_action", "source_families", "params"],
+        "properties": {
+          "step_id": {
+            "type": "string",
+            "description": "步骤唯一 ID"
+          },
+          "ir_action": {
+            "type": "string",
+            "description": "构建意图动作",
+            "enum": [
+              "create_board_ring_layout",
+              "create_tile_actors",
+              "assign_tile_metadata",
+              "create_player_tokens",
+              "create_game_mode_shell",
+              "bind_turn_state_machine",
+              "bind_dice_roll_logic",
+              "bind_tile_event_dispatch",
+              "bind_property_economy_logic",
+              "bind_jail_logic",
+              "bind_bankruptcy_logic",
+              "create_phase1_ui_widgets",
+              "bind_ui_to_game_state",
+              "attach_validation_hooks"
+            ]
+          },
+          "source_families": {
+            "type": "array",
+            "description": "此步骤依据的 Dynamic Spec Family",
+            "items": {"type": "string"}
+          },
+          "depends_on": {
+            "type": "array",
+            "description": "依赖的前置步骤 ID",
+            "items": {"type": "string"}
+          },
+          "params": {
+            "type": "object",
+            "description": "构建参数（由 Lowering 从 Dynamic Spec 翻译而来），不同 ir_action 有不同的参数结构",
+            "additionalProperties": true
+          },
+          "static_base_bindings": {
+            "type": "array",
+            "description": "绑定的 Static Base 能力",
+            "items": {"type": "string"}
+          },
+          "execution_hints": {
+            "type": "object",
+            "description": "给执行层的提示（非强制）",
+            "properties": {
+              "tool_preference": {
+                "type": "string",
+                "enum": ["mcp_bridge", "cpp_code", "python_editor_scripting", "manual"],
+                "description": "建议使用的执行通道"
+              },
+              "estimated_complexity": {
+                "type": "string",
+                "enum": ["trivial", "simple", "moderate", "complex"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "validation_ir": {
+      "type": "array",
+      "description": "验证中间表示，定义执行后必须检查的验证点",
+      "items": {
+        "type": "object",
+        "required": ["validation_id", "check_type", "description"],
+        "properties": {
+          "validation_id": {"type": "string"},
+          "after_step": {"type": "string", "description": "在哪个 build_step 之后执行验证"},
+          "check_type": {
+            "type": "string",
+            "enum": ["actor_exists", "actor_count", "property_value", "state_machine_state", "ui_widget_exists", "gameplay_rule", "data_consistency"]
+          },
+          "description": {"type": "string"},
+          "expected": {
+            "description": "期望值"
+          },
+          "tolerance": {
+            "type": "number",
+            "description": "数值容差（如适用）"
+          }
+        }
+      }
+    },
+    "lowering_report": {
+      "type": "object",
+      "description": "Lowering 过程报告",
+      "required": ["families_received", "families_bound"],
+      "properties": {
+        "families_received": {"type": "array", "items": {"type": "string"}},
+        "families_bound": {"type": "array", "items": {"type": "string"}},
+        "families_partially_bound": {"type": "array", "items": {"type": "string"}},
+        "unbound_requirements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "requirement": {"type": "string"},
+              "reason": {"type": "string"},
+              "fallback": {"type": "string"}
+            }
+          }
+        },
+        "capability_gaps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "gap_id": {"type": "string"},
+              "description": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "recovery_hints": {
+      "type": "array",
+      "description": "执行失败时的恢复提示",
+      "items": {
+        "type": "object",
+        "properties": {
+          "step_id": {"type": "string"},
+          "recovery_strategy": {"type": "string", "enum": ["retry", "skip", "rollback", "manual"]},
+          "notes": {"type": "string"}
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "generated_at": {"type": "string", "format": "date-time"},
+        "generator": {"type": "string"}
+      }
+    }
+  }
+}

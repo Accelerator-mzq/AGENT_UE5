@@ -1,7 +1,7 @@
 # CLAUDE.md — Mvpv4TestCodex 项目
 
 > 本文件供 Claude Code / Codex / 其他 AI Agent 在进入本项目时自动读取。
-> 最后更新：2026-04-02
+> 最后更新：2026-04-04
 
 ## 项目概述
 
@@ -20,9 +20,10 @@ AgentBridge 不只是工具接口插件，而是包含编译前端（Skill Compi
 1. `AGENTS.md` — 项目级 Agent 规则
 2. `Docs/Current/00_Index.md` — 当前阶段索引
 3. `Docs/Current/05_Implementation_Boundary.md` — 实施边界
-4. `Docs/History/Tasks/task4_phase6.md` — Phase 6 任务清单（已归档）
+4. `task.md` — Phase 8 任务清单（当前阶段唯一任务入口）
 5. `Plugins/AgentBridge/README.md` — 插件说明
 6. `Plugins/AgentBridge/AGENTS.md` — 通用 Agent 规则
+7. `Docs/History/Proposals/Phase8_M3_Handover_to_Execution_Agent.md` — M3 交接文档（如参与执行）
 
 ## 绝对不要修改的文件
 
@@ -67,6 +68,21 @@ AgentBridge 不只是工具接口插件，而是包含编译前端（Skill Compi
 ### 新增的 Schema（插件层）
 - `Plugins/AgentBridge/Schemas/reviewed_handoff.schema.json`
 - `Plugins/AgentBridge/Schemas/run_plan.schema.json`
+- `Plugins/AgentBridge/Schemas/gdd_projection.schema.json`
+- `Plugins/AgentBridge/Schemas/planner_output.schema.json`
+- `Plugins/AgentBridge/Schemas/skill_fragment.schema.json`
+- `Plugins/AgentBridge/Schemas/cross_review_report.schema.json`
+- `Plugins/AgentBridge/Schemas/build_ir.schema.json`
+- `Plugins/AgentBridge/Schemas/reviewed_handoff_v2.schema.json`
+
+### Phase 8 新增 Compiler 骨架（插件层）
+- `Plugins/AgentBridge/Compiler/` — Skill-First 6 阶段 Compiler 骨架
+
+### Phase 8 新增 Skill Template Pack（插件层）
+- `Plugins/AgentBridge/SkillTemplates/` — Skill Template Pack 体系
+
+### Phase 8 新增 MCP Server（插件层）
+- `Plugins/AgentBridge/MCP/` — MCP Server（28 工具定义）
 
 ### 占位目录（插件层）
 - `Plugins/AgentBridge/Skills/` — Skill 体系
@@ -127,6 +143,9 @@ python compiler_main.py
 
 ## 当前阶段
 
-Phase 7 已归档，当前处于下一阶段待规划
-历史任务：`Docs/History/Tasks/task4_phase6.md`、`Docs/History/Tasks/task5_phase7_preparation.md`、`Docs/History/Tasks/task6_phase7.md`
+Phase 8 正式开发期 — Skill-First Compiler Reset + MonopolyGame 垂直切片
+当前里程碑：M3（垂直切片执行），已交接给 Execution Agent
+任务入口：`task.md`
+交接文档：`Docs/History/Proposals/Phase8_M3_Handover_to_Execution_Agent.md`
+历史任务：`Docs/History/Tasks/task6_phase7.md`
 详见 `Docs/Current/00_Index.md`

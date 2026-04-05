@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Board Topology Spec",
+  "description": "棋盘拓扑结构规格",
+  "type": "object",
+  "required": ["board_shape", "tile_count", "tiles_per_side", "movement_direction", "corner_tiles", "tile_index_list"],
+  "properties": {
+    "board_shape": {
+      "type": "string",
+      "enum": ["square_ring", "linear", "grid", "hex_grid"],
+      "description": "棋盘形状"
+    },
+    "tile_count": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "总格数"
+    },
+    "tiles_per_side": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "每边格数（含两端角格）"
+    },
+    "corner_count": {
+      "type": "integer",
+      "description": "角格数量"
+    },
+    "movement_direction": {
+      "type": "string",
+      "enum": ["clockwise", "counterclockwise", "bidirectional"],
+      "description": "移动方向"
+    },
+    "is_closed_loop": {
+      "type": "boolean",
+      "description": "是否为闭合环形路线"
+    },
+    "corner_tiles": {
+      "type": "object",
+      "description": "四个角格的固定索引",
+      "required": ["start", "jail_visit", "free_parking", "go_to_jail"],
+      "properties": {
+        "start": {"type": "integer", "description": "起点索引"},
+        "jail_visit": {"type": "integer", "description": "监狱探视索引"},
+        "free_parking": {"type": "integer", "description": "免费停车索引"},
+        "go_to_jail": {"type": "integer", "description": "前往监狱索引"}
+      }
+    },
+    "tile_index_list": {
+      "type": "array",
+      "description": "完整格子索引与名称列表（仅拓扑信息，不含属性）",
+      "items": {
+        "type": "object",
+        "required": ["index", "name", "side"],
+        "properties": {
+          "index": {"type": "integer", "minimum": 0},
+          "name": {"type": "string"},
+          "side": {
+            "type": "string",
+            "enum": ["bottom", "left", "top", "right", "corner"],
+            "description": "所在边"
+          },
+          "is_corner": {"type": "boolean"}
+        }
+      }
+    },
+    "adjacency_rule": {
+      "type": "string",
+      "description": "相邻关系规则",
+      "example": "tile[i] -> tile[(i+1) % 28]"
+    }
+  }
+}

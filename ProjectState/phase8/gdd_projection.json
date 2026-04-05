@@ -1,0 +1,190 @@
+{
+  "projection_version": "1.0",
+  "projection_id": "proj.monopoly_phase1.001",
+  "source_gdd": {
+    "file_path": "ProjectInputs/GDD/GDD_MonopolyGame.md",
+    "part_a_scope": "游戏概述(§1)、棋盘设计(§2: 布局/格子类型/数据表/颜色组)、游戏规则(§3: 流程/格子事件/破产/骰子)、UI需求(§4: HUD/弹窗)",
+    "part_b_scope": "UE5项目设置(§5)、核心类设计(§6: 8个C++类)、状态机流程(§7)、Phase2网络扩展(§8)、编辑器操作步骤(§9)、任务分解(§10)"
+  },
+  "game_identity": {
+    "game_type": "board_strategy",
+    "subgenre": "monopoly_like",
+    "presentation_model": "top_down_3d",
+    "player_count_range": [2, 4],
+    "win_condition": "last_non_bankrupt_player",
+    "target_match_length_minutes": [20, 40]
+  },
+  "phase_scope": {
+    "current_phase": "phase1_local_multiplayer",
+    "in_scope": [
+      "local_turn_play",
+      "ring_board_28_tiles",
+      "2d6_dice_movement",
+      "doubles_extra_turn",
+      "triple_doubles_jail",
+      "pass_start_bonus_200",
+      "property_buy_rent",
+      "color_group_rent_double",
+      "tax_deduction",
+      "jail_bail_or_doubles",
+      "bankruptcy_elimination",
+      "game_end_last_standing",
+      "minimal_hud",
+      "decision_popups",
+      "info_popups"
+    ],
+    "out_of_scope": [
+      "online_multiplayer",
+      "session_management",
+      "server_rpc",
+      "property_replication",
+      "chance_card_events",
+      "community_card_events",
+      "property_auction",
+      "house_hotel_building",
+      "mortgage_unmortgage",
+      "player_trading"
+    ],
+    "future_phases": [
+      {
+        "phase_id": "phase2_online_multiplayer",
+        "summary": "Server-Authoritative 在线多人，GameMode 服务器端，GameState/PlayerState Replicated，RPC 交互"
+      }
+    ]
+  },
+  "design_domains": {
+    "board_layout": {
+      "shape": "square_ring",
+      "tile_count": 28,
+      "tiles_per_side": 7,
+      "movement_direction": "clockwise",
+      "corner_indices": {
+        "start": 0,
+        "jail_visit": 7,
+        "free_parking": 14,
+        "go_to_jail": 21
+      }
+    },
+    "tile_catalog": [
+      {"index": 0,  "type": "START",        "name": "起点",       "color_group": null, "price": null, "base_rent": null},
+      {"index": 1,  "type": "PROPERTY",     "name": "地中海街",   "color_group": "Brown",     "price": 60,  "base_rent": 4},
+      {"index": 2,  "type": "COMMUNITY",    "name": "公共基金",   "color_group": null, "price": null, "base_rent": null},
+      {"index": 3,  "type": "PROPERTY",     "name": "波罗的海街", "color_group": "Brown",     "price": 80,  "base_rent": 8},
+      {"index": 4,  "type": "TAX",          "name": "所得税",     "color_group": null, "price": null, "base_rent": 200},
+      {"index": 5,  "type": "PROPERTY",     "name": "东方大道",   "color_group": "LightBlue", "price": 100, "base_rent": 12},
+      {"index": 6,  "type": "CHANCE",       "name": "机会",       "color_group": null, "price": null, "base_rent": null},
+      {"index": 7,  "type": "JAIL_VISIT",   "name": "监狱探访",   "color_group": null, "price": null, "base_rent": null},
+      {"index": 8,  "type": "PROPERTY",     "name": "佛蒙特大道", "color_group": "LightBlue", "price": 120, "base_rent": 14},
+      {"index": 9,  "type": "PROPERTY",     "name": "康涅狄格街", "color_group": "LightBlue", "price": 140, "base_rent": 16},
+      {"index": 10, "type": "PROPERTY",     "name": "圣查尔斯",   "color_group": "Pink",      "price": 160, "base_rent": 20},
+      {"index": 11, "type": "PROPERTY",     "name": "弗吉尼亚街", "color_group": "Pink",      "price": 180, "base_rent": 22},
+      {"index": 12, "type": "COMMUNITY",    "name": "公共基金",   "color_group": null, "price": null, "base_rent": null},
+      {"index": 13, "type": "PROPERTY",     "name": "田纳西街",   "color_group": "Pink",      "price": 200, "base_rent": 24},
+      {"index": 14, "type": "FREE_PARKING", "name": "免费停车",   "color_group": null, "price": null, "base_rent": null},
+      {"index": 15, "type": "PROPERTY",     "name": "纽约大道",   "color_group": "Orange",    "price": 220, "base_rent": 28},
+      {"index": 16, "type": "CHANCE",       "name": "机会",       "color_group": null, "price": null, "base_rent": null},
+      {"index": 17, "type": "PROPERTY",     "name": "肯塔基大道", "color_group": "Orange",    "price": 240, "base_rent": 30},
+      {"index": 18, "type": "PROPERTY",     "name": "印第安纳街", "color_group": "Red",       "price": 260, "base_rent": 32},
+      {"index": 19, "type": "PROPERTY",     "name": "伊利诺伊街", "color_group": "Red",       "price": 280, "base_rent": 34},
+      {"index": 20, "type": "TAX",          "name": "奢侈税",     "color_group": null, "price": null, "base_rent": 150},
+      {"index": 21, "type": "GO_TO_JAIL",   "name": "前往监狱",   "color_group": null, "price": null, "base_rent": null},
+      {"index": 22, "type": "PROPERTY",     "name": "太平洋大道", "color_group": "Green",     "price": 300, "base_rent": 36},
+      {"index": 23, "type": "COMMUNITY",    "name": "公共基金",   "color_group": null, "price": null, "base_rent": null},
+      {"index": 24, "type": "PROPERTY",     "name": "北卡罗来纳", "color_group": "Green",     "price": 320, "base_rent": 38},
+      {"index": 25, "type": "PROPERTY",     "name": "宾夕法尼亚", "color_group": "Green",     "price": 340, "base_rent": 40},
+      {"index": 26, "type": "CHANCE",       "name": "机会",       "color_group": null, "price": null, "base_rent": null},
+      {"index": 27, "type": "PROPERTY",     "name": "百老汇",     "color_group": "Blue",      "price": 400, "base_rent": 50}
+    ],
+    "color_groups": {
+      "Brown":     {"tile_indices": [1, 3],       "full_set_multiplier": 2},
+      "LightBlue": {"tile_indices": [5, 8, 9],    "full_set_multiplier": 2},
+      "Pink":      {"tile_indices": [10, 11, 13],  "full_set_multiplier": 2},
+      "Orange":    {"tile_indices": [15, 17],      "full_set_multiplier": 2},
+      "Red":       {"tile_indices": [18, 19],      "full_set_multiplier": 2},
+      "Green":     {"tile_indices": [22, 24, 25],  "full_set_multiplier": 2},
+      "Blue":      {"tile_indices": [27],          "full_set_multiplier": 2}
+    },
+    "turn_loop": {
+      "dice_count": 2,
+      "dice_sides": 6,
+      "start_bonus": 200,
+      "doubles_extra_turn": true,
+      "triple_doubles_jail": true
+    },
+    "property_rules": {
+      "unowned_landing": "offer_purchase",
+      "owned_by_self": "no_action",
+      "owned_by_other": "pay_rent",
+      "color_group_bonus": "rent_multiplier_x2",
+      "bankruptcy_release": "release_to_unowned"
+    },
+    "jail_rules": {
+      "entry_conditions": ["land_on_go_to_jail", "triple_doubles"],
+      "bail_cost": 50,
+      "doubles_release": true,
+      "max_jail_turns": 3
+    },
+    "bankruptcy_rules": {
+      "trigger": "cannot_pay_obligation",
+      "consequence": "eliminate_player",
+      "asset_handling": "release_all_properties_to_unowned",
+      "game_end_condition": "one_player_remaining"
+    },
+    "ui_requirements": {
+      "hud_elements": [
+        "current_player_indicator",
+        "all_players_money",
+        "turn_number"
+      ],
+      "popup_types": [
+        {"popup_id": "dice_roll",      "trigger": "turn_start",             "buttons": ["roll_dice"]},
+        {"popup_id": "buy_property",   "trigger": "land_on_unowned_property", "buttons": ["buy", "pass"]},
+        {"popup_id": "pay_rent",       "trigger": "land_on_owned_property",   "buttons": ["confirm"]},
+        {"popup_id": "jail_decision",  "trigger": "in_jail_turn_start",      "buttons": ["pay_bail", "try_doubles"]},
+        {"popup_id": "bankruptcy",     "trigger": "player_bankrupt",          "buttons": ["confirm"]},
+        {"popup_id": "game_over",      "trigger": "one_player_remaining",     "buttons": ["return_to_menu"]}
+      ]
+    }
+  },
+  "implementation_hints": {
+    "class_naming_convention": "M",
+    "core_classes": [
+      "AMGameMode",
+      "AMGameState",
+      "AMPlayerState",
+      "AMPlayerController",
+      "AMBoardManager",
+      "AMTile",
+      "AMPlayerPawn",
+      "AMDice"
+    ],
+    "editor_steps_summary": "创建C++类(8个) → 创建BP_MGameMode → 创建BoardLevel关卡 → 配置WorldSettings → 放置光源和摄像机 → 放置MBoardManager(自动生成棋盘) → 创建材质和材质实例 → 创建Widget Blueprint(4个)",
+    "phase2_network_notes": "Server-Authoritative, GameMode server-only, GameState/PlayerState replicated, 客户端通过 Server RPC 发送请求"
+  },
+  "ambiguities": [
+    {
+      "topic": "Blue 颜色组只有 1 个地产",
+      "description": "GDD 中 Blue 组只有百老汇(index 27)一个格子，无法触发颜色组加成",
+      "default_assumption": "Blue 组保持原样，拥有者不会获得颜色组翻倍加成（因为只有 1 格，自动满足'拥有全部'但按规则仍应翻倍）"
+    },
+    {
+      "topic": "TAX 格的 base_rent 列",
+      "description": "数据表中 TAX 格的 Rent_Base 列用于记录扣款金额（200/150），不是租金",
+      "default_assumption": "TAX 格使用独立的 tax_amount 字段，不复用 base_rent 语义"
+    },
+    {
+      "topic": "起点奖励触发条件",
+      "description": "GDD 写'经过或停留在起点获得$200'，但前往监狱时不经过起点",
+      "default_assumption": "仅在正常移动时判定是否经过起点，GO_TO_JAIL 直接传送不触发"
+    }
+  ],
+  "risk_notes": [
+    "28 格简化棋盘与标准大富翁 40 格不同，需确认所有规则适配 28 格",
+    "Phase 1 热座模式下所有玩家共用同一 PlayerController，需要在回合切换时处理",
+    "Chance/Community 留空可能导致游戏节奏单一，但 Phase 1 接受此限制"
+  ],
+  "metadata": {
+    "generated_at": "2026-04-04T12:00:00Z",
+    "generator": "AgentBridge.Compiler.Intake.v1"
+  }
+}

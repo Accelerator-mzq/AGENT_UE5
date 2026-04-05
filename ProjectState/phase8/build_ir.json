@@ -1,0 +1,508 @@
+{
+  "ir_version": "1.0",
+  "ir_id": "ir.monopoly_phase1.v1",
+  "source_review_id": "review.monopoly_phase1.v1",
+  "phase_scope": "phase1_local_multiplayer",
+  "build_steps": [
+    {
+      "step_id": "step-01-board-layout",
+      "ir_action": "create_board_ring_layout",
+      "source_families": ["board_topology_spec"],
+      "depends_on": [],
+      "params": {
+        "board_shape": "square_ring",
+        "tile_count": 28,
+        "tiles_per_side": 7,
+        "corner_count": 4,
+        "ring_center": {"x": 0, "y": 0, "z": 0},
+        "side_length_cm": 700,
+        "tile_spacing_cm": 100,
+        "corner_tile_size_cm": {"x": 120, "y": 120},
+        "normal_tile_size_cm": {"x": 100, "y": 60},
+        "level_name": "/Game/Maps/L_MonopolyBoard",
+        "board_base_mesh": "/Game/StaticBase/Meshes/SM_BoardBase",
+        "tile_base_mesh": "/Game/StaticBase/Meshes/SM_TileSlot"
+      },
+      "static_base_bindings": ["SM_BoardBase", "SM_TileSlot"],
+      "execution_hints": {
+        "tool_preference": "python_editor_scripting",
+        "estimated_complexity": "moderate"
+      }
+    },
+    {
+      "step_id": "step-02-tile-actors",
+      "ir_action": "create_tile_actors",
+      "source_families": ["board_topology_spec", "tile_system_spec"],
+      "depends_on": ["step-01-board-layout"],
+      "params": {
+        "tile_actor_class": "AMTileActor",
+        "tile_count": 28,
+        "tile_data_source": "tile_data_table (28 records)",
+        "spawn_strategy": "iterate_tile_index_list_and_place_on_ring",
+        "actor_naming_pattern": "BP_Tile_{index:02d}_{type}",
+        "corner_tiles": [0, 7, 14, 21],
+        "property_material_assignment": "color_group → MI_TileColor_{group}"
+      },
+      "static_base_bindings": ["BP_TileActor", "MI_TileColor_*"],
+      "execution_hints": {
+        "tool_preference": "python_editor_scripting",
+        "estimated_complexity": "moderate"
+      }
+    },
+    {
+      "step_id": "step-03-tile-metadata",
+      "ir_action": "assign_tile_metadata",
+      "source_families": ["tile_system_spec"],
+      "depends_on": ["step-02-tile-actors"],
+      "params": {
+        "data_table_asset": "/Game/Data/DT_TileData",
+        "data_table_struct": "FMTileData",
+        "fields": {
+          "TileIndex": "int32",
+          "TileName": "FString",
+          "TileType": "EMTileType (enum 8 values)",
+          "ColorGroup": "EMColorGroup (enum 8 values, None + 7 groups)",
+          "Price": "int32",
+          "BaseRent": "int32",
+          "TaxAmount": "int32",
+          "OwnerIndex": "int32 (-1 = unowned)"
+        },
+        "row_count": 28,
+        "populate_from": "tile_system_spec.tile_data_table"
+      },
+      "static_base_bindings": ["DT_TileData"],
+      "execution_hints": {
+        "tool_preference": "cpp_code",
+        "estimated_complexity": "simple"
+      }
+    },
+    {
+      "step_id": "step-04-player-tokens",
+      "ir_action": "create_player_tokens",
+      "source_families": ["turn_flow_spec"],
+      "depends_on": ["step-01-board-layout"],
+      "params": {
+        "max_players": 4,
+        "token_actor_class": "AMPlayerToken",
+        "starting_tile_index": 0,
+        "token_meshes": [
+          "/Game/StaticBase/Meshes/SM_Token_Red",
+          "/Game/StaticBase/Meshes/SM_Token_Blue",
+          "/Game/StaticBase/Meshes/SM_Token_Green",
+          "/Game/StaticBase/Meshes/SM_Token_Yellow"
+        ],
+        "spawn_offset_per_player_cm": {"x": 10, "y": 0, "z": 5},
+        "movement_animation": "step_by_step_lerp"
+      },
+      "static_base_bindings": ["SM_Token_*", "BP_PlayerToken"],
+      "execution_hints": {
+        "tool_preference": "python_editor_scripting",
+        "estimated_complexity": "simple"
+      }
+    },
+    {
+      "step_id": "step-05-game-mode",
+      "ir_action": "create_game_mode_shell",
+      "source_families": ["turn_flow_spec", "property_economy_spec"],
+      "depends_on": [],
+      "params": {
+        "game_mode_class": "AMMonopolyGameMode",
+        "game_state_class": "AMMonopolyGameState",
+        "player_state_class": "AMMonopolyPlayerState",
+        "player_controller_class": "AMMonopolyPlayerController",
+        "game_state_fields": {
+          "CurrentPlayerIndex": "int32",
+          "TurnNumber": "int32",
+          "ConsecutiveDoublesCount": "int32",
+          "GamePhase": "EMGamePhase (WaitingForPlayers, InProgress, GameOver)"
+        },
+        "player_state_fields": {
+          "Money": "int32 (default 1500)",
+          "CurrentTileIndex": "int32 (default 0)",
+          "IsInJail": "bool (default false)",
+          "JailTurnsRemaining": "int32 (default 0)",
+          "IsBankrupt": "bool (default false)",
+          "OwnedTileIndices": "TArray<int32>"
+        },
+        "module_name": "Mvpv4TestCodex"
+      },
+      "static_base_bindings": [],
+      "execution_hints": {
+        "tool_preference": "cpp_code",
+        "estimated_complexity": "moderate"
+      }
+    },
+    {
+      "step_id": "step-06-turn-fsm",
+      "ir_action": "bind_turn_state_machine",
+      "source_families": ["turn_flow_spec"],
+      "depends_on": ["step-05-game-mode"],
+      "params": {
+        "fsm_owner": "AMMonopolyGameMode",
+        "initial_state": "WAIT_FOR_ROLL",
+        "state_enum": "EMTurnState (10 values)",
+        "transition_count": 12,
+        "implementation_pattern": "switch_on_enum_in_tick_or_event",
+        "key_transitions": [
+          {"from": "WAIT_FOR_ROLL", "to": "ROLLING_DICE", "event": "OnPlayerRollRequested"},
+          {"from": "ROLLING_DICE",  "to": "MOVING_PAWN",  "event": "OnDiceResultReady"},
+          {"from": "TILE_EVENT",    "to": "POST_EVENT",   "event": "OnTileEventResolved"},
+          {"from": "POST_EVENT",    "to": "GAME_OVER",    "guard": "CheckGameOver()"},
+          {"from": "POST_EVENT",    "to": "DOUBLES_EXTRA_TURN", "guard": "IsDoubles && ConsecutiveDoubles < 3"},
+          {"from": "POST_EVENT",    "to": "TURN_END",     "guard": "default"}
+        ],
+        "player_rotation_logic": "FindNextNonBankruptPlayer()"
+      },
+      "static_base_bindings": [],
+      "execution_hints": {
+        "tool_preference": "cpp_code",
+        "estimated_complexity": "complex"
+      }
+    },
+    {
+      "step_id": "step-07-dice-logic",
+      "ir_action": "bind_dice_roll_logic",
+      "source_families": ["turn_flow_spec"],
+      "depends_on": ["step-06-turn-fsm"],
+      "params": {
+        "dice_count": 2,
+        "dice_sides": 6,
+        "result_struct": "FMDiceResult { Die1, Die2, Total, bIsDoubles }",
+        "rng_method": "FMath::RandRange(1, 6)",
+        "doubles_detection": "Die1 == Die2",
+        "consecutive_tracking_field": "GameState->ConsecutiveDoublesCount",
+        "triple_doubles_action": "SendToJail()",
+        "reset_on_turn_end": true,
+        "reset_on_jail_entry": true
+      },
+      "static_base_bindings": [],
+      "execution_hints": {
+        "tool_preference": "cpp_code",
+        "estimated_complexity": "simple"
+      }
+    },
+    {
+      "step_id": "step-08-tile-events",
+      "ir_action": "bind_tile_event_dispatch",
+      "source_families": ["tile_system_spec", "property_economy_spec"],
+      "depends_on": ["step-03-tile-metadata", "step-06-turn-fsm"],
+      "params": {
+        "dispatch_function": "AMMonopolyGameMode::HandleTileEvent(int32 TileIndex)",
+        "dispatch_strategy": "switch_on_tile_type",
+        "event_mapping": {
+          "PROPERTY_unowned": "ShowBuyPopup() if CanAfford else AutoPass",
+          "PROPERTY_owned_other": "CollectRent(Owner, Tenant, EffectiveRent)",
+          "PROPERTY_owned_self": "NoAction",
+          "TAX": "DeductTax(TaxAmount) or TriggerBankruptcy",
+          "GO_TO_JAIL": "SendToJail()",
+          "START": "NoAction (bonus handled during movement)",
+          "CHANCE": "Phase1Placeholder()",
+          "COMMUNITY": "Phase1Placeholder()",
+          "JAIL_VISIT": "NoAction",
+          "FREE_PARKING": "NoAction"
+        }
+      },
+      "static_base_bindings": [],
+      "execution_hints": {
+        "tool_preference": "cpp_code",
+        "estimated_complexity": "moderate"
+      }
+    },
+    {
+      "step_id": "step-09-property-economy",
+      "ir_action": "bind_property_economy_logic",
+      "source_families": ["property_economy_spec", "tile_system_spec"],
+      "depends_on": ["step-03-tile-metadata", "step-05-game-mode"],
+      "params": {
+        "purchase_function": "TryPurchaseProperty(PlayerState, TileIndex)",
+        "rent_function": "CollectRent(OwnerState, TenantState, TileIndex)",
+        "rent_calculation": {
+          "base": "DT_TileData[TileIndex].BaseRent",
+          "color_group_check": "OwnsAllInColorGroup(Owner, ColorGroup)",
+          "color_group_multiplier": 2,
+          "formula": "BaseRent * (bFullSet ? 2 : 1)"
+        },
+        "payment_function": "TransferMoney(From, To, Amount) → bool bCanPay",
+        "insufficient_funds_action": "TriggerBankruptcy(Player)"
+      },
+      "static_base_bindings": [],
+      "execution_hints": {
+        "tool_preference": "cpp_code",
+        "estimated_complexity": "moderate"
+      }
+    },
+    {
+      "step_id": "step-10-jail-logic",
+      "ir_action": "bind_jail_logic",
+      "source_families": ["jail_rule_spec", "turn_flow_spec"],
+      "depends_on": ["step-06-turn-fsm", "step-07-dice-logic"],
+      "params": {
+        "send_to_jail_function": "SendToJail(PlayerState)",
+        "send_to_jail_actions": [
+          "PlayerState->CurrentTileIndex = 7",
+          "PlayerState->bIsInJail = true",
+          "PlayerState->JailTurnsRemaining = 3",
+          "GameState->ConsecutiveDoublesCount = 0"
+        ],
+        "jail_turn_function": "HandleJailTurn(PlayerState)",
+        "bail_cost": 50,
+        "pay_bail_flow": "DeductMoney(50) → bIsInJail=false → NormalDiceRollAndMove",
+        "try_doubles_flow": "RollDice() → if doubles: FreeFromJail+MoveByTotal, else: Decrement+EndTurn",
+        "forced_bail_check": "JailTurnsRemaining == 0 after failed doubles",
+        "forced_bail_flow": "PayBail(50) or TriggerBankruptcy"
+      },
+      "static_base_bindings": [],
+      "execution_hints": {
+        "tool_preference": "cpp_code",
+        "estimated_complexity": "moderate"
+      }
+    },
+    {
+      "step_id": "step-11-bankruptcy-logic",
+      "ir_action": "bind_bankruptcy_logic",
+      "source_families": ["bankruptcy_rule_spec", "property_economy_spec"],
+      "depends_on": ["step-09-property-economy"],
+      "params": {
+        "trigger_function": "TriggerBankruptcy(PlayerState)",
+        "bankruptcy_sequence": [
+          "PlayerState->bIsBankrupt = true",
+          "ReleaseAllProperties(PlayerState) → set OwnerIndex=-1 for each",
+          "PlayerState->Money = 0",
+          "ShowBankruptcyPopup(PlayerState)",
+          "CheckGameEndCondition()"
+        ],
+        "game_end_check": "CountNonBankruptPlayers() == 1",
+        "game_end_action": "DeclareWinner(LastRemainingPlayer) → ShowGameOverPopup"
+      },
+      "static_base_bindings": [],
+      "execution_hints": {
+        "tool_preference": "cpp_code",
+        "estimated_complexity": "simple"
+      }
+    },
+    {
+      "step_id": "step-12-ui-widgets",
+      "ir_action": "create_phase1_ui_widgets",
+      "source_families": ["ui_flow_spec"],
+      "depends_on": ["step-05-game-mode"],
+      "params": {
+        "widget_blueprints": [
+          {"name": "WBP_GameHUD",   "base_class": "UMGameHUDWidget",  "parent": "UUserWidget"},
+          {"name": "WBP_DicePopup", "base_class": "UMPopupWidget",   "parent": "UUserWidget"},
+          {"name": "WBP_BuyPopup",  "base_class": "UMPopupWidget",   "parent": "UUserWidget"},
+          {"name": "WBP_InfoPopup", "base_class": "UMPopupWidget",   "parent": "UUserWidget"},
+          {"name": "WBP_JailPopup", "base_class": "UMPopupWidget",   "parent": "UUserWidget"}
+        ],
+        "hud_elements": ["CurrentPlayerIndicator", "AllPlayersMoney", "TurnNumber", "CurrentTileInfo"],
+        "popup_queue_system": "TQueue<UMPopupWidget*>, show one at a time",
+        "creation_point": "GameMode::BeginPlay → CreateWidget(WBP_GameHUD) → AddToViewport"
+      },
+      "static_base_bindings": ["WBP_GameHUD", "WBP_DicePopup", "WBP_BuyPopup", "WBP_InfoPopup", "WBP_JailPopup"],
+      "execution_hints": {
+        "tool_preference": "cpp_code",
+        "estimated_complexity": "moderate"
+      }
+    },
+    {
+      "step_id": "step-13-ui-binding",
+      "ir_action": "bind_ui_to_game_state",
+      "source_families": ["ui_flow_spec", "turn_flow_spec"],
+      "depends_on": ["step-12-ui-widgets", "step-06-turn-fsm"],
+      "params": {
+        "binding_strategy": "event_driven_delegates",
+        "bindings": [
+          {"event": "OnTurnChanged",        "target": "WBP_GameHUD::UpdateCurrentPlayer + UpdateTurnNumber"},
+          {"event": "OnMoneyChanged",        "target": "WBP_GameHUD::UpdateAllPlayersMoney"},
+          {"event": "OnPawnMoved",           "target": "WBP_GameHUD::UpdateCurrentTileInfo"},
+          {"event": "OnDiceRollRequested",   "target": "WBP_DicePopup::Show"},
+          {"event": "OnUnownedPropertyLand", "target": "WBP_BuyPopup::Show(TileData)"},
+          {"event": "OnRentDue",             "target": "WBP_InfoPopup::ShowRent(RentData)"},
+          {"event": "OnTaxDue",              "target": "WBP_InfoPopup::ShowTax(TaxData)"},
+          {"event": "OnJailTurnStart",       "target": "WBP_JailPopup::Show(JailData)"},
+          {"event": "OnBankruptcy",          "target": "WBP_InfoPopup::ShowBankruptcy(PlayerData)"},
+          {"event": "OnGameOver",            "target": "WBP_InfoPopup::ShowGameOver(WinnerData)"}
+        ],
+        "delegate_declaration_location": "AMMonopolyGameState",
+        "delegate_type": "DECLARE_DYNAMIC_MULTICAST_DELEGATE"
+      },
+      "static_base_bindings": [],
+      "execution_hints": {
+        "tool_preference": "cpp_code",
+        "estimated_complexity": "moderate"
+      }
+    },
+    {
+      "step_id": "step-14-validation",
+      "ir_action": "attach_validation_hooks",
+      "source_families": ["board_topology_spec", "tile_system_spec", "turn_flow_spec", "property_economy_spec", "jail_rule_spec", "ui_flow_spec"],
+      "depends_on": ["step-13-ui-binding"],
+      "params": {
+        "validation_framework": "UE5 Automation Test",
+        "test_class_prefix": "FMMonopolyTest_",
+        "test_categories": ["Board", "Turn", "Economy", "Jail", "UI"],
+        "auto_run_after_build": true
+      },
+      "static_base_bindings": [],
+      "execution_hints": {
+        "tool_preference": "cpp_code",
+        "estimated_complexity": "moderate"
+      }
+    }
+  ],
+  "validation_ir": [
+    {
+      "validation_id": "val-01",
+      "after_step": "step-02-tile-actors",
+      "check_type": "actor_count",
+      "description": "确认场景中存在 28 个 Tile Actor",
+      "expected": 28
+    },
+    {
+      "validation_id": "val-02",
+      "after_step": "step-03-tile-metadata",
+      "check_type": "data_consistency",
+      "description": "确认 DT_TileData 有 28 行，所有 PROPERTY 行有 price>0 和 base_rent>0",
+      "expected": "28 rows, 16 PROPERTY rows with valid price/rent"
+    },
+    {
+      "validation_id": "val-03",
+      "after_step": "step-04-player-tokens",
+      "check_type": "actor_count",
+      "description": "确认 4 个 PlayerToken Actor 已生成（根据启动时配置可为 2-4）",
+      "expected": 4,
+      "tolerance": 2
+    },
+    {
+      "validation_id": "val-04",
+      "after_step": "step-05-game-mode",
+      "check_type": "actor_exists",
+      "description": "确认 GameMode 和 GameState 已正确设置",
+      "expected": "AMMonopolyGameMode + AMMonopolyGameState active"
+    },
+    {
+      "validation_id": "val-05",
+      "after_step": "step-06-turn-fsm",
+      "check_type": "state_machine_state",
+      "description": "确认初始状态为 WAIT_FOR_ROLL",
+      "expected": "WAIT_FOR_ROLL"
+    },
+    {
+      "validation_id": "val-06",
+      "after_step": "step-07-dice-logic",
+      "check_type": "gameplay_rule",
+      "description": "掷骰 100 次验证结果在 2-12 范围内，双数检测正确",
+      "expected": "all results in [2,12], doubles count matches die1==die2"
+    },
+    {
+      "validation_id": "val-07",
+      "after_step": "step-08-tile-events",
+      "check_type": "gameplay_rule",
+      "description": "模拟落地所有 8 种 tile_type，确认事件分发正确",
+      "expected": "PROPERTY→ownership check, TAX→deduct, GO_TO_JAIL→jail, others→no_action"
+    },
+    {
+      "validation_id": "val-08",
+      "after_step": "step-09-property-economy",
+      "check_type": "gameplay_rule",
+      "description": "购买地产后 OwnerIndex 正确设置，颜色组完整时租金翻倍",
+      "expected": "purchase deducts price, rent = base * (fullSet ? 2 : 1)"
+    },
+    {
+      "validation_id": "val-09",
+      "after_step": "step-10-jail-logic",
+      "check_type": "gameplay_rule",
+      "description": "入狱→保释/掷双数出狱→第三回合强制保释流程完整",
+      "expected": "jail entry sets fields, bail/doubles exit works, forced bail on 3rd"
+    },
+    {
+      "validation_id": "val-10",
+      "after_step": "step-11-bankruptcy-logic",
+      "check_type": "gameplay_rule",
+      "description": "破产触发后地产释放、玩家标记、游戏结束检测",
+      "expected": "bankrupt→release properties→skip in rotation→game over when 1 left"
+    },
+    {
+      "validation_id": "val-11",
+      "after_step": "step-12-ui-widgets",
+      "check_type": "ui_widget_exists",
+      "description": "确认 5 个 Widget Blueprint 已创建",
+      "expected": "WBP_GameHUD, WBP_DicePopup, WBP_BuyPopup, WBP_InfoPopup, WBP_JailPopup"
+    },
+    {
+      "validation_id": "val-12",
+      "after_step": "step-13-ui-binding",
+      "check_type": "property_value",
+      "description": "确认 10 个事件委托已正确绑定",
+      "expected": "10 delegate bindings active"
+    }
+  ],
+  "lowering_report": {
+    "families_received": [
+      "board_topology_spec",
+      "tile_system_spec",
+      "turn_flow_spec",
+      "property_economy_spec",
+      "jail_rule_spec",
+      "bankruptcy_rule_spec",
+      "ui_flow_spec"
+    ],
+    "families_bound": [
+      "board_topology_spec",
+      "tile_system_spec",
+      "turn_flow_spec",
+      "property_economy_spec",
+      "jail_rule_spec",
+      "bankruptcy_rule_spec",
+      "ui_flow_spec"
+    ],
+    "families_partially_bound": [],
+    "unbound_requirements": [
+      {
+        "requirement": "UMG Widget 布局（面板排版、字体、颜色）",
+        "reason": "Compiler 无法生成 UMG 可视化布局，只能生成 C++ 基类和空 Widget Blueprint",
+        "fallback": "人工在 UE5 蓝图编辑器中完成布局"
+      },
+      {
+        "requirement": "骰子滚动和棋子移动的视觉动画",
+        "reason": "动画需要 Timeline / Lerp / 物理模拟，超出 Compiler 的代码生成能力",
+        "fallback": "生成占位函数 PlayDiceAnimation() / PlayPawnMoveAnimation()，后续手动实现"
+      }
+    ],
+    "capability_gaps": [
+      {
+        "gap_id": "gap-umg-auto-layout",
+        "description": "UMG Widget 布局需人工完成"
+      },
+      {
+        "gap_id": "gap-dice-animation",
+        "description": "骰子/棋子动画需后续实现"
+      }
+    ]
+  },
+  "recovery_hints": [
+    {
+      "step_id": "step-01-board-layout",
+      "recovery_strategy": "retry",
+      "notes": "如果 Level 创建失败，检查 /Game/Maps/ 目录是否存在"
+    },
+    {
+      "step_id": "step-02-tile-actors",
+      "recovery_strategy": "rollback",
+      "notes": "如果部分 Tile 生成失败，删除已生成的 Tile 后重新执行全部 28 个"
+    },
+    {
+      "step_id": "step-05-game-mode",
+      "recovery_strategy": "manual",
+      "notes": "如果 C++ 编译失败，检查头文件引用和 UCLASS/UPROPERTY 宏"
+    },
+    {
+      "step_id": "step-12-ui-widgets",
+      "recovery_strategy": "retry",
+      "notes": "Widget Blueprint 创建失败时，确认 C++ 基类已编译成功"
+    }
+  ],
+  "metadata": {
+    "generated_at": "2026-04-04T12:15:00Z",
+    "generator": "AgentBridge.Compiler.Lowering.v1"
+  }
+}

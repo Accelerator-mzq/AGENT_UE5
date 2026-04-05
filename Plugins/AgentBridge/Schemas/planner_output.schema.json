@@ -1,0 +1,137 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Planner Output",
+  "description": "Planner / Routing Agent 的结构化输出",
+  "type": "object",
+  "required": [
+    "planner_meta",
+    "project_intent",
+    "routing_decision",
+    "selected_skill_instances",
+    "dynamic_spec_targets",
+    "execution_strategy"
+  ],
+  "properties": {
+    "planner_meta": {
+      "type": "object",
+      "description": "Planner 元数据",
+      "required": ["planner_version", "mode", "target_phase"],
+      "properties": {
+        "planner_version": {"type": "string", "const": "v1"},
+        "timestamp": {"type": "string", "format": "date-time"},
+        "source_projection_id": {"type": "string", "description": "输入的 gdd_projection 的 projection_id"},
+        "mode": {"type": "string", "enum": ["greenfield", "brownfield", "playable_runtime"]},
+        "target_phase": {"type": "string"},
+        "target_build_goal": {"type": "string", "enum": ["playable_template", "vertical_slice", "production"]}
+      }
+    },
+    "project_intent": {
+      "type": "object",
+      "description": "Planner 对本轮任务目标的理解",
+      "required": ["game_type", "subgenre", "phase_scope"],
+      "properties": {
+        "game_type": {"type": "string"},
+        "subgenre": {"type": "string"},
+        "camera_model": {"type": "string"},
+        "player_count_range": {"type": "string"},
+        "primary_win_condition": {"type": "string"},
+        "phase_scope": {"type": "string"},
+        "out_of_scope": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "routing_decision": {
+      "type": "object",
+      "description": "路由决策说明",
+      "required": ["identified_domains", "required_family_targets"],
+      "properties": {
+        "identified_domains": {"type": "array", "items": {"type": "string"}, "description": "识别出的能力域"},
+        "routing_reasoning_summary": {"type": "string"},
+        "required_family_targets": {"type": "array", "items": {"type": "string"}, "description": "本轮必须生成的 family 列表"},
+        "rejected_branches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "branch": {"type": "string"},
+              "reason": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "selected_skill_instances": {
+      "type": "array",
+      "description": "本轮需要实例化的 Skill 列表",
+      "items": {
+        "type": "object",
+        "required": ["skill_instance_id", "template_id", "role", "emits_families"],
+        "properties": {
+          "skill_instance_id": {"type": "string", "pattern": "^skill-[a-z0-9_]+$"},
+          "template_id": {"type": "string"},
+          "role": {"type": "string"},
+          "priority": {"type": "string", "enum": ["critical", "high", "medium", "low"]},
+          "depends_on": {"type": "array", "items": {"type": "string"}},
+          "reads_context": {"type": "array", "items": {"type": "string"}, "description": "需要从 GDD Projection 中读取的设计域"},
+          "emits_families": {"type": "array", "items": {"type": "string"}, "description": "预期产出的 Dynamic Spec Family"}
+        }
+      }
+    },
+    "dynamic_spec_targets": {
+      "type": "array",
+      "description": "本轮预期生成的全部 Dynamic Spec Family",
+      "items": {"type": "string"}
+    },
+    "execution_strategy": {
+      "type": "object",
+      "description": "总体执行策略",
+      "required": ["build_mode", "target_output_kind"],
+      "properties": {
+        "build_mode": {"type": "string", "enum": ["greenfield", "brownfield"]},
+        "target_output_kind": {"type": "string"},
+        "manual_editor_dependency": {"type": "string", "enum": ["none", "low", "medium", "high"]},
+        "expected_review_gate": {"type": "string", "enum": ["required", "optional", "skip"]},
+        "expected_lowering_depth": {"type": "string"}
+      }
+    },
+    "capability_gaps": {
+      "type": "array",
+      "description": "已知能力缺口",
+      "items": {
+        "type": "object",
+        "required": ["gap_id", "description"],
+        "properties": {
+          "gap_id": {"type": "string"},
+          "description": {"type": "string"},
+          "severity": {"type": "string", "enum": ["blocker", "degraded", "cosmetic"]},
+          "workaround": {"type": "string"}
+        }
+      }
+    },
+    "review_focuses": {
+      "type": "array",
+      "description": "告诉 Cross-Spec Review 的审查重点",
+      "items": {"type": "string"}
+    },
+    "open_questions": {
+      "type": "array",
+      "description": "开放问题",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question": {"type": "string"},
+          "default_assumption": {"type": "string"}
+        }
+      }
+    },
+    "confidence": {
+      "type": "object",
+      "description": "Planner 自评",
+      "properties": {
+        "gdd_coverage": {"type": "number", "minimum": 0, "maximum": 1},
+        "phase_alignment": {"type": "number", "minimum": 0, "maximum": 1},
+        "skill_selection_confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "known_unknowns": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    }
+  }
+}

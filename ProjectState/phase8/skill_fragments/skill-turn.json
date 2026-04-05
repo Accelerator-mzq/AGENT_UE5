@@ -1,0 +1,115 @@
+{
+  "skill_instance_id": "skill-turn",
+  "template_id": "monopoly.turn_and_dice_flow.phase1",
+  "phase_scope": "phase1_local_multiplayer",
+  "status": "completed",
+  "emitted_families": ["turn_flow_spec"],
+  "spec_fragments": {
+    "turn_flow_spec": {
+      "game_init": {
+        "player_count_range": [2, 4],
+        "starting_money": 1500,
+        "starting_tile_index": 0,
+        "first_player_selection": "player_0_always",
+        "init_sequence": [
+          "create_players_with_starting_money",
+          "place_all_on_start_tile",
+          "set_current_player_index_0",
+          "show_dice_roll_popup"
+        ]
+      },
+      "turn_state_machine": {
+        "initial_state": "WAIT_FOR_ROLL",
+        "states": [
+          {"state_id": "WAIT_FOR_ROLL",      "description": "等待当前玩家点击掷骰按钮"},
+          {"state_id": "ROLLING_DICE",        "description": "骰子动画播放中"},
+          {"state_id": "MOVING_PAWN",         "description": "棋子逐格移动动画中"},
+          {"state_id": "PASS_START_CHECK",    "description": "检查是否经过起点并发放奖励"},
+          {"state_id": "TILE_EVENT",          "description": "执行落地格子事件分发"},
+          {"state_id": "POST_EVENT",          "description": "事件处理完毕，检查双数/破产"},
+          {"state_id": "DOUBLES_EXTRA_TURN",  "description": "掷出双数，当前玩家再掷一次"},
+          {"state_id": "TRIPLE_DOUBLES_JAIL", "description": "三连双数，直接送入监狱"},
+          {"state_id": "TURN_END",            "description": "回合结束，切换到下一位玩家"},
+          {"state_id": "GAME_OVER",           "description": "只剩一位玩家，游戏结束"}
+        ],
+        "transitions": [
+          {"from": "WAIT_FOR_ROLL",      "to": "ROLLING_DICE",        "trigger": "player_clicks_roll",       "guard": null},
+          {"from": "ROLLING_DICE",        "to": "MOVING_PAWN",         "trigger": "dice_result_ready",        "guard": null},
+          {"from": "MOVING_PAWN",         "to": "PASS_START_CHECK",    "trigger": "pawn_arrived",             "guard": null},
+          {"from": "PASS_START_CHECK",    "to": "TILE_EVENT",          "trigger": "start_check_done",         "guard": null},
+          {"from": "TILE_EVENT",          "to": "POST_EVENT",          "trigger": "tile_event_resolved",      "guard": null},
+          {"from": "POST_EVENT",          "to": "GAME_OVER",           "trigger": "check_game_over",          "guard": "only_one_player_remaining"},
+          {"from": "POST_EVENT",          "to": "TRIPLE_DOUBLES_JAIL", "trigger": "check_triple_doubles",     "guard": "consecutive_doubles == 3"},
+          {"from": "POST_EVENT",          "to": "DOUBLES_EXTRA_TURN",  "trigger": "check_doubles",            "guard": "is_doubles && consecutive_doubles < 3 && !player_bankrupt"},
+          {"from": "POST_EVENT",          "to": "TURN_END",            "trigger": "no_doubles_or_bankrupt",   "guard": "!is_doubles || player_bankrupt"},
+          {"from": "DOUBLES_EXTRA_TURN",  "to": "WAIT_FOR_ROLL",      "trigger": "extra_turn_ready",         "guard": null},
+          {"from": "TRIPLE_DOUBLES_JAIL", "to": "TURN_END",            "trigger": "player_sent_to_jail",      "guard": null},
+          {"from": "TURN_END",            "to": "WAIT_FOR_ROLL",      "trigger": "next_player_set",          "guard": null}
+        ]
+      },
+      "dice_rules": {
+        "dice_count": 2,
+        "dice_sides": 6,
+        "min_roll": 2,
+        "max_roll": 12,
+        "doubles_detection": true,
+        "doubles_extra_turn": true,
+        "consecutive_doubles_tracked": true,
+        "triple_doubles_penalty": "send_to_jail",
+        "triple_doubles_threshold": 3,
+        "dice_result_structure": {
+          "die1": "int 1-6",
+          "die2": "int 1-6",
+          "total": "int 2-12",
+          "is_doubles": "bool"
+        }
+      },
+      "movement_rules": {
+        "direction": "clockwise",
+        "tile_count": 28,
+        "wrap_formula": "(current_index + dice_total) % 28",
+        "step_by_step_movement": true,
+        "pass_start_bonus": {
+          "enabled": true,
+          "bonus_amount": 200,
+          "start_tile_index": 0,
+          "trigger_condition": "pawn_crosses_or_lands_on_start_during_normal_movement",
+          "excluded_movement": ["go_to_jail_teleport"]
+        }
+      },
+      "player_rotation": {
+        "rotation_order": "fixed_index_order",
+        "skip_bankrupt_players": true,
+        "skip_condition": "player.is_bankrupt == true",
+        "next_player_formula": "find next non-bankrupt player after current_player_index, wrapping around"
+      },
+      "jail_turn_override": {
+        "description": "在监狱中的玩家跳过正常掷骰移动，进入监狱决策流程",
+        "applies_when": "current_player.is_in_jail == true",
+        "override_state": "JAIL_DECISION",
+        "note": "监狱详细规则由 jail_rule_spec 定义，此处仅标记覆盖点"
+      }
+    }
+  },
+  "assumptions": [
+    {"assumption": "Phase 1 热座模式，玩家 0 总是第一个行动，不做随机先手", "basis": "GDD §3.1 简化"},
+    {"assumption": "棋子逐格移动为视觉效果，逻辑上直接计算目标格", "basis": "GDD §3.1"},
+    {"assumption": "监狱中的玩家回合开始时直接进入监狱决策，不走正常掷骰流程", "basis": "GDD §3.2"}
+  ],
+  "open_questions": [],
+  "review_hints": [
+    "确认 turn_state_machine 覆盖所有可能路径（正常/双数/三连双数/破产/游戏结束）",
+    "确认 pass_start_bonus 与 GO_TO_JAIL 传送互斥（teleport 不触发起点奖励）",
+    "确认 consecutive_doubles 计数在回合结束或入狱时重置",
+    "确认 jail_turn_override 与 jail_rule_spec 的衔接点"
+  ],
+  "capability_gaps": [
+    {
+      "gap_id": "gap-dice-animation",
+      "description": "骰子滚动动画需要 C++ Timeline/Lerp 实现，Compiler 只能生成逻辑骨架",
+      "severity": "cosmetic"
+    }
+  ],
+  "confidence": {"coverage": 0.98, "consistency": 1.0},
+  "metadata": {"generated_at": "2026-04-04T12:04:00Z", "generator": "AgentBridge.Compiler.SkillRuntime.v1", "template_version": "1.0.0"}
+}

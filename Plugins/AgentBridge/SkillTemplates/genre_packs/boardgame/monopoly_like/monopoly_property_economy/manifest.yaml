@@ -1,0 +1,30 @@
+template_id: monopoly.property_economy.phase1
+display_name: Monopoly Phase-1 Property Economy
+template_kind: genre_skill
+genre: monopoly_like
+template_version: "1.0.0"
+schema_version: "1.0.0"
+evaluator_version: "1.0.0"
+
+phase_scope:
+  - phase1_local_multiplayer
+
+description: |
+  从 GDD 中提取地产经济系统：
+  购买逻辑、所有权转移、租金计算、颜色组加成、支付流转。
+
+input_contract_ref: gdd_projection.design_domains.property_rules + tile_catalog + color_groups
+output_schema_ref: output_schema.json
+
+requires_static_vocab:
+  - ownership_state
+  - payment_type
+  - color_group
+
+can_emit_families:
+  - property_economy_spec
+  - ownership_transition_spec
+
+depends_on_templates:
+  - monopoly.board_topology.phase1
+  - monopoly.tile_event_dispatch.phase1

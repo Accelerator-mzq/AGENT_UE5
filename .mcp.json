@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "agentbridge": {
+      "command": "python",
+      "args": ["Plugins/AgentBridge/MCP/server.py"],
+      "cwd": ".",
+      "env": {
+        "PYTHONPATH": "Plugins/AgentBridge/Scripts/bridge"
+      }
+    }
+  }
+}

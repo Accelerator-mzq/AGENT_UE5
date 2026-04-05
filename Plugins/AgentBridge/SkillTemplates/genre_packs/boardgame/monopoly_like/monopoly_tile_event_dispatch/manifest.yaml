@@ -1,0 +1,29 @@
+template_id: monopoly.tile_event_dispatch.phase1
+display_name: Monopoly Phase-1 Tile Event Dispatch
+template_kind: genre_skill
+genre: monopoly_like
+template_version: "1.0.0"
+schema_version: "1.0.0"
+evaluator_version: "1.0.0"
+
+phase_scope:
+  - phase1_local_multiplayer
+
+description: |
+  从 GDD 中提取格子类型与事件分发矩阵：
+  8 种格子类型、每种类型对应的事件行为、Phase 1 留空的事件槽位。
+
+input_contract_ref: gdd_projection.design_domains.tile_catalog + board_layout
+output_schema_ref: output_schema.json
+
+requires_static_vocab:
+  - tile_type
+  - tile_event
+  - color_group
+
+can_emit_families:
+  - tile_system_spec
+  - tile_event_dispatch_matrix
+
+depends_on_templates:
+  - monopoly.board_topology.phase1

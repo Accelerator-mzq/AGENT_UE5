@@ -1,0 +1,135 @@
+{
+  "skill_instance_id": "skill-jail",
+  "template_id": "monopoly.jail_and_bankruptcy.phase1",
+  "phase_scope": "phase1_local_multiplayer",
+  "status": "completed",
+  "emitted_families": ["jail_rule_spec", "bankruptcy_rule_spec"],
+  "spec_fragments": {
+    "jail_rule_spec": {
+      "jail_tile_index": 7,
+      "jail_visit_vs_in_jail": {
+        "visit": "正常经过或落在 index 7，无任何惩罚",
+        "in_jail": "被送入监狱的玩家标记为 is_in_jail=true，位置设为 index 7"
+      },
+      "entry_conditions": [
+        {
+          "condition_id": "land_on_go_to_jail",
+          "trigger": "pawn lands on tile index 21 (GO_TO_JAIL)",
+          "action": "teleport_to_jail",
+          "pass_start": false,
+          "reset_doubles_count": true
+        },
+        {
+          "condition_id": "triple_doubles",
+          "trigger": "player rolls doubles 3 consecutive times in one turn sequence",
+          "action": "teleport_to_jail",
+          "pass_start": false,
+          "reset_doubles_count": true
+        }
+      ],
+      "teleport_to_jail": {
+        "target_tile_index": 7,
+        "set_is_in_jail": true,
+        "set_jail_turns_remaining": 3,
+        "skip_tile_event": true,
+        "skip_pass_start": true,
+        "end_turn_immediately": true
+      },
+      "in_jail_turn_flow": {
+        "description": "监狱中玩家的回合开始时弹出监狱决策弹窗",
+        "options": [
+          {
+            "option_id": "pay_bail",
+            "display": "支付 $50 保释金",
+            "cost": 50,
+            "condition": "player.money >= 50",
+            "result": {
+              "deduct_money": 50,
+              "set_is_in_jail": false,
+              "set_jail_turns_remaining": 0,
+              "then": "normal_dice_roll_and_move"
+            }
+          },
+          {
+            "option_id": "try_doubles",
+            "display": "尝试掷双数",
+            "cost": 0,
+            "condition": "always_available",
+            "result_success": {
+              "trigger": "dice roll is doubles",
+              "set_is_in_jail": false,
+              "set_jail_turns_remaining": 0,
+              "then": "move_by_dice_total",
+              "note": "掷出双数出狱后的这次移动不算双数额外回合"
+            },
+            "result_failure": {
+              "trigger": "dice roll is not doubles",
+              "decrement_jail_turns_remaining": 1,
+              "then": "end_turn_no_movement"
+            }
+          }
+        ],
+        "forced_bail_on_third_turn": {
+          "trigger": "jail_turns_remaining reaches 0 after failed doubles attempt",
+          "action": "force_pay_bail_50",
+          "insufficient_funds": "trigger_bankruptcy",
+          "on_success": "normal_dice_roll_and_move"
+        }
+      },
+      "jail_state_tracking": {
+        "player_fields": {
+          "is_in_jail": "bool, default false",
+          "jail_turns_remaining": "int, 0 when not in jail, set to 3 on entry"
+        }
+      }
+    },
+    "bankruptcy_rule_spec": {
+      "trigger_condition": "player cannot pay a mandatory obligation",
+      "mandatory_obligations": [
+        {"source": "rent",       "description": "落在他人地产上需支付租金"},
+        {"source": "tax",        "description": "落在税务格需支付税款"},
+        {"source": "jail_bail",  "description": "第三回合强制保释需支付 $50"}
+      ],
+      "bankruptcy_process": [
+        "mark player as is_bankrupt = true",
+        "release all owned properties to unowned state",
+        "remove player pawn from board (or grey out)",
+        "skip this player in future turn rotation",
+        "show bankruptcy popup to all players",
+        "check game end condition"
+      ],
+      "property_release": {
+        "method": "release_to_unowned",
+        "description": "破产玩家的所有地产变为无主状态，不转移给债主",
+        "phase1_note": "Phase 1 不做债主继承，统一释放为无主"
+      },
+      "game_end_condition": {
+        "check_after": "each bankruptcy event",
+        "condition": "count of non-bankrupt players == 1",
+        "result": "declare winner, show game_over popup",
+        "winner": "the last remaining non-bankrupt player"
+      },
+      "player_state_tracking": {
+        "is_bankrupt": "bool, default false",
+        "money": "int, starts at 1500, can reach 0 or below (triggers bankruptcy)"
+      }
+    }
+  },
+  "assumptions": [
+    {"assumption": "掷双数出狱后的移动不触发额外回合（不算入 consecutive_doubles）", "basis": "经典大富翁规则"},
+    {"assumption": "破产时所有地产释放为无主，不转移给债主", "basis": "GDD §3.3 明确 release_all_properties_to_unowned"},
+    {"assumption": "第三回合强制保释时如资金不足则触发破产", "basis": "GDD §3.2 推断"},
+    {"assumption": "监狱中玩家仍可收取名下地产的租金", "basis": "GDD 未排除，与 property_economy_spec 一致"}
+  ],
+  "open_questions": [],
+  "review_hints": [
+    "确认 jail_tile_index=7 与 board_topology_spec.corner_tiles.jail_visit 一致",
+    "确认 GO_TO_JAIL tile_index=21 与 board_topology_spec.corner_tiles.go_to_jail 一致",
+    "确认 triple_doubles 的 consecutive_doubles 计数与 turn_flow_spec 的 dice_rules 一致",
+    "确认 forced_bail 第三回合逻辑：jail_turns_remaining 从 3 递减到 0",
+    "确认 bankruptcy 释放地产与 property_economy_spec.ownership_model.transitions 一致"
+  ],
+  "capability_gaps": [],
+  "confidence": {"coverage": 1.0, "consistency": 1.0},
+  "metadata": {"generated_at": "2026-04-04T12:06:00Z", "generator": "AgentBridge.Compiler.SkillRuntime.v1", "template_version": "1.0.0"}
+}

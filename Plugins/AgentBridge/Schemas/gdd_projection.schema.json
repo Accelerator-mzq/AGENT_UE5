@@ -1,0 +1,261 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GDD Projection",
+  "description": "Design Intake 从 GDD 中提取的结构化设计投影",
+  "type": "object",
+  "required": [
+    "projection_version",
+    "projection_id",
+    "source_gdd",
+    "game_identity",
+    "phase_scope",
+    "design_domains"
+  ],
+  "properties": {
+    "projection_version": {
+      "type": "string",
+      "description": "投影 schema 版本",
+      "const": "1.0"
+    },
+    "projection_id": {
+      "type": "string",
+      "description": "投影唯一标识",
+      "pattern": "^proj\\.[a-z0-9_]+\\.[a-z0-9]+$"
+    },
+    "source_gdd": {
+      "type": "object",
+      "description": "源 GDD 元信息",
+      "required": ["file_path", "part_a_scope", "part_b_scope"],
+      "properties": {
+        "file_path": {
+          "type": "string",
+          "description": "GDD 文件相对路径"
+        },
+        "part_a_scope": {
+          "type": "string",
+          "description": "Part A（设计真源）覆盖内容摘要"
+        },
+        "part_b_scope": {
+          "type": "string",
+          "description": "Part B（实现约束）覆盖内容摘要"
+        }
+      }
+    },
+    "game_identity": {
+      "type": "object",
+      "description": "游戏身份识别",
+      "required": ["game_type", "subgenre", "presentation_model", "player_count_range", "win_condition"],
+      "properties": {
+        "game_type": {
+          "type": "string",
+          "description": "一级游戏类型",
+          "enum": ["board_strategy", "jrpg", "action", "puzzle", "simulation"]
+        },
+        "subgenre": {
+          "type": "string",
+          "description": "二级子类型"
+        },
+        "presentation_model": {
+          "type": "string",
+          "description": "呈现模式",
+          "enum": ["top_down_2d", "top_down_3d", "side_scroll", "third_person", "first_person", "isometric"]
+        },
+        "player_count_range": {
+          "type": "array",
+          "description": "玩家人数范围 [min, max]",
+          "items": {"type": "integer", "minimum": 1},
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "win_condition": {
+          "type": "string",
+          "description": "主要胜利条件"
+        },
+        "target_match_length_minutes": {
+          "type": "array",
+          "description": "目标单局时长 [min, max] 分钟",
+          "items": {"type": "integer"},
+          "minItems": 2,
+          "maxItems": 2
+        }
+      }
+    },
+    "phase_scope": {
+      "type": "object",
+      "description": "阶段范围定义",
+      "required": ["current_phase", "in_scope", "out_of_scope"],
+      "properties": {
+        "current_phase": {
+          "type": "string",
+          "description": "当前阶段标识"
+        },
+        "in_scope": {
+          "type": "array",
+          "description": "本轮范围内的功能列表",
+          "items": {"type": "string"}
+        },
+        "out_of_scope": {
+          "type": "array",
+          "description": "本轮明确排除的功能列表",
+          "items": {"type": "string"}
+        },
+        "future_phases": {
+          "type": "array",
+          "description": "后续阶段演进列表",
+          "items": {
+            "type": "object",
+            "properties": {
+              "phase_id": {"type": "string"},
+              "summary": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "design_domains": {
+      "type": "object",
+      "description": "从 GDD Part A 提取的各设计域结构化数据",
+      "properties": {
+        "board_layout": {
+          "type": "object",
+          "description": "棋盘/地图布局",
+          "properties": {
+            "shape": {"type": "string", "enum": ["square_ring", "linear", "grid", "hex_grid", "custom"]},
+            "tile_count": {"type": "integer", "minimum": 1},
+            "tiles_per_side": {"type": "integer"},
+            "movement_direction": {"type": "string", "enum": ["clockwise", "counterclockwise", "bidirectional"]},
+            "corner_indices": {
+              "type": "object",
+              "description": "特殊角格索引",
+              "additionalProperties": {"type": "integer"}
+            }
+          }
+        },
+        "tile_catalog": {
+          "type": "array",
+          "description": "完整格子目录",
+          "items": {
+            "type": "object",
+            "required": ["index", "type", "name"],
+            "properties": {
+              "index": {"type": "integer", "minimum": 0},
+              "type": {
+                "type": "string",
+                "enum": ["START", "PROPERTY", "TAX", "CHANCE", "COMMUNITY", "JAIL_VISIT", "FREE_PARKING", "GO_TO_JAIL"]
+              },
+              "name": {"type": "string"},
+              "color_group": {"type": ["string", "null"]},
+              "price": {"type": ["integer", "null"]},
+              "base_rent": {"type": ["integer", "null"]}
+            }
+          }
+        },
+        "color_groups": {
+          "type": "object",
+          "description": "颜色组定义",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "tile_indices": {"type": "array", "items": {"type": "integer"}},
+              "full_set_multiplier": {"type": "number"}
+            }
+          }
+        },
+        "turn_loop": {
+          "type": "object",
+          "description": "回合循环规则",
+          "properties": {
+            "dice_count": {"type": "integer"},
+            "dice_sides": {"type": "integer"},
+            "start_bonus": {"type": "integer", "description": "过起点奖励金额"},
+            "doubles_extra_turn": {"type": "boolean"},
+            "triple_doubles_jail": {"type": "boolean"}
+          }
+        },
+        "property_rules": {
+          "type": "object",
+          "description": "地产规则",
+          "properties": {
+            "unowned_landing": {"type": "string"},
+            "owned_by_self": {"type": "string"},
+            "owned_by_other": {"type": "string"},
+            "color_group_bonus": {"type": "string"},
+            "bankruptcy_release": {"type": "string"}
+          }
+        },
+        "jail_rules": {
+          "type": "object",
+          "description": "监狱规则",
+          "properties": {
+            "entry_conditions": {"type": "array", "items": {"type": "string"}},
+            "bail_cost": {"type": "integer"},
+            "doubles_release": {"type": "boolean"},
+            "max_jail_turns": {"type": "integer", "description": "最大关押回合数"}
+          }
+        },
+        "bankruptcy_rules": {
+          "type": "object",
+          "description": "破产规则",
+          "properties": {
+            "trigger": {"type": "string"},
+            "consequence": {"type": "string"},
+            "asset_handling": {"type": "string"},
+            "game_end_condition": {"type": "string"}
+          }
+        },
+        "ui_requirements": {
+          "type": "object",
+          "description": "UI 需求",
+          "properties": {
+            "hud_elements": {"type": "array", "items": {"type": "string"}},
+            "popup_types": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "popup_id": {"type": "string"},
+                  "trigger": {"type": "string"},
+                  "buttons": {"type": "array", "items": {"type": "string"}}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "implementation_hints": {
+      "type": "object",
+      "description": "从 GDD Part B 提取的实现约束（不驱动编译主链，仅作为 Lowering 参考）",
+      "properties": {
+        "class_naming_convention": {"type": "string", "description": "C++ 类命名前缀"},
+        "core_classes": {"type": "array", "items": {"type": "string"}, "description": "GDD 建议的核心 C++ 类列表"},
+        "editor_steps_summary": {"type": "string"},
+        "phase2_network_notes": {"type": "string", "description": "Phase 2 网络演进方向摘要"}
+      }
+    },
+    "ambiguities": {
+      "type": "array",
+      "description": "GDD 中的歧义或模糊点",
+      "items": {
+        "type": "object",
+        "properties": {
+          "topic": {"type": "string"},
+          "description": {"type": "string"},
+          "default_assumption": {"type": "string"}
+        }
+      }
+    },
+    "risk_notes": {
+      "type": "array",
+      "description": "风险与注意事项",
+      "items": {"type": "string"}
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "generated_at": {"type": "string", "format": "date-time"},
+        "generator": {"type": "string"}
+      }
+    }
+  }
+}

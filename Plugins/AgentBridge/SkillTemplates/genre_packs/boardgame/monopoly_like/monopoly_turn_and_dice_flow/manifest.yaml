@@ -1,0 +1,31 @@
+template_id: monopoly.turn_and_dice_flow.phase1
+display_name: Monopoly Phase-1 Turn & Dice Flow
+template_kind: genre_skill
+genre: monopoly_like
+template_version: "1.0.0"
+schema_version: "1.0.0"
+evaluator_version: "1.0.0"
+
+phase_scope:
+  - phase1_local_multiplayer
+
+description: |
+  从 GDD 中提取回合流转规则和骰子规则：
+  回合状态机、掷骰逻辑、移动规则、双数再掷、三连双数入狱、过起点奖励。
+
+input_contract_ref: gdd_projection.design_domains.turn_loop + jail_rules(入狱触发部分)
+output_schema_ref: output_schema.json
+
+requires_static_vocab:
+  - turn_phase
+  - dice_result
+  - movement_step
+  - doubles_count
+
+can_emit_families:
+  - turn_flow_spec
+  - dice_rule_spec
+  - movement_rule_spec
+
+depends_on_templates:
+  - monopoly.board_topology.phase1

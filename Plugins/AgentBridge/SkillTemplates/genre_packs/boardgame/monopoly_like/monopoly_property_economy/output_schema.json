@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Property Economy Spec",
+  "description": "地产经济系统规格",
+  "type": "object",
+  "required": ["initial_funds", "ownership_model", "purchase_rules", "rent_rules", "tax_rules", "payment_flows"],
+  "properties": {
+    "initial_funds": {
+      "type": "object",
+      "required": ["amount_per_player", "source"],
+      "properties": {
+        "amount_per_player": {"type": "integer", "description": "每人初始资金"},
+        "source": {"type": "string", "description": "资金来源（银行）"},
+        "start_bonus": {"type": "integer", "description": "过起点奖励金额"}
+      }
+    },
+    "ownership_model": {
+      "type": "object",
+      "description": "所有权模型",
+      "required": ["states", "transitions"],
+      "properties": {
+        "states": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "state_id": {"type": "string", "enum": ["unowned", "owned", "released"]},
+              "description": {"type": "string"}
+            }
+          }
+        },
+        "transitions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "from": {"type": "string"},
+              "to": {"type": "string"},
+              "trigger": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "purchase_rules": {
+      "type": "object",
+      "description": "购买规则",
+      "properties": {
+        "trigger": {"type": "string", "description": "触发条件（踩到无主 PROPERTY 格）"},
+        "price_source": {"type": "string", "description": "价格来源（tile_data_table.price）"},
+        "on_purchase": {"type": "string", "description": "购买后动作"},
+        "on_decline": {"type": "string", "description": "放弃后动作（Phase 1 保持无主）"},
+        "funds_check": {"type": "string", "description": "资金不足时的行为"}
+      }
+    },
+    "rent_rules": {
+      "type": "object",
+      "description": "租金规则",
+      "required": ["base_rent_source", "color_group_bonus"],
+      "properties": {
+        "trigger": {"type": "string"},
+        "base_rent_source": {"type": "string", "description": "基础租金来源"},
+        "color_group_bonus": {
+          "type": "object",
+          "properties": {
+            "condition": {"type": "string", "description": "触发颜色组加成的条件"},
+            "multiplier": {"type": "number"}
+          }
+        },
+        "payment_direction": {"type": "string", "description": "租金支付方向"}
+      }
+    },
+    "tax_rules": {
+      "type": "array",
+      "description": "税务规则",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tile_index": {"type": "integer"},
+          "tile_name": {"type": "string"},
+          "amount": {"type": "integer"},
+          "payment_direction": {"type": "string"}
+        }
+      }
+    },
+    "payment_flows": {
+      "type": "array",
+      "description": "所有资金流转类型",
+      "items": {
+        "type": "object",
+        "required": ["flow_id", "from", "to", "amount_rule"],
+        "properties": {
+          "flow_id": {"type": "string"},
+          "from": {"type": "string", "description": "付款方（player / bank）"},
+          "to": {"type": "string", "description": "收款方（player / bank）"},
+          "amount_rule": {"type": "string", "description": "金额计算规则"},
+          "insufficient_funds_action": {"type": "string", "description": "资金不足时的处理"}
+        }
+      }
+    }
+  }
+}

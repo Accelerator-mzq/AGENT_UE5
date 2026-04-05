@@ -1,0 +1,180 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Reviewed Handoff v2",
+  "description": "Skill-First Compiler 编译结果向 Execution Orchestrator 的正式交接物（v2）",
+  "type": "object",
+  "required": [
+    "handoff_meta",
+    "project_context",
+    "planner_summary",
+    "reviewed_dynamic_spec_tree",
+    "build_ir",
+    "approval"
+  ],
+  "properties": {
+    "handoff_meta": {
+      "type": "object",
+      "description": "Handoff 元数据",
+      "required": ["handoff_version", "handoff_id", "handoff_mode", "target_phase", "build_goal"],
+      "properties": {
+        "handoff_version": {"type": "string", "const": "2.0"},
+        "handoff_id": {
+          "type": "string",
+          "pattern": "^handoff\\.[a-z0-9_]+\\.[a-z0-9_]+\\.[a-z0-9]+$"
+        },
+        "handoff_mode": {
+          "type": "string",
+          "enum": ["greenfield_bootstrap", "brownfield_expansion"]
+        },
+        "schema_version": {"type": "string", "const": "2.0"},
+        "created_at": {"type": "string", "format": "date-time"},
+        "target_phase": {"type": "string"},
+        "build_goal": {
+          "type": "string",
+          "enum": ["playable_template", "vertical_slice", "production"]
+        }
+      }
+    },
+    "project_context": {
+      "type": "object",
+      "description": "执行层需要的最小项目上下文",
+      "required": ["project_name", "game_type"],
+      "properties": {
+        "project_name": {"type": "string"},
+        "game_type": {"type": "string"},
+        "subgenre": {"type": "string"},
+        "target_phase": {"type": "string"},
+        "current_iteration": {"type": "string"}
+      }
+    },
+    "planner_summary": {
+      "type": "object",
+      "description": "Planner 输出的最小摘要",
+      "required": ["identified_domains", "phase_scope"],
+      "properties": {
+        "identified_domains": {"type": "array", "items": {"type": "string"}},
+        "selected_families": {"type": "array", "items": {"type": "string"}},
+        "phase_scope": {"type": "string"},
+        "out_of_scope": {"type": "array", "items": {"type": "string"}},
+        "routing_summary": {"type": "string"}
+      }
+    },
+    "selected_skill_instances": {
+      "type": "array",
+      "description": "本轮参与编译的 Skill Instances（审计追溯用）",
+      "items": {
+        "type": "object",
+        "required": ["skill_instance_id", "template_id", "status"],
+        "properties": {
+          "skill_instance_id": {"type": "string"},
+          "template_id": {"type": "string"},
+          "role": {"type": "string"},
+          "status": {"type": "string", "enum": ["completed", "partial", "failed"]},
+          "emitted_families": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "reviewed_dynamic_spec_tree": {
+      "type": "object",
+      "description": "经过 Cross-Spec Review 审查的统一 Dynamic Spec Tree，按 family 名组织",
+      "additionalProperties": {
+        "type": "object"
+      }
+    },
+    "cross_review_summary": {
+      "type": "object",
+      "description": "Cross-Spec Review 摘要",
+      "required": ["status"],
+      "properties": {
+        "status": {"type": "string", "enum": ["approved", "approved_with_warnings", "blocked"]},
+        "issues_found": {"type": "integer"},
+        "issues_resolved": {"type": "integer"},
+        "remaining_warnings": {"type": "array", "items": {"type": "string"}},
+        "review_focus_coverage": {
+          "type": "object",
+          "additionalProperties": {"type": "string"}
+        }
+      }
+    },
+    "lowering_summary": {
+      "type": "object",
+      "description": "Lowering 过程摘要",
+      "properties": {
+        "families_bound": {"type": "array", "items": {"type": "string"}},
+        "families_partially_bound": {"type": "array", "items": {"type": "string"}},
+        "unbound_requirements": {"type": "array", "items": {"type": "string"}},
+        "build_ir_step_count": {"type": "integer"},
+        "validation_point_count": {"type": "integer"}
+      }
+    },
+    "build_ir": {
+      "type": "object",
+      "description": "Build IR（完整内嵌或引用外部文件）",
+      "properties": {
+        "ir_id": {"type": "string"},
+        "build_steps": {"type": "array", "description": "构建步骤"},
+        "inline": {"type": "boolean", "description": "true=内嵌, false=引用外部文件"}
+      }
+    },
+    "validation_ir": {
+      "type": "object",
+      "description": "验证 IR",
+      "properties": {
+        "validations": {"type": "array"},
+        "inline": {"type": "boolean"}
+      }
+    },
+    "capability_gaps": {
+      "type": "array",
+      "description": "汇总的能力缺口",
+      "items": {
+        "type": "object",
+        "properties": {
+          "gap_id": {"type": "string"},
+          "source": {"type": "string", "description": "来源阶段（planner/skill/review/lowering）"},
+          "description": {"type": "string"},
+          "severity": {"type": "string", "enum": ["blocker", "degraded", "cosmetic"]}
+        }
+      }
+    },
+    "approval": {
+      "type": "object",
+      "description": "执行批准状态",
+      "required": ["approval_status"],
+      "properties": {
+        "approval_status": {
+          "type": "string",
+          "enum": ["approved", "approved_with_warnings", "blocked"]
+        },
+        "approver": {"type": "string", "description": "批准者（human/auto）"},
+        "blocked_reasons": {"type": "array", "items": {"type": "string"}},
+        "notes": {"type": "string"}
+      }
+    },
+    "legacy_compatibility": {
+      "type": "object",
+      "description": "v1 兼容层（可选），仅在旧链路 fallback 时使用",
+      "properties": {
+        "scene_spec": {
+          "type": "object",
+          "description": "v1 格式的 scene_spec.actors",
+          "properties": {
+            "actors": {"type": "array"}
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "generated_at": {"type": "string", "format": "date-time"},
+        "generator": {"type": "string"},
+        "source_gdd": {"type": "string"},
+        "source_projection_id": {"type": "string"},
+        "source_planner_id": {"type": "string"},
+        "source_review_id": {"type": "string"},
+        "source_ir_id": {"type": "string"}
+      }
+    }
+  }
+}

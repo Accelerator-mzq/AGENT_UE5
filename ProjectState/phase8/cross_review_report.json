@@ -1,0 +1,295 @@
+{
+  "review_id": "review.monopoly_phase1.v1",
+  "review_version": "v1",
+  "input_fragment_ids": [
+    "skill-board",
+    "skill-tile-event",
+    "skill-turn",
+    "skill-economy",
+    "skill-jail",
+    "skill-ui"
+  ],
+  "review_status": "approved_with_warnings",
+  "review_checks": [
+    {
+      "check_id": "chk-01",
+      "check_name": "棋盘完整性：28格索引0..27连续无缺口",
+      "result": "pass",
+      "details": "board_topology_spec.tile_index_list 确认 28 条记录，索引 0-27 连续。tile_data_table 同样 28 条，索引完全匹配。",
+      "affected_families": ["board_topology_spec", "tile_system_spec"]
+    },
+    {
+      "check_id": "chk-02",
+      "check_name": "四角格位置一致性",
+      "result": "pass",
+      "details": "corner_tiles {start:0, jail_visit:7, free_parking:14, go_to_jail:21} 与 tile_data_table 的 type 字段完全一致。jail_rule_spec.jail_tile_index=7, entry_conditions.go_to_jail.tile_index=21 均匹配。",
+      "affected_families": ["board_topology_spec", "tile_system_spec", "jail_rule_spec"]
+    },
+    {
+      "check_id": "chk-03",
+      "check_name": "颜色组索引一致性",
+      "result": "pass",
+      "details": "tile_system_spec.color_groups 的 7 组 tile_indices 全部对应 PROPERTY 类型格子。property_economy_spec.property_tile_summary.groups 的 indices 与之完全一致。共 16 个 PROPERTY 格。",
+      "affected_families": ["tile_system_spec", "property_economy_spec"]
+    },
+    {
+      "check_id": "chk-04",
+      "check_name": "税务金额一致性",
+      "result": "pass",
+      "details": "tile_data_table index=4 tax_amount=200, index=20 tax_amount=150。property_economy_spec.tax_rules 两条记录金额完全匹配。event_dispatch_matrix TAX 类型引用 tile_data_table.tax_amount。",
+      "affected_families": ["tile_system_spec", "property_economy_spec"]
+    },
+    {
+      "check_id": "chk-05",
+      "check_name": "起点奖励一致性",
+      "result": "pass",
+      "details": "turn_flow_spec.movement_rules.pass_start_bonus.bonus_amount=200, property_economy_spec.pass_start_bonus.amount=200。两者 excluded 条件均为 go_to_jail_teleport。",
+      "affected_families": ["turn_flow_spec", "property_economy_spec"]
+    },
+    {
+      "check_id": "chk-06",
+      "check_name": "回合状态机完整性",
+      "result": "pass",
+      "details": "turn_state_machine 10 个状态、12 条转换。覆盖路径：正常移动→事件→结束回合，双数额外回合，三连双数入狱，破产检测，游戏结束。所有状态可达，无孤立状态。",
+      "affected_families": ["turn_flow_spec"]
+    },
+    {
+      "check_id": "chk-07",
+      "check_name": "骰子规则与三连双数入狱一致性",
+      "result": "pass",
+      "details": "turn_flow_spec.dice_rules.triple_doubles_threshold=3, jail_rule_spec.entry_conditions.triple_doubles 触发条件 consecutive_doubles==3。turn_state_machine TRIPLE_DOUBLES_JAIL 状态 guard 一致。",
+      "affected_families": ["turn_flow_spec", "jail_rule_spec"]
+    },
+    {
+      "check_id": "chk-08",
+      "check_name": "监狱流程衔接完整性",
+      "result": "pass",
+      "details": "turn_flow_spec.jail_turn_override 标记 is_in_jail 时覆盖为 JAIL_DECISION。jail_rule_spec.in_jail_turn_flow 提供 pay_bail/try_doubles 两选项 + 第三回合强制保释。ui_flow_spec.jail_decision popup 对应两按钮 + forced_bail 提示。三者衔接完整。",
+      "affected_families": ["turn_flow_spec", "jail_rule_spec", "ui_flow_spec"]
+    },
+    {
+      "check_id": "chk-09",
+      "check_name": "破产触发与资金流一致性",
+      "result": "pass",
+      "details": "property_economy_spec.payment_flows 标记 pay_rent/pay_tax/pay_jail_bail 的 can_cause_bankruptcy=true, purchase_property=false。bankruptcy_rule_spec.mandatory_obligations 列出 rent/tax/jail_bail 三种。完全匹配。",
+      "affected_families": ["property_economy_spec", "bankruptcy_rule_spec"]
+    },
+    {
+      "check_id": "chk-10",
+      "check_name": "UI 弹窗覆盖所有游戏事件",
+      "result": "pass",
+      "details": "7 个 popup 覆盖：dice_roll, buy_property, pay_rent, tax_payment, jail_decision, bankruptcy, game_over。event_dispatch_matrix 的 4 种 phase1_active 事件 (PROPERTY/TAX/GO_TO_JAIL + 正常掷骰) 全部有对应 UI。",
+      "affected_families": ["ui_flow_spec", "tile_system_spec", "turn_flow_spec"]
+    },
+    {
+      "check_id": "chk-11",
+      "check_name": "Phase 1 范围边界检查",
+      "result": "pass",
+      "details": "所有 spec 未引入 out_of_scope 功能（拍卖/交易/抵押/建房/机会卡/公共基金卡/AI）。CHANCE/COMMUNITY 明确标记为 phase1_placeholder。ownership_model 仅含 unowned→owned→unowned 两种转换。",
+      "affected_families": ["tile_system_spec", "property_economy_spec", "turn_flow_spec"]
+    },
+    {
+      "check_id": "chk-12",
+      "check_name": "Blue 颜色组单地产假设一致性",
+      "result": "warning",
+      "details": "Blue 组仅 1 个地产（index 27 百老汇）。property_economy_spec 假设拥有者自动满足颜色组完整条件获得翻倍。此为合理简化但偏离标准规则（标准大富翁 Blue 组=2），需在 GDD 中确认。",
+      "affected_families": ["tile_system_spec", "property_economy_spec"]
+    },
+    {
+      "check_id": "chk-13",
+      "check_name": "forced_bail 触发时机一致性",
+      "result": "warning",
+      "details": "jail_rule_spec 定义 jail_turns_remaining 从 3 递减，forced_bail 在 reaches 0 时触发。ui_flow_spec.jail_decision.forced_bail_trigger 为 jail_turns_remaining==1（即第三回合开始时）。存在 off-by-one 语义差异。建议统一为：第三回合失败后 remaining 变为 0，此时下一回合强制保释；或第三回合开始时检测 remaining==1 直接强制。两种语义可行，需 Lowering 时选定一种实现。",
+      "affected_families": ["jail_rule_spec", "ui_flow_spec"]
+    }
+  ],
+  "issues_found": [
+    {
+      "issue_id": "issue-01",
+      "severity": "warning",
+      "description": "Blue 颜色组只有 1 个地产（百老汇），拥有者自动获得颜色组翻倍。这偏离标准大富翁规则但符合 GDD 28 格简化版设计。",
+      "resolution": "保持当前设计。在 GDD Projection 的 ambiguities 中已记录此决策。Lowering 时实现为 color_group.count==1 时 full_set_condition 自动为 true。",
+      "resolved": true
+    },
+    {
+      "issue_id": "issue-02",
+      "severity": "warning",
+      "description": "forced_bail 触发时机在 jail_rule_spec（remaining reaches 0）和 ui_flow_spec（remaining==1）之间存在语义差异。",
+      "resolution": "统一为：jail_turns_remaining==1 时为最后一次尝试机会，该次失败后 remaining 变为 0，自动触发 forced_bail。UI 在 remaining==1 时显示 forced_bail_text 作为提示但仍允许 try_doubles。remaining==0 时强制扣款。Lowering 实现此语义。",
+      "resolved": true
+    }
+  ],
+  "phase_scope_check": {
+    "in_scope_confirmed": true,
+    "out_of_scope_violations": []
+  },
+  "reviewed_dynamic_spec_tree": {
+    "board_topology_spec": {
+      "board_shape": "square_ring",
+      "tile_count": 28,
+      "tiles_per_side": 7,
+      "corner_count": 4,
+      "movement_direction": "clockwise",
+      "is_closed_loop": true,
+      "corner_tiles": {"start": 0, "jail_visit": 7, "free_parking": 14, "go_to_jail": 21},
+      "tile_index_list": [
+        {"index": 0,  "name": "起点",       "side": "corner"},
+        {"index": 1,  "name": "地中海街",   "side": "bottom"},
+        {"index": 2,  "name": "公共基金",   "side": "bottom"},
+        {"index": 3,  "name": "波罗的海街", "side": "bottom"},
+        {"index": 4,  "name": "所得税",     "side": "bottom"},
+        {"index": 5,  "name": "东方大道",   "side": "bottom"},
+        {"index": 6,  "name": "机会",       "side": "bottom"},
+        {"index": 7,  "name": "监狱探访",   "side": "corner"},
+        {"index": 8,  "name": "佛蒙特大道", "side": "left"},
+        {"index": 9,  "name": "康涅狄格街", "side": "left"},
+        {"index": 10, "name": "圣查尔斯",   "side": "left"},
+        {"index": 11, "name": "弗吉尼亚街", "side": "left"},
+        {"index": 12, "name": "公共基金",   "side": "left"},
+        {"index": 13, "name": "田纳西街",   "side": "left"},
+        {"index": 14, "name": "免费停车",   "side": "corner"},
+        {"index": 15, "name": "纽约大道",   "side": "top"},
+        {"index": 16, "name": "机会",       "side": "top"},
+        {"index": 17, "name": "肯塔基大道", "side": "top"},
+        {"index": 18, "name": "印第安纳街", "side": "top"},
+        {"index": 19, "name": "伊利诺伊街", "side": "top"},
+        {"index": 20, "name": "奢侈税",     "side": "top"},
+        {"index": 21, "name": "前往监狱",   "side": "corner"},
+        {"index": 22, "name": "太平洋大道", "side": "right"},
+        {"index": 23, "name": "公共基金",   "side": "right"},
+        {"index": 24, "name": "北卡罗来纳", "side": "right"},
+        {"index": 25, "name": "宾夕法尼亚", "side": "right"},
+        {"index": 26, "name": "机会",       "side": "right"},
+        {"index": 27, "name": "百老汇",     "side": "right"}
+      ],
+      "adjacency_rule": "tile[i] -> tile[(i+1) % 28]"
+    },
+    "tile_system_spec": {
+      "tile_types": [
+        {"type_id": "START",        "phase1_active": false},
+        {"type_id": "PROPERTY",     "phase1_active": true},
+        {"type_id": "TAX",          "phase1_active": true},
+        {"type_id": "CHANCE",       "phase1_active": false},
+        {"type_id": "COMMUNITY",    "phase1_active": false},
+        {"type_id": "JAIL_VISIT",   "phase1_active": false},
+        {"type_id": "FREE_PARKING", "phase1_active": false},
+        {"type_id": "GO_TO_JAIL",   "phase1_active": true}
+      ],
+      "tile_data_table_ref": "skill-tile-event/tile_system_spec.tile_data_table (28 records)",
+      "color_groups": {
+        "Brown":     {"tiles": [1, 3],      "count": 2, "multiplier": 2},
+        "LightBlue": {"tiles": [5, 8, 9],   "count": 3, "multiplier": 2},
+        "Pink":      {"tiles": [10, 11, 13], "count": 3, "multiplier": 2},
+        "Orange":    {"tiles": [15, 17],     "count": 2, "multiplier": 2},
+        "Red":       {"tiles": [18, 19],     "count": 2, "multiplier": 2},
+        "Green":     {"tiles": [22, 24, 25], "count": 3, "multiplier": 2},
+        "Blue":      {"tiles": [27],         "count": 1, "multiplier": 2, "note": "单地产组，拥有者自动满足完整条件"}
+      },
+      "event_dispatch_matrix_ref": "skill-tile-event/tile_system_spec.event_dispatch_matrix (8 entries)"
+    },
+    "turn_flow_spec": {
+      "game_init": {
+        "player_count_range": [2, 4],
+        "starting_money": 1500,
+        "starting_tile_index": 0,
+        "first_player": "player_0"
+      },
+      "turn_state_machine": {
+        "initial_state": "WAIT_FOR_ROLL",
+        "state_count": 10,
+        "transition_count": 12,
+        "states_ref": "skill-turn/turn_flow_spec.turn_state_machine.states",
+        "transitions_ref": "skill-turn/turn_flow_spec.turn_state_machine.transitions"
+      },
+      "dice_rules": {
+        "dice": "2d6",
+        "doubles_extra_turn": true,
+        "triple_doubles_jail": true,
+        "threshold": 3
+      },
+      "movement_rules": {
+        "direction": "clockwise",
+        "wrap_formula": "(current + total) % 28",
+        "pass_start_bonus": 200,
+        "excluded_from_bonus": ["go_to_jail_teleport"]
+      },
+      "player_rotation": {
+        "order": "fixed_index",
+        "skip_bankrupt": true
+      }
+    },
+    "property_economy_spec": {
+      "initial_funds": 1500,
+      "ownership_states": ["unowned", "owned"],
+      "purchase_rules_ref": "skill-economy/property_economy_spec.purchase_rules",
+      "rent_rules": {
+        "base_source": "tile_data_table.base_rent",
+        "color_group_bonus": "2x when full set owned",
+        "self_owned": "no_action",
+        "jail_owner_exempt": false
+      },
+      "tax_rules": [
+        {"index": 4,  "amount": 200},
+        {"index": 20, "amount": 150}
+      ],
+      "payment_flows": ["purchase_property", "pay_rent", "pay_tax", "pay_jail_bail", "receive_start_bonus"],
+      "bankruptcy_triggers": ["pay_rent", "pay_tax", "pay_jail_bail"]
+    },
+    "jail_rule_spec": {
+      "jail_tile_index": 7,
+      "go_to_jail_tile_index": 21,
+      "entry_conditions": ["land_on_go_to_jail", "triple_doubles"],
+      "teleport_rules": {
+        "target": 7,
+        "skip_pass_start": true,
+        "end_turn": true
+      },
+      "in_jail_options": ["pay_bail_50", "try_doubles"],
+      "max_jail_turns": 3,
+      "forced_bail_semantics": "remaining==1 时为最后尝试，失败后 remaining==0 强制扣 $50，不足则破产",
+      "jail_state_fields": ["is_in_jail: bool", "jail_turns_remaining: int"]
+    },
+    "bankruptcy_rule_spec": {
+      "trigger": "cannot_pay_mandatory_obligation",
+      "process": ["mark_bankrupt", "release_properties_to_unowned", "remove_from_rotation", "show_popup", "check_game_end"],
+      "game_end_condition": "non_bankrupt_players == 1",
+      "winner": "last_remaining"
+    },
+    "ui_flow_spec": {
+      "hud": {
+        "widget": "WBP_GameHUD",
+        "elements": ["current_player_indicator", "all_players_money", "turn_number", "current_tile_info"]
+      },
+      "popups": [
+        {"id": "dice_roll",      "type": "decision", "widget": "WBP_DicePopup"},
+        {"id": "buy_property",   "type": "decision", "widget": "WBP_BuyPopup"},
+        {"id": "pay_rent",       "type": "info",     "widget": "WBP_InfoPopup"},
+        {"id": "tax_payment",    "type": "info",     "widget": "WBP_InfoPopup"},
+        {"id": "jail_decision",  "type": "decision", "widget": "WBP_JailPopup"},
+        {"id": "bankruptcy",     "type": "info",     "widget": "WBP_InfoPopup"},
+        {"id": "game_over",      "type": "info",     "widget": "WBP_InfoPopup"}
+      ],
+      "widget_blueprints": ["WBP_GameHUD", "WBP_DicePopup", "WBP_BuyPopup", "WBP_InfoPopup", "WBP_JailPopup"],
+      "popup_lifecycle": "on-demand create, destroy after action, one at a time"
+    }
+  },
+  "capability_gap_list": [
+    {
+      "gap_id": "gap-umg-auto-layout",
+      "source_skill": "skill-ui",
+      "description": "Compiler 只能生成 C++ 基类和空 Widget Blueprint，UMG 布局需人工在蓝图编辑器完成",
+      "severity": "degraded"
+    },
+    {
+      "gap_id": "gap-dice-animation",
+      "source_skill": "skill-turn",
+      "description": "骰子滚动动画需要 C++ Timeline/Lerp 实现，Compiler 只能生成逻辑骨架",
+      "severity": "cosmetic"
+    }
+  ],
+  "lowering_ready": true,
+  "metadata": {
+    "generated_at": "2026-04-04T12:10:00Z",
+    "generator": "AgentBridge.Compiler.CrossReview.v1"
+  }
+}

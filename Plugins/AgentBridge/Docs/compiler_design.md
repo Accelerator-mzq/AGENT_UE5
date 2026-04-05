@@ -1,19 +1,47 @@
 # Skill Compiler Plane 设计
 
-> 文档版本：v0.7.0（Phase 7 口径）
+> 文档版本：v0.8.0（Phase 8 口径）
 
 ## 1. 定位
 
-Skill Compiler Plane 位于设计输入与执行编排之间，负责把：
+Skill Compiler Plane 位于设计输入与执行编排之间，负责把 GDD 编译为 Reviewed Handoff。
 
-- GDD / Requirements
-- Project State
-- Static Spec Base / Contracts
-- Genre Pack Core / Genre Pack Modules
-
-编译为 Reviewed Handoff。
+Phase 8 引入 **Skill-First 6 阶段主链**，替代旧的 intake/routing/generation 链路。
 
 ## 2. 当前模块结构
+
+### 2.1 Phase 8 新链路（Skill-First 6 阶段，推荐）
+
+```text
+Compiler/                          ← 新骨架目录
+├── __init__.py
+├── intake/
+│   └── design_intake.py           ← Stage 1: GDD → GDD Projection
+├── planner/
+│   └── planner.py                 ← Stage 2: Projection → Planner Output
+├── skill_runtime/
+│   └── skill_runtime.py           ← Stage 3: Template Pack → Skill Fragments
+├── cross_review/
+│   └── cross_review.py            ← Stage 4: Fragments → Cross-Review Report
+└── lowering/
+    └── lowering.py                ← Stage 5: Reviewed Spec Tree → Build IR
+
+对应 Schema（6 个新增）：
+- Schemas/gdd_projection.schema.json
+- Schemas/planner_output.schema.json
+- Schemas/skill_fragment.schema.json
+- Schemas/cross_review_report.schema.json
+- Schemas/build_ir.schema.json
+- Schemas/reviewed_handoff_v2.schema.json
+
+Skill Template Pack：
+- SkillTemplates/genre_packs/boardgame/monopoly_like/ （6 套 × 6 文件）
+
+MCP Server（执行通道）：
+- MCP/server.py + tool_definitions.py + naming.py + py_channel.py + rc_channel.py
+```
+
+### 2.2 旧链路（v0.5.0–v0.7.0，仍保留用于 boardgame/JRPG 回归）
 
 ```text
 Scripts/compiler/

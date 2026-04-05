@@ -1,0 +1,104 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Turn & Dice Flow Spec",
+  "description": "回合流转与骰子规则规格",
+  "type": "object",
+  "required": ["game_init", "turn_state_machine", "dice_rules", "movement_rules", "player_rotation"],
+  "properties": {
+    "game_init": {
+      "type": "object",
+      "description": "游戏初始化规则",
+      "required": ["player_count_range", "starting_position", "first_player_rule"],
+      "properties": {
+        "player_count_range": {"type": "array", "items": {"type": "integer"}, "minItems": 2, "maxItems": 2},
+        "starting_position": {"type": "integer", "description": "初始格子索引"},
+        "starting_money": {"type": "integer", "description": "初始资金"},
+        "first_player_rule": {"type": "string", "description": "决定先手的规则"}
+      }
+    },
+    "turn_state_machine": {
+      "type": "object",
+      "description": "回合状态机",
+      "required": ["states", "transitions"],
+      "properties": {
+        "states": {
+          "type": "array",
+          "description": "状态列表",
+          "items": {
+            "type": "object",
+            "required": ["state_id", "description"],
+            "properties": {
+              "state_id": {"type": "string"},
+              "description": {"type": "string"},
+              "is_initial": {"type": "boolean"},
+              "is_terminal": {"type": "boolean"}
+            }
+          }
+        },
+        "transitions": {
+          "type": "array",
+          "description": "状态转移列表",
+          "items": {
+            "type": "object",
+            "required": ["from", "to", "trigger"],
+            "properties": {
+              "from": {"type": "string"},
+              "to": {"type": "string"},
+              "trigger": {"type": "string", "description": "触发条件"},
+              "action": {"type": "string", "description": "转移时执行的动作"}
+            }
+          }
+        }
+      }
+    },
+    "dice_rules": {
+      "type": "object",
+      "description": "骰子规则",
+      "required": ["dice_count", "dice_sides", "doubles_rule", "triple_doubles_rule"],
+      "properties": {
+        "dice_count": {"type": "integer"},
+        "dice_sides": {"type": "integer"},
+        "doubles_rule": {
+          "type": "object",
+          "properties": {
+            "is_double": {"type": "string", "description": "判定双数的条件"},
+            "effect": {"type": "string", "description": "双数效果"}
+          }
+        },
+        "triple_doubles_rule": {
+          "type": "object",
+          "properties": {
+            "consecutive_count": {"type": "integer"},
+            "effect": {"type": "string", "description": "三连双数效果"}
+          }
+        }
+      }
+    },
+    "movement_rules": {
+      "type": "object",
+      "description": "移动规则",
+      "required": ["direction", "step_calculation", "pass_start_bonus"],
+      "properties": {
+        "direction": {"type": "string", "enum": ["clockwise", "counterclockwise"]},
+        "step_calculation": {"type": "string", "description": "步数计算方式"},
+        "wrap_formula": {"type": "string", "description": "环形索引计算公式"},
+        "pass_start_bonus": {
+          "type": "object",
+          "properties": {
+            "amount": {"type": "integer"},
+            "trigger": {"type": "string", "description": "经过起点 / 停在起点"}
+          }
+        }
+      }
+    },
+    "player_rotation": {
+      "type": "object",
+      "description": "玩家轮转规则",
+      "properties": {
+        "order": {"type": "string", "description": "轮转顺序"},
+        "skip_bankrupt": {"type": "boolean", "description": "跳过已破产玩家"},
+        "game_end_check": {"type": "string", "description": "每回合结束后检查是否游戏结束"}
+      }
+    }
+  }
+}

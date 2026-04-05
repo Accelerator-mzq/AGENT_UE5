@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Skill Fragment",
+  "description": "单个 Skill Instance 的运行时输出产物",
+  "type": "object",
+  "required": [
+    "skill_instance_id",
+    "template_id",
+    "phase_scope",
+    "emitted_families",
+    "spec_fragments",
+    "status"
+  ],
+  "properties": {
+    "skill_instance_id": {
+      "type": "string",
+      "description": "对应 Planner 选出的 Skill Instance ID"
+    },
+    "template_id": {
+      "type": "string",
+      "description": "使用的 Template Pack ID"
+    },
+    "phase_scope": {
+      "type": "string",
+      "description": "执行时的 Phase 范围"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["completed", "partial", "failed"],
+      "description": "completed=全部 family 生成完成, partial=部分完成, failed=失败"
+    },
+    "emitted_families": {
+      "type": "array",
+      "description": "实际产出的 family 名称列表",
+      "items": {"type": "string"}
+    },
+    "spec_fragments": {
+      "type": "object",
+      "description": "按 family 名组织的 Dynamic Spec Fragment。每个 key 是 family 名，value 是该 family 的结构化内容",
+      "additionalProperties": {
+        "type": "object",
+        "description": "单个 family 的具体内容，结构由对应 Skill Template 的 output_schema.json 定义"
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "description": "Skill 生成过程中做出的假设",
+      "items": {
+        "type": "object",
+        "properties": {
+          "assumption": {"type": "string"},
+          "basis": {"type": "string", "description": "假设来源（GDD 节号/默认值/推断）"}
+        }
+      }
+    },
+    "open_questions": {
+      "type": "array",
+      "description": "未解决的开放问题",
+      "items": {"type": "string"}
+    },
+    "review_hints": {
+      "type": "array",
+      "description": "给 Cross-Spec Review 的审查提示",
+      "items": {"type": "string"}
+    },
+    "capability_gaps": {
+      "type": "array",
+      "description": "发现的能力缺口",
+      "items": {
+        "type": "object",
+        "properties": {
+          "gap_id": {"type": "string"},
+          "description": {"type": "string"},
+          "severity": {"type": "string", "enum": ["blocker", "degraded", "cosmetic"]}
+        }
+      }
+    },
+    "confidence": {
+      "type": "object",
+      "description": "Skill 对本次输出的自评",
+      "properties": {
+        "coverage": {"type": "number", "minimum": 0, "maximum": 1},
+        "consistency": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "generated_at": {"type": "string", "format": "date-time"},
+        "generator": {"type": "string"},
+        "template_version": {"type": "string"}
+      }
+    }
+  }
+}

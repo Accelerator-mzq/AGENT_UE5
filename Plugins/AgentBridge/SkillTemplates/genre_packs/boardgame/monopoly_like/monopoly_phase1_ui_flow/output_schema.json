@@ -1,0 +1,121 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Phase 1 UI Flow Spec",
+  "description": "Phase 1 UI 流程规格",
+  "type": "object",
+  "required": ["hud_spec", "popup_specs", "state_bindings"],
+  "properties": {
+    "hud_spec": {
+      "type": "object",
+      "description": "HUD 常驻信息规格",
+      "required": ["elements"],
+      "properties": {
+        "widget_id": {"type": "string", "description": "HUD Widget 标识"},
+        "always_visible": {"type": "boolean"},
+        "elements": {
+          "type": "array",
+          "description": "HUD 显示元素列表",
+          "items": {
+            "type": "object",
+            "required": ["element_id", "data_source", "display_type"],
+            "properties": {
+              "element_id": {"type": "string"},
+              "display_name": {"type": "string"},
+              "data_source": {"type": "string", "description": "数据来源（如 GameState.CurrentPlayerName）"},
+              "display_type": {"type": "string", "enum": ["text", "number", "list", "icon"]},
+              "update_trigger": {"type": "string", "description": "何时更新"}
+            }
+          }
+        }
+      }
+    },
+    "popup_specs": {
+      "type": "array",
+      "description": "弹窗规格列表",
+      "items": {
+        "type": "object",
+        "required": ["popup_id", "popup_type", "trigger", "content", "buttons"],
+        "properties": {
+          "popup_id": {
+            "type": "string",
+            "description": "弹窗唯一标识"
+          },
+          "popup_type": {
+            "type": "string",
+            "enum": ["decision", "info"],
+            "description": "decision=需要玩家选择, info=仅展示确认"
+          },
+          "trigger": {
+            "type": "object",
+            "description": "触发条件",
+            "required": ["game_state", "condition"],
+            "properties": {
+              "game_state": {"type": "string", "description": "触发时的游戏状态"},
+              "condition": {"type": "string", "description": "具体触发条件"}
+            }
+          },
+          "content": {
+            "type": "object",
+            "description": "弹窗内容",
+            "properties": {
+              "title": {"type": "string"},
+              "message_template": {"type": "string", "description": "消息模板（含变量占位符）"},
+              "dynamic_data": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "需要动态填充的数据字段"
+              }
+            }
+          },
+          "buttons": {
+            "type": "array",
+            "description": "按钮列表",
+            "items": {
+              "type": "object",
+              "required": ["button_id", "label", "action"],
+              "properties": {
+                "button_id": {"type": "string"},
+                "label": {"type": "string"},
+                "action": {"type": "string", "description": "按钮回调动作标识"},
+                "enabled_condition": {"type": "string", "description": "按钮可用条件（可选）"}
+              }
+            }
+          },
+          "auto_close": {"type": "boolean", "description": "是否在操作后自动关闭"}
+        }
+      }
+    },
+    "state_bindings": {
+      "type": "array",
+      "description": "UI 与游戏状态的绑定关系",
+      "items": {
+        "type": "object",
+        "required": ["binding_id", "ui_element", "game_state_path"],
+        "properties": {
+          "binding_id": {"type": "string"},
+          "ui_element": {"type": "string", "description": "UI 元素标识（hud element 或 popup）"},
+          "game_state_path": {"type": "string", "description": "游戏状态路径"},
+          "binding_type": {
+            "type": "string",
+            "enum": ["data_display", "visibility_toggle", "trigger_popup", "button_callback"],
+            "description": "绑定类型"
+          },
+          "update_frequency": {
+            "type": "string",
+            "enum": ["on_change", "per_turn", "always"],
+            "description": "更新频率"
+          }
+        }
+      }
+    },
+    "widget_lifecycle": {
+      "type": "object",
+      "description": "Widget 生命周期管理",
+      "properties": {
+        "controller": {"type": "string", "description": "负责管理 Widget 的控制器"},
+        "creation_timing": {"type": "string", "description": "Widget 创建时机"},
+        "cleanup_policy": {"type": "string", "description": "清理策略"}
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+include_sections:
+  - game_identity
+  - phase_scope
+  - design_domains.tile_catalog     # 需要每格价格和基础租金
+  - design_domains.color_groups     # 颜色组加成规则
+  - design_domains.property_rules   # 核心输入：购买/租金/所有权规则
+  - design_domains.turn_loop        # 只取 start_bonus 金额
+
+exclude_sections:
+  - design_domains.board_layout         # 拓扑结构不在本 Skill 范围
+  - design_domains.jail_rules           # 监狱由其他 Skill 处理
+  - design_domains.bankruptcy_rules     # 破产由其他 Skill 处理
+  - design_domains.ui_requirements
+  - implementation_hints

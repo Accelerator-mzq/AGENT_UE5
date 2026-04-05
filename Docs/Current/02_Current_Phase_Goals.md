@@ -1,23 +1,25 @@
 # 当前阶段目标
 
-> 状态：Phase 7 已结项，当前仅保留过渡目标
+> 状态：Phase 8 正式开发期
 
 ## 1. 当前目标
 
-1. 保持已归档的 `Phase 6 / Phase 7` 能力可回归、可审计、可追溯。
-2. 在下一阶段正式定义前，不虚构新的阶段名称和测试编号。
-3. 让根目录 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) 成为“下一阶段待规划”唯一入口。
-4. 保持 [SystemTestCases.md](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Tests/SystemTestCases.md) 与 [run_system_tests.py](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Tests/run_system_tests.py) 的 `230` 条严格对齐。
+1. 完成 Skill-First Compiler Reset：用 6 阶段主链（Intake → Planner → SkillRuntime → CrossReview → Lowering → Execution）替代旧的编译链路。
+2. 以 MonopolyGame Phase 1（本地多人大富翁）作为唯一垂直切片，端到端走通 GDD → Compiler → Build IR → C++ 代码 → 可运行游戏。
+3. 验证 Reviewed Handoff v2 作为 Compiler→Execution 唯一边界的可行性。
+4. 验证 Skill Template Pack 三层结构（Template / Instance / Artifact）的设计。
 
 ## 2. 当前成功标准
 
-- `Docs/Current/*` 中不再把 `Phase 7` 视为 active 阶段。
-- 所有阶段事实都能追溯到已归档任务或历史证据目录。
-- 系统总表与系统测试入口编号继续严格一致。
-- 下一阶段开始前，不因为文档空窗造成入口混乱。
+- Compiler 主链 5 阶段全部产出合法 JSON（11 个文件）— **已达成**
+- Cross-Review 审查通过，无 blocker — **已达成**
+- Build IR 14 个步骤可映射到 C++ 类 — **已达成**
+- M3 垂直切片：12 个验证检查点全部通过 — **进行中**
+- M4 兼容性：现有 230 条系统测试不被破坏 — **待验证**
 
-## 3. 默认假设
+## 3. 当前假设
 
-- 当前路线图尚未定义 `Phase 8`，因此不预创建新阶段任务。
-- 若后续进入新阶段，需要重新建立阶段目标、边界、测试编号与归档策略。
-- 归档后的 carry-over 只保留长期规划问题，不再保留 Phase 7 已关闭的观察项。
+- Phase 8 仅做 MonopolyGame Phase 1（本地热座 2-4 人），不做 Phase 2 网络多人。
+- Phase 1 不实现：拍卖、交易、抵押、建房/旅馆、机会卡、公共基金卡、AI 对手。
+- UMG Widget 布局全部纯 C++ 构建，不依赖蓝图编辑器手动排版。
+- 3D 资产使用基础几何体（Box/Cylinder），不追求美术质量。

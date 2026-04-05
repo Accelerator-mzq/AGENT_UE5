@@ -1,0 +1,14 @@
+include_sections:
+  - game_identity
+  - phase_scope
+  - design_domains.jail_rules          # 核心输入：监狱规则
+  - design_domains.bankruptcy_rules    # 核心输入：破产规则
+  - design_domains.board_layout        # 需要 jail_visit 和 go_to_jail 索引
+
+exclude_sections:
+  - design_domains.tile_catalog
+  - design_domains.color_groups
+  - design_domains.turn_loop           # 只取入狱触发（triple_doubles），主循环不在此
+  - design_domains.property_rules
+  - design_domains.ui_requirements
+  - implementation_hints

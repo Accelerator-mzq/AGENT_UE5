@@ -1,6 +1,6 @@
 # Reviewed Handoff 机制设计
 
-> 文档版本：v0.4.0 | 适用范围：AgentBridge 插件 Reviewed Handoff 机制
+> 文档版本：v0.8.0 | 适用范围：AgentBridge 插件 Reviewed Handoff 机制
 
 ---
 
@@ -8,14 +8,21 @@
 
 Reviewed Handoff 是 Skill Compiler Plane 向 Execution Orchestrator Plane 的**唯一正式交接物**。
 
-它是一份结构化的 YAML 文档，包含编译前端的全部输出：项目上下文、路由决策、动态 Spec 树、审查摘要和能力缺口。Orchestrator 消费 Reviewed Handoff 生成 Run Plan 并执行，不回读 GDD。
+### 1.1 版本演进
 
-### 1.1 核心原则
+| 版本 | Schema | 核心结构 | 适用范围 |
+|------|--------|---------|---------|
+| **v1**（v0.1–v0.7） | `reviewed_handoff.schema.json` | 以 `dynamic_spec_tree.scene_spec.actors` 为中心 | boardgame/JRPG 旧链路 |
+| **v2**（v0.8+） | `reviewed_handoff_v2.schema.json` | 以 `reviewed_dynamic_spec_tree`（按 family 组织）为中心 + Build IR | Phase 8 Skill-First 新链路 |
 
-- **单一交接点**：Compiler 和 Orchestrator 之间只通过 Reviewed Handoff 通信
-- **Compiler 职责到此为止**：Handoff 提交后，后续执行由 Orchestrator 全权负责
-- **必须通过 Schema 校验**：`Schemas/reviewed_handoff.schema.json` 是格式权威
-- **审批流程**：draft → 审批 → approved，未审批的 Handoff 不进入执行
+v2 通过 `legacy_compatibility.scene_spec` 可选字段提供 v1 回退兼容。
+
+### 1.2 核心原则（v1/v2 共享）
+
+- **单一交接点**：Compiler 和 Execution 之间只通过 Reviewed Handoff 通信
+- **Compiler 职责到此为止**：Handoff 提交后，后续执行由 Orchestrator / Execution Agent 全权负责
+- **必须通过 Schema 校验**：对应版本的 Schema 是格式权威
+- **审批流程**：v1 draft → approved；v2 Compiler auto-approve（审查嵌入 Cross-Review 阶段）
 
 ---
 

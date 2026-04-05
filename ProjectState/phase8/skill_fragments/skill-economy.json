@@ -1,0 +1,152 @@
+{
+  "skill_instance_id": "skill-economy",
+  "template_id": "monopoly.property_economy.phase1",
+  "phase_scope": "phase1_local_multiplayer",
+  "status": "completed",
+  "emitted_families": ["property_economy_spec"],
+  "spec_fragments": {
+    "property_economy_spec": {
+      "initial_funds": 1500,
+      "currency_unit": "dollar",
+      "ownership_model": {
+        "states": ["unowned", "owned"],
+        "transitions": [
+          {"from": "unowned", "to": "owned",   "trigger": "player_purchases",     "description": "玩家购买无主地产"},
+          {"from": "owned",   "to": "unowned",  "trigger": "owner_goes_bankrupt",  "description": "拥有者破产，地产释放为无主"}
+        ],
+        "phase1_note": "不支持拍卖、抵押、交易、建房。Phase 1 只有购买和破产释放两种转换"
+      },
+      "purchase_rules": {
+        "trigger": "land_on_unowned_property",
+        "condition": "player.money >= tile.price",
+        "action": "show_buy_popup",
+        "buy_action": {
+          "deduct": "tile.price from player.money",
+          "assign": "tile.owner = current_player"
+        },
+        "pass_action": {
+          "description": "玩家选择不购买，Phase 1 无拍卖，地产保持无主",
+          "result": "no_change"
+        },
+        "insufficient_funds": {
+          "description": "玩家资金不足以购买",
+          "result": "auto_pass_no_popup"
+        }
+      },
+      "rent_rules": {
+        "trigger": "land_on_property_owned_by_other",
+        "base_rent_source": "tile_data_table.base_rent",
+        "color_group_bonus": {
+          "enabled": true,
+          "condition": "owner possesses ALL tiles in the same color_group",
+          "multiplier": 2,
+          "formula": "effective_rent = base_rent * full_set_multiplier",
+          "source_reference": "tile_system_spec.color_groups.{group}.full_set_multiplier"
+        },
+        "rent_collection_flow": [
+          "determine effective_rent (base or color_group doubled)",
+          "check if tenant can pay",
+          "if can_pay: deduct from tenant, add to owner",
+          "if cannot_pay: trigger bankruptcy for tenant"
+        ],
+        "self_owned_landing": "no_action",
+        "jail_owner_exemption": false,
+        "phase1_note": "Phase 1 不实现房屋/旅馆加成，只有基础租金和颜色组翻倍"
+      },
+      "tax_rules": [
+        {
+          "tile_index": 4,
+          "tile_name": "所得税",
+          "tax_amount": 200,
+          "deduct_from": "current_player.money",
+          "destination": "bank",
+          "insufficient_funds": "trigger_bankruptcy"
+        },
+        {
+          "tile_index": 20,
+          "tile_name": "奢侈税",
+          "tax_amount": 150,
+          "deduct_from": "current_player.money",
+          "destination": "bank",
+          "insufficient_funds": "trigger_bankruptcy"
+        }
+      ],
+      "pass_start_bonus": {
+        "amount": 200,
+        "trigger": "normal_movement_crosses_tile_0",
+        "excluded": ["go_to_jail_teleport"],
+        "note": "与 turn_flow_spec.movement_rules.pass_start_bonus 一致"
+      },
+      "payment_flows": [
+        {
+          "flow_id": "purchase_property",
+          "payer": "current_player",
+          "receiver": "bank",
+          "amount_source": "tile.price",
+          "can_cause_bankruptcy": false,
+          "note": "资金不足时不弹购买窗口，不会因购买触发破产"
+        },
+        {
+          "flow_id": "pay_rent",
+          "payer": "current_player",
+          "receiver": "tile.owner",
+          "amount_source": "effective_rent",
+          "can_cause_bankruptcy": true
+        },
+        {
+          "flow_id": "pay_tax",
+          "payer": "current_player",
+          "receiver": "bank",
+          "amount_source": "tile.tax_amount",
+          "can_cause_bankruptcy": true
+        },
+        {
+          "flow_id": "pay_jail_bail",
+          "payer": "current_player",
+          "receiver": "bank",
+          "amount_source": "50",
+          "can_cause_bankruptcy": true,
+          "note": "保释金交由 jail_rule_spec 管理，此处仅列出资金流向"
+        },
+        {
+          "flow_id": "receive_start_bonus",
+          "payer": "bank",
+          "receiver": "current_player",
+          "amount_source": "200",
+          "can_cause_bankruptcy": false
+        }
+      ],
+      "property_tile_summary": {
+        "total_property_tiles": 16,
+        "color_groups": 7,
+        "price_range": {"min": 60, "max": 400},
+        "base_rent_range": {"min": 4, "max": 50},
+        "groups": [
+          {"group": "Brown",     "count": 2, "indices": [1, 3]},
+          {"group": "LightBlue", "count": 3, "indices": [5, 8, 9]},
+          {"group": "Pink",      "count": 3, "indices": [10, 11, 13]},
+          {"group": "Orange",    "count": 2, "indices": [15, 17]},
+          {"group": "Red",       "count": 2, "indices": [18, 19]},
+          {"group": "Green",     "count": 3, "indices": [22, 24, 25]},
+          {"group": "Blue",      "count": 1, "indices": [27]}
+        ]
+      }
+    }
+  },
+  "assumptions": [
+    {"assumption": "资金不足购买时自动跳过，不弹窗，不导致破产", "basis": "GDD §3.2 推断"},
+    {"assumption": "租金不足支付时直接触发破产，无协商/抵押/交易机制", "basis": "GDD §3.3 Phase 1 简化"},
+    {"assumption": "Blue 组只有 1 个地产（百老汇），拥有者自动满足颜色组条件获得翻倍", "basis": "planner_output.json open_questions 默认假设"},
+    {"assumption": "监狱中的玩家名下地产仍正常收租", "basis": "GDD 未明确提及豁免，沿用经典规则"}
+  ],
+  "open_questions": [],
+  "review_hints": [
+    "确认 16 个 PROPERTY 格的 price 和 base_rent 与 tile_system_spec 一致",
+    "确认颜色组索引与 tile_system_spec.color_groups 完全一致",
+    "确认 5 种 payment_flow 覆盖所有资金变动场景",
+    "确认 can_cause_bankruptcy 标记正确（购买不会、租金/税/保释会）"
+  ],
+  "capability_gaps": [],
+  "confidence": {"coverage": 0.97, "consistency": 1.0},
+  "metadata": {"generated_at": "2026-04-04T12:05:00Z", "generator": "AgentBridge.Compiler.SkillRuntime.v1", "template_version": "1.0.0"}
+}

@@ -1,19 +1,32 @@
 # Greenfield E2E 管线
 
-> 文档版本：v0.7.0（Phase 7 口径）
+> 文档版本：v0.8.0（Phase 8 口径）
 
 ## 1. 概述
 
-Greenfield 管线用于从零构建新样板。到当前阶段为止：
+Greenfield 管线用于从零构建新样板。
 
-- StaticBase 已落地
-- 自动 Dynamic Spec 生成已落地
-- Cross-Spec Review 已落地
-- `Scripts/run_greenfield_demo.py` 支持 `simulated / bridge_python / bridge_rc_api`
-- Phase 6 新增 `projection_profile`，默认仍为 `preview_static`
-- Phase 7 起，Greenfield 继续承担回归基线职责，并新增 `JRPG Turn-Based` 的 simulated / smoke 主入口
+Phase 8 引入 **Skill-First 主链**作为新的 Greenfield 链路，旧链路保留用于 boardgame/JRPG 回归。
 
-## 2. 当前链路
+历史：
+- Phase 4–7：旧链路（intake → routing → generation → review → handoff → run_plan → execution）
+- Phase 8：新链路（Intake → Planner → SkillRuntime → CrossReview → Lowering → Execution）
+
+## 2. Phase 8 新链路（Skill-First）
+
+```text
+ProjectInputs/GDD/GDD_MonopolyGame.md
+→ Compiler/intake/design_intake.py          → ProjectState/phase8/gdd_projection.json
+→ Compiler/planner/planner.py               → ProjectState/phase8/planner_output.json
+→ Compiler/skill_runtime/skill_runtime.py   → ProjectState/phase8/skill_fragments/*.json
+→ Compiler/cross_review/cross_review.py     → ProjectState/phase8/cross_review_report.json
+→ Compiler/lowering/lowering.py             → ProjectState/phase8/build_ir.json
+→ Handoff Assembly                           → ProjectState/phase8/reviewed_handoff_v2.json
+→ Execution Agent（按 Build IR 的 14 步执行）
+→ Source/Mvpv4TestCodex/ C++ 代码
+```
+
+## 3. 旧链路（v0.5.0–v0.7.0，仍保留）
 
 ```text
 ProjectInputs/GDD/

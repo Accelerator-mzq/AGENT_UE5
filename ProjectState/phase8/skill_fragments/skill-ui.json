@@ -1,0 +1,180 @@
+{
+  "skill_instance_id": "skill-ui",
+  "template_id": "monopoly.phase1_ui_flow.phase1",
+  "phase_scope": "phase1_local_multiplayer",
+  "status": "completed",
+  "emitted_families": ["ui_flow_spec"],
+  "spec_fragments": {
+    "ui_flow_spec": {
+      "hud_spec": {
+        "widget_name": "WBP_GameHUD",
+        "always_visible": true,
+        "elements": [
+          {
+            "element_id": "current_player_indicator",
+            "display": "当前玩家名称 + 颜色标识",
+            "data_source": "GameState.CurrentPlayerIndex → PlayerState.PlayerName + PlayerColor",
+            "update_trigger": "on_turn_change"
+          },
+          {
+            "element_id": "all_players_money",
+            "display": "所有玩家的资金列表（含破产状态标记）",
+            "data_source": "GameState.PlayerStates[].Money + IsBankrupt",
+            "update_trigger": "on_money_change"
+          },
+          {
+            "element_id": "turn_number",
+            "display": "当前回合数",
+            "data_source": "GameState.TurnNumber",
+            "update_trigger": "on_turn_change"
+          },
+          {
+            "element_id": "current_tile_info",
+            "display": "当前玩家所在格子名称和类型",
+            "data_source": "CurrentPlayer.TileIndex → TileData.Name + Type",
+            "update_trigger": "on_pawn_move"
+          }
+        ]
+      },
+      "popup_specs": [
+        {
+          "popup_id": "dice_roll",
+          "widget_name": "WBP_DicePopup",
+          "popup_type": "decision",
+          "trigger": "turn_start_and_not_in_jail",
+          "title": "掷骰子",
+          "body_template": "{player_name} 的回合",
+          "buttons": [
+            {"button_id": "roll_dice", "label": "掷骰子", "action": "begin_dice_roll", "style": "primary"}
+          ],
+          "auto_close": false,
+          "show_dice_result": true,
+          "dice_result_format": "{die1} + {die2} = {total}",
+          "doubles_indicator": true
+        },
+        {
+          "popup_id": "buy_property",
+          "widget_name": "WBP_BuyPopup",
+          "popup_type": "decision",
+          "trigger": "land_on_unowned_property_and_can_afford",
+          "title": "购买地产",
+          "body_template": "是否购买 {tile_name}？\n价格：${price}\n基础租金：${base_rent}\n颜色组：{color_group}\n\n当前资金：${player_money}",
+          "buttons": [
+            {"button_id": "buy",  "label": "购买", "action": "execute_purchase", "style": "primary"},
+            {"button_id": "pass", "label": "放弃", "action": "skip_purchase",    "style": "secondary"}
+          ],
+          "auto_close": false
+        },
+        {
+          "popup_id": "pay_rent",
+          "widget_name": "WBP_InfoPopup",
+          "popup_type": "info",
+          "trigger": "land_on_property_owned_by_other",
+          "title": "支付租金",
+          "body_template": "你落在了 {owner_name} 的 {tile_name} 上\n需支付租金：${rent_amount}",
+          "buttons": [
+            {"button_id": "confirm", "label": "确认", "action": "execute_rent_payment", "style": "primary"}
+          ],
+          "auto_close": false,
+          "show_color_group_bonus": true,
+          "bonus_text": "颜色组加成！租金翻倍"
+        },
+        {
+          "popup_id": "tax_payment",
+          "widget_name": "WBP_InfoPopup",
+          "popup_type": "info",
+          "trigger": "land_on_tax_tile",
+          "title": "缴税",
+          "body_template": "你需要缴纳 {tile_name}：${tax_amount}",
+          "buttons": [
+            {"button_id": "confirm", "label": "确认", "action": "execute_tax_payment", "style": "primary"}
+          ],
+          "auto_close": false
+        },
+        {
+          "popup_id": "jail_decision",
+          "widget_name": "WBP_JailPopup",
+          "popup_type": "decision",
+          "trigger": "in_jail_turn_start",
+          "title": "监狱决策",
+          "body_template": "你在监狱中（剩余 {jail_turns_remaining} 回合）\n当前资金：${player_money}",
+          "buttons": [
+            {"button_id": "pay_bail",    "label": "支付 $50 保释",  "action": "pay_jail_bail",    "style": "primary",   "condition": "player.money >= 50"},
+            {"button_id": "try_doubles", "label": "尝试掷双数出狱", "action": "roll_for_doubles",  "style": "secondary"}
+          ],
+          "auto_close": false,
+          "forced_bail_text": "第三回合：必须支付 $50 保释金",
+          "forced_bail_trigger": "jail_turns_remaining == 1"
+        },
+        {
+          "popup_id": "bankruptcy",
+          "widget_name": "WBP_InfoPopup",
+          "popup_type": "info",
+          "trigger": "player_bankrupt",
+          "title": "破产",
+          "body_template": "{player_name} 已破产！\n所有地产已释放为无主状态",
+          "buttons": [
+            {"button_id": "confirm", "label": "确认", "action": "acknowledge_bankruptcy", "style": "primary"}
+          ],
+          "auto_close": false,
+          "broadcast": true,
+          "broadcast_note": "所有玩家都能看到此弹窗"
+        },
+        {
+          "popup_id": "game_over",
+          "widget_name": "WBP_InfoPopup",
+          "popup_type": "info",
+          "trigger": "one_player_remaining",
+          "title": "游戏结束",
+          "body_template": "恭喜 {winner_name} 获胜！\n最终资金：${winner_money}",
+          "buttons": [
+            {"button_id": "restart", "label": "再来一局", "action": "restart_game", "style": "primary"}
+          ],
+          "auto_close": false
+        }
+      ],
+      "state_bindings": [
+        {"ui_element": "WBP_GameHUD",    "bound_to": "AMGameState + AMPlayerState[]", "update_event": "OnGameStateChanged"},
+        {"ui_element": "WBP_DicePopup",   "bound_to": "AMGameState.CurrentPhase",      "update_event": "OnTurnStart"},
+        {"ui_element": "WBP_BuyPopup",    "bound_to": "AMTile.OwnerIndex + Price",     "update_event": "OnLandOnUnownedProperty"},
+        {"ui_element": "WBP_InfoPopup",   "bound_to": "contextual (rent/tax/bankruptcy/game_over)", "update_event": "OnPopupRequested"},
+        {"ui_element": "WBP_JailPopup",   "bound_to": "AMPlayerState.IsInJail + JailTurnsRemaining", "update_event": "OnJailTurnStart"}
+      ],
+      "widget_lifecycle": {
+        "hud_creation": "GameMode::BeginPlay → CreateWidget(WBP_GameHUD) → AddToViewport",
+        "popup_creation": "on-demand, created when triggered, destroyed after button click",
+        "popup_stacking": "only one popup visible at a time, queued if necessary",
+        "input_mode": "UI only during popup, game+UI otherwise (Phase 1 all UI-driven)"
+      },
+      "widget_blueprint_list": [
+        {"name": "WBP_GameHUD",    "base_class": "UMGameHUDWidget",  "description": "常驻 HUD"},
+        {"name": "WBP_DicePopup",  "base_class": "UMPopupWidget",   "description": "掷骰弹窗"},
+        {"name": "WBP_BuyPopup",   "base_class": "UMPopupWidget",   "description": "购买决策弹窗"},
+        {"name": "WBP_InfoPopup",  "base_class": "UMPopupWidget",   "description": "通用信息弹窗（租金/税/破产/结束）"},
+        {"name": "WBP_JailPopup",  "base_class": "UMPopupWidget",   "description": "监狱决策弹窗"}
+      ]
+    }
+  },
+  "assumptions": [
+    {"assumption": "Phase 1 热座模式下所有弹窗都在同一屏幕显示，无需区分玩家视角", "basis": "GDD Phase 1 本地多人"},
+    {"assumption": "租金/税/破产/游戏结束共用 WBP_InfoPopup，通过参数区分内容", "basis": "GDD §4 弹窗复用设计"},
+    {"assumption": "同一时间只显示一个弹窗，如有冲突则排队", "basis": "UMG 最佳实践"},
+    {"assumption": "forced_bail 在 jail_turns_remaining==1 时触发（即第三回合），而非 ==0", "basis": "逻辑推导：进狱设 3，失败后递减，第三回合开始时为 1"}
+  ],
+  "open_questions": [],
+  "review_hints": [
+    "确认 7 个 popup 覆盖 GDD §4 的全部 6 种弹窗类型（dice_roll 拆为独立 + tax 新增）",
+    "确认 widget_blueprint_list 的 5 个 WBP 覆盖所有 popup 场景",
+    "确认 state_bindings 引用的 C++ 类名与 runtime_entity_spec 一致",
+    "确认 forced_bail_trigger 与 jail_rule_spec.forced_bail_on_third_turn 一致"
+  ],
+  "capability_gaps": [
+    {
+      "gap_id": "gap-umg-auto-layout",
+      "description": "Compiler 只能生成 C++ 基类和空 Widget Blueprint，具体 UMG 布局需人工在蓝图编辑器完成",
+      "severity": "degraded"
+    }
+  ],
+  "confidence": {"coverage": 0.95, "consistency": 0.98},
+  "metadata": {"generated_at": "2026-04-04T12:07:00Z", "generator": "AgentBridge.Compiler.SkillRuntime.v1", "template_version": "1.0.0"}
+}

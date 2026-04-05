@@ -1,0 +1,84 @@
+{
+  "skill_instance_id": "skill-tile-event",
+  "template_id": "monopoly.tile_event_dispatch.phase1",
+  "phase_scope": "phase1_local_multiplayer",
+  "status": "completed",
+  "emitted_families": ["tile_system_spec"],
+  "spec_fragments": {
+    "tile_system_spec": {
+      "tile_types": [
+        {"type_id": "START",        "display_name": "起点",     "has_landing_event": false, "phase1_active": false},
+        {"type_id": "PROPERTY",     "display_name": "地产",     "has_landing_event": true,  "phase1_active": true},
+        {"type_id": "TAX",          "display_name": "税务",     "has_landing_event": true,  "phase1_active": true},
+        {"type_id": "CHANCE",       "display_name": "机会",     "has_landing_event": false, "phase1_active": false},
+        {"type_id": "COMMUNITY",    "display_name": "公共基金", "has_landing_event": false, "phase1_active": false},
+        {"type_id": "JAIL_VISIT",   "display_name": "监狱探访", "has_landing_event": false, "phase1_active": false},
+        {"type_id": "FREE_PARKING", "display_name": "免费停车", "has_landing_event": false, "phase1_active": false},
+        {"type_id": "GO_TO_JAIL",   "display_name": "前往监狱", "has_landing_event": true,  "phase1_active": true}
+      ],
+      "tile_data_table": [
+        {"index": 0,  "type": "START",        "name": "起点",       "color_group": null,        "price": null, "base_rent": null, "tax_amount": null},
+        {"index": 1,  "type": "PROPERTY",     "name": "地中海街",   "color_group": "Brown",     "price": 60,   "base_rent": 4,    "tax_amount": null},
+        {"index": 2,  "type": "COMMUNITY",    "name": "公共基金",   "color_group": null,        "price": null, "base_rent": null, "tax_amount": null},
+        {"index": 3,  "type": "PROPERTY",     "name": "波罗的海街", "color_group": "Brown",     "price": 80,   "base_rent": 8,    "tax_amount": null},
+        {"index": 4,  "type": "TAX",          "name": "所得税",     "color_group": null,        "price": null, "base_rent": null, "tax_amount": 200},
+        {"index": 5,  "type": "PROPERTY",     "name": "东方大道",   "color_group": "LightBlue", "price": 100,  "base_rent": 12,   "tax_amount": null},
+        {"index": 6,  "type": "CHANCE",       "name": "机会",       "color_group": null,        "price": null, "base_rent": null, "tax_amount": null},
+        {"index": 7,  "type": "JAIL_VISIT",   "name": "监狱探访",   "color_group": null,        "price": null, "base_rent": null, "tax_amount": null},
+        {"index": 8,  "type": "PROPERTY",     "name": "佛蒙特大道", "color_group": "LightBlue", "price": 120,  "base_rent": 14,   "tax_amount": null},
+        {"index": 9,  "type": "PROPERTY",     "name": "康涅狄格街", "color_group": "LightBlue", "price": 140,  "base_rent": 16,   "tax_amount": null},
+        {"index": 10, "type": "PROPERTY",     "name": "圣查尔斯",   "color_group": "Pink",      "price": 160,  "base_rent": 20,   "tax_amount": null},
+        {"index": 11, "type": "PROPERTY",     "name": "弗吉尼亚街", "color_group": "Pink",      "price": 180,  "base_rent": 22,   "tax_amount": null},
+        {"index": 12, "type": "COMMUNITY",    "name": "公共基金",   "color_group": null,        "price": null, "base_rent": null, "tax_amount": null},
+        {"index": 13, "type": "PROPERTY",     "name": "田纳西街",   "color_group": "Pink",      "price": 200,  "base_rent": 24,   "tax_amount": null},
+        {"index": 14, "type": "FREE_PARKING", "name": "免费停车",   "color_group": null,        "price": null, "base_rent": null, "tax_amount": null},
+        {"index": 15, "type": "PROPERTY",     "name": "纽约大道",   "color_group": "Orange",    "price": 220,  "base_rent": 28,   "tax_amount": null},
+        {"index": 16, "type": "CHANCE",       "name": "机会",       "color_group": null,        "price": null, "base_rent": null, "tax_amount": null},
+        {"index": 17, "type": "PROPERTY",     "name": "肯塔基大道", "color_group": "Orange",    "price": 240,  "base_rent": 30,   "tax_amount": null},
+        {"index": 18, "type": "PROPERTY",     "name": "印第安纳街", "color_group": "Red",       "price": 260,  "base_rent": 32,   "tax_amount": null},
+        {"index": 19, "type": "PROPERTY",     "name": "伊利诺伊街", "color_group": "Red",       "price": 280,  "base_rent": 34,   "tax_amount": null},
+        {"index": 20, "type": "TAX",          "name": "奢侈税",     "color_group": null,        "price": null, "base_rent": null, "tax_amount": 150},
+        {"index": 21, "type": "GO_TO_JAIL",   "name": "前往监狱",   "color_group": null,        "price": null, "base_rent": null, "tax_amount": null},
+        {"index": 22, "type": "PROPERTY",     "name": "太平洋大道", "color_group": "Green",     "price": 300,  "base_rent": 36,   "tax_amount": null},
+        {"index": 23, "type": "COMMUNITY",    "name": "公共基金",   "color_group": null,        "price": null, "base_rent": null, "tax_amount": null},
+        {"index": 24, "type": "PROPERTY",     "name": "北卡罗来纳", "color_group": "Green",     "price": 320,  "base_rent": 38,   "tax_amount": null},
+        {"index": 25, "type": "PROPERTY",     "name": "宾夕法尼亚", "color_group": "Green",     "price": 340,  "base_rent": 40,   "tax_amount": null},
+        {"index": 26, "type": "CHANCE",       "name": "机会",       "color_group": null,        "price": null, "base_rent": null, "tax_amount": null},
+        {"index": 27, "type": "PROPERTY",     "name": "百老汇",     "color_group": "Blue",      "price": 400,  "base_rent": 50,   "tax_amount": null}
+      ],
+      "color_groups": {
+        "Brown":     {"tile_indices": [1, 3],      "full_set_multiplier": 2, "color_hex": "#8B4513"},
+        "LightBlue": {"tile_indices": [5, 8, 9],   "full_set_multiplier": 2, "color_hex": "#87CEEB"},
+        "Pink":      {"tile_indices": [10, 11, 13], "full_set_multiplier": 2, "color_hex": "#FF69B4"},
+        "Orange":    {"tile_indices": [15, 17],     "full_set_multiplier": 2, "color_hex": "#FFA500"},
+        "Red":       {"tile_indices": [18, 19],     "full_set_multiplier": 2, "color_hex": "#FF0000"},
+        "Green":     {"tile_indices": [22, 24, 25], "full_set_multiplier": 2, "color_hex": "#228B22"},
+        "Blue":      {"tile_indices": [27],         "full_set_multiplier": 2, "color_hex": "#00008B"}
+      },
+      "event_dispatch_matrix": [
+        {"tile_type": "START",        "landing_event": "no_event",                        "event_params": {},                    "phase1_note": "起点奖励由 turn_flow 的过起点机制处理"},
+        {"tile_type": "PROPERTY",     "landing_event": "check_ownership_and_dispatch",    "event_params": {},                    "phase1_note": "无主→购买弹窗，他人→收租，自有→无事件"},
+        {"tile_type": "TAX",          "landing_event": "deduct_tax",                      "event_params": {"source": "tile_data_table.tax_amount"}, "phase1_note": "所得税$200，奢侈税$150"},
+        {"tile_type": "CHANCE",       "landing_event": "phase1_placeholder",              "event_params": {},                    "phase1_note": "Phase 1 留空，无事件"},
+        {"tile_type": "COMMUNITY",    "landing_event": "phase1_placeholder",              "event_params": {},                    "phase1_note": "Phase 1 留空，无事件"},
+        {"tile_type": "JAIL_VISIT",   "landing_event": "no_event",                        "event_params": {},                    "phase1_note": "仅探访，无事件"},
+        {"tile_type": "FREE_PARKING", "landing_event": "no_event",                        "event_params": {},                    "phase1_note": "无事件"},
+        {"tile_type": "GO_TO_JAIL",   "landing_event": "send_to_jail",                    "event_params": {"jail_index": 7},     "phase1_note": "直接传送到监狱，不经过起点"}
+      ]
+    }
+  },
+  "assumptions": [
+    {"assumption": "TAX 格的扣款金额使用独立 tax_amount 字段，不复用 base_rent", "basis": "GDD Projection ambiguities"},
+    {"assumption": "Chance/Community 格 Phase 1 完全无事件，不显示任何弹窗", "basis": "GDD §2.2"}
+  ],
+  "open_questions": [],
+  "review_hints": [
+    "确认 28 格数据表与 GDD §2.3 完全一致",
+    "确认 16 个 PROPERTY 格都有 price 和 base_rent",
+    "确认颜色组引用的 tile_indices 全部为 PROPERTY 类型",
+    "确认 event_dispatch_matrix 覆盖全部 8 种类型"
+  ],
+  "capability_gaps": [],
+  "confidence": {"coverage": 1.0, "consistency": 1.0},
+  "metadata": {"generated_at": "2026-04-04T12:03:00Z", "generator": "AgentBridge.Compiler.SkillRuntime.v1", "template_version": "1.0.0"}
+}

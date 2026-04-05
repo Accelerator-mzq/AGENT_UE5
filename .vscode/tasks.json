@@ -20,16 +20,23 @@
     {
       "label": "UE: 编译 Editor Win64 Development",
       "type": "shell",
-      "command": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+      "command": "${config:ue5.engineRoot}\\Engine\\Build\\BatchFiles\\Build.bat",
       "args": [
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-Command",
-        "& '${config:ue5.engineRoot}\\Engine\\Binaries\\DotNET\\UnrealBuildTool\\UnrealBuildTool.exe' Mvpv4TestCodexEditor Win64 Development -Project='${workspaceFolder}\\Mvpv4TestCodex.uproject'"
+        "Mvpv4TestCodexEditor",
+        "Win64",
+        "Development",
+        "${workspaceFolder}\\Mvpv4TestCodex.uproject",
+        "-waitmutex"
       ],
       "options": {
-        "cwd": "${workspaceFolder}"
+        "cwd": "${config:ue5.engineRoot}",
+        "shell": {
+          "executable": "C:\\Windows\\System32\\cmd.exe",
+          "args": [
+            "/d",
+            "/c"
+          ]
+        }
       },
       "group": {
         "kind": "build",

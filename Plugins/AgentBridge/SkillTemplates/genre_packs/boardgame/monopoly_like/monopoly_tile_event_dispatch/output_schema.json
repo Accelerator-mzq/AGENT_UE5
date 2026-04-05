@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Tile System & Event Dispatch Spec",
+  "description": "格子系统与事件分发规格",
+  "type": "object",
+  "required": ["tile_types", "tile_data_table", "color_groups", "event_dispatch_matrix"],
+  "properties": {
+    "tile_types": {
+      "type": "array",
+      "description": "格子类型枚举",
+      "items": {
+        "type": "object",
+        "required": ["type_id", "display_name", "has_landing_event"],
+        "properties": {
+          "type_id": {"type": "string"},
+          "display_name": {"type": "string"},
+          "has_landing_event": {"type": "boolean"},
+          "phase1_active": {"type": "boolean", "description": "Phase 1 是否有实际事件"}
+        }
+      }
+    },
+    "tile_data_table": {
+      "type": "array",
+      "description": "完整 28 格数据表",
+      "items": {
+        "type": "object",
+        "required": ["index", "type", "name"],
+        "properties": {
+          "index": {"type": "integer", "minimum": 0},
+          "type": {"type": "string"},
+          "name": {"type": "string"},
+          "color_group": {"type": ["string", "null"]},
+          "price": {"type": ["integer", "null"]},
+          "base_rent": {"type": ["integer", "null"]},
+          "tax_amount": {"type": ["integer", "null"], "description": "税务格固定扣款金额"}
+        }
+      }
+    },
+    "color_groups": {
+      "type": "object",
+      "description": "颜色组定义",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["tile_indices", "full_set_multiplier"],
+        "properties": {
+          "tile_indices": {"type": "array", "items": {"type": "integer"}},
+          "full_set_multiplier": {"type": "number"},
+          "color_hex": {"type": "string", "description": "颜色十六进制值（可选，Lowering 参考）"}
+        }
+      }
+    },
+    "event_dispatch_matrix": {
+      "type": "array",
+      "description": "事件分发矩阵：格子类型 → 着陆事件",
+      "items": {
+        "type": "object",
+        "required": ["tile_type", "landing_event"],
+        "properties": {
+          "tile_type": {"type": "string"},
+          "landing_event": {
+            "type": "string",
+            "description": "着陆时触发的事件标识",
+            "enum": [
+              "no_event",
+              "check_ownership_and_dispatch",
+              "deduct_tax",
+              "phase1_placeholder",
+              "send_to_jail"
+            ]
+          },
+          "event_params": {
+            "type": "object",
+            "description": "事件参数（如适用）",
+            "additionalProperties": true
+          },
+          "phase1_note": {"type": "string", "description": "Phase 1 特殊说明"}
+        }
+      }
+    }
+  }
+}

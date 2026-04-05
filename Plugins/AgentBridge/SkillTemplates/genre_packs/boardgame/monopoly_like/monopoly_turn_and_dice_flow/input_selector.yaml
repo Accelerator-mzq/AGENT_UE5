@@ -1,0 +1,13 @@
+include_sections:
+  - game_identity
+  - phase_scope
+  - design_domains.board_layout    # 需要 tile_count 和方向
+  - design_domains.turn_loop       # 核心输入：骰子、双数、起点奖励
+  - design_domains.jail_rules      # 只取入狱触发条件（triple_doubles_jail）
+
+exclude_sections:
+  - design_domains.tile_catalog        # 格子详细属性不在本 Skill 范围
+  - design_domains.property_rules      # 地产规则不在本 Skill 范围
+  - design_domains.bankruptcy_rules    # 破产规则不在本 Skill 范围
+  - design_domains.ui_requirements     # UI 不在本 Skill 范围
+  - implementation_hints

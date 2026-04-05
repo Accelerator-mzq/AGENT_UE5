@@ -1,0 +1,30 @@
+template_id: monopoly.phase1_ui_flow.phase1
+display_name: Monopoly Phase-1 UI Flow
+template_kind: genre_skill
+genre: monopoly_like
+template_version: "1.0.0"
+schema_version: "1.0.0"
+evaluator_version: "1.0.0"
+
+phase_scope:
+  - phase1_local_multiplayer
+
+description: |
+  从 GDD 中提取 Phase 1 的 UI 需求：
+  HUD 常驻信息、决策弹窗类型、信息提示弹窗、UI 与游戏状态的绑定关系。
+
+input_contract_ref: gdd_projection.design_domains.ui_requirements + turn_loop + property_rules + jail_rules
+output_schema_ref: output_schema.json
+
+requires_static_vocab:
+  - widget_type
+  - popup_trigger
+  - button_action
+
+can_emit_families:
+  - ui_flow_spec
+
+depends_on_templates:
+  - monopoly.turn_and_dice_flow.phase1
+  - monopoly.property_economy.phase1
+  - monopoly.jail_and_bankruptcy.phase1

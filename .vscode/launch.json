@@ -2,15 +2,35 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "附加到 UnrealEditor.exe",
+      "name": "启动 UnrealEditor（编译后）",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${config:ue5.engineRoot}\\Engine\\Binaries\\Win64\\UnrealEditor.exe",
+      "args": [
+        "${workspaceFolder}\\Mvpv4TestCodex.uproject",
+        "-NoSplash",
+        "-NoSound"
+      ],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "UE: 编译 Editor Win64 Development",
+      "stopAtEntry": false
+    },
+    {
+      "name": "附加到现有 UnrealEditor（无 RC）",
       "type": "cppvsdbg",
       "request": "attach",
-      "processName": "UnrealEditor.exe",
+      "processId": "${command:pickProcess}"
+    },
+    {
+      "name": "启动 Editor + RC 后附加",
+      "type": "cppvsdbg",
+      "request": "attach",
+      "processId": "${command:pickProcess}",
       "preLaunchTask": "UE: 启动 Editor + RC"
     },
     {
       "name": "Python：当前文件",
-      "type": "python",
+      "type": "debugpy",
       "request": "launch",
       "program": "${file}",
       "console": "integratedTerminal",

@@ -1,0 +1,14 @@
+include_sections:
+  - game_identity
+  - phase_scope
+  - design_domains.board_layout     # 需要 tile_count 确认
+  - design_domains.tile_catalog     # 核心输入：完整格子表
+  - design_domains.color_groups     # 颜色组定义
+
+exclude_sections:
+  - design_domains.turn_loop
+  - design_domains.property_rules       # 经济逻辑由其他 Skill 处理
+  - design_domains.jail_rules
+  - design_domains.bankruptcy_rules
+  - design_domains.ui_requirements
+  - implementation_hints

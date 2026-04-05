@@ -1,0 +1,86 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Jail & Bankruptcy Spec",
+  "description": "监狱与破产规则规格",
+  "type": "object",
+  "required": ["jail_system", "bankruptcy_system", "game_end_condition"],
+  "properties": {
+    "jail_system": {
+      "type": "object",
+      "required": ["jail_tile_index", "entry_conditions", "in_jail_state", "exit_conditions"],
+      "properties": {
+        "jail_tile_index": {"type": "integer", "description": "监狱格索引"},
+        "entry_conditions": {
+          "type": "array",
+          "description": "入狱触发条件列表",
+          "items": {
+            "type": "object",
+            "required": ["condition_id", "trigger", "effect"],
+            "properties": {
+              "condition_id": {"type": "string"},
+              "trigger": {"type": "string"},
+              "effect": {"type": "string"}
+            }
+          }
+        },
+        "in_jail_state": {
+          "type": "object",
+          "properties": {
+            "max_turns": {"type": "integer", "description": "最大关押回合数"},
+            "turn_counter_name": {"type": "string"},
+            "can_collect_rent": {"type": "boolean", "description": "在狱中是否仍可收租"}
+          }
+        },
+        "exit_conditions": {
+          "type": "array",
+          "description": "出狱方式列表",
+          "items": {
+            "type": "object",
+            "required": ["exit_id", "method", "cost"],
+            "properties": {
+              "exit_id": {"type": "string"},
+              "method": {"type": "string"},
+              "cost": {"type": ["integer", "null"], "description": "费用（null=无费用）"},
+              "condition": {"type": "string", "description": "触发条件"},
+              "forced": {"type": "boolean", "description": "是否为强制出狱"}
+            }
+          }
+        }
+      }
+    },
+    "bankruptcy_system": {
+      "type": "object",
+      "required": ["trigger", "consequences"],
+      "properties": {
+        "trigger": {
+          "type": "object",
+          "properties": {
+            "condition": {"type": "string", "description": "触发条件"},
+            "check_timing": {"type": "string", "description": "检查时机"}
+          }
+        },
+        "consequences": {
+          "type": "array",
+          "description": "破产后果列表（按执行顺序）",
+          "items": {
+            "type": "object",
+            "required": ["step", "action"],
+            "properties": {
+              "step": {"type": "integer"},
+              "action": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "game_end_condition": {
+      "type": "object",
+      "required": ["condition", "winner_rule"],
+      "properties": {
+        "condition": {"type": "string", "description": "游戏结束条件"},
+        "winner_rule": {"type": "string", "description": "胜者判定规则"},
+        "check_timing": {"type": "string", "description": "检查时机"}
+      }
+    }
+  }
+}

@@ -1,6 +1,6 @@
 # Skills / Specs 体系概述
 
-> 文档版本：v0.5.0 | 适用范围：AgentBridge 插件 Skills 与 Specs 体系
+> 文档版本：v0.8.0 | 适用范围：AgentBridge 插件 Skills 与 Specs 体系
 
 ---
 
@@ -43,7 +43,30 @@ Skills 和 Specs 是 AgentBridge 框架的两个互补体系：
 
 **当前状态**：目录已保留，Phase 7 落地真实 registry / loader，并优先实装 `qa_validation` 与 `planning_governance`。
 
-### 2.3 Genre Skill Packs（类型包）
+### 2.3 Skill Template Pack（Phase 8 新增）
+
+Phase 8 引入三层 Skill 结构：
+
+| 层次 | 定位 | 生命周期 |
+|------|------|---------|
+| **Template**（静态） | 编译策略模板（manifest + prompt + output_schema + evaluator） | 跨项目复用 |
+| **Instance**（运行时） | Planner 选出的具体实例（skill_instance_id + depends_on + reads_context） | 单次编译 |
+| **Artifact**（产出） | Skill Runtime 输出的 Dynamic Spec Fragment | 单次编译 |
+
+当前已落地 6 套 Monopoly Template Pack：
+```
+SkillTemplates/genre_packs/boardgame/monopoly_like/
+├── monopoly_board_topology/      （6 文件）
+├── monopoly_turn_and_dice_flow/  （6 文件）
+├── monopoly_tile_event_dispatch/ （6 文件）
+├── monopoly_property_economy/    （6 文件）
+├── monopoly_jail_and_bankruptcy/ （6 文件）
+└── monopoly_phase1_ui_flow/      （6 文件）
+```
+
+每套 Template 包含：manifest.yaml / system_prompt.md / domain_prompt.md / input_selector.yaml / output_schema.json / evaluator_prompt.md
+
+### 2.4 Genre Skill Packs（旧体系，仍保留）
 
 针对特定游戏类型的编译策略包。每个类型包包含：
 

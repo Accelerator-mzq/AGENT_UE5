@@ -1,0 +1,15 @@
+# Input Selector — 从 GDD Projection 中选取本 Skill 需要的片段
+
+include_sections:
+  - game_identity           # 确认游戏类型
+  - phase_scope             # 确认当前阶段范围
+  - design_domains.board_layout    # 棋盘布局定义
+  - design_domains.tile_catalog    # 格子目录（只取 index 和 name，不取价格等属性）
+
+exclude_sections:
+  - design_domains.turn_loop           # 回合规则不在本 Skill 范围
+  - design_domains.property_rules      # 地产规则不在本 Skill 范围
+  - design_domains.jail_rules          # 监狱规则不在本 Skill 范围
+  - design_domains.bankruptcy_rules    # 破产规则不在本 Skill 范围
+  - design_domains.ui_requirements     # UI 需求不在本 Skill 范围
+  - implementation_hints               # 实现细节不在编译层

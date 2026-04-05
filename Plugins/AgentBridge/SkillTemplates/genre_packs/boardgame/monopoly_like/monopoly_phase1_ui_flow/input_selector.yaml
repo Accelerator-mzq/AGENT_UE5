@@ -1,0 +1,14 @@
+include_sections:
+  - game_identity
+  - phase_scope
+  - design_domains.ui_requirements     # 核心输入
+  - design_domains.turn_loop           # 需要知道掷骰触发时机
+  - design_domains.property_rules      # 需要知道购买/租金触发时机
+  - design_domains.jail_rules          # 需要知道监狱决策触发时机
+  - design_domains.bankruptcy_rules    # 需要知道破产/胜利触发时机
+
+exclude_sections:
+  - design_domains.board_layout
+  - design_domains.tile_catalog
+  - design_domains.color_groups
+  - implementation_hints

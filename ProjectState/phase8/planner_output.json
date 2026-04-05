@@ -1,0 +1,174 @@
+{
+  "planner_meta": {
+    "planner_version": "v1",
+    "timestamp": "2026-04-04T12:01:00Z",
+    "source_projection_id": "proj.monopoly_phase1.001",
+    "mode": "greenfield",
+    "target_phase": "phase1_local_multiplayer",
+    "target_build_goal": "playable_template"
+  },
+  "project_intent": {
+    "game_type": "board_strategy",
+    "subgenre": "monopoly_like",
+    "camera_model": "top_down_3d",
+    "player_count_range": "2-4",
+    "primary_win_condition": "last_non_bankrupt_player",
+    "phase_scope": "phase1_local_multiplayer",
+    "out_of_scope": [
+      "phase2_network_replication",
+      "chance_card_effects",
+      "community_card_effects",
+      "property_auction",
+      "house_hotel_building"
+    ]
+  },
+  "routing_decision": {
+    "identified_domains": [
+      "board_topology",
+      "tile_system",
+      "turn_flow",
+      "dice_rules",
+      "property_economy",
+      "jail_system",
+      "bankruptcy",
+      "ui_flow",
+      "runtime_validation"
+    ],
+    "routing_reasoning_summary": "GDD 为 monopoly_like 棋盘策略游戏，Phase 1 本地多人。匹配 SkillTemplates/genre_packs/boardgame/monopoly_like/ 下 6 个模板。需生成 9 个 Dynamic Spec Family 覆盖全部核心域。",
+    "required_family_targets": [
+      "board_topology_spec",
+      "tile_system_spec",
+      "turn_flow_spec",
+      "property_economy_spec",
+      "jail_rule_spec",
+      "bankruptcy_rule_spec",
+      "ui_flow_spec",
+      "runtime_entity_spec",
+      "runtime_validation_spec"
+    ],
+    "rejected_branches": [
+      {
+        "branch": "network_replication",
+        "reason": "Phase 1 仅本地多人，网络同步留 Phase 2"
+      },
+      {
+        "branch": "chance_community_events",
+        "reason": "GDD 明确 Phase 1 留空"
+      }
+    ]
+  },
+  "selected_skill_instances": [
+    {
+      "skill_instance_id": "skill-board",
+      "template_id": "monopoly.board_topology.phase1",
+      "role": "define_ring_board_28_tiles",
+      "priority": "critical",
+      "depends_on": [],
+      "reads_context": ["board_layout", "tile_catalog"],
+      "emits_families": ["board_topology_spec"]
+    },
+    {
+      "skill_instance_id": "skill-tile-event",
+      "template_id": "monopoly.tile_event_dispatch.phase1",
+      "role": "define_tile_types_and_event_dispatch",
+      "priority": "critical",
+      "depends_on": ["skill-board"],
+      "reads_context": ["tile_catalog", "color_groups"],
+      "emits_families": ["tile_system_spec"]
+    },
+    {
+      "skill_instance_id": "skill-turn",
+      "template_id": "monopoly.turn_and_dice_flow.phase1",
+      "role": "define_turn_state_machine_and_dice_rules",
+      "priority": "critical",
+      "depends_on": ["skill-board"],
+      "reads_context": ["turn_loop", "board_layout"],
+      "emits_families": ["turn_flow_spec"]
+    },
+    {
+      "skill_instance_id": "skill-economy",
+      "template_id": "monopoly.property_economy.phase1",
+      "role": "define_property_purchase_rent_tax_economy",
+      "priority": "high",
+      "depends_on": ["skill-board", "skill-tile-event"],
+      "reads_context": ["property_rules", "tile_catalog", "color_groups", "turn_loop"],
+      "emits_families": ["property_economy_spec"]
+    },
+    {
+      "skill_instance_id": "skill-jail",
+      "template_id": "monopoly.jail_and_bankruptcy.phase1",
+      "role": "define_jail_system_and_bankruptcy_rules",
+      "priority": "high",
+      "depends_on": ["skill-turn", "skill-economy"],
+      "reads_context": ["jail_rules", "bankruptcy_rules", "board_layout"],
+      "emits_families": ["jail_rule_spec", "bankruptcy_rule_spec"]
+    },
+    {
+      "skill_instance_id": "skill-ui",
+      "template_id": "monopoly.phase1_ui_flow.phase1",
+      "role": "define_hud_and_popup_ui_flow",
+      "priority": "high",
+      "depends_on": ["skill-turn", "skill-economy", "skill-jail"],
+      "reads_context": ["ui_requirements", "turn_loop", "property_rules", "jail_rules", "bankruptcy_rules"],
+      "emits_families": ["ui_flow_spec"]
+    }
+  ],
+  "dynamic_spec_targets": [
+    "board_topology_spec",
+    "tile_system_spec",
+    "turn_flow_spec",
+    "property_economy_spec",
+    "jail_rule_spec",
+    "bankruptcy_rule_spec",
+    "ui_flow_spec",
+    "runtime_entity_spec",
+    "runtime_validation_spec"
+  ],
+  "execution_strategy": {
+    "build_mode": "greenfield",
+    "target_output_kind": "playable_phase1_template",
+    "manual_editor_dependency": "medium",
+    "expected_review_gate": "required",
+    "expected_lowering_depth": "static_specs_plus_build_ir"
+  },
+  "capability_gaps": [
+    {
+      "gap_id": "gap-umg-auto-layout",
+      "description": "当前系统无法全自动生成完整 UMG Widget 布局，只能生成 C++ 基类和创建空 Widget Blueprint",
+      "severity": "degraded",
+      "workaround": "生成 C++ 基类 + 空 WBP，具体布局由人工在蓝图编辑器中完成"
+    },
+    {
+      "gap_id": "gap-animation",
+      "description": "棋子逐格移动动画和骰子滚动动画需要 C++ Timeline/Lerp 实现，不在 Compiler 范围",
+      "severity": "cosmetic",
+      "workaround": "在 C++ 代码中实现简单 Lerp 动画"
+    }
+  ],
+  "review_focuses": [
+    "board_index_closure_0_to_27",
+    "corner_indices_consistent_across_families",
+    "doubles_and_jail_rule_no_conflict",
+    "start_bonus_and_go_to_jail_no_conflict",
+    "rent_calculation_needs_owner_and_color_group",
+    "bankruptcy_releases_properties_correctly",
+    "ui_covers_all_decision_points",
+    "phase_scope_not_exceeded"
+  ],
+  "open_questions": [
+    {
+      "question": "Blue 颜色组只有 1 个地产（百老汇），拥有者是否自动获得颜色组翻倍？",
+      "default_assumption": "是，因为'拥有该组全部地产'条件自动满足"
+    },
+    {
+      "question": "Phase 1 热座模式下，摄像机是否需要在玩家切换时做视角变化？",
+      "default_assumption": "不做，固定俯视角，所有玩家共用同一视角"
+    }
+  ],
+  "confidence": {
+    "gdd_coverage": 0.95,
+    "phase_alignment": 0.98,
+    "skill_selection_confidence": 0.92,
+    "known_unknowns": 0.08
+  }
+}

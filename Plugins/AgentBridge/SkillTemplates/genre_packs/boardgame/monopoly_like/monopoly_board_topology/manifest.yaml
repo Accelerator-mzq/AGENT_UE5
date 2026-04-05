@@ -1,0 +1,30 @@
+template_id: monopoly.board_topology.phase1
+display_name: Monopoly Phase-1 Board Topology
+template_kind: genre_skill
+genre: monopoly_like
+template_version: "1.0.0"
+schema_version: "1.0.0"
+evaluator_version: "1.0.0"
+
+phase_scope:
+  - phase1_local_multiplayer
+
+description: |
+  从 GDD 中提取棋盘拓扑结构：形状、格数、方向、特殊角格索引。
+  输出 board_topology_spec，为后续 tile_system 和 turn_flow 提供基础。
+
+input_contract_ref: gdd_projection.design_domains.board_layout + tile_catalog
+output_schema_ref: output_schema.json
+
+requires_static_vocab:
+  - board_shape
+  - tile_index
+  - corner_type
+  - movement_direction
+
+can_emit_families:
+  - board_topology_spec
+
+depends_on_templates: []
+
+priority: high

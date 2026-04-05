@@ -1,0 +1,239 @@
+{
+  "handoff_meta": {
+    "handoff_version": "2.0",
+    "handoff_id": "handoff.monopoly_phase1.greenfield.v1",
+    "handoff_mode": "greenfield_bootstrap",
+    "schema_version": "2.0",
+    "created_at": "2026-04-04T12:20:00Z",
+    "target_phase": "phase1_local_multiplayer",
+    "build_goal": "playable_template"
+  },
+  "project_context": {
+    "project_name": "MonopolyGame",
+    "game_type": "board_strategy",
+    "subgenre": "monopoly_like",
+    "target_phase": "phase1_local_multiplayer",
+    "current_iteration": "phase8_skill_first_reset"
+  },
+  "planner_summary": {
+    "identified_domains": [
+      "board_topology",
+      "tile_system",
+      "turn_flow",
+      "dice_rules",
+      "property_economy",
+      "jail_rules",
+      "bankruptcy_rules",
+      "ui_flow"
+    ],
+    "selected_families": [
+      "board_topology_spec",
+      "tile_system_spec",
+      "turn_flow_spec",
+      "property_economy_spec",
+      "jail_rule_spec",
+      "bankruptcy_rule_spec",
+      "ui_flow_spec"
+    ],
+    "phase_scope": "phase1_local_multiplayer",
+    "out_of_scope": [
+      "phase2_network_replication",
+      "chance_card_effects",
+      "community_card_effects",
+      "property_auction",
+      "house_hotel_building",
+      "property_trading",
+      "property_mortgage",
+      "ai_opponents",
+      "online_matchmaking",
+      "achievement_system"
+    ],
+    "routing_summary": "6 Skill Instances → 7 Dynamic Spec Families → 14 Build Steps → 12 Validation Points"
+  },
+  "selected_skill_instances": [
+    {
+      "skill_instance_id": "skill-board",
+      "template_id": "monopoly.board_topology.phase1",
+      "role": "棋盘拓扑定义：28格环形布局、四角、边分配",
+      "status": "completed",
+      "emitted_families": ["board_topology_spec"]
+    },
+    {
+      "skill_instance_id": "skill-tile-event",
+      "template_id": "monopoly.tile_event_dispatch.phase1",
+      "role": "格子系统：类型定义、数据表、颜色组、事件分发矩阵",
+      "status": "completed",
+      "emitted_families": ["tile_system_spec"]
+    },
+    {
+      "skill_instance_id": "skill-turn",
+      "template_id": "monopoly.turn_and_dice_flow.phase1",
+      "role": "回合流程：状态机、骰子规则、移动规则、玩家轮转",
+      "status": "completed",
+      "emitted_families": ["turn_flow_spec"]
+    },
+    {
+      "skill_instance_id": "skill-economy",
+      "template_id": "monopoly.property_economy.phase1",
+      "role": "经济系统：购买、租金、税务、资金流",
+      "status": "completed",
+      "emitted_families": ["property_economy_spec"]
+    },
+    {
+      "skill_instance_id": "skill-jail",
+      "template_id": "monopoly.jail_and_bankruptcy.phase1",
+      "role": "监狱与破产：入狱条件、监狱决策、破产流程、游戏结束",
+      "status": "completed",
+      "emitted_families": ["jail_rule_spec", "bankruptcy_rule_spec"]
+    },
+    {
+      "skill_instance_id": "skill-ui",
+      "template_id": "monopoly.phase1_ui_flow.phase1",
+      "role": "UI流程：HUD、7种弹窗、状态绑定、Widget生命周期",
+      "status": "completed",
+      "emitted_families": ["ui_flow_spec"]
+    }
+  ],
+  "reviewed_dynamic_spec_tree": {
+    "board_topology_spec": {
+      "$ref": "cross_review_report.json#/reviewed_dynamic_spec_tree/board_topology_spec",
+      "summary": "28格方形环、clockwise、4角(0/7/14/21)、tiles_per_side=7"
+    },
+    "tile_system_spec": {
+      "$ref": "cross_review_report.json#/reviewed_dynamic_spec_tree/tile_system_spec",
+      "summary": "8种格子类型(3种phase1_active)、28行数据表、7颜色组(16 PROPERTY)、8条事件分发规则"
+    },
+    "turn_flow_spec": {
+      "$ref": "cross_review_report.json#/reviewed_dynamic_spec_tree/turn_flow_spec",
+      "summary": "10状态/12转换FSM、2d6骰子、双数额外回合、三连双入狱、过起点+200、跳过破产玩家"
+    },
+    "property_economy_spec": {
+      "$ref": "cross_review_report.json#/reviewed_dynamic_spec_tree/property_economy_spec",
+      "summary": "初始$1500、unowned↔owned、购买/租金/税/保释/起点5种资金流、颜色组2x、3种破产触发"
+    },
+    "jail_rule_spec": {
+      "$ref": "cross_review_report.json#/reviewed_dynamic_spec_tree/jail_rule_spec",
+      "summary": "GO_TO_JAIL+三连双入狱、保释$50/掷双数/第三回合强制、jail_turns_remaining 3→0"
+    },
+    "bankruptcy_rule_spec": {
+      "$ref": "cross_review_report.json#/reviewed_dynamic_spec_tree/bankruptcy_rule_spec",
+      "summary": "资金不足→标记破产→释放地产→跳过轮转→检查游戏结束(剩1人)"
+    },
+    "ui_flow_spec": {
+      "$ref": "cross_review_report.json#/reviewed_dynamic_spec_tree/ui_flow_spec",
+      "summary": "1个HUD(4元素)+7个弹窗(5个WBP)+10个事件绑定+按需创建/销毁/排队生命周期"
+    }
+  },
+  "cross_review_summary": {
+    "status": "approved_with_warnings",
+    "issues_found": 2,
+    "issues_resolved": 2,
+    "remaining_warnings": [
+      "Blue颜色组单地产自动满足完整条件（设计决策，非缺陷）",
+      "forced_bail触发时机语义已统一（remaining==1提示，remaining==0强制）"
+    ],
+    "review_focus_coverage": {
+      "board_integrity": "pass (chk-01, chk-02)",
+      "color_group_consistency": "pass (chk-03)",
+      "tax_amount_consistency": "pass (chk-04)",
+      "start_bonus_consistency": "pass (chk-05)",
+      "turn_fsm_completeness": "pass (chk-06)",
+      "jail_flow_integration": "pass (chk-07, chk-08)",
+      "bankruptcy_trigger_alignment": "pass (chk-09)",
+      "ui_coverage": "pass (chk-10)",
+      "phase_scope_boundary": "pass (chk-11)"
+    }
+  },
+  "lowering_summary": {
+    "families_bound": [
+      "board_topology_spec",
+      "tile_system_spec",
+      "turn_flow_spec",
+      "property_economy_spec",
+      "jail_rule_spec",
+      "bankruptcy_rule_spec",
+      "ui_flow_spec"
+    ],
+    "families_partially_bound": [],
+    "unbound_requirements": [
+      "UMG Widget 布局（需人工在蓝图编辑器完成）",
+      "骰子/棋子视觉动画（生成占位函数，后续手动实现）"
+    ],
+    "build_ir_step_count": 14,
+    "validation_point_count": 12
+  },
+  "build_ir": {
+    "ir_id": "ir.monopoly_phase1.v1",
+    "inline": false,
+    "build_steps": [
+      {"step_id": "step-01-board-layout",      "ir_action": "create_board_ring_layout"},
+      {"step_id": "step-02-tile-actors",        "ir_action": "create_tile_actors"},
+      {"step_id": "step-03-tile-metadata",      "ir_action": "assign_tile_metadata"},
+      {"step_id": "step-04-player-tokens",      "ir_action": "create_player_tokens"},
+      {"step_id": "step-05-game-mode",          "ir_action": "create_game_mode_shell"},
+      {"step_id": "step-06-turn-fsm",           "ir_action": "bind_turn_state_machine"},
+      {"step_id": "step-07-dice-logic",         "ir_action": "bind_dice_roll_logic"},
+      {"step_id": "step-08-tile-events",        "ir_action": "bind_tile_event_dispatch"},
+      {"step_id": "step-09-property-economy",   "ir_action": "bind_property_economy_logic"},
+      {"step_id": "step-10-jail-logic",         "ir_action": "bind_jail_logic"},
+      {"step_id": "step-11-bankruptcy-logic",    "ir_action": "bind_bankruptcy_logic"},
+      {"step_id": "step-12-ui-widgets",         "ir_action": "create_phase1_ui_widgets"},
+      {"step_id": "step-13-ui-binding",         "ir_action": "bind_ui_to_game_state"},
+      {"step_id": "step-14-validation",         "ir_action": "attach_validation_hooks"}
+    ],
+    "$external_ref": "ProjectState/phase8/build_ir.json"
+  },
+  "validation_ir": {
+    "inline": false,
+    "validations": [
+      {"validation_id": "val-01", "check_type": "actor_count",          "summary": "28 Tile Actors"},
+      {"validation_id": "val-02", "check_type": "data_consistency",     "summary": "DT_TileData 28行"},
+      {"validation_id": "val-03", "check_type": "actor_count",          "summary": "2-4 PlayerTokens"},
+      {"validation_id": "val-04", "check_type": "actor_exists",         "summary": "GameMode+GameState"},
+      {"validation_id": "val-05", "check_type": "state_machine_state",  "summary": "初始 WAIT_FOR_ROLL"},
+      {"validation_id": "val-06", "check_type": "gameplay_rule",        "summary": "骰子 2-12 + 双数检测"},
+      {"validation_id": "val-07", "check_type": "gameplay_rule",        "summary": "8种格子事件分发"},
+      {"validation_id": "val-08", "check_type": "gameplay_rule",        "summary": "购买+租金+颜色组翻倍"},
+      {"validation_id": "val-09", "check_type": "gameplay_rule",        "summary": "监狱入/出/强制保释"},
+      {"validation_id": "val-10", "check_type": "gameplay_rule",        "summary": "破产释放+游戏结束"},
+      {"validation_id": "val-11", "check_type": "ui_widget_exists",     "summary": "5个 WBP 已创建"},
+      {"validation_id": "val-12", "check_type": "property_value",       "summary": "10个委托绑定"}
+    ],
+    "$external_ref": "ProjectState/phase8/build_ir.json#/validation_ir"
+  },
+  "capability_gaps": [
+    {
+      "gap_id": "gap-umg-auto-layout",
+      "source": "skill/lowering",
+      "description": "UMG Widget 布局需人工在蓝图编辑器完成，Compiler 只生成 C++ 基类和空 WBP",
+      "severity": "degraded"
+    },
+    {
+      "gap_id": "gap-dice-animation",
+      "source": "skill",
+      "description": "骰子滚动和棋子移动动画需 Timeline/Lerp 实现，Compiler 生成占位函数",
+      "severity": "cosmetic"
+    },
+    {
+      "gap_id": "gap-animation-asset",
+      "source": "planner",
+      "description": "棋子移动等动画资产（3D模型/材质）需手动创建或导入",
+      "severity": "cosmetic"
+    }
+  ],
+  "approval": {
+    "approval_status": "approved_with_warnings",
+    "approver": "compiler_auto",
+    "blocked_reasons": [],
+    "notes": "7/7 families fully bound, 2 warnings resolved, 2 capability gaps (degraded+cosmetic) 不阻塞执行。可进入 Execution 阶段。"
+  },
+  "metadata": {
+    "generated_at": "2026-04-04T12:20:00Z",
+    "generator": "AgentBridge.Compiler.HandoffAssembler.v2",
+    "source_gdd": "ProjectInputs/GDD/GDD_MonopolyGame.md",
+    "source_projection_id": "proj.monopoly_phase1.001",
+    "source_planner_id": "planner.monopoly_phase1.v1",
+    "source_review_id": "review.monopoly_phase1.v1",
+    "source_ir_id": "ir.monopoly_phase1.v1"
+  }
+}

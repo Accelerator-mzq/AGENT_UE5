@@ -1,18 +1,34 @@
 # 当前待办
 
-> 文档版本：L1-ArchiveBridge-v1
+> 文档版本：L1-Phase8-v1
 
-## 已关闭事项
+## 已完成事项
 
-- `boardgame` 主链三轮稳定性回归已关闭，证据见 [phase7_p1_stability_summary_2026-04-02.json](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-02/phase7_p1_stability_summary_2026-04-02.json)。
-- `JRPG` Greenfield / Brownfield / 真机 smoke 的 pack 一致性观察项已关闭，证据见 [phase7_jrpg_pack_consistency_2026-04-02.json](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-02/phase7_jrpg_pack_consistency_2026-04-02.json)。
-- Snapshot / Promotion 可审计性观察项已关闭，证据见：
-  - [phase7_p1_round1_governance_audit.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-02/phase7_p1_round1_governance_audit.md)
-  - [phase7_p1_round2_governance_audit.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-02/phase7_p1_round2_governance_audit.md)
-  - [phase7_p1_round3_governance_audit.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-02/phase7_p1_round3_governance_audit.md)
+- DD-1：Schema 完整字段定义 + Compiler 五段接口规约 ✅
+- M1：6 个 Schema + 5 段 Compiler Python 骨架落地 ✅
+- DD-2：6 套 Skill Template Pack + MCP Server 28 工具 ✅
+- M2：Main Chain 5 阶段数据生成 + Handoff v2 组装（11 JSON） ✅
+- DD-3：14 Build Steps → C++ 类映射 + UMG 布局方案 ✅
+- TASK 01（文档切换）：项目层 + 插件层入口统一到 Phase 8 口径 ✅
 
-## Carry-over
+## 进行中
 
-- 规划下一阶段范围，不预设阶段名称。
-- 评估是否需要第三个 genre pack。
-- 评估是否要把 minimal promotion 扩成更完整的审批流水线。
+- **M3（TASK 06）**：MonopolyGame 垂直切片执行
+  - 执行者：Execution Agent
+  - 交接文档：`PhaseDoc/Phase8_M3_Handover_to_Execution_Agent.md`
+  - 14 个 Build Steps，6 个 Batch，12 个验证检查点
+
+## 待执行
+
+- **M4（TASK 07）**：兼容性清理 + 最终验收
+  - 230 条系统测试回归
+  - v1 → v2 Handoff 兼容性确认
+  - 测试编号补录进总表
+
+## Phase 7 Carry-over 处置
+
+| 原 carry-over | Phase 8 处置 |
+|---------------|-------------|
+| 规划下一阶段范围 | 已完成：Phase 8 Skill-First Compiler Reset |
+| 评估第三个 genre pack | 延后：Phase 8 仅做 MonopolyGame 垂直切片 |
+| 评估 promotion 扩展 | 延后：Phase 8 不扩展 promotion 流水线 |

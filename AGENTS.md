@@ -1,6 +1,6 @@
 # AGENTS.md — Mvpv4TestCodex 项目
 
-> 目标引擎版本：UE5.5.4 | 文档版本：v0.8（Phase 7 已归档）
+> 目标引擎版本：UE5.5.4 | 文档版本：v0.9（Phase 8 正式开发期）
 >
 > 本文件定义 **本项目** 的 AI Agent 行为规则。
 > 通用的 AgentBridge 插件规则见 → `Plugins/AgentBridge/AGENTS.md`
@@ -74,7 +74,11 @@ Agent 在本项目中需要参考的文档：
 | 项目基线 | `Docs/Current/01_Project_Baseline.md` |
 | 当前阶段目标 | `Docs/Current/02_Current_Phase_Goals.md` |
 | 实施边界 | `Docs/Current/05_Implementation_Boundary.md` |
-| 当前任务 | 根目录 `task.md`（下一阶段待规划清单） |
+| 当前任务 | 根目录 `task.md`（Phase 8 任务清单） |
+| Phase 8 统一方案 | `Docs/History/Proposals/Phase8_Plan_Original.md` |
+| Phase 8 交接文档 | `Docs/History/Proposals/Phase8_M3_Handover_to_Execution_Agent.md` |
+| Phase 8 DD-1 | `Docs/History/Proposals/Phase8_DD1_Schema_and_Interface_Spec.md` |
+| Phase 8 DD-3 | `Docs/History/Proposals/Phase8_DD3_Lowering_Map_and_CPP_Design.md` |
 
 **插件层文档**：
 
@@ -86,8 +90,13 @@ Agent 在本项目中需要参考的文档：
 | 工具契约 | `Plugins/AgentBridge/Docs/tool_contract_v0_1.md` |
 | 字段规范 | `Plugins/AgentBridge/Docs/field_specification_v0_1.md` |
 | 反馈接口清单 | `Plugins/AgentBridge/Docs/feedback_interface_catalog.md` |
-| Compiler 框架 | `Plugins/AgentBridge/Scripts/compiler/` |
-| Handoff Schema | `Plugins/AgentBridge/Schemas/reviewed_handoff.schema.json` |
+| Compiler 框架（旧） | `Plugins/AgentBridge/Scripts/compiler/` |
+| Compiler 骨架（Phase 8） | `Plugins/AgentBridge/Compiler/` |
+| Skill Template Pack | `Plugins/AgentBridge/SkillTemplates/` |
+| MCP Server | `Plugins/AgentBridge/MCP/` |
+| Handoff Schema v1 | `Plugins/AgentBridge/Schemas/reviewed_handoff.schema.json` |
+| Handoff Schema v2 | `Plugins/AgentBridge/Schemas/reviewed_handoff_v2.schema.json` |
+| Phase 8 新增 Schema | `Plugins/AgentBridge/Schemas/{gdd_projection,planner_output,skill_fragment,cross_review_report,build_ir}.schema.json` |
 | Run Plan Schema | `Plugins/AgentBridge/Schemas/run_plan.schema.json` |
 | 系统测试用例总表 | `Plugins/AgentBridge/Tests/SystemTestCases.md` |
 | 系统测试入口 | `Plugins/AgentBridge/Tests/run_system_tests.py` |
@@ -113,12 +122,13 @@ Agent 进入本项目后，按以下顺序阅读：
 3. `Docs/Current/01_Project_Baseline.md` — 项目基线
 4. `Docs/Current/02_Current_Phase_Goals.md` — 本期目标
 5. `Docs/Current/05_Implementation_Boundary.md` — 实施边界
-6. `Docs/History/Tasks/task6_phase7.md` — Phase 7 任务清单（已归档）
+6. `task.md` — Phase 8 任务清单（当前阶段唯一任务入口）
 7. `Plugins/AgentBridge/README.md` — 插件定义（首次进入必读）
 8. `Plugins/AgentBridge/AGENTS.md` — 通用 Agent 规则（首次进入必读）
-9. 与当前任务相关的 `Docs/Current/*` 和 `Plugins/AgentBridge/Docs/*`
+9. `Docs/History/Proposals/Phase8_M3_Handover_to_Execution_Agent.md` — M3 交接文档（如参与执行）
+10. 与当前任务相关的 `Docs/Current/*` 和 `Plugins/AgentBridge/Docs/*`
 
-步骤 1–6 为必读。步骤 7–8 首次进入必读，后续按需复查。若需要追溯 Phase 6，再按需阅读 `Docs/History/Tasks/task4_phase6.md`。
+步骤 1–6 为必读。步骤 7–8 首次进入必读，后续按需复查。步骤 9 仅 Execution Agent 必读。若需要追溯前阶段，查看 `Docs/History/Tasks/task6_phase7.md`。
 
 ### 3.3 文档权威优先级
 
