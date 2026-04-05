@@ -3,6 +3,7 @@
 > 文档版本：L1-Phase8-v1
 
 - 当前根目录 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) 是 Phase 8 唯一任务入口，包含 7 个 TASK 定义。
+- 如果需要吸收 Phase 8 运行时问题复盘结论并重写任务口径，请参考 [09_Phase8_Task_Redesign_Draft.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/09_Phase8_Task_Redesign_Draft.md)。
 - Phase 8 统一方案见 [typed-petting-porcupine.md](/D:/UnrealProjects/Mvpv4TestCodex/PhaseDoc/typed-petting-porcupine.md)。
 - M3 执行交接文档见 [Phase8_M3_Handover_to_Execution_Agent.md](/D:/UnrealProjects/Mvpv4TestCodex/PhaseDoc/Phase8_M3_Handover_to_Execution_Agent.md)。
 - Phase 7 任务已归档到 [task6_phase7.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task6_phase7.md)。

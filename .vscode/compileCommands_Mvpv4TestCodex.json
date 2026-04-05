@@ -126,5 +126,173 @@
 			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Mvpv4TestCodex\\Mvpv4TestCodex.1.rsp"
 		],
 		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\Private\\MBoardManager.cpp",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Mvpv4TestCodex\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\Private\\MDice.cpp",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Mvpv4TestCodex\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\Private\\MMonopolyGameMode.cpp",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Mvpv4TestCodex\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\Private\\MMonopolyGameState.cpp",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Mvpv4TestCodex\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\Private\\MMonopolyPlayerController.cpp",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Mvpv4TestCodex\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\Private\\MMonopolyPlayerState.cpp",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Mvpv4TestCodex\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\Private\\MPlayerPawn.cpp",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Mvpv4TestCodex\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\Private\\MTile.cpp",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Mvpv4TestCodex\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\Private\\Widgets\\MGameHUDWidget.cpp",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Mvpv4TestCodex\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\Private\\Widgets\\MPopupWidget.cpp",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Mvpv4TestCodex\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\Public\\MBoardManager.h",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Mvpv4TestCodex\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\Public\\MDice.h",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Mvpv4TestCodex\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\Public\\MGameHUDWidget.h",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Mvpv4TestCodex\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\Public\\MMonopolyGameMode.h",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Mvpv4TestCodex\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\Public\\MMonopolyGameState.h",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Mvpv4TestCodex\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\Public\\MMonopolyPlayerController.h",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Mvpv4TestCodex\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\Public\\MMonopolyPlayerState.h",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Mvpv4TestCodex\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\Public\\MMonopolyTypes.h",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Mvpv4TestCodex\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\Public\\MPlayerPawn.h",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Mvpv4TestCodex\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\Public\\MPopupWidget.h",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Mvpv4TestCodex\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
+	},
+	{
+		"file": "D:\\UnrealProjects\\Mvpv4TestCodex\\Source\\Mvpv4TestCodex\\Public\\MTile.h",
+		"arguments": [
+			"E:\\VS2022\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@D:\\UnrealProjects\\Mvpv4TestCodex\\.vscode\\compileCommands_Mvpv4TestCodex\\Mvpv4TestCodex.1.rsp"
+		],
+		"directory": "E:\\Epic Games\\UE_5.5\\Engine\\Source"
 	}
 ]

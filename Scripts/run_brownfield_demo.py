@@ -16,7 +16,7 @@ if SCRIPTS_DIR not in sys.path:
     sys.path.insert(0, SCRIPTS_DIR)
 
 from compiler.handoff import build_handoff, serialize_handoff
-from compiler.intake import read_gdd_from_directory
+from compiler.intake import read_gdd
 from bridge.project_config import get_dated_project_reports_dir, iter_report_files
 from orchestrator.handoff_runner import run_from_handoff
 
@@ -45,7 +45,7 @@ def run_brownfield_demo(
     print("Brownfield + Boardgame + Delta Handoff 最小闭环")
     print("=" * 60)
 
-    design_input = read_gdd_from_directory(gdd_dir)
+    design_input = _build_demo_design_input(os.path.join(gdd_dir, "boardgame_tictactoe_v1.md"))
     project_state = _build_demo_project_state()
 
     print("\n[1/4] 使用 Brownfield 模板 baseline...")
@@ -141,6 +141,68 @@ def _build_demo_project_state() -> Dict[str, Any]:
         "dirty_assets": [],
         "map_check_summary": {"map_errors": [], "map_warnings": []},
     }
+
+
+def _build_demo_design_input(gdd_path: str) -> Dict[str, Any]:
+    """
+    构造一个稳定的 Brownfield demo 设计输入。
+
+    这里显式绑定井字棋 GDD，并强制补齐 1 个 X + 1 个 O 的预览规则，
+    让 delta 分析稳定落在“baseline 已有 Board + PieceX_1，目标追加 PieceO_1”。
+    """
+    design_input = read_gdd(gdd_path)
+
+    piece_catalog = [
+        {
+            "piece_id": "piece_x",
+            "symbol": "X",
+            "display_name": "X",
+            "actor_name_prefix": "PieceX",
+            "shape": "Cube",
+            "color": "Red",
+            "dimensions_cm": [50.0, 50.0, 50.0],
+            "max_count": 5,
+            "actor_class": "/Script/Engine.StaticMeshActor",
+        },
+        {
+            "piece_id": "piece_o",
+            "symbol": "O",
+            "display_name": "O",
+            "actor_name_prefix": "PieceO",
+            "shape": "Sphere",
+            "color": "Blue",
+            "dimensions_cm": [50.0, 50.0, 50.0],
+            "max_count": 4,
+            "actor_class": "/Script/Engine.StaticMeshActor",
+        },
+    ]
+    design_input["piece_catalog"] = piece_catalog
+    design_input["prototype_preview"] = {
+        "generate_preview": True,
+        "source": "brownfield_demo_override",
+        "piece_counts": {"X": 1, "O": 1},
+        "explicitly_defined": True,
+        "raw_rule": "demo_override: X=1, O=1",
+    }
+
+    feature_tags = list(design_input.get("feature_tags", []))
+    if "prototype_preview" not in feature_tags:
+        feature_tags.append("prototype_preview")
+    design_input["feature_tags"] = feature_tags
+
+    design_input["scene_requirements"] = [
+        {
+            "requirement_type": "board",
+            "grid_size": design_input.get("board", {}).get("grid_size", []),
+            "total_size_cm": design_input.get("board", {}).get("total_size_cm", []),
+        },
+        {
+            "requirement_type": "pieces",
+            "piece_symbols": ["X", "O"],
+            "preview_policy": "brownfield_demo_override",
+        },
+    ]
+    return design_input
 
 
 def _try_capture_evidence(

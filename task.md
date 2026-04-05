@@ -39,6 +39,7 @@
 2. `SystemTestCases.md` 与 `run_system_tests.py` 保持 `230` 条口径不动，Phase 8 新增编号在 M4 统一补录。
 3. Build IR 的 14 个 build_steps 按 6 个 Batch 顺序执行，每 Batch 编译通过后再进入下一个。
 4. Compiler 主链产物全部输出到 `ProjectState/phase8/`。
+5. 任何被定义为“可运行 / 可玩”的交付，必须在基础验证通过后追加运行时集成验证；仅 `CreateWidget()` 成功、对象存在或 `--no-editor` 通过，不足以判定可玩运行时验收通过。
 
 ## 里程碑定义
 
@@ -745,7 +746,8 @@ Step 2: 创建交接文档（含 UMG 布局方案）
      - WBP_BuyPopup: 居中 420×320，地产信息 + 购买/放弃 双按钮
      - WBP_InfoPopup: 居中 400×自适应，通用信息弹窗（租金/税/破产/结束 参数化）
      - WBP_JailPopup: 居中 420×300，保释/掷双数 + 强制保释提示
-  8. 公共视觉规范表 + C++ 生成方式示例（NativeConstruct + WidgetTree->ConstructWidget）
+  8. 公共视觉规范表 + C++ 生成方式示例（优先 RebuildWidget / NativeOnInitialized；若使用 NativeConstruct，必须说明生命周期风险与可见性验证方式）
+  9. 运行时集成前置条件：目标地图、默认 GameMode、基础光照、HUD owner、输入焦点责任、编辑器内 Play 冒烟步骤
 
 ═══════════════════════════════════════════════════════
 Step 3: 验证
@@ -760,12 +762,19 @@ Step 3: 验证
   grep "WBP_GameHUD" Docs/History/Proposals/Phase8_M3_Handover_to_Execution_Agent.md
   # 预期：匹配到 UMG 布局方案
 
-  grep "NativeConstruct" Docs/History/Proposals/Phase8_M3_Handover_to_Execution_Agent.md
-  # 预期：匹配到 C++ 生成方式示例
+  grep "RebuildWidget" Docs/History/Proposals/Phase8_M3_Handover_to_Execution_Agent.md
+  # 预期：匹配到更安全的 C++ 生成方式，或至少匹配到生命周期风险说明
+
+  grep "输入焦点" Docs/History/Proposals/Phase8_M3_Handover_to_Execution_Agent.md
+  # 预期：匹配到 HUD / Popup 的焦点责任说明
+
+  grep "EditorStartupMap" Docs/History/Proposals/Phase8_M3_Handover_to_Execution_Agent.md
+  # 预期：匹配到运行时集成前置条件或默认地图说明
 
 【验收标准】
 - DD-3 文档含 14 行映射表、11 对文件清单、4 enum + 2 struct 完整定义、6 Batch 顺序
 - 交接文档含 4 层文档索引、5 个 Widget 控件树 + ASCII 线框图、视觉参数表
+- 交接文档显式说明 Widget 生命周期、输入焦点责任、默认地图 / 默认 GameMode / 基础光照等运行时集成前置条件
 - UMG 布局方案经用户评审通过
 ```
 
@@ -940,7 +949,7 @@ Step 5 (Batch 5): 创建 UI Widget + 事件绑定
   新增文件：
     Source/Mvpv4TestCodex/Public/MGameHUDWidget.h
     Source/Mvpv4TestCodex/Private/MGameHUDWidget.cpp
-      - NativeConstruct() 中用 WidgetTree->ConstructWidget<> 构建控件树
+      - 优先在 RebuildWidget() / NativeOnInitialized() 中用 WidgetTree->ConstructWidget<> 构建根控件树；若使用 NativeConstruct()，必须额外证明生命周期安全
       - 左上角 320×自适应，黑色半透明(0,0,0,0.6) 背景
       - 4 元素：CurrentPlayerIndicator / AllPlayersMoney / TurnNumber / CurrentTileInfo
       - UpdateCurrentPlayer() / UpdateAllPlayersMoney() / UpdateTurnNumber() / UpdateCurrentTileInfo()
@@ -953,6 +962,8 @@ Step 5 (Batch 5): 创建 UI Widget + 事件绑定
 
   绑定（在 GameMode::BeginPlay 中）：
     - CreateWidget<UMGameHUDWidget>() → AddToViewport()
+    - Widget owner 优先使用 PlayerController，不默认使用 World
+    - 输入模式、鼠标可见性、点击事件、悬停事件由单一责任方统一设置，避免 GameMode / PlayerController 相互覆盖
     - 10 个 Delegate 绑定：OnTurnChanged / OnMoneyChanged / OnPawnMoved / OnDiceRollRequested / ...
 
   视觉参数（摘自交接文档 §7.1）：
@@ -963,9 +974,10 @@ Step 5 (Batch 5): 创建 UI Widget + 事件绑定
   验证：
     - val-11: 5 个 Widget（HUD + 4 弹窗基类实例）存在
     - val-12: 10 个事件委托已绑定（OnTurnChanged.IsBound() etc.）
+    - 以上两项仅作为 UI 基础层验证，不等同于“HUD 已可见 / 按钮已可点击”
 
 ═══════════════════════════════════════════════════════
-Step 6 (Batch 6): 运行 12 个验证检查点
+Step 6 (Batch 6): 运行 12 个基础验证检查点
 ═══════════════════════════════════════════════════════
 
   对应 Build Step: step-14-validation
@@ -985,12 +997,36 @@ Step 6 (Batch 6): 运行 12 个验证检查点
   val-11: HUDWidget != nullptr, PopupWidget 可 CreateWidget
   val-12: GameState->OnTurnChanged.IsBound() == true（10 个委托全部检查）
 
+═══════════════════════════════════════════════════════
+Step 7 (Batch 7): 运行时集成验证（在 12 个基础验证点通过后执行）
+═══════════════════════════════════════════════════════
+
+  目标：把“对象存在 / 逻辑正确”升级为“真实可见 / 真实可交互 / 真实可玩”。
+
+  新增 7 个运行时集成验证点：
+
+  val-13: Config/DefaultEngine.ini 中 EditorStartupMap 与 GameDefaultMap 指向 /Game/Maps/L_MonopolyBoard
+  val-14: Config/DefaultGame.ini 或地图 World Settings 中默认 GameMode 正确绑定 AMMonopolyGameMode
+  val-15: 进入 Play 后场景非黑屏；若地图未自带光照，运行时必须提供基础可见性（如 DirectionalLight / SkyLight / SkyAtmosphere）
+  val-16: HUD 在视口中真实可见，且至少能看到 当前玩家 / 资金列表 / 回合数 / 当前格子 4 个核心元素
+  val-17: 鼠标光标可见，至少一个 HUD 主按钮可悬停并点击，且点击后有可观察变化（状态变化、日志或界面更新）
+  val-18: Popup 不仅可 CreateWidget，而且可真实显示、可关闭，关闭后 HUD 焦点恢复
+  val-19: 在编辑器内 Play 完成至少一轮人工冒烟：掷骰 → 移动/结算 → 结束回合，并附截图 / 日志 / 报告证据
+
+  证据要求：
+    - 至少 1 份编译通过记录
+    - 至少 1 份无头运行日志
+    - 至少 1 张编辑器内 Play 截图
+    - 至少 1 份人工冒烟结论报告
+
 【验收标准】
 - 11 对 C++ 文件（.h + .cpp）全部存在于 Source/Mvpv4TestCodex/
 - UE5 编译通过（0 error）
 - 场景中 28 个 AMTile + 2-4 个 AMPlayerPawn + 1 个 AMBoardManager + 1 个 AMDice
-- 12 个验证检查点全部通过
+- 12 个基础验证检查点全部通过
+- 7 个运行时集成验证点全部通过
 - 游戏可从 WaitForRoll 状态开始，完成至少一个完整回合（掷骰→移动→事件→回合结束）
+- “完成至少一个完整回合”必须同时满足 HUD 可见、鼠标可点击、人工冒烟留证，不接受仅依赖 `--no-editor` 或对象存在性验证
 - 不修改 Plugins/AgentBridge/ 下任何已稳定文件
 ```
 
@@ -1076,7 +1112,30 @@ Step 4: 规划 Phase 8 测试编号并补录总表
   补录到 SystemTestCases.md 和 run_system_tests.py。
 
 ═══════════════════════════════════════════════════════
-Step 5: 更新 Docs/Current/ 为归档准备口径
+Step 5: 追加 Phase 8 运行时集成验收与测试补录
+═══════════════════════════════════════════════════════
+
+  在保留现有 230 条 `--no-editor` 测试地基的前提下，新增并补录以下运行时验收口径：
+  - 默认地图 / 默认 GameMode 配置正确
+  - 场景具备基础可见性，不是黑屏
+  - HUD 真实可见，不是仅 `HUDWidget != nullptr`
+  - 鼠标可点击 HUD 主按钮
+  - Popup 可显示 / 可关闭 / 焦点恢复
+  - 编辑器内 Play 完成至少一整轮人工冒烟
+
+  补录方向建议：
+  - E2E-37~E2E-xx：打开 L_MonopolyBoard 并进入 Play
+  - E2E-xx：HUD 可见与主按钮可点击
+  - E2E-xx：Popup 可显示与焦点恢复
+  - E2E-xx：默认地图 / 默认 GameMode / 基础光照正确
+
+  证据要求：
+  - 至少 1 张编辑器内 Play 截图
+  - 至少 1 份运行日志
+  - 至少 1 份人工验收报告
+
+═══════════════════════════════════════════════════════
+Step 6: 更新 Docs/Current/ 为归档准备口径
 ═══════════════════════════════════════════════════════
 
   02_Current_Phase_Goals.md → 成功标准全部标记结果
@@ -1089,5 +1148,7 @@ Step 5: 更新 Docs/Current/ 为归档准备口径
 - v1 Handoff 旧链路（boardgame TicTacToe simulated）仍可跑
 - 所有稳定文件 git diff 为空
 - Phase 8 测试编号已补录进 SystemTestCases.md（新增条数待定）
+- Phase 8 运行时集成验收口径已补录进测试编号与证据目录
+- 最终验收结论同时覆盖 自动化 / 无头运行 / 编辑器内人工冒烟 三层结果
 - Docs/Current/ 已更新为归档准备口径
 ```
