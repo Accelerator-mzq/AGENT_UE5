@@ -1,51 +1,50 @@
 # Mvpv4TestCodex
 
 > 目标引擎版本：UE5.5.4
-> 当前状态：Phase 8 已收尾 / 等待 Phase 9 启动
+> 当前状态：Phase 9 已完成 / AgentBridge MCP Server 已正式接入
 
 ## 项目简介
 
 `Mvpv4TestCodex` 是基于 `AgentBridge` 插件的 UE5 工程，用于验证从设计输入到编译、handoff、执行、回归、治理与证据留存的完整开发链路。
 
-当前已经完成并归档的阶段：
+已归档阶段：
 
 - Phase 6： [task4_phase6.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task4_phase6.md)
 - Phase 7 准备期： [task5_phase7_preparation.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task5_phase7_preparation.md)
 - Phase 7： [task6_phase7.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task6_phase7.md)
 - Phase 8： [task8_phase8.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task8_phase8.md)
 
-Phase 8 收尾证据见：
-
-- [10_Phase8_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/10_Phase8_Closeout.md)
-- [phase8_task06_validation_2026-04-05_230956.json](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-05/phase8_task06_validation_2026-04-05_230956.json)
-- [system_test_report_2026-04-05_230956.json](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/reports/2026-04-05/system_test_report_2026-04-05_230956.json)
-
 ## 当前入口
 
 - 当前索引： [00_Index.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/00_Index.md)
-- Phase 8 收尾总览： [10_Phase8_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/10_Phase8_Closeout.md)
-- 根目录占位任务入口： [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md)
+- 当前阶段任务与完成记录： [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md)
+- Phase 9 收尾总览： [11_Phase9_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/11_Phase9_Closeout.md)
+- Phase 9 历史任务副本： [task9_phase9.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task9_phase9.md)
+- Phase 9 验证证据： [phase9_mcp_validation_2026-04-06.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-06/phase9_mcp_validation_2026-04-06.md)
+- Phase 9 实施前方案归档： [Phase9_MCP_Implementation_Plan.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Proposals/Phase9_MCP_Implementation_Plan.md)
 - 插件入口： [Plugins/AgentBridge/README.md](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/README.md)
 
-当前根目录 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) 只保留为下一阶段占位入口，不再承载 Phase 8 正文。
+## Phase 9 完成结果
+
+- `Plugins/AgentBridge/MCP/` 已从 Phase 8 占位骨架升级为真实可工作的 stdio MCP Server
+- `agentbridge` 已可通过 Claude Code `/mcp` 连接，并注册全部 28 个工具
+- 有 Editor 的 live smoke 已返回真实工程 `Mvpv4TestCodex` 和真实关卡 `/Game/Maps/L_MonopolyBoard`
+- Stage 1 / 4 / 5 / 6 / 7 已串行通过，完成 `--no-editor` 等价覆盖留证
 
 ## 常用命令
 
-```bash
-# Schema 校验
+```powershell
+# MCP 代码静态校验
+python -m py_compile Plugins/AgentBridge/MCP/tool_definitions.py Plugins/AgentBridge/MCP/server.py
+
+# Schema 示例校验
 python Plugins/AgentBridge/Scripts/validation/validate_examples.py --strict
 
-# Greenfield 最小闭环
-python Scripts/run_greenfield_demo.py
+# 无 Editor 等价验证入口
+python Plugins/AgentBridge/Tests/run_system_tests.py --no-editor
 
-# Brownfield 最小闭环
-python Scripts/run_brownfield_demo.py
-
-# Playable runtime 最小闭环
-python Scripts/run_boardgame_playable_demo.py
-
-# 系统测试总入口（当前登记 234 条）
-python Plugins/AgentBridge/Tests/run_system_tests.py
+# Claude Code 通过 .mcp.json 自动启动的 MCP Server
+python Plugins/AgentBridge/MCP/server.py
 ```
 
 ## 目录结构
@@ -54,38 +53,21 @@ python Plugins/AgentBridge/Tests/run_system_tests.py
 Mvpv4TestCodex/
 ├── AGENTS.md
 ├── README.md
-├── task.md                              ← 下一阶段占位入口
+├── CLAUDE.md
+├── task.md
 ├── Scripts/
-│   ├── run_greenfield_demo.py
-│   ├── run_brownfield_demo.py
-│   ├── run_boardgame_playable_demo.py
-│   ├── run_jrpg_turn_based_demo.py
-│   └── validation/
 ├── Source/
 ├── ProjectInputs/
 ├── ProjectState/
-│   ├── Handoffs/
-│   ├── Reports/
-│   ├── RuntimeConfigs/
-│   ├── Snapshots/
-│   └── Evidence/
 ├── Docs/
 └── Plugins/
     └── AgentBridge/
 ```
 
-## 文档阅读顺序
-
-1. [AGENTS.md](/D:/UnrealProjects/Mvpv4TestCodex/AGENTS.md)
-2. [Docs/Current/00_Index.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/00_Index.md)
-3. [Docs/Current/10_Phase8_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/10_Phase8_Closeout.md)
-4. [Docs/Current/01_Project_Baseline.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/01_Project_Baseline.md)
-5. [Docs/Current/05_Implementation_Boundary.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/05_Implementation_Boundary.md)
-6. [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md)
-7. [Plugins/AgentBridge/README.md](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/README.md)
-
 ## 当前约定
 
-- 历史阶段证据副本统一放在 `Docs/History/reports/AgentBridgeEvidence/`
-- `ProjectState/Snapshots/` 继续只放 baseline / state snapshot，并按日期目录组织
-- [SystemTestCases.md](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Tests/SystemTestCases.md) 与 [run_system_tests.py](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Tests/run_system_tests.py) 当前登记为 `234` 条用例
+- 根目录 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) 是 Phase 9 正式任务入口与完成记录
+- Phase 9 实施前方案已归档到 [Phase9_MCP_Implementation_Plan.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Proposals/Phase9_MCP_Implementation_Plan.md)
+- [SystemTestCases.md](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Tests/SystemTestCases.md) 与 [run_system_tests.py](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Tests/run_system_tests.py) 当前统一登记为 `240` 条用例
+- 当前 Phase 9 收口证据见 [phase9_mcp_validation_2026-04-06.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-06/phase9_mcp_validation_2026-04-06.md)
+- Phase 9 软归档口径见 [11_Phase9_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/11_Phase9_Closeout.md) 与 [phase9_archive_preflight_checklist_2026-04-06.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-06/phase9_archive_preflight_checklist_2026-04-06.md)

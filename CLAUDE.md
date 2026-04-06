@@ -22,7 +22,7 @@ AgentBridge 不只是工具接口插件，而是包含编译前端（Skill Compi
 3. `Docs/Current/10_Phase8_Closeout.md` — Phase 8 收尾总览
 4. `Docs/Current/01_Project_Baseline.md` — 项目基线
 5. `Docs/Current/05_Implementation_Boundary.md` — 实施边界
-6. `task.md` — 下一阶段占位入口；若尚未创建新任务，只用于确认当前无活跃任务
+6. `task.md` — 当前阶段正式任务入口与完成记录
 7. `Plugins/AgentBridge/README.md` — 插件说明
 8. `Plugins/AgentBridge/AGENTS.md` — 通用 Agent 规则
 9. `Docs/History/Tasks/task8_phase8.md` — Phase 8 历史任务（需要追溯时）
@@ -107,7 +107,7 @@ AgentBridge 不只是工具接口插件，而是包含编译前端（Skill Compi
 # Schema 校验（验证现有 MVP 不破坏）
 python Plugins/AgentBridge/Scripts/validation/validate_examples.py --strict
 
-# 系统测试：一键执行全部 9 个 Stage（当前登记 234 条）
+# 系统测试：一键执行全部 9 个 Stage（当前登记 230 条）
 python Plugins/AgentBridge/Tests/run_system_tests.py
 
 # 系统测试：交互模式（选择 Stage）
@@ -137,8 +137,8 @@ python compiler_main.py
 
 ## 当前阶段
 
-Phase 8 已收尾 — Skill-First Compiler Reset + MonopolyGame 垂直切片
-当前主入口：`Docs/Current/10_Phase8_Closeout.md`
-下一阶段入口占位：`task.md`
-Phase 8 历史任务：`Docs/History/Tasks/task8_phase8.md`
-详见 `Docs/Current/00_Index.md`
+Phase 9 已完成 — MCP Server 正式化与文档切换
+当前主入口：`task.md`
+当前索引：`Docs/Current/00_Index.md`
+Phase 9 验证证据：`ProjectState/Reports/2026-04-06/phase9_mcp_validation_2026-04-06.md`
+Phase 9 实施前方案归档：`Docs/History/Proposals/Phase9_MCP_Implementation_Plan.md`

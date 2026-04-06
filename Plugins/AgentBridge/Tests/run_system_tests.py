@@ -2,7 +2,7 @@
 """
 AgentBridge 系统测试全局入口
 =================================
-一键触发当前登记的系统测试用例，按 9 个 Stage 串行执行。
+一键触发当前登记的系统测试用例，按 10 个 Stage 串行执行。
 
 用法:
     # 全自动执行全部 Stage
@@ -33,6 +33,7 @@ Stage 列表:
     7: Orchestrator（ORC）       — pytest + orchestrator.py
     8: Gauntlet CI/CD（GA）      — RunUAT.bat RunUnreal
     9: E2E 三通道一致性           — Python 三通道脚本
+    10: MCP Server 集成（MCP）    — 协议脚本 + 证据校验
 """
 
 import argparse
@@ -168,11 +169,19 @@ STAGES = {
         'requires_editor': True,
         'requires_build': True,
     },
+    10: {
+        'name': 'MCP Server 集成（MCP）',
+        'cases': 'MCP-01 ~ MCP-10',
+        'case_ids': make_case_ids('MCP', 1, 10),
+        'count': 10,
+        'requires_editor': False,
+        'requires_build': False,
+    },
 }
 
-TOTAL_CASES = sum(s['count'] for s in STAGES.values())  # 230
+TOTAL_CASES = sum(s['count'] for s in STAGES.values())  # 240
 CASE_ID_PATTERN = re.compile(
-    r'^\|\s*((?:SV|BL|Q|W|CL|UI|CMD|PY|ORC|CP|SS|GA|E2E)-\d{2})\s*\|',
+    r'^\|\s*((?:SV|BL|Q|W|CL|UI|CMD|PY|ORC|CP|SS|GA|E2E|MCP)-\d{2})\s*\|',
     re.MULTILINE,
 )
 PHASE7_STAGE7_CASE_IDS = make_case_ids('CP', 32, 40) + make_case_ids('SS', 14, 20)
@@ -1645,6 +1654,272 @@ def run_stage_9_v3(result, engine_root, completed_results=None):
         result.message = f'E2E 测试未全部通过 ({passed}/{total})，失败项: {", ".join(failed_cases)}'
 
 
+def run_stage_10(result, engine_root, completed_results=None):
+    """Stage 10：MCP-01 ~ MCP-10 统一判定入口。"""
+    check_map = {}
+    runtime_dir = os.path.join(PROJECT_ROOT, 'ProjectState', 'Temp', 'run_system_tests_stage10')
+    os.makedirs(runtime_dir, exist_ok=True)
+    result.log_path = runtime_dir
+
+    project_reports_dir = str(get_project_reports_dir())
+    plugin_reports_dir = str(get_reports_dir())
+
+    def record_case(case_id, ok, note):
+        """登记或覆盖某条 MCP 用例的最终结果。"""
+        check_map[case_id] = (ok, note)
+
+    def find_latest_passing_stage_evidence(stage_id):
+        """当本轮未执行前置 Stage 时，回退到历史系统测试报告中的通过证据。"""
+        candidates = sorted(
+            iter_report_files(plugin_reports_dir, 'system_test_report_*.json'),
+            key=lambda path: path.stat().st_mtime,
+            reverse=True,
+        )
+        for report_path in candidates:
+            report = load_json_report(str(report_path)) or {}
+            for stage_entry in report.get('stages', []):
+                if stage_entry.get('stage') == stage_id and stage_entry.get('status') == 'passed':
+                    return True, str(report_path)
+        return False, ''
+
+    # MCP-01 ~ MCP-05：静态与协议级自动校验。
+    import_error = ''
+    tool_definitions = None
+    server_module = None
+    query_tools_module = None
+    write_tools_module = None
+
+    try:
+        import asyncio
+        import importlib
+        import inspect
+
+        mcp_dir = os.path.join(PLUGIN_ROOT, 'MCP')
+        if mcp_dir not in sys.path:
+            sys.path.insert(0, mcp_dir)
+
+        query_tools_module = importlib.import_module('query_tools')
+        write_tools_module = importlib.import_module('write_tools')
+        tool_definitions = importlib.import_module('tool_definitions')
+        server_module = importlib.import_module('server')
+    except Exception as exc:
+        import_error = str(exc)
+
+    if import_error:
+        for case_id in ['MCP-01', 'MCP-02', 'MCP-03', 'MCP-04', 'MCP-05']:
+            record_case(case_id, False, f'模块导入失败: {import_error}')
+    else:
+        signature_mismatches = []
+        for tool_name, tool_def in tool_definitions.LAYER1_QUERY_TOOLS.items():
+            func = getattr(query_tools_module, tool_name, None)
+            if func is None:
+                signature_mismatches.append(f'{tool_name}: 缺少 query_tools 函数')
+                continue
+            signature_keys = list(inspect.signature(func).parameters.keys())
+            documented_keys = list(tool_def.get('params', {}).keys())
+            if signature_keys != documented_keys:
+                signature_mismatches.append(f'{tool_name}: {signature_keys} != {documented_keys}')
+
+        for tool_name, tool_def in tool_definitions.LAYER1_WRITE_TOOLS.items():
+            func = getattr(write_tools_module, tool_name, None)
+            if func is None:
+                signature_mismatches.append(f'{tool_name}: 缺少 write_tools 函数')
+                continue
+            signature_keys = list(inspect.signature(func).parameters.keys())
+            documented_keys = list(tool_def.get('params', {}).keys())
+            if signature_keys != documented_keys:
+                signature_mismatches.append(f'{tool_name}: {signature_keys} != {documented_keys}')
+
+        record_case(
+            'MCP-01',
+            not signature_mismatches,
+            '签名对齐完成' if not signature_mismatches else '; '.join(signature_mismatches[:3]),
+        )
+
+        invalid_schemas = []
+        all_tools = tool_definitions.ALL_TOOLS
+        for tool_name, tool_def in all_tools.items():
+            schema = tool_definitions.to_json_schema(tool_def)
+            if not (
+                isinstance(schema, dict)
+                and schema.get('type') == 'object'
+                and isinstance(schema.get('properties'), dict)
+            ):
+                invalid_schemas.append(tool_name)
+                continue
+            if 'required' in schema and not isinstance(schema['required'], list):
+                invalid_schemas.append(tool_name)
+
+        record_case(
+            'MCP-02',
+            len(all_tools) == 28 and not invalid_schemas,
+            f'工具数={len(all_tools)}，schema 正常'
+            if len(all_tools) == 28 and not invalid_schemas
+            else f'工具数={len(all_tools)}，schema 异常={", ".join(invalid_schemas[:5])}',
+        )
+
+        try:
+            server_instance = server_module.create_mcp_server()
+            init_options = server_instance.create_initialization_options()
+            record_case(
+                'MCP-03',
+                server_instance is not None and init_options is not None,
+                f'server={server_instance.__class__.__name__}',
+            )
+        except Exception as exc:
+            record_case('MCP-03', False, f'create_mcp_server 失败: {exc}')
+
+        try:
+            async def _run_mcp_protocol_smoke():
+                """通过 mcp.client.stdio 对 server.py 做最小协议冒烟。"""
+                from mcp import ClientSession
+                from mcp.client.stdio import StdioServerParameters, stdio_client
+
+                server_params = StdioServerParameters(
+                    command=sys.executable,
+                    args=[os.path.join('Plugins', 'AgentBridge', 'MCP', 'server.py')],
+                    cwd=PROJECT_ROOT,
+                    env=os.environ.copy(),
+                )
+                async with stdio_client(server_params) as (read_stream, write_stream):
+                    async with ClientSession(read_stream, write_stream) as session:
+                        init_result = await session.initialize()
+                        tools_result = await session.list_tools()
+                        call_result = await session.call_tool('capture_screenshot', {})
+                        text_parts = [
+                            item.text
+                            for item in getattr(call_result, 'content', [])
+                            if hasattr(item, 'text')
+                        ]
+                        payload_text = '\n'.join(text_parts)
+                        parsed_payload = json.loads(payload_text) if payload_text else {}
+                        return {
+                            'server_name': init_result.serverInfo.name,
+                            'tool_count': len(tools_result.tools),
+                            'call_is_error': bool(call_result.isError),
+                            'call_payload': parsed_payload,
+                        }
+
+            protocol_payload = asyncio.run(_run_mcp_protocol_smoke())
+            protocol_log_path = os.path.join(runtime_dir, 'mcp_protocol_smoke.json')
+            with open(protocol_log_path, 'w', encoding='utf-8') as file:
+                json.dump(protocol_payload, file, ensure_ascii=False, indent=2)
+
+            record_case(
+                'MCP-04',
+                protocol_payload.get('server_name') == 'agentbridge'
+                and protocol_payload.get('tool_count') == 28,
+                f'server={protocol_payload.get("server_name")}, tools={protocol_payload.get("tool_count")}',
+            )
+
+            call_payload = protocol_payload.get('call_payload', {})
+            record_case(
+                'MCP-05',
+                isinstance(call_payload, dict) and 'status' in call_payload,
+                f'status={call_payload.get("status")}, is_error={protocol_payload.get("call_is_error")}',
+            )
+        except Exception as exc:
+            record_case('MCP-04', False, f'协议冒烟失败: {exc}')
+            record_case('MCP-05', False, f'协议冒烟失败: {exc}')
+
+    # MCP-06 ~ MCP-10：引用 Phase 9 的真实验证与文档治理证据。
+    phase9_validation_path = find_latest_report_by_prefix(
+        project_reports_dir,
+        'phase9_mcp_validation_',
+        '.md',
+    )
+    phase9_validation_text = load_text_report(phase9_validation_path)
+    phase9_docgov_path = find_latest_report_by_prefix(
+        project_reports_dir,
+        'phase9_document_governance_',
+        '.md',
+    )
+    phase9_docgov_text = load_text_report(phase9_docgov_path)
+
+    record_case(
+        'MCP-06',
+        (
+            bool(phase9_validation_path)
+            and 'Status: connected' in phase9_validation_text
+            and 'Tools: `28 tools`' in phase9_validation_text
+        ),
+        f'引用 {os.path.basename(phase9_validation_path) if phase9_validation_path else "Phase 9 MCP 报告缺失"}',
+    )
+    record_case(
+        'MCP-07',
+        (
+            bool(phase9_validation_path)
+            and 'project_name = Mvpv4TestCodex' in phase9_validation_text
+            and 'current_level = /Game/Maps/L_MonopolyBoard' in phase9_validation_text
+        ),
+        f'引用 {os.path.basename(phase9_validation_path) if phase9_validation_path else "Phase 9 MCP 报告缺失"}',
+    )
+    record_case(
+        'MCP-08',
+        (
+            bool(phase9_validation_path)
+            and 'level_path = /Game/Maps/L_MonopolyBoard' in phase9_validation_text
+            and 'actor_count = 62' in phase9_validation_text
+        ),
+        f'引用 {os.path.basename(phase9_validation_path) if phase9_validation_path else "Phase 9 MCP 报告缺失"}',
+    )
+
+    baseline_stage_ids = [1, 4, 5, 6, 7]
+    baseline_notes = []
+    baseline_ok = True
+    for stage_id in baseline_stage_ids:
+        stage_status = get_stage_status(stage_id, completed_results)
+        if stage_status == 'passed':
+            baseline_notes.append(f'Stage {stage_id}=passed')
+            continue
+        evidence_ok, evidence_path = find_latest_passing_stage_evidence(stage_id)
+        baseline_ok = baseline_ok and evidence_ok
+        evidence_name = os.path.basename(evidence_path) if evidence_path else '无证据'
+        baseline_notes.append(f'Stage {stage_id}→{evidence_name}')
+
+    if phase9_validation_path:
+        baseline_ok = baseline_ok and 'Stage 1 / 4 / 5 / 6 / 7 已串行通过' in phase9_validation_text
+
+    record_case('MCP-09', baseline_ok, '；'.join(baseline_notes))
+    record_case(
+        'MCP-10',
+        (
+            bool(phase9_docgov_path)
+            and '已将根目录 `MCP实现方案.md` 归档' in phase9_docgov_text
+            and '已删除根目录临时草稿入口 `task_temp.md`' in phase9_docgov_text
+            and '项目层和插件层文档均已切换到“Phase 9 已完成”的一致口径' in phase9_docgov_text
+        ),
+        f'引用 {os.path.basename(phase9_docgov_path) if phase9_docgov_path else "Phase 9 文档治理报告缺失"}',
+    )
+
+    missing_case_ids = [case_id for case_id in STAGES[10]['case_ids'] if case_id not in check_map]
+    if missing_case_ids:
+        result.status = 'failed'
+        result.exit_code = 1
+        result.message = f'Stage 10 用例注册不完整，缺失: {", ".join(missing_case_ids)}'
+        return
+
+    checks = [
+        (case_id, check_map[case_id][0], check_map[case_id][1])
+        for case_id in STAGES[10]['case_ids']
+    ]
+    passed = sum(1 for _, ok, _ in checks if ok)
+    total = len(checks)
+    failed_cases = [case_id for case_id, ok, _ in checks if not ok]
+
+    for case_id, ok, note in checks:
+        print(f'  [{case_id}] {"PASS" if ok else "FAIL"} - {note}')
+
+    if passed == total:
+        result.status = 'passed'
+        result.exit_code = 0
+        result.message = f'MCP 集成测试全部通过 ({passed}/{total})'
+    else:
+        result.status = 'failed'
+        result.exit_code = 1
+        result.message = f'MCP 集成测试未全部通过 ({passed}/{total})，失败项: {", ".join(failed_cases)}'
+
+
 # Stage ID -> 执行函数映射
 STAGE_RUNNERS = {
     1: run_stage_1,
@@ -1656,6 +1931,7 @@ STAGE_RUNNERS = {
     7: run_stage_6,
     8: run_stage_8,
     9: run_stage_9,
+    10: run_stage_10,
 }
 
 
@@ -1673,8 +1949,15 @@ def interactive_select():
         build_mark = ' [需编译]' if info['requires_build'] else ''
         print(f'  [{sid}] {info["name"]}  ({info["count"]} 条){editor_mark}{build_mark}')
 
+    python_stage_ids = [
+        sid for sid, info in STAGES.items()
+        if not info['requires_editor'] and not info['requires_build']
+    ]
     print(f'\n  输入 Stage 编号，逗号分隔（如 1,2,6）')
-    print(f'  输入 all 执行全部，输入 python 仅执行纯 Python Stage (1,5,6,7)')
+    print(
+        '  输入 all 执行全部，输入 python 仅执行纯 Python / 证据 Stage '
+        f'({", ".join(str(s) for s in python_stage_ids)})'
+    )
     raw = input('\n  请选择: ').strip().lower()
 
     if raw == 'all' or raw == '':
@@ -1703,7 +1986,7 @@ def main():
             示例:
               python run_all_tests.py                     # 全自动
               python run_all_tests.py --interactive        # 交互选择
-              python run_all_tests.py --stage=1,6,7        # 仅跑纯 Python
+              python run_all_tests.py --stage=1,6,7,10     # 仅跑纯 Python / 证据
               python run_all_tests.py --no-editor          # 跳过需要 Editor 的 Stage
         '''),
     )

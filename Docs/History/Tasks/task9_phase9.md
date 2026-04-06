@@ -1,5 +1,10 @@
 # Phase 9 — AgentBridge MCP Server 正式化与文档切换
 
+> 归档状态：历史任务副本
+> 归档日期：2026-04-06
+> 当前收尾文档：[11_Phase9_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/11_Phase9_Closeout.md)
+> 当前正式入口仍为：[task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md)
+
 > 状态：已完成
 > 启动日期：2026-04-06
 > 阶段目标：使 `.mcp.json` 中配置的 `agentbridge` MCP Server 真正可用，并完成 Phase 9 文档切换
