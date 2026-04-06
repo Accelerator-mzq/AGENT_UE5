@@ -8,7 +8,7 @@
 
 **AgentBridge** 是一套面向不同 UE5 项目的**通用 Agent 开发框架插件**。它不只是工具接口封装层，而是包含编译前端、交接物机制、执行编排、受控工具体系、验证与恢复框架的完整 Agent 框架。
 
-### 1.1 总链路（v0.8.0 — Phase 8 Skill-First）
+### 1.1 总链路（v0.8.0 — Phase 9 MCP 正式化）
 
 ```
 GDD (Part A + Part B)
@@ -22,7 +22,7 @@ GDD (Part A + Part B)
 → Reviewed Handoff v2（Compiler → Execution 唯一边界）
 → Execution Orchestrator Plane（执行编排）
   ├── Build Steps → C++ 代码生成
-  ├── MCP Server（28 工具，L1/L2/L3 三层）
+  ├── MCP Server（28 工具，L1/L2/L3 三层，stdio 接入 Agent / MCP Client）
   └── Validation IR → 12 验证检查点
 → Playable Template
 ```
@@ -48,7 +48,7 @@ Design Inputs + Existing Project State Inputs
 | **Greenfield Bootstrap** | 从零启动新样板 | 全量编译 → Full Dynamic Spec Tree |
 | **Brownfield Expansion** | 已有 demo 的二次开发 | 基线理解 + 差量编译 → Delta Dynamic Spec Tree |
 
-Phase 4 已完成 Greenfield 自动生成闭环。Phase 5 已完成 Brownfield 最小闭环。Phase 6 已完成”完整 Spec Tree + 可玩 Runtime”阶段。Phase 7 完成”治理闭环 + 多类型扩展”。Phase 8 引入 Skill-First 6 阶段主链，以 MonopolyGame 为垂直切片验证端到端流程。
+Phase 4 已完成 Greenfield 自动生成闭环。Phase 5 已完成 Brownfield 最小闭环。Phase 6 已完成“完整 Spec Tree + 可玩 Runtime”阶段。Phase 7 完成“治理闭环 + 多类型扩展”。Phase 8 引入 Skill-First 6 阶段主链，以 MonopolyGame 为垂直切片验证端到端流程。Phase 9 将 Phase 8 的 MCP 占位骨架升级为真实可工作的 stdio server。
 
 ### 1.3 分层原则
 
@@ -355,7 +355,7 @@ C++ Plugin 是三个通道的共同底层——Python 和 RC API 也可以调用
 | Agent 远程调用 | 通道 B | Agent 运行在 Editor 外部 |
 | Commandlet 无头执行 | 通道 C | Commandlet 在 Editor 进程内 |
 | Python 脚本快速原型 | 通道 A | 最快迭代 |
-| MCP Server 集成 | 通道 B | MCP 基于 HTTP |
+| MCP Server 集成 | stdio + 通道 A/B/C | Agent / CLI / IDE 通过 MCP stdio 调用，Server 内部分发到 Bridge 三通道 |
 | CI/CD (Gauntlet) | 通道 C（经 Commandlet）| Gauntlet 启动 Editor 进程，内部用 C++ |
 
 ---
