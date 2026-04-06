@@ -28,6 +28,7 @@ LAYER1_QUERY_TOOLS = {
     "list_level_actors": {
         "description": "列出当前关卡中的所有 Actor",
         "params": {
+            "level_path": {"type": "string", "required": False, "description": "关卡路径（默认当前）"},
             "class_filter": {"type": "string", "required": False, "description": "可选类名过滤"}
         },
         "returns": "Actor 列表"
@@ -60,7 +61,9 @@ LAYER1_QUERY_TOOLS = {
     },
     "run_map_check": {
         "description": "运行当前关卡的 Map Check，检查错误和警告",
-        "params": {},
+        "params": {
+            "level_path": {"type": "string", "required": False, "description": "关卡路径（默认当前）"}
+        },
         "returns": "Map Check 结果"
     },
 }
@@ -94,8 +97,10 @@ LAYER1_WRITE_TOOLS = {
     "import_assets": {
         "description": "导入外部资产到 UE5 项目",
         "params": {
-            "source_path": {"type": "string", "required": True},
-            "destination_path": {"type": "string", "required": True}
+            "source_dir": {"type": "string", "required": True, "description": "源目录路径"},
+            "dest_path": {"type": "string", "required": True, "description": "目标内容浏览器路径"},
+            "replace_existing": {"type": "boolean", "required": False, "description": "是否覆盖已有资产"},
+            "dry_run": {"type": "boolean", "required": False, "description": "模拟执行不实际导入"}
         },
         "returns": "导入结果"
     },
@@ -103,16 +108,19 @@ LAYER1_WRITE_TOOLS = {
         "description": "创建指定父类的 Blueprint 子类",
         "params": {
             "parent_class": {"type": "string", "required": True, "description": "父类路径"},
-            "blueprint_name": {"type": "string", "required": True, "description": "新 BP 名称"},
-            "destination_path": {"type": "string", "required": True, "description": "保存路径"}
+            "package_path": {"type": "string", "required": True, "description": "Blueprint 保存路径"},
+            "dry_run": {"type": "boolean", "required": False, "description": "模拟执行不实际创建"}
         },
         "returns": "创建的 Blueprint 路径"
     },
     "set_actor_collision": {
         "description": "设置 Actor 碰撞配置",
         "params": {
-            "actor_path": {"type": "string", "required": True},
-            "collision_preset": {"type": "string", "required": True}
+            "actor_path": {"type": "string", "required": True, "description": "Actor 路径"},
+            "profile_name": {"type": "string", "required": True, "description": "碰撞 Profile 名称"},
+            "collision_enabled": {"type": "string", "required": False, "description": "碰撞模式（默认 QueryAndPhysics）"},
+            "can_affect_navigation": {"type": "boolean", "required": False, "description": "是否影响导航"},
+            "dry_run": {"type": "boolean", "required": False, "description": "模拟执行不实际写入"}
         },
         "returns": "碰撞设置结果"
     },
@@ -121,7 +129,8 @@ LAYER1_WRITE_TOOLS = {
         "params": {
             "actor_path": {"type": "string", "required": True},
             "material_path": {"type": "string", "required": True},
-            "slot_index": {"type": "integer", "required": False, "description": "材质槽索引（默认 0）"}
+            "slot_index": {"type": "integer", "required": False, "description": "材质槽索引（默认 0）"},
+            "dry_run": {"type": "boolean", "required": False, "description": "模拟执行不实际赋材质"}
         },
         "returns": "材质赋值结果"
     },
@@ -298,3 +307,40 @@ ALL_TOOLS.update(LAYER3_TOOLS)
 
 TOOL_COUNT = len(ALL_TOOLS)
 # 预期：7(query) + 6(write) + 5(service) + 9(asset) + 1(fallback) = 28
+
+
+def to_json_schema(tool_def: dict) -> dict:
+    """将内部参数定义转换为 MCP Tool.inputSchema 所需的 JSON Schema。"""
+    type_map = {
+        "string": "string",
+        "integer": "integer",
+        "boolean": "boolean",
+        "array": "array",
+        "object": "object",
+    }
+
+    properties = {}
+    required = []
+
+    for param_name, spec in tool_def.get("params", {}).items():
+        prop_schema = {}
+        param_type = spec.get("type")
+        if param_type in type_map:
+            prop_schema["type"] = type_map[param_type]
+
+        description = spec.get("description")
+        if description:
+            prop_schema["description"] = description
+
+        properties[param_name] = prop_schema
+
+        if spec.get("required", False):
+            required.append(param_name)
+
+    schema = {
+        "type": "object",
+        "properties": properties,
+    }
+    if required:
+        schema["required"] = required
+    return schema

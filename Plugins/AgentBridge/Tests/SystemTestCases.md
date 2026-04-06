@@ -1,7 +1,7 @@
 # AgentBridge 系统测试用例总表
 
-> 来源：`Docs/History/Phase1_MVP/task.md` + `Docs/History/Tasks/task1_phase3.md` + `Docs/History/Tasks/task2_phase4.md` + `Docs/History/Tasks/task3_phase5.md` + `Docs/History/Tasks/task4_phase6.md` + `Docs/History/Tasks/task6_phase7.md` 中的验收标准与验证步骤  
-> 最后更新：2026-04-02
+> 来源：`Docs/History/Phase1_MVP/task.md` + `Docs/History/Tasks/task1_phase3.md` + `Docs/History/Tasks/task2_phase4.md` + `Docs/History/Tasks/task3_phase5.md` + `Docs/History/Tasks/task4_phase6.md` + `Docs/History/Tasks/task6_phase7.md` + 根目录 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) 中的验收标准与验证步骤
+> 最后更新：2026-04-06
 > 维护者：msc
 
 ---
@@ -23,6 +23,7 @@
 - [12. Skills & Specs（SS）](#12-skills--specsss)
 - [13. Gauntlet CI/CD（GA）](#13-gauntlet-cicdga)
 - [14. 端到端集成（E2E）](#14-端到端集成e2e)
+- [15. MCP Server 集成（MCP）](#15-mcp-server-集成mcp)
 - [附录 A：UE5 Automation Test ID 速查表](#附录-aue5-automation-test-id-速查表)
 - [附录 B：统计摘要](#附录-b统计摘要)
 - [附录 C：自动化工具链](#附录-c自动化工具链)
@@ -47,7 +48,7 @@
 | GA | Gauntlet CI/CD | UE5 + UAT | `RunUAT.bat RunUnreal -test=SmokeTests/AllTests` |
 | E2E | 端到端集成 | 全栈 | 多步流水线（Schema→Cmd→Gauntlet→三通道脚本） |
 
-> 全部 234 条用例均已登记到当前测试总表。证据目录分层为：`ProjectState/Reports/`（当期执行）+ `Docs/History/reports/AgentBridgeEvidence/`（历史归档）。
+> 全部 240 条用例均已登记到当前测试总表。证据目录分层为：`ProjectState/Reports/`（当期执行）+ `Docs/History/reports/AgentBridgeEvidence/`（历史归档）。
 
 ---
 
@@ -535,6 +536,29 @@
 
 ---
 
+## 15. MCP Server 集成（MCP）
+
+> 来源：根目录 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) `TASK 04/TASK 05` + [phase9_mcp_validation_2026-04-06.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-06/phase9_mcp_validation_2026-04-06.md) + [phase9_document_governance_2026-04-06.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-06/phase9_document_governance_2026-04-06.md)
+> 自动化方式：Python 静态校验 + `mcp.client.stdio` 协议调用 + 历史证据校验
+> 环境要求：Python 3.x + `mcp==1.26.0`
+
+| 编号 | 用例名称 | 测试方式 | 预期结果 |
+|------|---------|---------|---------|
+| MCP-01 | `tool_definitions.py` 与 Bridge 签名对齐 | `inspect.signature` 比对全部 L1 Query / Write 工具参数 | 无参数缺失、无多余参数、顺序一致 |
+| MCP-02 | `to_json_schema()` 覆盖全部 28 工具 | 遍历 `ALL_TOOLS` 调用 `to_json_schema()` | 全部返回合法 `object/properties/required` 结构 |
+| MCP-03 | `create_mcp_server()` 可构造真实 server | `import server; create_mcp_server()` | 返回真实 `Server("agentbridge")` 并可生成 initialization options |
+| MCP-04 | stdio `initialize / tools/list` 协议可用 | `mcp.client.stdio` 连接 `python Plugins/AgentBridge/MCP/server.py` | server name=`agentbridge`，tools=28 |
+| MCP-05 | `tools/call` 返回结构化结果 | stdio client 调用 `capture_screenshot` | 返回 `CallToolResult`，文本内容可解析为含 `status` 的 JSON |
+| MCP-06 | Claude Code `/mcp` 已人工确认 | 引用 Phase 9 MCP 验证报告 §3.1 | `agentbridge connected`，工具数为 28 |
+| MCP-07 | live smoke：`get_current_project_state` 返回真实工程 | 引用 Phase 9 MCP 验证报告 §3.3 | `project_name=Mvpv4TestCodex`，`current_level=/Game/Maps/L_MonopolyBoard` |
+| MCP-08 | live smoke：`list_level_actors` 返回真实关卡列表 | 引用 Phase 9 MCP 验证报告 §3.3 | `level_path=/Game/Maps/L_MonopolyBoard`，`actor_count=62` |
+| MCP-09 | Phase 8 Python 基线未被 MCP 改造破坏 | 引用 Phase 9 MCP 验证报告 §4 | Stage 1 / 4 / 5 / 6 / 7 全部通过 |
+| MCP-10 | Phase 9 文档切换与方案归档完成 | 引用文档治理收口报告 | 方案归档、临时入口删除、入口文档同步完成 |
+
+> 证据：`ProjectState/Reports/2026-04-06/phase9_mcp_validation_2026-04-06.md` + `ProjectState/Reports/2026-04-06/phase9_document_governance_2026-04-06.md`
+
+---
+
 ## 附录 A：UE5 Automation Test ID 速查表
 
 | Test ID | 全名 | 类型 | 所属分类 |
@@ -582,7 +606,8 @@
 | SS Skills & Specs | 20 | 🟢 全部 |
 | GA Gauntlet | 6 | 🟢 全部 |
 | E2E 端到端 | 36 | 🟢 全部 |
-| **合计** | **230** | **🟢 230 条已登记** |
+| MCP MCP 集成 | 10 | 🟢 自动+证据 |
+| **合计** | **240** | **🟢 240 条已登记** |
 
 ---
 
@@ -603,6 +628,7 @@
 | `python orchestrator.py` | Orchestrator 主编排（Mock / Channel C） | ORC-24~31, E2E-08 |
 | `python compiler_main.py` | Compiler Plane 端到端（GDD→Handoff） | CP-11 |
 | `python Scripts/run_greenfield_demo.py` | Greenfield 管线端到端（simulated / bridge_python / bridge_rc_api） | E2E-12~19 |
+| `python Plugins/AgentBridge/MCP/server.py` + `mcp.client.stdio` | MCP Server 协议级初始化、工具列表与调用验证 | MCP-03~05 |
 | `bridge_core.py` + `query_tools.py` | Python Bridge 客户端（三通道） | PY, ORC, E2E-11, E2E-17 |
 | Python `import unreal` 脚本 | Channel A（Python Editor Scripting API） | E2E-11 |
 | HTTP `curl localhost:30010` | RC API 探测 / Channel B | BL-06, E2E-11 |

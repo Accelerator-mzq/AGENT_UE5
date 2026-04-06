@@ -1,34 +1,22 @@
 # 当前待办
 
-> 文档版本：L1-Phase8-v2
+> 文档版本：L1-Phase9-v3
 
 ## 已完成事项
 
-- DD-1：Schema 完整字段定义 + Compiler 五段接口规约 ✅
-- M1：6 个 Schema + 5 段 Compiler Python 骨架落地 ✅
-- DD-2：6 套 Skill Template Pack + MCP Server 28 工具 ✅
-- M2：Main Chain 5 阶段数据生成 + Handoff v2 组装（11 JSON） ✅
-- DD-3：14 Build Steps → C++ 类映射 + UMG 布局方案 ✅
-- TASK 01（文档切换）：项目层 + 插件层入口统一到 Phase 8 口径 ✅
-- M3（TASK 06）：MonopolyGame 垂直切片执行与验证闭环 ✅
-- M4（TASK 07）：兼容性清理、测试补录与最终验收 ✅
+- MCP 工具定义 6 处参数偏差已修正。
+- `to_json_schema()` 已补入 [tool_definitions.py](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/MCP/tool_definitions.py)。
+- [server.py](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/MCP/server.py) 已补齐 5 个 service 工具、6 个 Layer 2 工具、`TOOL_DISPATCH`、`dispatch_tool()`、`create_mcp_server()` 与 stdio 入口。
+- [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) 已切换为 Phase 9 正式任务入口。
+- [README.md](/D:/UnrealProjects/Mvpv4TestCodex/README.md)、`Docs/Current/` 与插件说明文档已切换到 Phase 9 口径。
+- Claude Code `/mcp` 已人工确认 `agentbridge connected`，工具数为 28。
+- 有 Editor 的 live smoke 已通过，`get_current_project_state` 与 `list_level_actors` 已返回真实工程 `Mvpv4TestCodex` / `/Game/Maps/L_MonopolyBoard`。
+- Stage 1 / 4 / 5 / 6 / 7 已串行通过，完成 `--no-editor` 等价覆盖补录。
 
-## 当前状态
+## 当前进行中
 
-- 当前没有未完成的 Phase 8 开发项。
-- Phase 8 收尾总览见 [10_Phase8_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/10_Phase8_Closeout.md)。
-- Phase 8 历史任务正文见 [task8_phase8.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task8_phase8.md)。
+- 无。
 
-## 结转到下一阶段的事项
+## 待补事项
 
-- MCP Server 仍是占位骨架，后续可继续做可执行实现。
-- 若进入 Phase 9，应优先吸收 Phase 8 的运行时复盘与防回归清单。
-- 若扩展到联网多人，需要重新评估 `GameMode / GameState` 的复制设计。
-
-## Phase 7 Carry-over 处置
-
-| 原 carry-over | Phase 8 处置 |
-|---------------|-------------|
-| 规划下一阶段范围 | 已完成：Phase 8 Skill-First Compiler Reset |
-| 评估第三个 genre pack | 延后：Phase 8 仅做 MonopolyGame 垂直切片 |
-| 评估 promotion 扩展 | 延后：Phase 8 不扩展 promotion 流水线 |
+- 无。
