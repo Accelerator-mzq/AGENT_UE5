@@ -36,6 +36,7 @@
 - `MCP/`：Phase 9 已从占位骨架升级为可工作的 stdio MCP Server 实现
 - Claude Code `/mcp` 已人工确认 `agentbridge connected`，工具数为 28
 - 有 Editor 的 live smoke 已通过，真实返回 `Mvpv4TestCodex` / `/Game/Maps/L_MonopolyBoard`
+- MCP 重定位（Phase 10 准备）：MCP 从执行层 Bridge 包装重定位为认知桥接层——前端 Stage 1-2 认知分解 + 后端证据裁决，详见 `Docs/Current/14_MCP_Cognitive_Bridge_Anchor.md`
 - `Tests/SystemTestCases.md` / `run_system_tests.py` 当前统一登记为 `240` 条总表口径
 
 ## 3. 目录结构

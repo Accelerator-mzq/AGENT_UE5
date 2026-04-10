@@ -1,9 +1,9 @@
 # 当前阶段文档索引
 
-> 阶段名称：Phase 9 - MCP Server 正式化与文档切换
-> 状态：Completed
-> 启动日期：2026-04-06
-> 文档版本：L1-Phase9-v2
+> 阶段名称：Phase 10 准备 - MCP 重定位与治理文档收敛
+> 状态：In Progress
+> 启动日期：2026-04-10
+> 文档版本：L1-Phase10-v1
 
 ## 本目录文件
 
@@ -19,11 +19,19 @@
 | 08_Phase8_Retrospective_And_Phase9_Checklist.md | Phase 8 复盘与 Phase 9 防回归清单 |
 | 10_Phase8_Closeout.md | Phase 8 收尾结论、证据和归档口径 |
 | 11_Phase9_Closeout.md | Phase 9 收尾结论、证据与软归档口径 |
+| 12_MCP_Repositioning.md | MCP 重新定位：从执行层包装到 Compiler Plane + Runtime Validation |
+| 14_MCP_Cognitive_Bridge_Anchor.md | MCP 认知桥接层总口径声明（优先裁决依据） |
+| 15_Skill_Spec_Handoff_Chain.md | Skill → Static Spec / Dynamic Spec → Reviewed Handoff 四层主链定义 |
+| 16_MCP_Repositioning_Plan.md | MCP 重定位方案 v3（含架构图、Monopoly 示例、验收标准） |
 
 ## 当前事实来源
 
 - 当前阶段任务：[task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md)
+- MCP 总口径锚定：[14_MCP_Cognitive_Bridge_Anchor.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/14_MCP_Cognitive_Bridge_Anchor.md)
+- 四层主链定义：[15_Skill_Spec_Handoff_Chain.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/15_Skill_Spec_Handoff_Chain.md)
+- MCP 重定位方案：[16_MCP_Repositioning_Plan.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/16_MCP_Repositioning_Plan.md)
 - MCP 方案归档：[Phase9_MCP_Implementation_Plan.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Proposals/Phase9_MCP_Implementation_Plan.md)
+- Phase 10 早期方案：[Phase10_MCP_Repositioning_Plan.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Proposals/Phase10_MCP_Repositioning_Plan.md)
 - Phase 8 收尾总览：[10_Phase8_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/10_Phase8_Closeout.md)
 - Phase 9 收尾总览：[11_Phase9_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/11_Phase9_Closeout.md)
 - Phase 8 历史任务：[task8_phase8.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task8_phase8.md)

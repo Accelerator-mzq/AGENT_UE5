@@ -1,6 +1,6 @@
 # AGENTS.md — Mvpv4TestCodex 项目
 
-> 目标引擎版本：UE5.5.4 | 文档版本：v1.1（Phase 9 完成口径）
+> 目标引擎版本：UE5.5.4 | 文档版本：v1.2（Phase 10 准备口径）
 >
 > 本文件定义 **本项目** 的 AI Agent 行为规则。
 > 通用的 AgentBridge 插件规则见 → `Plugins/AgentBridge/AGENTS.md`
@@ -75,7 +75,10 @@ Agent 在本项目中需要参考的文档：
 | 项目基线 | `Docs/Current/01_Project_Baseline.md` |
 | 当前阶段目标 | `Docs/Current/02_Current_Phase_Goals.md` |
 | 实施边界 | `Docs/Current/05_Implementation_Boundary.md` |
-| 当前阶段任务 | 根目录 `task.md`（Phase 9 正式任务入口与完成记录） |
+| 当前阶段任务 | 根目录 `task.md`（Phase 10 准备阶段任务入口） |
+| MCP 总口径锚定 | `Docs/Current/14_MCP_Cognitive_Bridge_Anchor.md` |
+| 四层主链定义 | `Docs/Current/15_Skill_Spec_Handoff_Chain.md` |
+| MCP 重定位方案 | `Docs/Current/16_MCP_Repositioning_Plan.md` |
 | Phase 9 MCP 实施方案归档 | `Docs/History/Proposals/Phase9_MCP_Implementation_Plan.md` |
 | Phase 8 历史任务 | `Docs/History/Tasks/task8_phase8.md` |
 | Phase 8 统一方案 | `Docs/History/Proposals/Phase8_Plan_Original.md` |
@@ -122,18 +125,20 @@ Agent 进入本项目后，按以下顺序阅读：
 
 1. `AGENTS.md`（本文件）— 规则和导航
 2. `Docs/Current/00_Index.md` — 当前阶段索引
-3. `Docs/Current/10_Phase8_Closeout.md` — Phase 8 收尾总览
-4. `Docs/Current/01_Project_Baseline.md` — 项目基线
-5. `Docs/Current/02_Current_Phase_Goals.md` — 阶段目标与完成状态
-6. `Docs/Current/05_Implementation_Boundary.md` — 实施边界
-7. 根目录 `task.md` — 当前阶段正式任务入口与完成记录
-8. `Plugins/AgentBridge/README.md` — 插件定义（首次进入必读）
-9. `Plugins/AgentBridge/AGENTS.md` — 通用 Agent 规则（首次进入必读）
-10. `Docs/History/Tasks/task8_phase8.md` — 需要追溯 Phase 8 历史任务时阅读
-11. `Docs/History/Proposals/Phase9_MCP_Implementation_Plan.md` — 需要追溯 Phase 9 实施前方案时阅读
-12. 与当前任务相关的 `Docs/Current/*` 和 `Plugins/AgentBridge/Docs/*`
+3. `Docs/Current/14_MCP_Cognitive_Bridge_Anchor.md` — MCP 总口径（优先裁决依据）
+4. `Docs/Current/15_Skill_Spec_Handoff_Chain.md` — 四层主链定义
+5. `Docs/Current/16_MCP_Repositioning_Plan.md` — MCP 重定位方案
+6. `Docs/Current/01_Project_Baseline.md` — 项目基线
+7. `Docs/Current/02_Current_Phase_Goals.md` — 阶段目标与完成状态
+8. `Docs/Current/05_Implementation_Boundary.md` — 实施边界
+9. 根目录 `task.md` — 当前阶段正式任务入口与完成记录
+10. `Plugins/AgentBridge/README.md` — 插件定义（首次进入必读）
+11. `Plugins/AgentBridge/AGENTS.md` — 通用 Agent 规则（首次进入必读）
+12. `Docs/History/Tasks/task8_phase8.md` — 需要追溯 Phase 8 历史任务时阅读
+13. `Docs/History/Proposals/Phase9_MCP_Implementation_Plan.md` — 需要追溯 Phase 9 实施前方案时阅读
+14. 与当前任务相关的 `Docs/Current/*` 和 `Plugins/AgentBridge/Docs/*`
 
-步骤 1–7 为必读。步骤 8–9 首次进入必读，后续按需复查。步骤 10–11 仅在追溯历史任务或实施前方案时阅读。
+步骤 1–9 为必读。步骤 10–11 首次进入必读，后续按需复查。步骤 12–13 仅在追溯历史任务或实施前方案时阅读。
 
 ### 3.3 文档权威优先级
 

@@ -1,7 +1,7 @@
 # CLAUDE.md — Mvpv4TestCodex 项目
 
 > 本文件供 Claude Code / Codex / 其他 AI Agent 在进入本项目时自动读取。
-> 最后更新：2026-04-06
+> 最后更新：2026-04-10
 
 ## 项目概述
 
@@ -19,13 +19,15 @@ AgentBridge 不只是工具接口插件，而是包含编译前端（Skill Compi
 
 1. `AGENTS.md` — 项目级 Agent 规则
 2. `Docs/Current/00_Index.md` — 当前阶段索引
-3. `Docs/Current/10_Phase8_Closeout.md` — Phase 8 收尾总览
-4. `Docs/Current/01_Project_Baseline.md` — 项目基线
-5. `Docs/Current/05_Implementation_Boundary.md` — 实施边界
-6. `task.md` — 当前阶段正式任务入口与完成记录
-7. `Plugins/AgentBridge/README.md` — 插件说明
-8. `Plugins/AgentBridge/AGENTS.md` — 通用 Agent 规则
-9. `Docs/History/Tasks/task8_phase8.md` — Phase 8 历史任务（需要追溯时）
+3. `Docs/Current/14_MCP_Cognitive_Bridge_Anchor.md` — MCP 认知桥接层总口径（优先裁决依据）
+4. `Docs/Current/15_Skill_Spec_Handoff_Chain.md` — Skill/Spec/Handoff 四层主链定义
+5. `Docs/Current/16_MCP_Repositioning_Plan.md` — MCP 重定位方案（含架构图）
+6. `Docs/Current/01_Project_Baseline.md` — 项目基线
+7. `Docs/Current/05_Implementation_Boundary.md` — 实施边界
+8. `task.md` — 当前阶段正式任务入口与完成记录
+9. `Plugins/AgentBridge/README.md` — 插件说明
+10. `Plugins/AgentBridge/AGENTS.md` — 通用 Agent 规则
+11. `Docs/History/Tasks/task8_phase8.md` — Phase 8 历史任务（需要追溯时）
 
 ## 绝对不要修改的文件
 
@@ -137,8 +139,11 @@ python compiler_main.py
 
 ## 当前阶段
 
-Phase 9 已完成 — MCP Server 正式化与文档切换
+Phase 10 准备中 — MCP 重定位与治理文档收敛
 当前主入口：`task.md`
 当前索引：`Docs/Current/00_Index.md`
+MCP 总口径锚定：`Docs/Current/14_MCP_Cognitive_Bridge_Anchor.md`
+四层主链定义：`Docs/Current/15_Skill_Spec_Handoff_Chain.md`
+MCP 重定位方案：`Docs/Current/16_MCP_Repositioning_Plan.md`
 Phase 9 验证证据：`ProjectState/Reports/2026-04-06/phase9_mcp_validation_2026-04-06.md`
 Phase 9 实施前方案归档：`Docs/History/Proposals/Phase9_MCP_Implementation_Plan.md`
