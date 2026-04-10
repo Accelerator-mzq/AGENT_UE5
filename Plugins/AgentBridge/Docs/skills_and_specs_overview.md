@@ -1,6 +1,6 @@
 # Skills / Specs 体系概述
 
-> 文档版本：v0.8.0 | 适用范围：AgentBridge 插件 Skills 与 Specs 体系
+> 文档版本：v0.9.0 | 适用范围：AgentBridge 插件 Skills 与 Specs 体系
 
 ---
 
@@ -186,16 +186,26 @@ Skills（编译驱动力）
     └── Genre Skill Packs → 类型化编译
     ↓ 生成
 Dynamic / Delta Spec Tree
+    （结构受 Static Spec 约束，内容由 AI Agent 填充）
     ↓ 组装
 Reviewed Handoff
 ```
 
 **依赖方向**：Static Spec Base → Skill Compilation → Spec Tree → Handoff
 
+**四层标准表述**：
+- **Skill** 决定生成什么 spec
+- **Static Spec** 决定 spec 长什么样
+- **Dynamic Spec** 决定这次项目实际生成了什么（结构受 Static Spec schema/contract 约束，字段值由 AI Agent 基于 GDD 上下文填充）
+- **Reviewed Handoff** 决定执行层正式消费什么
+
+详见 `Docs/Current/15_Skill_Spec_Handoff_Chain.md`
+
 **规则**：
 - Skills 必须引用 Static Base 的定义，不可自行发明长期契约
 - 当 Static Base 不完整时，Skills 应报告 capability_gaps 而非跳过
 - Genre Skill Packs 是 Static Base 扩展的重要需求来源
+- Dynamic Spec 的结构由 Static Spec 约束，但字段值由 Agent 认知能力填充——Static Spec 决定"什么字段必须存在"，Agent 决定"字段填什么值"
 
 ---
 

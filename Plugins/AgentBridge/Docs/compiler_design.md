@@ -1,6 +1,6 @@
 # Skill Compiler Plane 设计
 
-> 文档版本：v0.8.0（Phase 8 口径）
+> 文档版本：v0.9.0（Phase 10 准备口径）
 
 ## 1. 定位
 
@@ -37,8 +37,13 @@ Compiler/                          ← 新骨架目录
 Skill Template Pack：
 - SkillTemplates/genre_packs/boardgame/monopoly_like/ （6 套 × 6 文件）
 
-MCP Server（执行通道）：
+MCP 认知桥接层：
 - MCP/server.py + tool_definitions.py + naming.py + py_channel.py + rc_channel.py
+- 前端（Stage 1-2）：负责 GDD → Root Skill → Sub-Skill Graph → Spec Family 映射的认知分解
+- 中段：Bridge Passthrough 28 工具保留为可选外部协议适配层
+- 后端：负责测试证据判读（pass / fail / escalate）
+- Stage 3-5 由 Compiler Core 调度，Agent 通过 Core 内部 prepare/save 参与，不通过 MCP 对外工具
+- 详见 Docs/Current/14_MCP_Cognitive_Bridge_Anchor.md
 ```
 
 ### 2.2 旧链路（v0.5.0–v0.7.0，仍保留用于 boardgame/JRPG 回归）
