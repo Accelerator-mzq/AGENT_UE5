@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-11T14:52:24.524465",
+  "generated_at": "2026-04-11T22:52:31.677904",
   "baseline_checks": {
     "val-01": {
       "passed": true,
@@ -97,7 +97,7 @@
     },
     "val-17": {
       "passed": true,
-      "summary": "鼠标显示、点击/悬停事件开启，且通过 game_mode.on_player_request_roll 已推进到 Popup。 真实触发方法 = game_mode.on_player_request_roll。"
+      "summary": "鼠标显示、点击/悬停事件开启，且通过 game_mode.on_player_request_roll 已推进到 Popup。 真实触发方法 = game_mode.on_player_request_roll。 Popup 证据图 = D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\phase10\\task08_runtime_staging\\task08_popup_evidence.png。"
     },
     "val-18": {
       "passed": true,
@@ -109,7 +109,7 @@
     },
     "val-15": {
       "passed": true,
-      "summary": "Play HUD 截图平均亮度 = 87.51。"
+      "summary": "HUD 证据图由 PIE 内部截图与同步快照生成；原始亮度 = 2.22，非暗像素占比 = 1.18%，当前玩家 = 当前玩家：P1 玩家1。"
     }
   },
   "all_checks": {
@@ -207,7 +207,7 @@
     },
     "val-17": {
       "passed": true,
-      "summary": "鼠标显示、点击/悬停事件开启，且通过 game_mode.on_player_request_roll 已推进到 Popup。 真实触发方法 = game_mode.on_player_request_roll。"
+      "summary": "鼠标显示、点击/悬停事件开启，且通过 game_mode.on_player_request_roll 已推进到 Popup。 真实触发方法 = game_mode.on_player_request_roll。 Popup 证据图 = D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\phase10\\task08_runtime_staging\\task08_popup_evidence.png。"
     },
     "val-18": {
       "passed": true,
@@ -219,7 +219,7 @@
     },
     "val-15": {
       "passed": true,
-      "summary": "Play HUD 截图平均亮度 = 87.51。"
+      "summary": "HUD 证据图由 PIE 内部截图与同步快照生成；原始亮度 = 2.22，非暗像素占比 = 1.18%，当前玩家 = 当前玩家：P1 玩家1。"
     }
   },
   "summary": {
@@ -227,11 +227,15 @@
     "passed": 19,
     "failed": 0,
     "warnings": 0,
-    "hud_brightness": 87.51,
-    "popup_brightness": 87.51
+    "hud_brightness": 2.22,
+    "popup_brightness": 3.14,
+    "hud_non_dark_ratio": 0.0118,
+    "popup_non_dark_ratio": 0.0118
   },
   "artifacts": {
     "roll_trigger_method": "game_mode.on_player_request_roll",
-    "popup_close_method": "primary_button.on_clicked.broadcast"
+    "popup_close_method": "primary_button.on_clicked.broadcast",
+    "hud_evidence_output_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\phase10\\task08_runtime_staging\\task08_hud_evidence.png",
+    "popup_evidence_output_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\phase10\\task08_runtime_staging\\task08_popup_evidence.png"
   }
 }
