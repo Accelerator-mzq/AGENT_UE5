@@ -1,0 +1,89 @@
+{
+  "capture_label": "Popup",
+  "capture_backend": "UE.AutomationLibrary.take_high_res_screenshot",
+  "stage_name": "popup_ready",
+  "raw_output_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\phase10\\task08_runtime_staging\\task08_popup_viewport_raw.png",
+  "raw_metrics": {
+    "output_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\phase10\\task08_runtime_staging\\task08_popup_viewport_raw.png",
+    "width": 1280,
+    "height": 720,
+    "avg_brightness": 3.14,
+    "non_dark_ratio": 0.0118,
+    "bright_ratio": 0.0118,
+    "sample_count": 8910,
+    "file_size": 254842
+  },
+  "evidence_output_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\phase10\\task08_runtime_staging\\task08_popup_evidence.png",
+  "evidence_image": {
+    "output_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\phase10\\task08_runtime_staging\\task08_popup_evidence.png",
+    "width": 1840,
+    "height": 760,
+    "line_count": 14,
+    "panel_width": 560
+  },
+  "metadata_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\phase10\\task08_runtime_staging\\task08_popup_capture.json",
+  "panel_lines": [
+    "证据类型：Popup",
+    "截图来源：UE PIE 内部视口截图",
+    "截图后端：UE.AutomationLibrary.take_high_res_screenshot",
+    "阶段节点：popup_ready",
+    "地图：/Game/Maps/L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
+    "回合状态：WAITING_FOR_POPUP",
+    "原始分辨率：1280 x 720",
+    "平均亮度：3.14",
+    "非暗像素占比：1.18%",
+    "Popup 标题：公共基金",
+    "Popup 文案：玩家1 领取公共基金 93。",
+    "主按钮 可见/可用：是/是",
+    "副按钮 可见/可用：否/是",
+    "触发入口：game_mode.on_player_request_roll"
+  ],
+  "snapshot_excerpt": {
+    "timestamp": 1775919089.346419,
+    "editor_level": "",
+    "preplay_level": "/Game/Maps/L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
+    "is_in_pie": true,
+    "pie_world_count": 1,
+    "game_world_path": "/Game/Maps/UEDPIE_0_L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
+    "default_game_mode_path": "",
+    "preplay_default_game_mode_path": "/Script/Mvpv4TestCodex.MMonopolyGameMode",
+    "game_mode_class": "/Script/Mvpv4TestCodex.MMonopolyGameMode",
+    "game_state_class": "/Script/Mvpv4TestCodex.MMonopolyGameState",
+    "player_controller_class": "/Script/Mvpv4TestCodex.MMonopolyPlayerController",
+    "player_controller": {
+      "show_mouse_cursor": true,
+      "enable_click_events": true,
+      "enable_mouse_over_events": true
+    },
+    "turn_number": 1,
+    "current_player_index": 0,
+    "turn_state": "WAITING_FOR_POPUP",
+    "hud": {
+      "exists": true,
+      "class": "/Script/Mvpv4TestCodex.MGameHUDWidget",
+      "in_viewport": true,
+      "visible": true,
+      "current_player_text": "当前玩家：P1 玩家1",
+      "turn_number_text": "回合：1",
+      "money_summary_text": "P1 玩家1：1593\nP2 玩家2：1500",
+      "tile_info_text": "当前位置：格子 12",
+      "status_text": "状态：WaitingForPopup"
+    },
+    "popup": {
+      "exists": true,
+      "class": "/Script/Mvpv4TestCodex.MPopupWidget",
+      "in_viewport": true,
+      "visible": true,
+      "title": "公共基金",
+      "message": "玩家1 领取公共基金 93。",
+      "primary_button_visible": true,
+      "primary_button_enabled": true,
+      "secondary_button_visible": false,
+      "secondary_button_enabled": true
+    }
+  },
+  "requested_at": 1775919089.3648543,
+  "completed_at": 1775919089.7621303,
+  "file_size": 254842,
+  "task_repr": "<Object '/Engine/Transient.AutomationEditorTask_4' (0x000007E348185F00) Class 'AutomationEditorTask'>"
+}

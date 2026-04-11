@@ -1,0 +1,89 @@
+{
+  "capture_label": "HUD",
+  "capture_backend": "UE.AutomationLibrary.take_high_res_screenshot",
+  "stage_name": "hud_ready",
+  "raw_output_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\phase10\\task08_runtime_staging\\task08_hud_viewport_raw.png",
+  "raw_metrics": {
+    "output_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\phase10\\task08_runtime_staging\\task08_hud_viewport_raw.png",
+    "width": 1280,
+    "height": 720,
+    "avg_brightness": 2.22,
+    "non_dark_ratio": 0.0118,
+    "bright_ratio": 0.0118,
+    "sample_count": 8910,
+    "file_size": 233996
+  },
+  "evidence_output_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\phase10\\task08_runtime_staging\\task08_hud_evidence.png",
+  "evidence_image": {
+    "output_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\phase10\\task08_runtime_staging\\task08_hud_evidence.png",
+    "width": 1840,
+    "height": 760,
+    "line_count": 14,
+    "panel_width": 560
+  },
+  "metadata_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\phase10\\task08_runtime_staging\\task08_hud_capture.json",
+  "panel_lines": [
+    "证据类型：HUD",
+    "截图来源：UE PIE 内部视口截图",
+    "截图后端：UE.AutomationLibrary.take_high_res_screenshot",
+    "阶段节点：hud_ready",
+    "地图：/Game/Maps/L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
+    "回合状态：WAIT_FOR_ROLL",
+    "原始分辨率：1280 x 720",
+    "平均亮度：2.22",
+    "非暗像素占比：1.18%",
+    "当前玩家：当前玩家：P1 玩家1",
+    "回合文本：回合：1",
+    "资金摘要：P1 玩家1：1500 P2 玩家2：1500",
+    "格子摘要：当前位置：格子 0",
+    "鼠标/点击/悬停：是/是/是"
+  ],
+  "snapshot_excerpt": {
+    "timestamp": 1775919088.7591522,
+    "editor_level": "",
+    "preplay_level": "/Game/Maps/L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
+    "is_in_pie": true,
+    "pie_world_count": 1,
+    "game_world_path": "/Game/Maps/UEDPIE_0_L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
+    "default_game_mode_path": "",
+    "preplay_default_game_mode_path": "/Script/Mvpv4TestCodex.MMonopolyGameMode",
+    "game_mode_class": "/Script/Mvpv4TestCodex.MMonopolyGameMode",
+    "game_state_class": "/Script/Mvpv4TestCodex.MMonopolyGameState",
+    "player_controller_class": "/Script/Mvpv4TestCodex.MMonopolyPlayerController",
+    "player_controller": {
+      "show_mouse_cursor": true,
+      "enable_click_events": true,
+      "enable_mouse_over_events": true
+    },
+    "turn_number": 1,
+    "current_player_index": 0,
+    "turn_state": "WAIT_FOR_ROLL",
+    "hud": {
+      "exists": true,
+      "class": "/Script/Mvpv4TestCodex.MGameHUDWidget",
+      "in_viewport": true,
+      "visible": true,
+      "current_player_text": "当前玩家：P1 玩家1",
+      "turn_number_text": "回合：1",
+      "money_summary_text": "P1 玩家1：1500\nP2 玩家2：1500",
+      "tile_info_text": "当前位置：格子 0",
+      "status_text": "状态：WaitForRoll"
+    },
+    "popup": {
+      "exists": false,
+      "class": "",
+      "in_viewport": false,
+      "visible": false,
+      "title": "",
+      "message": "",
+      "primary_button_visible": false,
+      "primary_button_enabled": false,
+      "secondary_button_visible": false,
+      "secondary_button_enabled": false
+    }
+  },
+  "requested_at": 1775919088.94074,
+  "completed_at": 1775919089.1464615,
+  "file_size": 233996,
+  "task_repr": "<Object '/Engine/Transient.AutomationEditorTask_3' (0x000007E34818C400) Class 'AutomationEditorTask'>"
+}

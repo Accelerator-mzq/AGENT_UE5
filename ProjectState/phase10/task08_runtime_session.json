@@ -1,12 +1,14 @@
 {
-  "started_at": 1775890337.2642124,
+  "started_at": 1775919087.6677513,
   "stage": "wait_end_play",
   "level_before_play": "/Game/Maps/L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
   "preplay": {
     "editor_level": "/Game/Maps/L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
     "default_game_mode_path": "/Script/Mvpv4TestCodex.MMonopolyGameMode"
   },
-  "notes": [],
+  "notes": [
+    "关闭结算 Popup 后补发了一次 RequestEndTurnFromUI。"
+  ],
   "warnings": [],
   "runtime_checks": {
     "val-13": {
@@ -35,11 +37,34 @@
     }
   },
   "artifacts": {
-    "wait_popup_started_at": 1775890340.920678
+    "captures": {
+      "hud": {
+        "stage_name": "hud_ready",
+        "capture_backend": "UE.AutomationLibrary.take_high_res_screenshot",
+        "output_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\phase10\\task08_runtime_staging\\task08_hud_viewport_raw.png",
+        "requested_at": 1775919088.94074,
+        "task_repr": "<Object '/Engine/Transient.AutomationEditorTask_3' (0x000007E34818C400) Class 'AutomationEditorTask'>",
+        "file_exists": true,
+        "file_size": 233996,
+        "completed_at": 1775919089.1464615
+      },
+      "popup": {
+        "stage_name": "popup_ready",
+        "capture_backend": "UE.AutomationLibrary.take_high_res_screenshot",
+        "output_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\phase10\\task08_runtime_staging\\task08_popup_viewport_raw.png",
+        "requested_at": 1775919089.3648543,
+        "task_repr": "<Object '/Engine/Transient.AutomationEditorTask_4' (0x000007E348185F00) Class 'AutomationEditorTask'>",
+        "file_exists": true,
+        "file_size": 254842,
+        "completed_at": 1775919089.7621303
+      }
+    },
+    "wait_popup_started_at": 1775919089.14847,
+    "end_turn_requested": true
   },
   "snapshots": {
     "last": {
-      "timestamp": 1775890344.3525615,
+      "timestamp": 1775919149.4183862,
       "editor_level": "/Game/Maps/L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
       "preplay_level": "/Game/Maps/L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
       "is_in_pie": false,
@@ -83,7 +108,7 @@
       }
     },
     "hud_ready": {
-      "timestamp": 1775890338.3719912,
+      "timestamp": 1775919088.7591522,
       "editor_level": "",
       "preplay_level": "/Game/Maps/L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
       "is_in_pie": true,
@@ -127,7 +152,7 @@
       }
     },
     "roll_requested_at": {
-      "timestamp": 1775890340.920678,
+      "timestamp": 1775919089.14847,
       "editor_level": "",
       "preplay_level": "/Game/Maps/L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
       "is_in_pie": true,
@@ -153,8 +178,8 @@
         "visible": true,
         "current_player_text": "当前玩家：P1 玩家1",
         "turn_number_text": "回合：1",
-        "money_summary_text": "P1 玩家1：1420\nP2 玩家2：1500",
-        "tile_info_text": "当前位置：格子 6",
+        "money_summary_text": "P1 玩家1：1593\nP2 玩家2：1500",
+        "tile_info_text": "当前位置：格子 12",
         "status_text": "状态：WaitingForPopup"
       },
       "popup": {
@@ -162,8 +187,8 @@
         "class": "/Script/Mvpv4TestCodex.MPopupWidget",
         "in_viewport": true,
         "visible": true,
-        "title": "机会",
-        "message": "玩家1 抽到机会卡：维修房产，支付 80。",
+        "title": "公共基金",
+        "message": "玩家1 领取公共基金 93。",
         "primary_button_visible": true,
         "primary_button_enabled": true,
         "secondary_button_visible": false,
@@ -171,7 +196,7 @@
       }
     },
     "popup_ready": {
-      "timestamp": 1775890341.2521725,
+      "timestamp": 1775919089.346419,
       "editor_level": "",
       "preplay_level": "/Game/Maps/L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
       "is_in_pie": true,
@@ -197,8 +222,8 @@
         "visible": true,
         "current_player_text": "当前玩家：P1 玩家1",
         "turn_number_text": "回合：1",
-        "money_summary_text": "P1 玩家1：1420\nP2 玩家2：1500",
-        "tile_info_text": "当前位置：格子 6",
+        "money_summary_text": "P1 玩家1：1593\nP2 玩家2：1500",
+        "tile_info_text": "当前位置：格子 12",
         "status_text": "状态：WaitingForPopup"
       },
       "popup": {
@@ -206,8 +231,8 @@
         "class": "/Script/Mvpv4TestCodex.MPopupWidget",
         "in_viewport": true,
         "visible": true,
-        "title": "机会",
-        "message": "玩家1 抽到机会卡：维修房产，支付 80。",
+        "title": "公共基金",
+        "message": "玩家1 领取公共基金 93。",
         "primary_button_visible": true,
         "primary_button_enabled": true,
         "secondary_button_visible": false,
@@ -215,7 +240,7 @@
       }
     },
     "smoke_complete": {
-      "timestamp": 1775890343.5863986,
+      "timestamp": 1775919148.6642785,
       "editor_level": "",
       "preplay_level": "/Game/Maps/L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
       "is_in_pie": true,
@@ -241,7 +266,7 @@
         "visible": true,
         "current_player_text": "当前玩家：P2 玩家2",
         "turn_number_text": "回合：2",
-        "money_summary_text": "P1 玩家1：1420\nP2 玩家2：1500",
+        "money_summary_text": "P1 玩家1：1593\nP2 玩家2：1500",
         "tile_info_text": "当前位置：格子 0",
         "status_text": "状态：WaitForRoll"
       },
@@ -250,8 +275,8 @@
         "class": "/Script/Mvpv4TestCodex.MPopupWidget",
         "in_viewport": false,
         "visible": false,
-        "title": "机会",
-        "message": "玩家1 抽到机会卡：维修房产，支付 80。",
+        "title": "额外回合",
+        "message": "掷出双骰，获得一次额外回合。",
         "primary_button_visible": false,
         "primary_button_enabled": true,
         "secondary_button_visible": false,
@@ -261,11 +286,12 @@
   },
   "popup_close_method": "primary_button.on_clicked.broadcast",
   "popup_close_history": [
+    "primary_button.on_clicked.broadcast",
     "primary_button.on_clicked.broadcast"
   ],
   "roll_trigger_method": "game_mode.on_player_request_roll",
-  "popup_cycle_count": 0,
-  "finished_at": 1775890344.3525615,
+  "popup_cycle_count": 1,
+  "finished_at": 1775919149.4193873,
   "status": "success",
   "message": "TASK 08 运行时会话完成"
 }

@@ -35,13 +35,19 @@ NO_EDITOR_EQUIVALENT_PATH = PHASE10_DIR / "task08_no_editor_equivalent_regressio
 TASK08_REPORT_PATH = REPORT_DIR / "task08_runtime_evidence_judgment_validation.md"
 
 EDITOR_OVERVIEW_SCREENSHOT = RUNTIME_STAGING_DIR / "task08_editor_overview.png"
-HUD_SCREENSHOT = RUNTIME_STAGING_DIR / "task08_hud_window.png"
-POPUP_SCREENSHOT = RUNTIME_STAGING_DIR / "task08_popup_window.png"
+HUD_RAW_SCREENSHOT = RUNTIME_STAGING_DIR / "task08_hud_viewport_raw.png"
+POPUP_RAW_SCREENSHOT = RUNTIME_STAGING_DIR / "task08_popup_viewport_raw.png"
+HUD_SCREENSHOT = RUNTIME_STAGING_DIR / "task08_hud_evidence.png"
+POPUP_SCREENSHOT = RUNTIME_STAGING_DIR / "task08_popup_evidence.png"
+HUD_CAPTURE_METADATA_PATH = RUNTIME_STAGING_DIR / "task08_hud_capture.json"
+POPUP_CAPTURE_METADATA_PATH = RUNTIME_STAGING_DIR / "task08_popup_capture.json"
 
 PROJECT_LOG_PATH = REPO_ROOT / "Saved" / "Logs" / "Mvpv4TestCodex.log"
 TASK07_SNAPSHOT_PATH = PHASE10_DIR / "task07_validation_snapshot.json"
 PLAN_DOC_PATH = REPO_ROOT / "Docs" / "Current" / "16_MCP_Repositioning_Plan.md"
 SYSTEM_TEST_REPORTS_ROOT = REPO_ROOT / "Plugins" / "AgentBridge" / "reports"
+MIN_RUNTIME_CAPTURE_BRIGHTNESS = 1.0
+MIN_RUNTIME_CAPTURE_NON_DARK_RATIO = 0.003
 
 NO_EDITOR_STAGE_PLAN = {
     1: {"label": "Schema 验证", "timeout_seconds": 600, "prefer_cached_success": False},
@@ -168,91 +174,17 @@ def capture_editor_overview_screenshot(output_path: Path) -> dict[str, Any]:
     }
 
 
-def capture_unreal_editor_window(output_path: Path) -> dict[str, Any]:
-    """抓取 UnrealEditor 主窗口，并计算粗粒度平均亮度。"""
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
-    powershell_script = f"""
-$ErrorActionPreference = 'Stop'
-Add-Type -AssemblyName System.Drawing
-Add-Type @"
-using System;
-using System.Runtime.InteropServices;
-public static class CodexWindowCapture {{
-    [StructLayout(LayoutKind.Sequential)]
-    public struct RECT {{
-        public int Left;
-        public int Top;
-        public int Right;
-        public int Bottom;
-    }}
-
-    [DllImport("user32.dll")]
-    public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
-
-    [DllImport("user32.dll")]
-    public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
-
-    [DllImport("user32.dll")]
-    public static extern bool SetForegroundWindow(IntPtr hWnd);
-}}
-"@
-
-$proc = Get-Process UnrealEditor | Where-Object {{ $_.MainWindowHandle -ne 0 }} | Select-Object -First 1
-if ($null -eq $proc) {{
-    throw 'UnrealEditor 窗口未找到'
-}}
-
-[CodexWindowCapture]::ShowWindowAsync($proc.MainWindowHandle, 9) | Out-Null
-[CodexWindowCapture]::SetForegroundWindow($proc.MainWindowHandle) | Out-Null
-Start-Sleep -Milliseconds 400
-
-$rect = New-Object CodexWindowCapture+RECT
-[CodexWindowCapture]::GetWindowRect($proc.MainWindowHandle, [ref]$rect) | Out-Null
-$width = $rect.Right - $rect.Left
-$height = $rect.Bottom - $rect.Top
-if ($width -le 0 -or $height -le 0) {{
-    throw "窗口尺寸非法: $width x $height"
-}}
-
-$bmp = New-Object System.Drawing.Bitmap $width, $height
-$graphics = [System.Drawing.Graphics]::FromImage($bmp)
-$graphics.CopyFromScreen($rect.Left, $rect.Top, 0, 0, $bmp.Size)
-$bmp.Save('{str(output_path).replace("'", "''")}', [System.Drawing.Imaging.ImageFormat]::Png)
-
-$stepX = [Math]::Max([int]($width / 48), 1)
-$stepY = [Math]::Max([int]($height / 48), 1)
-$sum = 0.0
-$count = 0
-for ($x = 0; $x -lt $width; $x += $stepX) {{
-    for ($y = 0; $y -lt $height; $y += $stepY) {{
-        $pixel = $bmp.GetPixel($x, $y)
-        $sum += ($pixel.R + $pixel.G + $pixel.B) / 3.0
-        $count += 1
-    }}
-}}
-
-$avg = if ($count -gt 0) {{ [Math]::Round($sum / $count, 2) }} else {{ 0.0 }}
-$graphics.Dispose()
-$bmp.Dispose()
-
-@{{
-    output_path = '{str(output_path).replace("'", "''")}';
-    width = $width;
-    height = $height;
-    avg_brightness = $avg;
-    process_id = $proc.Id;
-}} | ConvertTo-Json -Compress
-"""
-
+def run_powershell_json(script: str) -> dict[str, Any]:
+    """运行 PowerShell 并解析 JSON 输出。"""
     completed = subprocess.run(
-        ["powershell", "-NoProfile", "-Command", powershell_script],
+        ["powershell", "-NoProfile", "-Command", script],
         cwd=str(REPO_ROOT),
         capture_output=True,
         text=True,
         check=True,
     )
-    return json.loads(completed.stdout.strip())
+    stdout = completed.stdout.strip()
+    return json.loads(stdout) if stdout else {}
 
 
 def wait_for_file(path: Path, timeout_seconds: float, label: str) -> Path:
@@ -294,29 +226,287 @@ def wait_for_json_file(path: Path, timeout_seconds: float, label: str) -> dict[s
     raise RuntimeError(f"读取 {label} 失败: {last_error}")
 
 
-def write_ack(name: str) -> None:
-    """写入一个简单 ack 文件，通知编辑器内脚本继续。"""
-    ack_path = RUNTIME_MARKER_DIR / f"{name}.ok"
-    ack_path.write_text("ok", encoding="utf-8")
+def collect_image_metrics(path: Path) -> dict[str, Any]:
+    """采样图片亮度，用于判断原始视口截图是否接近黑屏。"""
+    if not path.exists():
+        raise FileNotFoundError(f"图片不存在: {path}")
+
+    powershell_script = f"""
+$ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.Drawing
+$path = '{str(path).replace("'", "''")}'
+$bitmap = [System.Drawing.Bitmap]::FromFile($path)
+try {{
+    $stepX = [Math]::Max([int]($bitmap.Width / 96), 1)
+    $stepY = [Math]::Max([int]($bitmap.Height / 96), 1)
+    $sum = 0.0
+    $count = 0
+    $nonDark = 0
+    $bright = 0
+
+    for ($x = 0; $x -lt $bitmap.Width; $x += $stepX) {{
+        for ($y = 0; $y -lt $bitmap.Height; $y += $stepY) {{
+            $pixel = $bitmap.GetPixel($x, $y)
+            $brightness = ($pixel.R + $pixel.G + $pixel.B) / 3.0
+            $sum += $brightness
+            $count += 1
+            if ($brightness -gt 18.0) {{ $nonDark += 1 }}
+            if ($brightness -gt 48.0) {{ $bright += 1 }}
+        }}
+    }}
+
+    [pscustomobject]@{{
+        output_path = $path
+        width = $bitmap.Width
+        height = $bitmap.Height
+        avg_brightness = [Math]::Round($sum / [Math]::Max($count, 1), 2)
+        non_dark_ratio = [Math]::Round($nonDark / [Math]::Max($count, 1), 4)
+        bright_ratio = [Math]::Round($bright / [Math]::Max($count, 1), 4)
+        sample_count = $count
+    }} | ConvertTo-Json -Compress
+}}
+finally {{
+    $bitmap.Dispose()
+}}
+"""
+    metrics = run_powershell_json(powershell_script)
+    metrics["file_size"] = path.stat().st_size
+    return metrics
 
 
-def capture_runtime_screenshots() -> dict[str, Any]:
-    """等待 HUD / Popup 阶段标记并抓图。"""
-    hud_marker = load_json(wait_for_runtime_marker(RUNTIME_MARKER_DIR / "hud_ready.json", 120.0, "HUD 阶段标记"))
-    hud_capture = capture_unreal_editor_window(HUD_SCREENSHOT)
-    write_ack("hud_captured")
+def bool_text(value: Any) -> str:
+    """把布尔值转成更易读的中文。"""
+    return "是" if bool(value) else "否"
 
-    popup_marker = load_json(wait_for_runtime_marker(RUNTIME_MARKER_DIR / "popup_ready.json", 120.0, "Popup 阶段标记"))
-    popup_capture = capture_unreal_editor_window(POPUP_SCREENSHOT)
-    write_ack("popup_captured")
 
-    smoke_marker = load_json(wait_for_runtime_marker(RUNTIME_MARKER_DIR / "smoke_complete.json", 120.0, "冒烟完成标记"))
+def shorten_text(value: Any, limit: int = 72) -> str:
+    """缩短侧边说明文字，避免证据图面板过宽。"""
+    text = str(value or "").replace("\r", " ").replace("\n", " ").strip()
+    if len(text) <= limit:
+        return text
+    return text[: limit - 1] + "…"
+
+
+def format_ratio_percent(value: float) -> str:
+    """把比例值转成百分比文本。"""
+    return f"{value * 100:.2f}%"
+
+
+def build_capture_panel_lines(
+    capture_label: str,
+    snapshot: dict[str, Any],
+    raw_metrics: dict[str, Any],
+    capture_meta: dict[str, Any],
+    runtime_session: dict[str, Any],
+) -> list[str]:
+    """把同步快照整理成证据图右侧说明面板。"""
+    lines = [
+        f"证据类型：{capture_label}",
+        "截图来源：UE PIE 内部视口截图",
+        f"截图后端：{capture_meta.get('capture_backend', 'unknown')}",
+        f"阶段节点：{capture_meta.get('stage_name', 'unknown')}",
+        f"地图：{shorten_text(snapshot.get('editor_level') or snapshot.get('preplay_level', ''))}",
+        f"回合状态：{snapshot.get('turn_state', '') or 'unknown'}",
+        f"原始分辨率：{raw_metrics.get('width', 0)} x {raw_metrics.get('height', 0)}",
+        f"平均亮度：{raw_metrics.get('avg_brightness', 0.0)}",
+        f"非暗像素占比：{format_ratio_percent(float(raw_metrics.get('non_dark_ratio', 0.0)))}",
+    ]
+
+    if capture_label == "HUD":
+        hud = snapshot.get("hud", {})
+        controller = snapshot.get("player_controller", {})
+        lines.extend(
+            [
+                f"当前玩家：{shorten_text(hud.get('current_player_text', ''), 42)}",
+                f"回合文本：{shorten_text(hud.get('turn_number_text', ''), 42)}",
+                f"资金摘要：{shorten_text(hud.get('money_summary_text', ''), 42)}",
+                f"格子摘要：{shorten_text(hud.get('tile_info_text', ''), 42)}",
+                (
+                    "鼠标/点击/悬停："
+                    f"{bool_text(controller.get('show_mouse_cursor'))}/"
+                    f"{bool_text(controller.get('enable_click_events'))}/"
+                    f"{bool_text(controller.get('enable_mouse_over_events'))}"
+                ),
+            ]
+        )
+    else:
+        popup = snapshot.get("popup", {})
+        lines.extend(
+            [
+                f"Popup 标题：{shorten_text(popup.get('title', ''), 42)}",
+                f"Popup 文案：{shorten_text(popup.get('message', ''), 42)}",
+                (
+                    "主按钮 可见/可用："
+                    f"{bool_text(popup.get('primary_button_visible'))}/"
+                    f"{bool_text(popup.get('primary_button_enabled'))}"
+                ),
+                (
+                    "副按钮 可见/可用："
+                    f"{bool_text(popup.get('secondary_button_visible'))}/"
+                    f"{bool_text(popup.get('secondary_button_enabled'))}"
+                ),
+                f"触发入口：{runtime_session.get('roll_trigger_method', '') or '未记录'}",
+            ]
+        )
+
+    return lines
+
+
+def render_runtime_capture_evidence(raw_path: Path, output_path: Path, title: str, lines: list[str]) -> dict[str, Any]:
+    """把原始视口截图和同步快照拼成一张更可读的证据图。"""
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    lines_json = json.dumps(lines, ensure_ascii=False)
+    powershell_script = f"""
+$ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.Drawing
+$rawPath = '{str(raw_path).replace("'", "''")}'
+$outputPath = '{str(output_path).replace("'", "''")}'
+$title = '{title.replace("'", "''")}'
+$lines = ConvertFrom-Json @'
+{lines_json}
+'@
+$raw = [System.Drawing.Bitmap]::FromFile($rawPath)
+try {{
+    $panelWidth = 560
+    $canvasWidth = $raw.Width + $panelWidth
+    $canvasHeight = [Math]::Max($raw.Height, 760)
+    $canvas = New-Object System.Drawing.Bitmap $canvasWidth, $canvasHeight
+    $graphics = [System.Drawing.Graphics]::FromImage($canvas)
+
+    $panelBrush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::White)
+    $titleBrush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(26, 26, 26))
+    $bodyBrush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(52, 52, 52))
+    $separatorPen = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(224, 224, 224), 1)
+    $titleFont = New-Object System.Drawing.Font('Microsoft YaHei UI', 18, [System.Drawing.FontStyle]::Bold)
+    $bodyFont = New-Object System.Drawing.Font('Microsoft YaHei UI', 11, [System.Drawing.FontStyle]::Regular)
+
+    try {{
+        $graphics.Clear([System.Drawing.Color]::FromArgb(246, 246, 246))
+        $imageY = [Math]::Max([int](($canvasHeight - $raw.Height) / 2), 0)
+        $graphics.DrawImage($raw, 0, $imageY, $raw.Width, $raw.Height)
+        $graphics.FillRectangle($panelBrush, $raw.Width, 0, $panelWidth, $canvasHeight)
+        $graphics.DrawLine($separatorPen, $raw.Width, 0, $raw.Width, $canvasHeight)
+        $graphics.DrawString($title, $titleFont, $titleBrush, [System.Drawing.RectangleF]::new($raw.Width + 24, 24, $panelWidth - 48, 36))
+
+        $currentY = 82.0
+        foreach ($line in $lines) {{
+            $graphics.DrawString(
+                [string]$line,
+                $bodyFont,
+                $bodyBrush,
+                [System.Drawing.RectangleF]::new($raw.Width + 24, $currentY, $panelWidth - 48, 34)
+            )
+            $currentY += 34.0
+        }}
+
+        $canvas.Save($outputPath, [System.Drawing.Imaging.ImageFormat]::Png)
+        [pscustomobject]@{{
+            output_path = $outputPath
+            width = $canvas.Width
+            height = $canvas.Height
+            line_count = $lines.Count
+            panel_width = $panelWidth
+        }} | ConvertTo-Json -Compress
+    }}
+    finally {{
+        $titleFont.Dispose()
+        $bodyFont.Dispose()
+        $separatorPen.Dispose()
+        $panelBrush.Dispose()
+        $titleBrush.Dispose()
+        $bodyBrush.Dispose()
+        $graphics.Dispose()
+        $canvas.Dispose()
+    }}
+}}
+finally {{
+    $raw.Dispose()
+}}
+"""
+    return run_powershell_json(powershell_script)
+
+
+def capture_has_scene_content(capture: dict[str, Any]) -> bool:
+    """判断原始截图是否至少拍到了非黑屏的游戏内容。"""
+    raw_path = capture.get("raw_output_path", "")
+    evidence_path = capture.get("evidence_output_path", "")
+    raw_metrics = capture.get("raw_metrics", {})
+    if not raw_path or not evidence_path:
+        return False
+    if not Path(raw_path).exists() or not Path(evidence_path).exists():
+        return False
+    return (
+        capture.get("capture_backend") == "UE.AutomationLibrary.take_high_res_screenshot"
+        and float(raw_metrics.get("avg_brightness", 0.0)) >= MIN_RUNTIME_CAPTURE_BRIGHTNESS
+        and float(raw_metrics.get("non_dark_ratio", 0.0)) >= MIN_RUNTIME_CAPTURE_NON_DARK_RATIO
+    )
+
+
+def build_runtime_capture_evidence(runtime_session: dict[str, Any]) -> dict[str, Any]:
+    """把运行态原始截图和同步快照整理成最终证据产物。"""
+    captures = runtime_session.get("artifacts", {}).get("captures", {})
+    snapshots = runtime_session.get("snapshots", {})
+
+    def build_one(
+        capture_key: str,
+        capture_label: str,
+        raw_path: Path,
+        evidence_path: Path,
+        metadata_path: Path,
+        snapshot_key: str,
+    ) -> dict[str, Any]:
+        capture_meta = dict(captures.get(capture_key, {}))
+        if not capture_meta:
+            raise RuntimeError(f"{capture_label} 截图元数据缺失")
+
+        actual_raw_path = Path(capture_meta.get("output_path", "") or raw_path)
+        wait_for_file(actual_raw_path, 15.0, f"{capture_label} 原始截图")
+        raw_metrics = collect_image_metrics(actual_raw_path)
+        snapshot = snapshots.get(snapshot_key, {})
+        panel_lines = build_capture_panel_lines(capture_label, snapshot, raw_metrics, capture_meta, runtime_session)
+        evidence_image = render_runtime_capture_evidence(
+            actual_raw_path,
+            evidence_path,
+            f"TASK 08 {capture_label} 运行态证据图",
+            panel_lines,
+        )
+
+        payload = {
+            "capture_label": capture_label,
+            "capture_backend": capture_meta.get("capture_backend", ""),
+            "stage_name": capture_meta.get("stage_name", ""),
+            "raw_output_path": str(actual_raw_path),
+            "raw_metrics": raw_metrics,
+            "evidence_output_path": str(evidence_path),
+            "evidence_image": evidence_image,
+            "metadata_path": str(metadata_path),
+            "panel_lines": panel_lines,
+            "snapshot_excerpt": snapshot,
+            "requested_at": capture_meta.get("requested_at", 0.0),
+            "completed_at": capture_meta.get("completed_at", 0.0),
+            "file_size": capture_meta.get("file_size", 0),
+            "task_repr": capture_meta.get("task_repr", ""),
+        }
+        write_json(metadata_path, payload)
+        return payload
+
     return {
-        "hud_marker": hud_marker,
-        "popup_marker": popup_marker,
-        "smoke_marker": smoke_marker,
-        "hud_capture": hud_capture,
-        "popup_capture": popup_capture,
+        "hud_capture": build_one(
+            capture_key="hud",
+            capture_label="HUD",
+            raw_path=HUD_RAW_SCREENSHOT,
+            evidence_path=HUD_SCREENSHOT,
+            metadata_path=HUD_CAPTURE_METADATA_PATH,
+            snapshot_key="hud_ready",
+        ),
+        "popup_capture": build_one(
+            capture_key="popup",
+            capture_label="Popup",
+            raw_path=POPUP_RAW_SCREENSHOT,
+            evidence_path=POPUP_SCREENSHOT,
+            metadata_path=POPUP_CAPTURE_METADATA_PATH,
+            snapshot_key="popup_ready",
+        ),
     }
 
 
@@ -369,6 +559,8 @@ def build_runtime_editor_script() -> str:
         "marker_dir": str(RUNTIME_MARKER_DIR),
         "result_path": str(RUNTIME_SESSION_PATH),
         "state_summary_path": str(RUNTIME_STATE_SUMMARY_PATH),
+        "hud_raw_screenshot_path": str(HUD_RAW_SCREENSHOT),
+        "popup_raw_screenshot_path": str(POPUP_RAW_SCREENSHOT),
     }
     template = r"""# -*- coding: utf-8 -*-
 import json
@@ -383,6 +575,8 @@ MARKER_DIR = Path(CONFIG["marker_dir"])
 RESULT_PATH = Path(CONFIG["result_path"])
 STATE_SUMMARY_PATH = Path(CONFIG["state_summary_path"])
 MAP_ASSET_PATH = CONFIG["map_asset_path"]
+HUD_RAW_SCREENSHOT_PATH = Path(CONFIG["hud_raw_screenshot_path"])
+POPUP_RAW_SCREENSHOT_PATH = Path(CONFIG["popup_raw_screenshot_path"])
 
 STATE = {{
     "started_at": time.time(),
@@ -411,8 +605,48 @@ def write_marker(name: str, payload):
     write_json(MARKER_DIR / f"{{name}}.json", payload)
 
 
-def ack_exists(name: str) -> bool:
-    return (MARKER_DIR / f"{{name}}.ok").exists()
+def request_runtime_viewport_capture(output_path: Path, stage_name: str):
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    if output_path.exists():
+        output_path.unlink()
+
+    task = unreal.AutomationLibrary.take_high_res_screenshot(
+        1280,
+        720,
+        str(output_path).replace("\\", "/"),
+        None,
+        False,
+        False,
+        unreal.ComparisonTolerance.LOW,
+        f"TASK 08 {{stage_name}} viewport capture",
+        0.2,
+        True,
+    )
+    return {{
+        "stage_name": stage_name,
+        "capture_backend": "UE.AutomationLibrary.take_high_res_screenshot",
+        "output_path": str(output_path),
+        "requested_at": time.time(),
+        "task_repr": str(task),
+    }}
+
+
+def capture_file_ready(capture_record) -> bool:
+    if not capture_record:
+        return False
+
+    output_path = Path(capture_record.get("output_path", ""))
+    if not output_path.exists():
+        return False
+
+    file_size = output_path.stat().st_size
+    if file_size <= 0:
+        return False
+
+    capture_record["file_exists"] = True
+    capture_record["file_size"] = file_size
+    capture_record["completed_at"] = time.time()
+    return True
 
 
 def enum_name(value) -> str:
@@ -707,12 +941,18 @@ def tick(_delta_seconds: float):
                     "passed": True,
                     "summary": "HUD 已入视口，且当前玩家/资金/回合/格子 4 个文本均非空。",
                 }}
+                STATE.setdefault("artifacts", {{}}).setdefault("captures", {{}})["hud"] = request_runtime_viewport_capture(
+                    HUD_RAW_SCREENSHOT_PATH,
+                    "hud_ready",
+                )
                 write_marker("hud_ready", snapshot)
                 STATE["stage"] = "wait_hud_capture"
             return
 
         if stage == "wait_hud_capture":
-            if ack_exists("hud_captured"):
+            hud_capture = STATE.get("artifacts", {{}}).get("captures", {{}}).get("hud", {{}})
+            if capture_file_ready(hud_capture):
+                write_marker("hud_capture_ready", hud_capture)
                 game_world = unreal.EditorLevelLibrary.get_game_world()
                 game_mode = unreal.GameplayStatics.get_game_mode(game_world) if game_world else None
                 if game_mode is None or not hasattr(game_mode, "on_player_request_roll"):
@@ -723,6 +963,9 @@ def tick(_delta_seconds: float):
                 STATE["snapshots"]["roll_requested_at"] = snapshot_runtime()
                 STATE["artifacts"]["wait_popup_started_at"] = time.time()
                 STATE["stage"] = "wait_popup"
+                return
+            if time.time() - hud_capture.get("requested_at", STATE["started_at"]) > 15.0:
+                finalize("failed", "HUD 原始视口截图落盘超时")
             return
 
         if stage == "wait_popup":
@@ -736,6 +979,10 @@ def tick(_delta_seconds: float):
                     and bool(STATE.get("roll_trigger_method")),
                     "summary": f"鼠标显示、点击/悬停事件开启，且通过 {{STATE.get('roll_trigger_method', '未知入口')}} 已推进到 Popup。",
                 }}
+                STATE.setdefault("artifacts", {{}}).setdefault("captures", {{}})["popup"] = request_runtime_viewport_capture(
+                    POPUP_RAW_SCREENSHOT_PATH,
+                    "popup_ready",
+                )
                 write_marker("popup_ready", snapshot)
                 STATE["stage"] = "wait_popup_capture"
                 return
@@ -744,7 +991,9 @@ def tick(_delta_seconds: float):
             return
 
         if stage == "wait_popup_capture":
-            if ack_exists("popup_captured"):
+            popup_capture = STATE.get("artifacts", {{}}).get("captures", {{}}).get("popup", {{}})
+            if capture_file_ready(popup_capture):
+                write_marker("popup_capture_ready", popup_capture)
                 game_world = unreal.EditorLevelLibrary.get_game_world()
                 popup_widget = find_first_widget(game_world, unreal.MPopupWidget)
                 close_method = click_popup_primary(popup_widget)
@@ -763,6 +1012,9 @@ def tick(_delta_seconds: float):
                     "summary": f"Popup 已显示，并通过 {{close_method}} 触发继续流程。",
                 }}
                 STATE["stage"] = "wait_smoke_complete"
+                return
+            if time.time() - popup_capture.get("requested_at", STATE["started_at"]) > 15.0:
+                finalize("failed", "Popup 原始视口截图落盘超时")
             return
 
         if stage == "wait_smoke_complete":
@@ -848,10 +1100,29 @@ def build_runtime_validation_matrix(
     """汇总 12 个基础验证点 + 7 个运行时验证点。"""
     baseline_checks = task07_snapshot.get("validation", {})
     runtime_checks = runtime_session.get("runtime_checks", {})
+    hud_snapshot = runtime_session.get("snapshots", {}).get("hud_ready", {})
+    popup_snapshot = runtime_session.get("snapshots", {}).get("popup_ready", {})
+    hud_metrics = hud_capture.get("raw_metrics", {})
+    popup_metrics = popup_capture.get("raw_metrics", {})
+
+    hud_capture_passed = capture_has_scene_content(hud_capture) and all(
+        bool(hud_snapshot.get("hud", {}).get(field))
+        for field in ("current_player_text", "turn_number_text", "money_summary_text", "tile_info_text")
+    )
+    popup_capture_passed = capture_has_scene_content(popup_capture) and (
+        bool(popup_snapshot.get("popup", {}).get("title"))
+        or bool(popup_snapshot.get("popup", {}).get("message"))
+        or bool(popup_snapshot.get("popup", {}).get("primary_button_visible"))
+    )
 
     runtime_checks["val-15"] = {
-        "passed": float(hud_capture.get("avg_brightness", 0.0)) > 15.0,
-        "summary": f"Play HUD 截图平均亮度 = {hud_capture.get('avg_brightness', 0.0)}。",
+        "passed": hud_capture_passed,
+        "summary": (
+            "HUD 证据图由 PIE 内部截图与同步快照生成；"
+            f"原始亮度 = {hud_metrics.get('avg_brightness', 0.0)}，"
+            f"非暗像素占比 = {format_ratio_percent(float(hud_metrics.get('non_dark_ratio', 0.0)))}，"
+            f"当前玩家 = {hud_snapshot.get('hud', {}).get('current_player_text', '') or '未记录'}。"
+        ),
     }
     runtime_checks.setdefault(
         "val-18",
@@ -860,8 +1131,14 @@ def build_runtime_validation_matrix(
             "summary": f"Popup 关闭方法 = {runtime_session.get('popup_close_method', '') or '未记录'}。",
         },
     )
-    if runtime_checks.get("val-17", {}).get("passed"):
-        runtime_checks["val-17"]["summary"] += f" 真实触发方法 = {runtime_session.get('roll_trigger_method', '未记录')}。"
+    runtime_checks["val-17"] = {
+        "passed": bool(runtime_checks.get("val-17", {}).get("passed")) and popup_capture_passed,
+        "summary": (
+            f"{runtime_checks.get('val-17', {}).get('summary', '')} "
+            f"真实触发方法 = {runtime_session.get('roll_trigger_method', '未记录')}。"
+            f" Popup 证据图 = {popup_capture.get('evidence_output_path', '未生成')}。"
+        ).strip(),
+    }
 
     all_checks = {}
     for key, value in baseline_checks.items():
@@ -882,12 +1159,16 @@ def build_runtime_validation_matrix(
             "passed": passed,
             "failed": failed,
             "warnings": len(runtime_session.get("warnings", [])),
-            "hud_brightness": hud_capture.get("avg_brightness", 0.0),
-            "popup_brightness": popup_capture.get("avg_brightness", 0.0),
+            "hud_brightness": hud_metrics.get("avg_brightness", 0.0),
+            "popup_brightness": popup_metrics.get("avg_brightness", 0.0),
+            "hud_non_dark_ratio": hud_metrics.get("non_dark_ratio", 0.0),
+            "popup_non_dark_ratio": popup_metrics.get("non_dark_ratio", 0.0),
         },
         "artifacts": {
             "roll_trigger_method": runtime_session.get("roll_trigger_method", ""),
             "popup_close_method": runtime_session.get("popup_close_method", ""),
+            "hud_evidence_output_path": hud_capture.get("evidence_output_path", ""),
+            "popup_evidence_output_path": popup_capture.get("evidence_output_path", ""),
         },
     }
     write_json(RUNTIME_VALIDATION_MATRIX_PATH, matrix)
@@ -904,6 +1185,8 @@ def write_runtime_report(
 ) -> None:
     """写入 TASK 08 运行时验证报告。"""
     runtime_checks = validation_matrix["runtime_checks"]
+    hud_capture = runtime_captures["hud_capture"]
+    popup_capture = runtime_captures["popup_capture"]
     report_lines = [
         "# TASK 08 运行时验证报告",
         "",
@@ -926,8 +1209,12 @@ def write_runtime_report(
             "## 关键证据",
             "",
             f"- 编辑器概览截图：`{EDITOR_OVERVIEW_SCREENSHOT.as_posix()}`",
-            f"- HUD 截图：`{HUD_SCREENSHOT.as_posix()}`",
-            f"- Popup 截图：`{POPUP_SCREENSHOT.as_posix()}`",
+            f"- HUD 原始视口截图：`{hud_capture['raw_output_path']}`",
+            f"- HUD 证据图：`{HUD_SCREENSHOT.as_posix()}`",
+            f"- HUD 截图元数据：`{HUD_CAPTURE_METADATA_PATH.as_posix()}`",
+            f"- Popup 原始视口截图：`{popup_capture['raw_output_path']}`",
+            f"- Popup 证据图：`{POPUP_SCREENSHOT.as_posix()}`",
+            f"- Popup 截图元数据：`{POPUP_CAPTURE_METADATA_PATH.as_posix()}`",
             f"- Editor 日志快照：`{EDITOR_LOG_SNAPSHOT_PATH.as_posix()}`",
             f"- Play 日志摘录：`{PLAY_LOG_EXCERPT_PATH.as_posix()}`",
             f"- 运行时状态摘要：`{RUNTIME_STATE_SUMMARY_PATH.as_posix()}`",
@@ -935,8 +1222,10 @@ def write_runtime_report(
             "",
             "## 观测摘要",
             "",
-            f"- HUD 截图平均亮度：`{runtime_captures['hud_capture'].get('avg_brightness', 0.0)}`",
-            f"- Popup 截图平均亮度：`{runtime_captures['popup_capture'].get('avg_brightness', 0.0)}`",
+            f"- HUD 原始亮度：`{hud_capture['raw_metrics'].get('avg_brightness', 0.0)}`",
+            f"- HUD 非暗像素占比：`{format_ratio_percent(float(hud_capture['raw_metrics'].get('non_dark_ratio', 0.0)))}`",
+            f"- Popup 原始亮度：`{popup_capture['raw_metrics'].get('avg_brightness', 0.0)}`",
+            f"- Popup 非暗像素占比：`{format_ratio_percent(float(popup_capture['raw_metrics'].get('non_dark_ratio', 0.0)))}`",
             f"- Roll 触发方法：`{runtime_session.get('roll_trigger_method', '')}`",
             f"- Popup 关闭方法：`{runtime_session.get('popup_close_method', '')}`",
             f"- 编辑器概览截图大小：`{overview_capture.get('file_size', 0)}`",
@@ -960,8 +1249,12 @@ def build_manifest(
 
     evidence_targets = [
         ("screenshot", EDITOR_OVERVIEW_SCREENSHOT, "TASK 08 编辑器关卡概览截图"),
-        ("screenshot", HUD_SCREENSHOT, "TASK 08 Play HUD 截图"),
-        ("screenshot", POPUP_SCREENSHOT, "TASK 08 Popup 截图"),
+        ("screenshot", HUD_RAW_SCREENSHOT, "TASK 08 HUD 原始 PIE 视口截图"),
+        ("screenshot", HUD_SCREENSHOT, "TASK 08 HUD 运行态证据图"),
+        ("state_summary", HUD_CAPTURE_METADATA_PATH, "TASK 08 HUD 截图元数据"),
+        ("screenshot", POPUP_RAW_SCREENSHOT, "TASK 08 Popup 原始 PIE 视口截图"),
+        ("screenshot", POPUP_SCREENSHOT, "TASK 08 Popup 运行态证据图"),
+        ("state_summary", POPUP_CAPTURE_METADATA_PATH, "TASK 08 Popup 截图元数据"),
         ("log", EDITOR_LOG_SNAPSHOT_PATH, "TASK 08 Editor 日志快照"),
         ("log", PLAY_LOG_EXCERPT_PATH, "TASK 08 Play 日志摘录"),
         ("report", RUNTIME_REPORT_PATH, "TASK 08 运行时验证报告"),
@@ -1265,7 +1558,9 @@ def write_task08_report(
         "",
         f"- 19 个验证点：`{validation_matrix['summary']['passed']}/{validation_matrix['summary']['total_checks']}` 通过",
         f"- HUD 截图亮度：`{validation_matrix['summary']['hud_brightness']}`",
+        f"- HUD 非暗像素占比：`{format_ratio_percent(float(validation_matrix['summary']['hud_non_dark_ratio']))}`",
         f"- Popup 截图亮度：`{validation_matrix['summary']['popup_brightness']}`",
+        f"- Popup 非暗像素占比：`{format_ratio_percent(float(validation_matrix['summary']['popup_non_dark_ratio']))}`",
         f"- 证据项数量：`{export_summary.get('evidence_count', 0)}`",
         f"- 开放问题：`{len(backend_summary['judgment']['data'].get('open_questions', []))}`",
         f"- 14 号文档检查表：`{anchor_checklist['summary']['passed']}/{anchor_checklist['summary']['total']}` 通过",
@@ -1381,10 +1676,10 @@ def main() -> None:
 
     runtime_script = build_runtime_editor_script()
     run_editor_python("task08_runtime_session", runtime_script)
-    runtime_captures = capture_runtime_screenshots()
     runtime_session = wait_for_json_file(RUNTIME_SESSION_PATH, 180.0, "运行时会话结果")
     if runtime_session.get("status") != "success":
         raise RuntimeError(f"TASK 08 运行时会话失败: {json.dumps(runtime_session, ensure_ascii=False)}")
+    runtime_captures = build_runtime_capture_evidence(runtime_session)
 
     editor_log_snapshot = snapshot_editor_log(PROJECT_LOG_PATH, EDITOR_LOG_SNAPSHOT_PATH)
     log_excerpt = extract_play_log_excerpt(PROJECT_LOG_PATH, log_start_offset, PLAY_LOG_EXCERPT_PATH)
