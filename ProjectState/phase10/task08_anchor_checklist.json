@@ -1,0 +1,30 @@
+{
+  "generated_at": "2026-04-11T14:52:26.924854",
+  "items": {
+    "check-01": {
+      "passed": true,
+      "summary": "MCP 前端当前注册 6 个 compiler_* 工具，仅覆盖 Stage 1-2 的认知分解与会话查询。"
+    },
+    "check-02": {
+      "passed": true,
+      "summary": "Stage 3-5 已由 Compiler Core 编排并产出 session/build_ir/reviewed_handoff_v2。"
+    },
+    "check-03": {
+      "passed": true,
+      "summary": "MCP 后端当前注册 8 个 evidence_* 工具，仅承担证据读取、裁决与摘要导出。"
+    },
+    "check-04": {
+      "passed": true,
+      "summary": "Bridge Passthrough 基础工具数 = 28。"
+    },
+    "check-05": {
+      "passed": true,
+      "summary": "16 号文档 §11.3 已标记矛盾项为已处理，且保留 val_simulate_input / val_pie_control 的迁移说明。"
+    }
+  },
+  "summary": {
+    "total": 5,
+    "passed": 5,
+    "failed": 0
+  }
+}

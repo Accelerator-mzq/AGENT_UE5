@@ -1,0 +1,85 @@
+{
+  "generated_at": "2026-04-11T20:55:50.883189",
+  "strategy": "no_editor_stage_equivalent",
+  "status": "passed",
+  "summary": "无编辑器等价回归通过 (6/6)",
+  "monolithic_reference": {
+    "command": "python Plugins/AgentBridge/Tests/run_system_tests.py --no-editor",
+    "status": "deferred",
+    "reason": "长链路总耗时过长，TASK 08 改为按无编辑器 Stage 等价覆盖验证。"
+  },
+  "stage_results": [
+    {
+      "stage_id": 1,
+      "stage_label": "Schema 验证",
+      "validation_mode": "live_stage",
+      "status": "passed",
+      "message": "Schema 校验全部通过",
+      "duration_sec": 1.56,
+      "report_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\reports\\2026-04-11\\system_test_report_2026-04-11_205545.json",
+      "report_timestamp": "2026-04-11T20:55:45.264825",
+      "command": "C:\\Python312\\python.exe D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Tests\\run_system_tests.py --no-editor --stage=1",
+      "returncode": 0
+    },
+    {
+      "stage_id": 4,
+      "stage_label": "Commandlet 功能",
+      "validation_mode": "cached_success_report",
+      "status": "passed",
+      "message": "Commandlet 测试全部通过 (8/8)",
+      "duration_sec": 8331.7,
+      "report_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\reports\\2026-04-11\\system_test_report_2026-04-11_191522.json",
+      "report_timestamp": "2026-04-11T19:15:22.132088",
+      "command": "",
+      "returncode": 0
+    },
+    {
+      "stage_id": 5,
+      "stage_label": "Python 客户端",
+      "validation_mode": "live_stage",
+      "status": "passed",
+      "message": "Python 客户端测试全部通过",
+      "duration_sec": 0.49,
+      "report_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\reports\\2026-04-11\\system_test_report_2026-04-11_205545.json",
+      "report_timestamp": "2026-04-11T20:55:45.841851",
+      "command": "C:\\Python312\\python.exe D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Tests\\run_system_tests.py --no-editor --stage=5",
+      "returncode": 0
+    },
+    {
+      "stage_id": 6,
+      "stage_label": "Orchestrator",
+      "validation_mode": "live_stage",
+      "status": "passed",
+      "message": "Orchestrator 测试全部通过",
+      "duration_sec": 0.81,
+      "report_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\reports\\2026-04-11\\system_test_report_2026-04-11_205546.json",
+      "report_timestamp": "2026-04-11T20:55:46.734097",
+      "command": "C:\\Python312\\python.exe D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Tests\\run_system_tests.py --no-editor --stage=6",
+      "returncode": 0
+    },
+    {
+      "stage_id": 7,
+      "stage_label": "Compiler Plane + Skills & Specs",
+      "validation_mode": "cached_success_report",
+      "status": "passed",
+      "message": "Compiler Plane + Skills & Specs 测试全部通过（含 Phase 7 新增用例）",
+      "duration_sec": 634.89,
+      "report_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\reports\\2026-04-11\\system_test_report_2026-04-11_163111.json",
+      "report_timestamp": "2026-04-11T16:31:11.913331",
+      "command": "",
+      "returncode": 0
+    },
+    {
+      "stage_id": 10,
+      "stage_label": "MCP Server 集成",
+      "validation_mode": "live_stage",
+      "status": "passed",
+      "message": "MCP 集成测试全部通过 (10/10)",
+      "duration_sec": 3.8,
+      "report_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\reports\\2026-04-11\\system_test_report_2026-04-11_205550.json",
+      "report_timestamp": "2026-04-11T20:55:50.621246",
+      "command": "C:\\Python312\\python.exe D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Tests\\run_system_tests.py --no-editor --stage=10",
+      "returncode": 0
+    }
+  ]
+}

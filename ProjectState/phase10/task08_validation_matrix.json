@@ -1,0 +1,237 @@
+{
+  "generated_at": "2026-04-11T14:52:24.524465",
+  "baseline_checks": {
+    "val-01": {
+      "passed": true,
+      "summary": "场景中 AMTile 数量 = 28。"
+    },
+    "val-02": {
+      "passed": true,
+      "summary": "TileData 数量 = 28，PROPERTY 数量 = 16。"
+    },
+    "val-03": {
+      "passed": true,
+      "summary": "场景中 AMPlayerPawn 数量 = 2。"
+    },
+    "val-04": {
+      "passed": true,
+      "summary": "World Settings DefaultGameMode = /Script/Mvpv4TestCodex.MMonopolyGameMode。"
+    },
+    "val-05": {
+      "passed": true,
+      "summary": "源码确认 BeginPlay 会把初始状态置为 WaitForRoll。"
+    },
+    "val-06": {
+      "passed": true,
+      "summary": "临时 Dice 实测 32 次，点数范围与双骰判定均正确。",
+      "samples": [
+        {
+          "DieA": 5,
+          "DieB": 3,
+          "Total": 8,
+          "bIsDouble": false
+        },
+        {
+          "DieA": 1,
+          "DieB": 3,
+          "Total": 4,
+          "bIsDouble": false
+        },
+        {
+          "DieA": 2,
+          "DieB": 6,
+          "Total": 8,
+          "bIsDouble": false
+        },
+        {
+          "DieA": 2,
+          "DieB": 5,
+          "Total": 7,
+          "bIsDouble": false
+        },
+        {
+          "DieA": 2,
+          "DieB": 6,
+          "Total": 8,
+          "bIsDouble": false
+        }
+      ]
+    },
+    "val-07": {
+      "passed": true,
+      "summary": "源码确认 8 种格子类型均有分发分支或显式处理。"
+    },
+    "val-08": {
+      "passed": true,
+      "summary": "源码确认购买、收租与颜色组翻倍逻辑存在。"
+    },
+    "val-09": {
+      "passed": true,
+      "summary": "源码确认监狱进入、保释与强制保释路径存在。"
+    },
+    "val-10": {
+      "passed": true,
+      "summary": "源码确认破产释放地产与游戏结束链路存在。"
+    },
+    "val-11": {
+      "passed": true,
+      "summary": "5 个 Widget Blueprint 存在数 = 5。"
+    },
+    "val-12": {
+      "passed": true,
+      "summary": "源码统计 UI 委托绑定点共 11 个。"
+    }
+  },
+  "runtime_checks": {
+    "val-13": {
+      "passed": true,
+      "summary": "Play 前关卡 = /Game/Maps/L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline"
+    },
+    "val-14": {
+      "passed": true,
+      "summary": "WorldSettings.DefaultGameMode = /Script/Mvpv4TestCodex.MMonopolyGameMode"
+    },
+    "val-16": {
+      "passed": true,
+      "summary": "HUD 已入视口，且当前玩家/资金/回合/格子 4 个文本均非空。"
+    },
+    "val-17": {
+      "passed": true,
+      "summary": "鼠标显示、点击/悬停事件开启，且通过 game_mode.on_player_request_roll 已推进到 Popup。 真实触发方法 = game_mode.on_player_request_roll。"
+    },
+    "val-18": {
+      "passed": true,
+      "summary": "Popup 已关闭，HUD 仍可见，鼠标/点击/悬停仍开启；最后一次关闭方法 = primary_button.on_clicked.broadcast。"
+    },
+    "val-19": {
+      "passed": true,
+      "summary": "完成至少一轮 smoke：turn_number 1 -> 2, current_player 0 -> 1。"
+    },
+    "val-15": {
+      "passed": true,
+      "summary": "Play HUD 截图平均亮度 = 87.51。"
+    }
+  },
+  "all_checks": {
+    "val-01": {
+      "passed": true,
+      "summary": "场景中 AMTile 数量 = 28。"
+    },
+    "val-02": {
+      "passed": true,
+      "summary": "TileData 数量 = 28，PROPERTY 数量 = 16。"
+    },
+    "val-03": {
+      "passed": true,
+      "summary": "场景中 AMPlayerPawn 数量 = 2。"
+    },
+    "val-04": {
+      "passed": true,
+      "summary": "World Settings DefaultGameMode = /Script/Mvpv4TestCodex.MMonopolyGameMode。"
+    },
+    "val-05": {
+      "passed": true,
+      "summary": "源码确认 BeginPlay 会把初始状态置为 WaitForRoll。"
+    },
+    "val-06": {
+      "passed": true,
+      "summary": "临时 Dice 实测 32 次，点数范围与双骰判定均正确。",
+      "samples": [
+        {
+          "DieA": 5,
+          "DieB": 3,
+          "Total": 8,
+          "bIsDouble": false
+        },
+        {
+          "DieA": 1,
+          "DieB": 3,
+          "Total": 4,
+          "bIsDouble": false
+        },
+        {
+          "DieA": 2,
+          "DieB": 6,
+          "Total": 8,
+          "bIsDouble": false
+        },
+        {
+          "DieA": 2,
+          "DieB": 5,
+          "Total": 7,
+          "bIsDouble": false
+        },
+        {
+          "DieA": 2,
+          "DieB": 6,
+          "Total": 8,
+          "bIsDouble": false
+        }
+      ]
+    },
+    "val-07": {
+      "passed": true,
+      "summary": "源码确认 8 种格子类型均有分发分支或显式处理。"
+    },
+    "val-08": {
+      "passed": true,
+      "summary": "源码确认购买、收租与颜色组翻倍逻辑存在。"
+    },
+    "val-09": {
+      "passed": true,
+      "summary": "源码确认监狱进入、保释与强制保释路径存在。"
+    },
+    "val-10": {
+      "passed": true,
+      "summary": "源码确认破产释放地产与游戏结束链路存在。"
+    },
+    "val-11": {
+      "passed": true,
+      "summary": "5 个 Widget Blueprint 存在数 = 5。"
+    },
+    "val-12": {
+      "passed": true,
+      "summary": "源码统计 UI 委托绑定点共 11 个。"
+    },
+    "val-13": {
+      "passed": true,
+      "summary": "Play 前关卡 = /Game/Maps/L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline"
+    },
+    "val-14": {
+      "passed": true,
+      "summary": "WorldSettings.DefaultGameMode = /Script/Mvpv4TestCodex.MMonopolyGameMode"
+    },
+    "val-16": {
+      "passed": true,
+      "summary": "HUD 已入视口，且当前玩家/资金/回合/格子 4 个文本均非空。"
+    },
+    "val-17": {
+      "passed": true,
+      "summary": "鼠标显示、点击/悬停事件开启，且通过 game_mode.on_player_request_roll 已推进到 Popup。 真实触发方法 = game_mode.on_player_request_roll。"
+    },
+    "val-18": {
+      "passed": true,
+      "summary": "Popup 已关闭，HUD 仍可见，鼠标/点击/悬停仍开启；最后一次关闭方法 = primary_button.on_clicked.broadcast。"
+    },
+    "val-19": {
+      "passed": true,
+      "summary": "完成至少一轮 smoke：turn_number 1 -> 2, current_player 0 -> 1。"
+    },
+    "val-15": {
+      "passed": true,
+      "summary": "Play HUD 截图平均亮度 = 87.51。"
+    }
+  },
+  "summary": {
+    "total_checks": 19,
+    "passed": 19,
+    "failed": 0,
+    "warnings": 0,
+    "hud_brightness": 87.51,
+    "popup_brightness": 87.51
+  },
+  "artifacts": {
+    "roll_trigger_method": "game_mode.on_player_request_roll",
+    "popup_close_method": "primary_button.on_clicked.broadcast"
+  }
+}

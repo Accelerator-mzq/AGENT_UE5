@@ -295,6 +295,125 @@ LAYER3_TOOLS = {
 
 
 # ============================================================
+# Compiler Frontend: Stage 1-2 认知分解工具
+# ============================================================
+
+COMPILER_FRONTEND_TOOLS = {
+    "compiler_create_session": {
+        "description": "创建 Compiler Pipeline 会话。Stage 1-2 由 MCP 前端驱动认知分解。",
+        "params": {
+            "gdd_path": {"type": "string", "required": True, "description": "输入 GDD 文件路径"},
+            "target_phase": {"type": "string", "required": True, "description": "目标阶段标识"},
+            "output_dir": {"type": "string", "required": True, "description": "本次 pipeline 输出目录"},
+        },
+        "returns": "session_id 与 session_path",
+    },
+    "compiler_intake_prepare": {
+        "description": "Stage 1 准备：生成 GDD Projection 模板供 Agent 填充。",
+        "params": {
+            "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
+        },
+        "returns": "Stage 1 模板、schema 与输入上下文",
+    },
+    "compiler_intake_save": {
+        "description": "Stage 1 保存：校验并保存 Agent 填充后的 GDD Projection。",
+        "params": {
+            "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
+            "filled_data": {"type": "object", "required": True, "description": "已填充完成的 GDD Projection"},
+        },
+        "returns": "保存结果与输出路径",
+    },
+    "compiler_plan_prepare": {
+        "description": "Stage 2 准备：生成 Planner Output 模板供 Agent 填充。",
+        "params": {
+            "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
+        },
+        "returns": "Stage 2 模板、schema 与输入上下文",
+    },
+    "compiler_plan_save": {
+        "description": "Stage 2 保存：校验并保存 Agent 填充后的 Planner Output。",
+        "params": {
+            "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
+            "filled_data": {"type": "object", "required": True, "description": "已填充完成的 Planner Output"},
+        },
+        "returns": "保存结果与输出路径",
+    },
+    "compiler_get_session_status": {
+        "description": "查询 Compiler Pipeline 会话当前状态。",
+        "params": {
+            "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
+        },
+        "returns": "session 当前状态对象",
+    },
+}
+
+
+# ============================================================
+# Evidence Judge Backend: 后端证据裁决工具
+# ============================================================
+
+EVIDENCE_JUDGE_TOOLS = {
+    "evidence_load_manifest": {
+        "description": "读取指定 run_id 的 evidence manifest。",
+        "params": {
+            "run_id": {"type": "string", "required": True, "description": "证据运行标识 run_id"},
+        },
+        "returns": "manifest 原始内容",
+    },
+    "evidence_load_screenshots": {
+        "description": "读取指定 run_id 的 screenshots 证据列表。",
+        "params": {
+            "run_id": {"type": "string", "required": True, "description": "证据运行标识 run_id"},
+        },
+        "returns": "截图文件路径列表",
+    },
+    "evidence_load_logs": {
+        "description": "读取指定 run_id 的日志证据内容。",
+        "params": {
+            "run_id": {"type": "string", "required": True, "description": "证据运行标识 run_id"},
+        },
+        "returns": "日志文件与文本内容列表",
+    },
+    "evidence_load_report": {
+        "description": "读取指定 run_id 的报告证据内容。",
+        "params": {
+            "run_id": {"type": "string", "required": True, "description": "证据运行标识 run_id"},
+        },
+        "returns": "报告文件与文本内容列表",
+    },
+    "evidence_judge_acceptance": {
+        "description": "基于 manifest 覆盖度与摘要做 pass/fail/escalate 初步判定。",
+        "params": {
+            "run_id": {"type": "string", "required": True, "description": "证据运行标识 run_id"},
+            "criteria": {"type": "object", "required": True, "description": "判定准则，如 required_types 与 min_checks"},
+        },
+        "returns": "初步判定结果、置信度与开放问题",
+    },
+    "evidence_decide_escalation": {
+        "description": "判断指定 run_id 是否需要升级人工确认。",
+        "params": {
+            "run_id": {"type": "string", "required": True, "description": "证据运行标识 run_id"},
+        },
+        "returns": "needs_human、reason 与 escalation_note",
+    },
+    "evidence_export_summary": {
+        "description": "导出指定 run_id 的结构化验收摘要。",
+        "params": {
+            "run_id": {"type": "string", "required": True, "description": "证据运行标识 run_id"},
+        },
+        "returns": "run_id、test_type、judgment 与 open_questions",
+    },
+    "evidence_list_runs": {
+        "description": "列出证据根目录下的全部 run_id。",
+        "params": {
+            "date_filter": {"type": "string", "required": False, "description": "按 YYYY-MM-DD 过滤指定日期的 run_id"},
+        },
+        "returns": "run_id 列表",
+    },
+}
+
+
+# ============================================================
 # 工具总表
 # ============================================================
 
@@ -304,9 +423,11 @@ ALL_TOOLS.update(LAYER1_WRITE_TOOLS)
 ALL_TOOLS.update(LAYER1_SERVICE_TOOLS)
 ALL_TOOLS.update(LAYER2_ASSET_TOOLS)
 ALL_TOOLS.update(LAYER3_TOOLS)
+ALL_TOOLS.update(COMPILER_FRONTEND_TOOLS)
+ALL_TOOLS.update(EVIDENCE_JUDGE_TOOLS)
 
 TOOL_COUNT = len(ALL_TOOLS)
-# 预期：7(query) + 6(write) + 5(service) + 9(asset) + 1(fallback) = 28
+# 预期：7(query) + 6(write) + 5(service) + 9(asset) + 1(fallback) + 6(compiler_frontend) + 8(evidence_backend) = 42
 
 
 def to_json_schema(tool_def: dict) -> dict:

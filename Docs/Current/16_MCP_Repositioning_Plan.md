@@ -426,7 +426,9 @@ MCP 在 `AGENT_UE5` 中的最终正确位置不是：
 
 ### 11.3 Phase 10 计划同步修订
 
-Phase 10 开发计划（plan file）中以下内容与本轮修订后的治理口径存在差异，需在正式进入实现前同步：
+状态：已处理（Phase 10 TASK 08）
 
-- `val_simulate_input` 和 `val_pie_control` 两个工具与 §8 "测试侧 MCP 不负责启动 PIE / 驱动按钮点击"的口径矛盾
-- 这两个工具应从 MCP Validation Plane 移出，改为 UE 官方测试体系的自动化脚本或 Compiler Core 执行通道
+Phase 10 开发计划（plan file）中以下内容已按本轮修订后的治理口径同步完成：
+
+- `val_simulate_input` 和 `val_pie_control` 两个工具已从 MCP Validation Plane 移出，不再作为 MCP 对外测试工具
+- 运行时验证改由 UE Editor 内部编排脚本与 UE 官方自动化测试通道承担，MCP 后端仅负责证据读取、裁决与摘要导出

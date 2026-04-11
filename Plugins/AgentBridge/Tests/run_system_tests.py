@@ -147,9 +147,9 @@ STAGES = {
     },
     7: {
         'name': 'Compiler Plane + Skills & Specs（CP/SS）',
-        'cases': 'CP-01 ~ CP-40, SS-01 ~ SS-20',
-        'case_ids': make_case_ids('CP', 1, 40) + make_case_ids('SS', 1, 20),
-        'count': 60,
+        'cases': 'CP-01 ~ CP-44, SS-01 ~ SS-20',
+        'case_ids': make_case_ids('CP', 1, 44) + make_case_ids('SS', 1, 20),
+        'count': 64,
         'requires_editor': False,
         'requires_build': False,
     },
@@ -163,9 +163,9 @@ STAGES = {
     },
     9: {
         'name': '端到端集成（E2E）',
-        'cases': 'E2E-01 ~ E2E-36',
-        'case_ids': make_case_ids('E2E', 1, 36),
-        'count': 36,
+        'cases': 'E2E-01 ~ E2E-40',
+        'case_ids': make_case_ids('E2E', 1, 40),
+        'count': 40,
         'requires_editor': True,
         'requires_build': True,
     },
@@ -179,7 +179,7 @@ STAGES = {
     },
 }
 
-TOTAL_CASES = sum(s['count'] for s in STAGES.values())  # 240
+TOTAL_CASES = sum(s['count'] for s in STAGES.values())  # 248
 CASE_ID_PATTERN = re.compile(
     r'^\|\s*((?:SV|BL|Q|W|CL|UI|CMD|PY|ORC|CP|SS|GA|E2E|MCP)-\d{2})\s*\|',
     re.MULTILINE,
@@ -1182,7 +1182,7 @@ def run_stage_5(result, engine_root, completed_results=None):
 
 
 def run_stage_6(result, engine_root, completed_results=None):
-    """Stage 7: Compiler Plane + Skills & Specs（CP-01 ~ CP-40, SS-01 ~ SS-20）"""
+    """Stage 7: Compiler Plane + Skills & Specs（CP-01 ~ CP-44, SS-01 ~ SS-20）"""
     test_files = [
         os.path.join(TESTS_SCRIPTS_DIR, 'test_compiler_plane_foundation.py'),
         os.path.join(TESTS_SCRIPTS_DIR, 'test_phase4_compiler.py'),
@@ -1217,10 +1217,86 @@ def run_stage_6(result, engine_root, completed_results=None):
         if not ok:
             phase7_failed.append(case_id)
 
-    if code == 0 and not phase7_failed:
+    phase10_dir = os.path.join(PROJECT_ROOT, 'ProjectState', 'phase10')
+    phase10_session_path = os.path.join(phase10_dir, 'session.json')
+    phase10_handoff_path = os.path.join(phase10_dir, 'reviewed_handoff_v2.json')
+    phase10_build_ir_path = os.path.join(phase10_dir, 'build_ir.json')
+    phase10_summary_path = os.path.join(PROJECT_ROOT, 'ProjectState', 'Reports', '2026-04-11', 'task06_pipeline_execution_summary.json')
+    compiler_session_schema_path = os.path.join(PLUGIN_ROOT, 'Schemas', 'compiler_session.schema.json')
+
+    phase10_session = load_json_report(phase10_session_path) or {}
+    phase10_handoff = load_json_report(phase10_handoff_path) or {}
+    phase10_build_ir = load_json_report(phase10_build_ir_path) or {}
+    phase10_summary = load_json_report(phase10_summary_path) or {}
+
+    phase10_failed = []
+    required_session_fields = {
+        'session_id',
+        'created_at',
+        'gdd_path',
+        'target_phase',
+        'output_dir',
+        'current_stage',
+        'stage_outputs',
+        'status',
+    }
+    schema_required = set((load_json_report(compiler_session_schema_path) or {}).get('required', []))
+    session_stage_outputs = phase10_session.get('stage_outputs', {}) if isinstance(phase10_session, dict) else {}
+    task06_saved_files = (
+        phase10_summary.get('stage3_save', {}).get('saved_files', [])
+        if isinstance(phase10_summary, dict)
+        else []
+    )
+
+    phase10_cases = [
+        (
+            'CP-41',
+            (
+                os.path.exists(compiler_session_schema_path)
+                and required_session_fields.issubset(schema_required)
+                and required_session_fields.issubset(set(phase10_session.keys()))
+            ),
+            'Phase 10 session schema 与 session.json 字段对齐',
+        ),
+        (
+            'CP-42',
+            (
+                phase10_session.get('status') == 'completed'
+                and phase10_session.get('current_stage') == 5
+                and sorted(session_stage_outputs.keys()) == [f'stage_{index}' for index in range(1, 6)]
+                and all(os.path.exists(path) for path in session_stage_outputs.values())
+            ),
+            'Phase 10 session 已记录 5 个 stage_outputs 并全部落盘',
+        ),
+        (
+            'CP-43',
+            (
+                phase10_handoff.get('handoff_meta', {}).get('handoff_version') == '2.0'
+                and phase10_handoff.get('approval', {}).get('approval_status') == 'approved_with_warnings'
+                and len(phase10_handoff.get('selected_skill_instances', [])) == 6
+            ),
+            'Phase 10 reviewed_handoff_v2 组装完成',
+        ),
+        (
+            'CP-44',
+            (
+                len(phase10_build_ir.get('build_steps', [])) == 14
+                and len(phase10_build_ir.get('validation_ir', [])) == 12
+                and len(task06_saved_files) == 6
+            ),
+            'Phase 10 Build IR / validation_ir / skill fragments 规模正确',
+        ),
+    ]
+
+    for case_id, ok, note in phase10_cases:
+        print(f'  [{case_id}] {"PASS" if ok else "FAIL"} - {note}')
+        if not ok:
+            phase10_failed.append(case_id)
+
+    if code == 0 and not phase7_failed and not phase10_failed:
         result.status = 'passed'
         result.exit_code = 0
-        result.message = 'Compiler Plane + Skills & Specs 测试全部通过（含 Phase 7 新增用例）'
+        result.message = 'Compiler Plane + Skills & Specs 测试全部通过（含 Phase 7 / Phase 10 新增用例）'
     else:
         result.status = 'failed'
         result.exit_code = code if code != 0 else 1
@@ -1229,6 +1305,8 @@ def run_stage_6(result, engine_root, completed_results=None):
             details.append(f'legacy pytest exit={code}')
         if phase7_failed:
             details.append('Phase 7 失败项: ' + ', '.join(phase7_failed))
+        if phase10_failed:
+            details.append('Phase 10 失败项: ' + ', '.join(phase10_failed))
         result.message = 'Compiler Plane + Skills & Specs 测试失败: ' + ', '.join(details)
 
 
@@ -1364,12 +1442,12 @@ def run_stage_8(result, engine_root, completed_results=None):
 
 
 def run_stage_9(result, engine_root, completed_results=None):
-    """Stage 9 兼容入口，统一转到新版 28 条 E2E 判定逻辑。"""
+    """Stage 9 兼容入口，统一转到新版 40 条 E2E 判定逻辑。"""
     return run_stage_9_v3(result, engine_root, completed_results)
 
 
 def run_stage_9_v3(result, engine_root, completed_results=None):
-    """Stage 9：E2E-01 ~ E2E-36 统一判定入口。"""
+    """Stage 9：E2E-01 ~ E2E-40 统一判定入口。"""
     check_map = {}
     project_reports_dir = str(get_project_reports_dir())
     plugin_reports_dir = str(get_reports_dir())
@@ -1626,6 +1704,100 @@ def run_stage_9_v3(result, engine_root, completed_results=None):
         evidence_name = os.path.basename(evidence_path) if evidence_path else '无证据'
         record_case(case_id, ok, f'{note}: {evidence_name}')
 
+    phase10_dir = os.path.join(PROJECT_ROOT, 'ProjectState', 'phase10')
+    task06_summary_path = find_latest_report_by_prefix(
+        project_reports_dir,
+        'task06_pipeline_execution_summary',
+        '.json',
+    )
+    task07_report_path = find_latest_report_by_prefix(
+        project_reports_dir,
+        'task07_build_ir_level_realization_validation',
+        '.md',
+    )
+    task07_snapshot_path = os.path.join(phase10_dir, 'task07_validation_snapshot.json')
+    task08_backend_summary_path = os.path.join(phase10_dir, 'task08_backend_summary.json')
+    task09_acceptance_path = find_latest_report_by_prefix(
+        project_reports_dir,
+        'task09_final_acceptance_validation',
+        '.json',
+    )
+
+    task06_summary = load_json_report(task06_summary_path) or {}
+    task07_snapshot = load_json_report(task07_snapshot_path) or {}
+    task08_backend_summary = load_json_report(task08_backend_summary_path) or {}
+    task09_acceptance = load_json_report(task09_acceptance_path) or {}
+
+    task06_final_session = task06_summary.get('final_session', {}) if isinstance(task06_summary, dict) else {}
+    task06_handoff = task06_summary.get('handoff', {}) if isinstance(task06_summary, dict) else {}
+    task06_build_ir = load_json_report(os.path.join(phase10_dir, 'build_ir.json')) or {}
+
+    task07_validation = task07_snapshot.get('validation', {}) if isinstance(task07_snapshot, dict) else {}
+    task07_validation_passed = bool(task07_validation) and all(
+        isinstance(entry, dict) and entry.get('passed') is True
+        for entry in task07_validation.values()
+    )
+
+    task08_manifest = task08_backend_summary.get('manifest', {}) if isinstance(task08_backend_summary, dict) else {}
+    task08_manifest_data = task08_manifest.get('data', {}) if isinstance(task08_manifest, dict) else {}
+    task08_manifest_summary = task08_manifest_data.get('summary', {}) if isinstance(task08_manifest_data, dict) else {}
+    task08_judgment = task08_backend_summary.get('judgment', {}) if isinstance(task08_backend_summary, dict) else {}
+    task08_judgment_data = task08_judgment.get('data', {}) if isinstance(task08_judgment, dict) else {}
+    task08_export = task08_backend_summary.get('export', {}) if isinstance(task08_backend_summary, dict) else {}
+    task08_export_data = task08_export.get('data', {}) if isinstance(task08_export, dict) else {}
+    task08_run_id = task08_manifest_data.get('run_id', '')
+    task08_evidence_dir = os.path.join(PROJECT_ROOT, 'ProjectState', 'Evidence', task08_run_id)
+    task08_required_dirs = ['screenshots', 'logs', 'reports', 'state']
+
+    record_case(
+        'E2E-37',
+        (
+            bool(task06_summary)
+            and task06_final_session.get('status') == 'completed'
+            and task06_final_session.get('current_stage') == 5
+            and task06_handoff.get('approval_status') == 'approved_with_warnings'
+            and len(task06_build_ir.get('build_steps', [])) == 14
+        ),
+        f'引用 {os.path.basename(task06_summary_path)}',
+    )
+    record_case(
+        'E2E-38',
+        (
+            bool(task07_snapshot)
+            and os.path.exists(task07_report_path)
+            and task07_snapshot.get('current_level') == '/Game/Maps/L_MonopolyBoard_Pipeline'
+            and task07_snapshot.get('board_manager_count') == 1
+            and task07_snapshot.get('tile_count') == 28
+            and task07_snapshot.get('player_pawn_count') == 2
+            and task07_validation_passed
+        ),
+        f'引用 {os.path.basename(task07_snapshot_path)}',
+    )
+    record_case(
+        'E2E-39',
+        (
+            bool(re.fullmatch(r'\d{4}-\d{2}-\d{2}_[a-f0-9]{8}', task08_run_id))
+            and task08_manifest.get('status') == 'success'
+            and task08_manifest_data.get('status') == 'pass'
+            and task08_manifest_summary.get('total_checks') == 19
+            and task08_manifest_summary.get('passed') == 19
+            and task08_judgment_data.get('judgment') in {'pass', 'escalate'}
+            and all(os.path.isdir(os.path.join(task08_evidence_dir, subdir)) for subdir in task08_required_dirs)
+            and task08_export_data.get('evidence_count', 0) >= 4
+        ),
+        f'run_id={task08_run_id or "缺失"}',
+    )
+    record_case(
+        'E2E-40',
+        (
+            task09_acceptance.get('status') == 'passed'
+            and task09_acceptance.get('tool_inventory', {}).get('total') == 42
+            and task09_acceptance.get('no_editor_equivalent', {}).get('status') == 'passed'
+            and task09_acceptance.get('runtime_evidence', {}).get('judgment') == 'pass'
+        ),
+        f'引用 {os.path.basename(task09_acceptance_path)}',
+    )
+
     missing_case_ids = [case_id for case_id in STAGES[9]['case_ids'] if case_id not in check_map]
     if missing_case_ids:
         result.status = 'failed'
@@ -1688,6 +1860,8 @@ def run_stage_10(result, engine_root, completed_results=None):
     server_module = None
     query_tools_module = None
     write_tools_module = None
+    compiler_tools_module = None
+    evidence_tools_module = None
 
     try:
         import asyncio
@@ -1700,6 +1874,8 @@ def run_stage_10(result, engine_root, completed_results=None):
 
         query_tools_module = importlib.import_module('query_tools')
         write_tools_module = importlib.import_module('write_tools')
+        compiler_tools_module = importlib.import_module('compiler_tools')
+        evidence_tools_module = importlib.import_module('evidence_tools')
         tool_definitions = importlib.import_module('tool_definitions')
         server_module = importlib.import_module('server')
     except Exception as exc:
@@ -1738,6 +1914,8 @@ def run_stage_10(result, engine_root, completed_results=None):
 
         invalid_schemas = []
         all_tools = tool_definitions.ALL_TOOLS
+        # Phase 10 当前 MCP 基线：28 个 Bridge 工具 + 6 个前端工具 + 8 个后端工具 = 42。
+        expected_tool_count = 42
         for tool_name, tool_def in all_tools.items():
             schema = tool_definitions.to_json_schema(tool_def)
             if not (
@@ -1752,9 +1930,9 @@ def run_stage_10(result, engine_root, completed_results=None):
 
         record_case(
             'MCP-02',
-            len(all_tools) == 28 and not invalid_schemas,
+            len(all_tools) == expected_tool_count and not invalid_schemas,
             f'工具数={len(all_tools)}，schema 正常'
-            if len(all_tools) == 28 and not invalid_schemas
+            if len(all_tools) == expected_tool_count and not invalid_schemas
             else f'工具数={len(all_tools)}，schema 异常={", ".join(invalid_schemas[:5])}',
         )
 
@@ -1808,7 +1986,7 @@ def run_stage_10(result, engine_root, completed_results=None):
             record_case(
                 'MCP-04',
                 protocol_payload.get('server_name') == 'agentbridge'
-                and protocol_payload.get('tool_count') == 28,
+                and protocol_payload.get('tool_count') == expected_tool_count,
                 f'server={protocol_payload.get("server_name")}, tools={protocol_payload.get("tool_count")}',
             )
 
@@ -1822,74 +2000,99 @@ def run_stage_10(result, engine_root, completed_results=None):
             record_case('MCP-04', False, f'协议冒烟失败: {exc}')
             record_case('MCP-05', False, f'协议冒烟失败: {exc}')
 
-    # MCP-06 ~ MCP-10：引用 Phase 9 的真实验证与文档治理证据。
-    phase9_validation_path = find_latest_report_by_prefix(
-        project_reports_dir,
-        'phase9_mcp_validation_',
-        '.md',
-    )
-    phase9_validation_text = load_text_report(phase9_validation_path)
-    phase9_docgov_path = find_latest_report_by_prefix(
-        project_reports_dir,
-        'phase9_document_governance_',
-        '.md',
-    )
-    phase9_docgov_text = load_text_report(phase9_docgov_path)
+    compiler_frontend_names = [
+        'compiler_create_session',
+        'compiler_intake_prepare',
+        'compiler_intake_save',
+        'compiler_plan_prepare',
+        'compiler_plan_save',
+        'compiler_get_session_status',
+    ]
+    evidence_backend_names = [
+        'evidence_load_manifest',
+        'evidence_load_screenshots',
+        'evidence_load_logs',
+        'evidence_load_report',
+        'evidence_judge_acceptance',
+        'evidence_decide_escalation',
+        'evidence_export_summary',
+        'evidence_list_runs',
+    ]
+
+    compiler_frontend_registered = list(tool_definitions.COMPILER_FRONTEND_TOOLS.keys()) if tool_definitions else []
+    evidence_backend_registered = list(tool_definitions.EVIDENCE_JUDGE_TOOLS.keys()) if tool_definitions else []
+    missing_compiler_functions = [
+        name for name in compiler_frontend_names
+        if getattr(compiler_tools_module, name, None) is None
+    ] if compiler_tools_module else compiler_frontend_names
+    missing_evidence_functions = [
+        name for name in evidence_backend_names
+        if getattr(evidence_tools_module, name, None) is None
+    ] if evidence_tools_module else evidence_backend_names
 
     record_case(
         'MCP-06',
-        (
-            bool(phase9_validation_path)
-            and 'Status: connected' in phase9_validation_text
-            and 'Tools: `28 tools`' in phase9_validation_text
-        ),
-        f'引用 {os.path.basename(phase9_validation_path) if phase9_validation_path else "Phase 9 MCP 报告缺失"}',
+        compiler_frontend_registered == compiler_frontend_names and not missing_compiler_functions,
+        f'frontend={len(compiler_frontend_registered)}',
     )
     record_case(
         'MCP-07',
-        (
-            bool(phase9_validation_path)
-            and 'project_name = Mvpv4TestCodex' in phase9_validation_text
-            and 'current_level = /Game/Maps/L_MonopolyBoard' in phase9_validation_text
-        ),
-        f'引用 {os.path.basename(phase9_validation_path) if phase9_validation_path else "Phase 9 MCP 报告缺失"}',
+        evidence_backend_registered == evidence_backend_names and not missing_evidence_functions,
+        f'backend={len(evidence_backend_registered)}',
     )
+
+    live_smoke_path = find_latest_report_by_prefix(
+        project_reports_dir,
+        'live_smoke_get_current_project_state_',
+        '.md',
+    )
+    live_smoke_text = load_text_report(live_smoke_path)
     record_case(
         'MCP-08',
         (
-            bool(phase9_validation_path)
-            and 'level_path = /Game/Maps/L_MonopolyBoard' in phase9_validation_text
-            and 'actor_count = 62' in phase9_validation_text
+            bool(live_smoke_path)
+            and 'STATUS=200' in live_smoke_text
+            and 'PROJECT_NAME=Mvpv4TestCodex' in live_smoke_text
+            and 'CURRENT_LEVEL=/Game/Maps/L_MonopolyBoard' in live_smoke_text
+            and '30010' in live_smoke_text
         ),
-        f'引用 {os.path.basename(phase9_validation_path) if phase9_validation_path else "Phase 9 MCP 报告缺失"}',
+        f'引用 {os.path.basename(live_smoke_path) if live_smoke_path else "live smoke 报告缺失"}',
     )
 
-    baseline_stage_ids = [1, 4, 5, 6, 7]
-    baseline_notes = []
-    baseline_ok = True
-    for stage_id in baseline_stage_ids:
-        stage_status = get_stage_status(stage_id, completed_results)
-        if stage_status == 'passed':
-            baseline_notes.append(f'Stage {stage_id}=passed')
-            continue
-        evidence_ok, evidence_path = find_latest_passing_stage_evidence(stage_id)
-        baseline_ok = baseline_ok and evidence_ok
-        evidence_name = os.path.basename(evidence_path) if evidence_path else '无证据'
-        baseline_notes.append(f'Stage {stage_id}→{evidence_name}')
+    task08_backend_summary_path = os.path.join(PROJECT_ROOT, 'ProjectState', 'phase10', 'task08_backend_summary.json')
+    task08_backend_summary = load_json_report(task08_backend_summary_path) or {}
+    task08_judgment = task08_backend_summary.get('judgment', {}) if isinstance(task08_backend_summary, dict) else {}
+    task08_judgment_data = task08_judgment.get('data', {}) if isinstance(task08_judgment, dict) else {}
+    task08_escalation = task08_backend_summary.get('escalation', {}) if isinstance(task08_backend_summary, dict) else {}
+    task08_escalation_data = task08_escalation.get('data', {}) if isinstance(task08_escalation, dict) else {}
+    task08_export = task08_backend_summary.get('export', {}) if isinstance(task08_backend_summary, dict) else {}
+    task08_export_data = task08_export.get('data', {}) if isinstance(task08_export, dict) else {}
+    record_case(
+        'MCP-09',
+        (
+            task08_judgment.get('status') == 'success'
+            and task08_judgment_data.get('judgment') in {'pass', 'escalate'}
+            and isinstance(task08_escalation_data.get('needs_human'), bool)
+            and task08_export_data.get('evidence_count', 0) >= 4
+        ),
+        f'run_id={task08_export_data.get("run_id", "缺失")}',
+    )
 
-    if phase9_validation_path:
-        baseline_ok = baseline_ok and 'Stage 1 / 4 / 5 / 6 / 7 已串行通过' in phase9_validation_text
-
-    record_case('MCP-09', baseline_ok, '；'.join(baseline_notes))
+    task09_acceptance_path = find_latest_report_by_prefix(
+        project_reports_dir,
+        'task09_final_acceptance_validation',
+        '.json',
+    )
+    task09_acceptance = load_json_report(task09_acceptance_path) or {}
+    phase10_closeout_path = os.path.join(PROJECT_ROOT, 'Docs', 'Current', '17_Phase10_Closeout.md')
     record_case(
         'MCP-10',
         (
-            bool(phase9_docgov_path)
-            and '已将根目录 `MCP实现方案.md` 归档' in phase9_docgov_text
-            and '已删除根目录临时草稿入口 `task_temp.md`' in phase9_docgov_text
-            and '项目层和插件层文档均已切换到“Phase 9 已完成”的一致口径' in phase9_docgov_text
+            task09_acceptance.get('status') == 'passed'
+            and task09_acceptance.get('tool_inventory', {}).get('total') == 42
+            and os.path.exists(phase10_closeout_path)
         ),
-        f'引用 {os.path.basename(phase9_docgov_path) if phase9_docgov_path else "Phase 9 文档治理报告缺失"}',
+        f'引用 {os.path.basename(task09_acceptance_path) if task09_acceptance_path else "task09 验收报告缺失"}',
     )
 
     missing_case_ids = [case_id for case_id in STAGES[10]['case_ids'] if case_id not in check_map]
