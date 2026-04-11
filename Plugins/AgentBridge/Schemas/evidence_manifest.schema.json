@@ -1,0 +1,114 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Evidence Manifest",
+  "description": "Phase 10 MCP 后端证据裁决层使用的标准化证据清单。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "created_at",
+    "test_type",
+    "test_scope",
+    "evidence_items",
+    "summary",
+    "status"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}_[a-f0-9]{8}$"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "test_type": {
+      "type": "string",
+      "enum": [
+        "automation_test",
+        "functional_test",
+        "smoke_test",
+        "gauntlet_session",
+        "manual_check"
+      ]
+    },
+    "test_scope": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evidence_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "path",
+          "description",
+          "timestamp"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "screenshot",
+              "log",
+              "report",
+              "state_summary",
+              "assertion_result"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total_checks",
+        "passed",
+        "failed",
+        "warnings"
+      ],
+      "properties": {
+        "total_checks": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "passed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "warnings": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "fail",
+        "escalate",
+        "pending"
+      ]
+    }
+  }
+}

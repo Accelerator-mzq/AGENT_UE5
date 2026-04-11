@@ -1,7 +1,7 @@
 # CLAUDE.md — Mvpv4TestCodex 项目
 
 > 本文件供 Claude Code / Codex / 其他 AI Agent 在进入本项目时自动读取。
-> 最后更新：2026-04-10
+> 最后更新：2026-04-11
 
 ## 项目概述
 
@@ -22,12 +22,13 @@ AgentBridge 不只是工具接口插件，而是包含编译前端（Skill Compi
 3. `Docs/Current/14_MCP_Cognitive_Bridge_Anchor.md` — MCP 认知桥接层总口径（优先裁决依据）
 4. `Docs/Current/15_Skill_Spec_Handoff_Chain.md` — Skill/Spec/Handoff 四层主链定义
 5. `Docs/Current/16_MCP_Repositioning_Plan.md` — MCP 重定位方案（含架构图）
-6. `Docs/Current/01_Project_Baseline.md` — 项目基线
-7. `Docs/Current/05_Implementation_Boundary.md` — 实施边界
-8. `task.md` — 当前阶段正式任务入口与完成记录
-9. `Plugins/AgentBridge/README.md` — 插件说明
-10. `Plugins/AgentBridge/AGENTS.md` — 通用 Agent 规则
-11. `Docs/History/Tasks/task8_phase8.md` — Phase 8 历史任务（需要追溯时）
+6. `Docs/Current/17_Phase10_Closeout.md` — Phase 10 收尾总览
+7. `Docs/Current/01_Project_Baseline.md` — 项目基线
+8. `Docs/Current/05_Implementation_Boundary.md` — 实施边界
+9. `task.md` — 当前阶段正式任务入口与完成记录
+10. `Plugins/AgentBridge/README.md` — 插件说明
+11. `Plugins/AgentBridge/AGENTS.md` — 通用 Agent 规则
+12. `Docs/History/Tasks/task8_phase8.md` — Phase 8 历史任务（需要追溯时）
 
 ## 绝对不要修改的文件
 
@@ -109,13 +110,14 @@ AgentBridge 不只是工具接口插件，而是包含编译前端（Skill Compi
 # Schema 校验（验证现有 MVP 不破坏）
 python Plugins/AgentBridge/Scripts/validation/validate_examples.py --strict
 
-# 系统测试：一键执行全部 9 个 Stage（当前登记 230 条）
+# 系统测试：一键执行全部 10 个 Stage（当前登记 240 条）
 python Plugins/AgentBridge/Tests/run_system_tests.py
 
 # 系统测试：交互模式（选择 Stage）
 python Plugins/AgentBridge/Tests/run_system_tests.py --interactive
 
-# 系统测试：仅纯 Python Stage（不需要 Editor）
+# 系统测试：无编辑器长链路参考命令
+# Phase 10 官方验收默认采用 task08_orchestrate.py 内置的分段等价验证
 python Plugins/AgentBridge/Tests/run_system_tests.py --no-editor
 
 # Greenfield 端到端运行（simulated 模式）
@@ -139,11 +141,13 @@ python compiler_main.py
 
 ## 当前阶段
 
-Phase 10 准备中 — MCP 重定位与治理文档收敛
+Phase 10 已完成 — MCP 认知桥接层 + Compiler Pipeline 编排
 当前主入口：`task.md`
 当前索引：`Docs/Current/00_Index.md`
 MCP 总口径锚定：`Docs/Current/14_MCP_Cognitive_Bridge_Anchor.md`
 四层主链定义：`Docs/Current/15_Skill_Spec_Handoff_Chain.md`
 MCP 重定位方案：`Docs/Current/16_MCP_Repositioning_Plan.md`
-Phase 9 验证证据：`ProjectState/Reports/2026-04-06/phase9_mcp_validation_2026-04-06.md`
+Phase 10 收尾总览：`Docs/Current/17_Phase10_Closeout.md`
+Phase 10 验证证据：`ProjectState/Reports/2026-04-11/task08_runtime_evidence_judgment_validation.md`
+Phase 10 工具基线证据：`ProjectState/Reports/2026-04-11/mcp_count_baseline_fix.md`
 Phase 9 实施前方案归档：`Docs/History/Proposals/Phase9_MCP_Implementation_Plan.md`

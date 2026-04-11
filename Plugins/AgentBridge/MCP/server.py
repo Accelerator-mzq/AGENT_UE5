@@ -27,6 +27,8 @@ sys.path.insert(0, MCP_DIR)
 
 from tool_definitions import (  # noqa: E402
     ALL_TOOLS,
+    COMPILER_FRONTEND_TOOLS,
+    EVIDENCE_JUDGE_TOOLS,
     LAYER1_QUERY_TOOLS,
     LAYER1_SERVICE_TOOLS,
     LAYER1_WRITE_TOOLS,
@@ -34,6 +36,8 @@ from tool_definitions import (  # noqa: E402
     LAYER3_TOOLS,
     to_json_schema,
 )
+import compiler_tools  # noqa: E402
+import evidence_tools  # noqa: E402
 
 logger = logging.getLogger("agentbridge-mcp")
 
@@ -687,6 +691,49 @@ def run_automation_tests(test_filter: str = None) -> dict:
     )
 
 
+def run_automation_tests_via_cpp_plugin(test_filter: str = None) -> dict:
+    """通过 C++ Subsystem 触发 Automation Test，避免依赖旧脚本路由。"""
+    target_filter = test_filter or "Project.AgentBridge"
+    command = f"Automation RunTests {target_filter}"
+
+    try:
+        from bridge_core import call_cpp_plugin
+
+        # 直接走项目主干的 C++ Subsystem 通道，规避 /remote/script/run 在当前 RC 配置下缺失的问题。
+        editor_result = call_cpp_plugin(
+            "RunAutomationTests",
+            {
+                "Filter": target_filter,
+                "ReportPath": "",
+            },
+        )
+        return make_response(
+            editor_result.get("status", "failed"),
+            editor_result.get("summary", f"Automation Test 触发失败: {target_filter}"),
+            data=_merge_editor_result(
+                {
+                    "test_filter": target_filter,
+                    "command": command,
+                    "execution_channel": "cpp_plugin",
+                },
+                editor_result.get("data"),
+            ),
+            warnings=editor_result.get("warnings", []),
+            errors=editor_result.get("errors", []),
+        )
+    except Exception as exc:
+        return make_response(
+            "failed",
+            f"触发 Automation Test 失败: {str(exc)}",
+            data={
+                "test_filter": target_filter,
+                "command": command,
+                "execution_channel": "cpp_plugin",
+            },
+            errors=[f"TOOL_EXECUTION_FAILED: {str(exc)}"],
+        )
+
+
 def undo_last_transaction() -> dict:
     """撤销上一次编辑器事务。"""
     command = "TRANSACTION UNDO"
@@ -725,7 +772,7 @@ TOOL_DISPATCH.update(
         "capture_screenshot": ("local", capture_screenshot),
         "save_named_assets": ("local", save_named_assets),
         "build_project": ("local", build_project),
-        "run_automation_tests": ("local", run_automation_tests),
+        "run_automation_tests": ("local", run_automation_tests_via_cpp_plugin),
         "undo_last_transaction": ("local", undo_last_transaction),
         "create_level": ("local", create_level),
         "create_material": ("local", create_material),
@@ -737,6 +784,28 @@ TOOL_DISPATCH.update(
         "open_level": ("local", open_level),
         "save_all": ("local", save_all),
         "run_editor_python": ("local", run_editor_python),
+    }
+)
+TOOL_DISPATCH.update(
+    {
+        "compiler_create_session": ("compiler", compiler_tools.compiler_create_session),
+        "compiler_intake_prepare": ("compiler", compiler_tools.compiler_intake_prepare),
+        "compiler_intake_save": ("compiler", compiler_tools.compiler_intake_save),
+        "compiler_plan_prepare": ("compiler", compiler_tools.compiler_plan_prepare),
+        "compiler_plan_save": ("compiler", compiler_tools.compiler_plan_save),
+        "compiler_get_session_status": ("compiler", compiler_tools.compiler_get_session_status),
+    }
+)
+TOOL_DISPATCH.update(
+    {
+        "evidence_load_manifest": ("evidence", evidence_tools.evidence_load_manifest),
+        "evidence_load_screenshots": ("evidence", evidence_tools.evidence_load_screenshots),
+        "evidence_load_logs": ("evidence", evidence_tools.evidence_load_logs),
+        "evidence_load_report": ("evidence", evidence_tools.evidence_load_report),
+        "evidence_judge_acceptance": ("evidence", evidence_tools.evidence_judge_acceptance),
+        "evidence_decide_escalation": ("evidence", evidence_tools.evidence_decide_escalation),
+        "evidence_export_summary": ("evidence", evidence_tools.evidence_export_summary),
+        "evidence_list_runs": ("evidence", evidence_tools.evidence_list_runs),
     }
 )
 
@@ -760,6 +829,10 @@ def dispatch_tool(tool_name: str, arguments: dict | None) -> dict:
         if kind == "write":
             return wrap_bridge_write(target, **safe_arguments)
         if kind == "local":
+            return target(**safe_arguments)
+        if kind == "compiler":
+            return target(**safe_arguments)
+        if kind == "evidence":
             return target(**safe_arguments)
 
         return make_response(

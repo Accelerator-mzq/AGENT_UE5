@@ -1,0 +1,16 @@
+{
+  "session_id": "0802a2e1-c012-4c03-a2bf-56f9a60f0208",
+  "created_at": "2026-04-11T01:58:50.112051+00:00",
+  "gdd_path": "ProjectInputs/GDD/GDD_MonopolyGame.md",
+  "target_phase": "phase1_local_multiplayer",
+  "output_dir": "d:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\phase10",
+  "current_stage": 5,
+  "stage_outputs": {
+    "stage_1": "d:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\phase10\\gdd_projection.json",
+    "stage_2": "d:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\phase10\\planner_output.json",
+    "stage_3": "d:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\phase10\\skill_fragments",
+    "stage_4": "d:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\phase10\\cross_review_report.json",
+    "stage_5": "d:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\phase10\\build_ir.json"
+  },
+  "status": "completed"
+}

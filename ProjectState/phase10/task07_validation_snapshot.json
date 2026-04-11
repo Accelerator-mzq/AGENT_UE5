@@ -1,0 +1,455 @@
+{
+  "current_level": "/Game/Maps/L_MonopolyBoard_Pipeline",
+  "board_manager_count": 1,
+  "tile_count": 28,
+  "player_pawn_count": 2,
+  "default_game_mode": "/Script/Mvpv4TestCodex.MMonopolyGameMode",
+  "widget_existence": {
+    "/Game/UI/WBP_GameHUD": true,
+    "/Game/UI/WBP_DicePopup": true,
+    "/Game/UI/WBP_BuyPopup": true,
+    "/Game/UI/WBP_InfoPopup": true,
+    "/Game/UI/WBP_JailPopup": true
+  },
+  "validation": {
+    "val-01": {
+      "passed": true,
+      "summary": "场景中 AMTile 数量 = 28。"
+    },
+    "val-02": {
+      "passed": true,
+      "summary": "TileData 数量 = 28，PROPERTY 数量 = 16。"
+    },
+    "val-03": {
+      "passed": true,
+      "summary": "场景中 AMPlayerPawn 数量 = 2。"
+    },
+    "val-04": {
+      "passed": true,
+      "summary": "World Settings DefaultGameMode = /Script/Mvpv4TestCodex.MMonopolyGameMode。"
+    },
+    "val-05": {
+      "passed": true,
+      "summary": "源码确认 BeginPlay 会把初始状态置为 WaitForRoll。"
+    },
+    "val-06": {
+      "passed": true,
+      "summary": "临时 Dice 实测 32 次，点数范围与双骰判定均正确。",
+      "samples": [
+        {
+          "DieA": 5,
+          "DieB": 3,
+          "Total": 8,
+          "bIsDouble": false
+        },
+        {
+          "DieA": 1,
+          "DieB": 3,
+          "Total": 4,
+          "bIsDouble": false
+        },
+        {
+          "DieA": 2,
+          "DieB": 6,
+          "Total": 8,
+          "bIsDouble": false
+        },
+        {
+          "DieA": 2,
+          "DieB": 5,
+          "Total": 7,
+          "bIsDouble": false
+        },
+        {
+          "DieA": 2,
+          "DieB": 6,
+          "Total": 8,
+          "bIsDouble": false
+        }
+      ]
+    },
+    "val-07": {
+      "passed": true,
+      "summary": "源码确认 8 种格子类型均有分发分支或显式处理。"
+    },
+    "val-08": {
+      "passed": true,
+      "summary": "源码确认购买、收租与颜色组翻倍逻辑存在。"
+    },
+    "val-09": {
+      "passed": true,
+      "summary": "源码确认监狱进入、保释与强制保释路径存在。"
+    },
+    "val-10": {
+      "passed": true,
+      "summary": "源码确认破产释放地产与游戏结束链路存在。"
+    },
+    "val-11": {
+      "passed": true,
+      "summary": "5 个 Widget Blueprint 存在数 = 5。"
+    },
+    "val-12": {
+      "passed": true,
+      "summary": "源码统计 UI 委托绑定点共 11 个。"
+    }
+  },
+  "delegate_defs": {
+    "passed": true,
+    "summary": "源码确认 GameState 暴露并广播关键委托。"
+  },
+  "dice_impl": {
+    "passed": true,
+    "summary": "源码确认 Dice 结果范围与双骰判定实现存在。"
+  },
+  "save_response": {
+    "status": "success",
+    "summary": "Saved 6 assets",
+    "data": {
+      "saved": [
+        "/Game/Maps/L_MonopolyBoard_Pipeline",
+        "/Game/UI/WBP_GameHUD",
+        "/Game/UI/WBP_DicePopup",
+        "/Game/UI/WBP_BuyPopup",
+        "/Game/UI/WBP_InfoPopup",
+        "/Game/UI/WBP_JailPopup"
+      ],
+      "failed": []
+    },
+    "warnings": [],
+    "errors": []
+  },
+  "spawn_board_response": {
+    "TileDataArray": [
+      {
+        "TileIndex": 0,
+        "TileName": "Start",
+        "TileType": "Start",
+        "ColorGroup": "None",
+        "Cost": 0,
+        "Rent": 0,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": false
+      },
+      {
+        "TileIndex": 1,
+        "TileName": "Mediterranean",
+        "TileType": "Property",
+        "ColorGroup": "Brown",
+        "Cost": 60,
+        "Rent": 4,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": true
+      },
+      {
+        "TileIndex": 2,
+        "TileName": "Community Chest",
+        "TileType": "CommunityChest",
+        "ColorGroup": "None",
+        "Cost": 0,
+        "Rent": 0,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": false
+      },
+      {
+        "TileIndex": 3,
+        "TileName": "Baltic",
+        "TileType": "Property",
+        "ColorGroup": "Brown",
+        "Cost": 80,
+        "Rent": 8,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": true
+      },
+      {
+        "TileIndex": 4,
+        "TileName": "Income Tax",
+        "TileType": "Tax",
+        "ColorGroup": "None",
+        "Cost": 0,
+        "Rent": 0,
+        "TaxAmount": 200,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": false
+      },
+      {
+        "TileIndex": 5,
+        "TileName": "Oriental",
+        "TileType": "Property",
+        "ColorGroup": "LightBlue",
+        "Cost": 100,
+        "Rent": 12,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": true
+      },
+      {
+        "TileIndex": 6,
+        "TileName": "Chance",
+        "TileType": "Chance",
+        "ColorGroup": "None",
+        "Cost": 0,
+        "Rent": 0,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": false
+      },
+      {
+        "TileIndex": 7,
+        "TileName": "Jail Visit",
+        "TileType": "JailVisit",
+        "ColorGroup": "None",
+        "Cost": 0,
+        "Rent": 0,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": false
+      },
+      {
+        "TileIndex": 8,
+        "TileName": "Vermont",
+        "TileType": "Property",
+        "ColorGroup": "LightBlue",
+        "Cost": 120,
+        "Rent": 14,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": true
+      },
+      {
+        "TileIndex": 9,
+        "TileName": "Connecticut",
+        "TileType": "Property",
+        "ColorGroup": "LightBlue",
+        "Cost": 140,
+        "Rent": 16,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": true
+      },
+      {
+        "TileIndex": 10,
+        "TileName": "St Charles",
+        "TileType": "Property",
+        "ColorGroup": "Pink",
+        "Cost": 160,
+        "Rent": 20,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": true
+      },
+      {
+        "TileIndex": 11,
+        "TileName": "Virginia",
+        "TileType": "Property",
+        "ColorGroup": "Pink",
+        "Cost": 180,
+        "Rent": 22,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": true
+      },
+      {
+        "TileIndex": 12,
+        "TileName": "Community Chest B",
+        "TileType": "CommunityChest",
+        "ColorGroup": "None",
+        "Cost": 0,
+        "Rent": 0,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": false
+      },
+      {
+        "TileIndex": 13,
+        "TileName": "Tennessee",
+        "TileType": "Property",
+        "ColorGroup": "Pink",
+        "Cost": 200,
+        "Rent": 24,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": true
+      },
+      {
+        "TileIndex": 14,
+        "TileName": "Free Parking",
+        "TileType": "FreeParking",
+        "ColorGroup": "None",
+        "Cost": 0,
+        "Rent": 0,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": false
+      },
+      {
+        "TileIndex": 15,
+        "TileName": "New York",
+        "TileType": "Property",
+        "ColorGroup": "Orange",
+        "Cost": 220,
+        "Rent": 28,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": true
+      },
+      {
+        "TileIndex": 16,
+        "TileName": "Chance B",
+        "TileType": "Chance",
+        "ColorGroup": "None",
+        "Cost": 0,
+        "Rent": 0,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": false
+      },
+      {
+        "TileIndex": 17,
+        "TileName": "Kentucky",
+        "TileType": "Property",
+        "ColorGroup": "Orange",
+        "Cost": 240,
+        "Rent": 30,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": true
+      },
+      {
+        "TileIndex": 18,
+        "TileName": "Indiana",
+        "TileType": "Property",
+        "ColorGroup": "Red",
+        "Cost": 260,
+        "Rent": 32,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": true
+      },
+      {
+        "TileIndex": 19,
+        "TileName": "Illinois",
+        "TileType": "Property",
+        "ColorGroup": "Red",
+        "Cost": 280,
+        "Rent": 34,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": true
+      },
+      {
+        "TileIndex": 20,
+        "TileName": "Luxury Tax",
+        "TileType": "Tax",
+        "ColorGroup": "None",
+        "Cost": 0,
+        "Rent": 0,
+        "TaxAmount": 150,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": false
+      },
+      {
+        "TileIndex": 21,
+        "TileName": "Go To Jail",
+        "TileType": "GoToJail",
+        "ColorGroup": "None",
+        "Cost": 0,
+        "Rent": 0,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": false
+      },
+      {
+        "TileIndex": 22,
+        "TileName": "Pacific",
+        "TileType": "Property",
+        "ColorGroup": "Green",
+        "Cost": 300,
+        "Rent": 36,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": true
+      },
+      {
+        "TileIndex": 23,
+        "TileName": "Community Chest C",
+        "TileType": "CommunityChest",
+        "ColorGroup": "None",
+        "Cost": 0,
+        "Rent": 0,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": false
+      },
+      {
+        "TileIndex": 24,
+        "TileName": "North Carolina",
+        "TileType": "Property",
+        "ColorGroup": "Green",
+        "Cost": 320,
+        "Rent": 38,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": true
+      },
+      {
+        "TileIndex": 25,
+        "TileName": "Pennsylvania",
+        "TileType": "Property",
+        "ColorGroup": "Green",
+        "Cost": 340,
+        "Rent": 40,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": true
+      },
+      {
+        "TileIndex": 26,
+        "TileName": "Chance C",
+        "TileType": "Chance",
+        "ColorGroup": "None",
+        "Cost": 0,
+        "Rent": 0,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": false
+      },
+      {
+        "TileIndex": 27,
+        "TileName": "Broadway",
+        "TileType": "Property",
+        "ColorGroup": "Blue",
+        "Cost": 400,
+        "Rent": 50,
+        "TaxAmount": 0,
+        "OwnerPlayerIndex": -1,
+        "bCanBeOwned": true
+      }
+    ]
+  },
+  "widget_results": [
+    {
+      "asset_path": "/Game/UI/WBP_GameHUD",
+      "status": "existing"
+    },
+    {
+      "asset_path": "/Game/UI/WBP_DicePopup",
+      "status": "existing"
+    },
+    {
+      "asset_path": "/Game/UI/WBP_BuyPopup",
+      "status": "existing"
+    },
+    {
+      "asset_path": "/Game/UI/WBP_InfoPopup",
+      "status": "existing"
+    },
+    {
+      "asset_path": "/Game/UI/WBP_JailPopup",
+      "status": "existing"
+    }
+  ]
+}

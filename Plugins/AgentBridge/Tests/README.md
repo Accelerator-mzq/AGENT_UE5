@@ -1,85 +1,84 @@
 # AgentBridge 系统测试体系
 
-> 本目录包含 AgentBridge 插件的系统级测试用例文档、自动化脚本与全局执行入口。
+> 本目录包含 AgentBridge 插件的系统级测试总表、全局执行入口与辅助脚本。
+> 当前口径：10 个 Stage，248 条用例，已纳入 Phase 10 归档。
 
 ## 目录结构
 
-```
+```text
 Tests/
-├── run_system_tests.py        ← 全局入口：一键触发全部 134 条系统测试
-├── SystemTestCases.md      ← 系统测试用例总表（主文档）
-├── README.md               ← 本文件
-└── scripts/                ← 自动化测试脚本
-    ├── conftest.py         ← pytest 共享 fixtures
-    ├── test_schema_validation.py
-    ├── test_e2e_orchestrator.py
-    └── test_mvp_regression.py
+├── run_system_tests.py        -> 全局入口，串行执行当前登记的 248 条系统测试
+├── SystemTestCases.md         -> 权威测试总表
+├── README.md                  -> 本文件
+└── scripts/                   -> pytest 辅助脚本
 ```
 
 ## 快速开始
 
-```bash
-# 一键执行全部 9 个 Stage（134 条用例）
+```powershell
+# 执行全部 Stage
 python Plugins/AgentBridge/Tests/run_system_tests.py
 
-# 交互模式：选择要执行的 Stage
+# 交互模式
 python Plugins/AgentBridge/Tests/run_system_tests.py --interactive
 
-# 仅执行纯 Python Stage（不需要 UE5 Editor）
+# 只跑无编辑器相关 Stage
 python Plugins/AgentBridge/Tests/run_system_tests.py --no-editor
 
-# 指定 Stage
-python Plugins/AgentBridge/Tests/run_system_tests.py --stage=1,6,7
+# 针对 Phase 10 对齐后的关键 Stage
+python Plugins/AgentBridge/Tests/run_system_tests.py --stage=7,9,10
 
-# 指定引擎路径
-python Plugins/AgentBridge/Tests/run_system_tests.py --engine-root="E:\Epic Games\UE_5.5"
-
-# 失败即停
-python Plugins/AgentBridge/Tests/run_system_tests.py --fail-fast
+# 单独验证 MCP 集成层
+python Plugins/AgentBridge/Tests/run_system_tests.py --stage=10
 ```
 
-## 9 个 Stage 流水线
+## 10 个 Stage
 
-| Stage | 名称 | 用例数 | 需要 Editor | 需要编译 | 自动化工具 |
-|-------|------|--------|------------|---------|-----------|
-| 1 | Schema 验证（SV） | 5 | — | — | `validate_examples.py` + `pytest` |
-| 2 | 编译验证（BL） | 6 | — | 需要 | `Build.bat` (UBT) |
-| 3 | Editor 启动 + RC 就绪 | 2 | 需要 | 需要 | `start_ue_editor_project.ps1` |
-| 4 | L1/L2/L3 自动化测试 | 57 | 需要 | 需要 | `UnrealEditor-Cmd.exe -RunTests` |
-| 5 | Commandlet 功能 | 8 | — | 需要 | `UnrealEditor-Cmd.exe -Tool` |
-| 6 | Python 客户端 | 10 | — | — | `pytest` |
-| 7 | Orchestrator | 31 | — | — | `pytest` + `orchestrator.py --channel mock` |
-| 8 | Gauntlet CI/CD | 6 | 需要 | 需要 | `RunUAT.bat RunUnreal` |
-| 9 | E2E 三通道一致性 | 11 | 需要 | 需要 | 多步流水线 |
+| Stage | 名称 | 用例数 | 需要 Editor | 需要编译 | 说明 |
+|-------|------|--------|------------|---------|------|
+| 1 | Schema 验证（SV） | 10 | 否 | 否 | example / schema / 严格校验 |
+| 2 | 编译与加载（BL） | 6 | 是 | 是 | UBT、插件加载、RC 探测 |
+| 3 | L1/L2/L3 自动化测试（Q/W/CL/UI） | 57 | 是 | 是 | UE 自动化测试主干 |
+| 4 | Commandlet 功能（CMD） | 8 | 否 | 是 | 无头工具与测试触发 |
+| 5 | Python 客户端（PY） | 10 | 否 | 否 | Python Bridge / Mock |
+| 6 | Orchestrator（ORC） | 37 | 否 | 否 | Orchestrator / mock / helper |
+| 7 | Compiler Plane + Skills & Specs（CP/SS） | 64 | 否 | 否 | 含 Phase 10 CP-41~44 |
+| 8 | Gauntlet CI/CD（GA） | 6 | 是 | 是 | SmokeTests / AllTests |
+| 9 | 端到端集成（E2E） | 40 | 是 | 是 | 含 Phase 10 E2E-37~40 |
+| 10 | MCP Server 集成（MCP） | 10 | 否 | 否 | 含 Phase 10 当前 MCP 42 工具与证据裁决 |
+
+## Phase 10 特别说明
+
+- `SystemTestCases.md` 已补入 Phase 10 的归档验收项。
+- `run_system_tests.py` 已与总表对齐到 `248` 条用例。
+- Phase 10 官方无编辑器验收口径不是单次长链路强跑，而是“Stage 分段等价验证”。
+
+对应证据：
+
+- [no_editor_equivalent_strategy.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-11/no_editor_equivalent_strategy.md)
+- [task09_final_acceptance_validation.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-11/task09_final_acceptance_validation.md)
 
 ## 与现有测试体系的关系
 
 | 层级 | 位置 | 类型 | 说明 |
 |------|------|------|------|
-| L1/L2/L3 自动化测试 | `AgentBridgeTests/` | UE5 C++ Automation Test | 已稳定，不可修改 |
-| Schema 校验工具 | `Scripts/validation/` | Python 内置校验 | 已稳定，不可修改 |
-| **系统测试** | **`Tests/`（本目录）** | **全局入口 + 文档 + 脚本** | **活跃开发** |
-| Gauntlet CI/CD | `Gauntlet/` | C# 配置 | 已稳定 |
+| L1/L2/L3 自动化测试 | `AgentBridgeTests/` | UE5 C++ Automation Test | 稳定基线，不直接在这里改 |
+| Schema 校验工具 | `Scripts/validation/` | Python 校验 | 基础校验链 |
+| 系统测试 | `Tests/` | 总表 + 编排入口 | 当前活跃维护区域 |
+| Gauntlet | `Gauntlet/` | C# 配置 | Editor 级集成与 CI |
 
 ## 报告输出
 
-执行完成后自动生成 JSON 汇总报告到 `reports/` 目录：
+执行完成后会把系统测试报告输出到 `Plugins/AgentBridge/reports/<date>/`，JSON 中会记录：
 
-```json
-{
-  "timestamp": "2026-03-31T10:00:00",
-  "total_stages": 9,
-  "passed": 9,
-  "failed": 0,
-  "skipped": 0,
-  "total_cases": 134,
-  "overall_status": "passed",
-  "stages": [...]
-}
-```
+- `total_stages`
+- `passed / failed / skipped`
+- `total_cases`
+- `alignment_summary`
+- 各 Stage 的 `case_ids / case_count / status`
 
-## 文档与脚本的关系
+## 文档与脚本关系
 
-- `SystemTestCases.md` 是权威来源，每条用例有唯一编号
-- `scripts/` 下的脚本通过注释标注对应的用例编号
-- `run_system_tests.py` 是全局编排入口，串联所有自动化工具链
+- [SystemTestCases.md](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Tests/SystemTestCases.md) 是权威来源。
+- [run_system_tests.py](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Tests/run_system_tests.py) 必须与总表编号、数量、顺序完全一致。
+- 归档阶段的新增验收项，应先补总表，再同步脚本与 README 口径。

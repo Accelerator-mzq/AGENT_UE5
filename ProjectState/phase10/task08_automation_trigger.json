@@ -1,0 +1,15 @@
+{
+  "status": "success",
+  "summary": "Automation tests triggered: Project.AgentBridge",
+  "data": {
+    "test_filter": "Project.AgentBridge",
+    "command": "Automation RunTests Project.AgentBridge",
+    "execution_channel": "cpp_plugin",
+    "editor_result": {
+      "filter": "Project.AgentBridge",
+      "command": "Automation RunTests Project.AgentBridge"
+    }
+  },
+  "warnings": [],
+  "errors": []
+}

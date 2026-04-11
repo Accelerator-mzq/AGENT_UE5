@@ -1,0 +1,114 @@
+[
+  {
+    "step": "step-01-board-layout",
+    "ir_action": "create_board_ring_layout",
+    "mcp_tool_used": "ExecuteEditorConsoleCommand(py) + SpawnActor + set_property",
+    "status": "success",
+    "summary": "创建并打开 /Game/Maps/L_MonopolyBoard_Pipeline，生成 1 个 AMBoardManager，SideLength=700。",
+    "timestamp": "2026-04-11T13:55:47"
+  },
+  {
+    "step": "step-02-tile-actors",
+    "ir_action": "create_tile_actors",
+    "mcp_tool_used": "RC object call -> SpawnBoard",
+    "status": "success",
+    "summary": "通过 BoardManager.SpawnBoard 生成 28 个 AMTile。",
+    "timestamp": "2026-04-11T13:55:47"
+  },
+  {
+    "step": "step-03-tile-metadata",
+    "ir_action": "assign_tile_metadata",
+    "mcp_tool_used": "RC object call -> TileData snapshots",
+    "status": "success",
+    "summary": "28 个 TileData 已写入，PROPERTY=16。",
+    "timestamp": "2026-04-11T13:55:47"
+  },
+  {
+    "step": "step-04-player-tokens",
+    "ir_action": "create_player_tokens",
+    "mcp_tool_used": "SpawnActor + ExecuteEditorConsoleCommand(py)",
+    "status": "success",
+    "summary": "生成 2 个 AMPlayerPawn，并设置标签/颜色。",
+    "timestamp": "2026-04-11T13:55:47"
+  },
+  {
+    "step": "step-05-game-mode",
+    "ir_action": "create_game_mode_shell",
+    "mcp_tool_used": "ExecuteEditorConsoleCommand(py)",
+    "status": "success",
+    "summary": "WorldSettings.DefaultGameMode 绑定为 /Script/Mvpv4TestCodex.MMonopolyGameMode。",
+    "timestamp": "2026-04-11T13:55:47"
+  },
+  {
+    "step": "step-06-turn-fsm",
+    "ir_action": "bind_turn_state_machine",
+    "mcp_tool_used": "source_inspection",
+    "status": "success",
+    "summary": "源码确认 BeginPlay 会把初始状态置为 WaitForRoll。",
+    "timestamp": "2026-04-11T13:55:47"
+  },
+  {
+    "step": "step-07-dice-logic",
+    "ir_action": "bind_dice_roll_logic",
+    "mcp_tool_used": "SpawnActor + RC object call",
+    "status": "success",
+    "summary": "临时 Dice 实测 32 次，点数范围与双骰判定均正确。",
+    "timestamp": "2026-04-11T13:55:47"
+  },
+  {
+    "step": "step-08-tile-events",
+    "ir_action": "bind_tile_event_dispatch",
+    "mcp_tool_used": "source_inspection",
+    "status": "success",
+    "summary": "源码确认 8 种格子类型均有分发分支或显式处理。",
+    "timestamp": "2026-04-11T13:55:47"
+  },
+  {
+    "step": "step-09-property-economy",
+    "ir_action": "bind_property_economy_logic",
+    "mcp_tool_used": "source_inspection",
+    "status": "success",
+    "summary": "源码确认购买、收租与颜色组翻倍逻辑存在。",
+    "timestamp": "2026-04-11T13:55:47"
+  },
+  {
+    "step": "step-10-jail-logic",
+    "ir_action": "bind_jail_logic",
+    "mcp_tool_used": "source_inspection",
+    "status": "success",
+    "summary": "源码确认监狱进入、保释与强制保释路径存在。",
+    "timestamp": "2026-04-11T13:55:47"
+  },
+  {
+    "step": "step-11-bankruptcy-logic",
+    "ir_action": "bind_bankruptcy_logic",
+    "mcp_tool_used": "source_inspection",
+    "status": "success",
+    "summary": "源码确认破产释放地产与游戏结束链路存在。",
+    "timestamp": "2026-04-11T13:55:47"
+  },
+  {
+    "step": "step-12-ui-widgets",
+    "ir_action": "create_phase1_ui_widgets",
+    "mcp_tool_used": "CreateBlueprintChild",
+    "status": "success",
+    "summary": "5 个 Widget Blueprint 存在数 = 5。",
+    "timestamp": "2026-04-11T13:55:47"
+  },
+  {
+    "step": "step-13-ui-binding",
+    "ir_action": "bind_ui_to_game_state",
+    "mcp_tool_used": "source_inspection(AddDynamic)",
+    "status": "success",
+    "summary": "源码统计 UI 委托绑定点共 11 个。",
+    "timestamp": "2026-04-11T13:55:47"
+  },
+  {
+    "step": "step-14-validation",
+    "ir_action": "attach_validation_hooks",
+    "mcp_tool_used": "live_queries + source_inspection",
+    "status": "success",
+    "summary": "12 个基础检查通过 12/12。",
+    "timestamp": "2026-04-11T13:55:47"
+  }
+]

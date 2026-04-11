@@ -1,0 +1,271 @@
+{
+  "started_at": 1775890337.2642124,
+  "stage": "wait_end_play",
+  "level_before_play": "/Game/Maps/L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
+  "preplay": {
+    "editor_level": "/Game/Maps/L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
+    "default_game_mode_path": "/Script/Mvpv4TestCodex.MMonopolyGameMode"
+  },
+  "notes": [],
+  "warnings": [],
+  "runtime_checks": {
+    "val-13": {
+      "passed": true,
+      "summary": "Play 前关卡 = /Game/Maps/L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline"
+    },
+    "val-14": {
+      "passed": true,
+      "summary": "WorldSettings.DefaultGameMode = /Script/Mvpv4TestCodex.MMonopolyGameMode"
+    },
+    "val-16": {
+      "passed": true,
+      "summary": "HUD 已入视口，且当前玩家/资金/回合/格子 4 个文本均非空。"
+    },
+    "val-17": {
+      "passed": true,
+      "summary": "鼠标显示、点击/悬停事件开启，且通过 game_mode.on_player_request_roll 已推进到 Popup。"
+    },
+    "val-18": {
+      "passed": true,
+      "summary": "Popup 已关闭，HUD 仍可见，鼠标/点击/悬停仍开启；最后一次关闭方法 = primary_button.on_clicked.broadcast。"
+    },
+    "val-19": {
+      "passed": true,
+      "summary": "完成至少一轮 smoke：turn_number 1 -> 2, current_player 0 -> 1。"
+    }
+  },
+  "artifacts": {
+    "wait_popup_started_at": 1775890340.920678
+  },
+  "snapshots": {
+    "last": {
+      "timestamp": 1775890344.3525615,
+      "editor_level": "/Game/Maps/L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
+      "preplay_level": "/Game/Maps/L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
+      "is_in_pie": false,
+      "pie_world_count": 0,
+      "game_world_path": "",
+      "default_game_mode_path": "/Script/Mvpv4TestCodex.MMonopolyGameMode",
+      "preplay_default_game_mode_path": "/Script/Mvpv4TestCodex.MMonopolyGameMode",
+      "game_mode_class": "",
+      "game_state_class": "",
+      "player_controller_class": "",
+      "player_controller": {
+        "show_mouse_cursor": false,
+        "enable_click_events": false,
+        "enable_mouse_over_events": false
+      },
+      "turn_number": 0,
+      "current_player_index": -1,
+      "turn_state": "",
+      "hud": {
+        "exists": false,
+        "class": "",
+        "in_viewport": false,
+        "visible": false,
+        "current_player_text": "",
+        "turn_number_text": "",
+        "money_summary_text": "",
+        "tile_info_text": "",
+        "status_text": ""
+      },
+      "popup": {
+        "exists": false,
+        "class": "",
+        "in_viewport": false,
+        "visible": false,
+        "title": "",
+        "message": "",
+        "primary_button_visible": false,
+        "primary_button_enabled": false,
+        "secondary_button_visible": false,
+        "secondary_button_enabled": false
+      }
+    },
+    "hud_ready": {
+      "timestamp": 1775890338.3719912,
+      "editor_level": "",
+      "preplay_level": "/Game/Maps/L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
+      "is_in_pie": true,
+      "pie_world_count": 1,
+      "game_world_path": "/Game/Maps/UEDPIE_0_L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
+      "default_game_mode_path": "",
+      "preplay_default_game_mode_path": "/Script/Mvpv4TestCodex.MMonopolyGameMode",
+      "game_mode_class": "/Script/Mvpv4TestCodex.MMonopolyGameMode",
+      "game_state_class": "/Script/Mvpv4TestCodex.MMonopolyGameState",
+      "player_controller_class": "/Script/Mvpv4TestCodex.MMonopolyPlayerController",
+      "player_controller": {
+        "show_mouse_cursor": true,
+        "enable_click_events": true,
+        "enable_mouse_over_events": true
+      },
+      "turn_number": 1,
+      "current_player_index": 0,
+      "turn_state": "WAIT_FOR_ROLL",
+      "hud": {
+        "exists": true,
+        "class": "/Script/Mvpv4TestCodex.MGameHUDWidget",
+        "in_viewport": true,
+        "visible": true,
+        "current_player_text": "当前玩家：P1 玩家1",
+        "turn_number_text": "回合：1",
+        "money_summary_text": "P1 玩家1：1500\nP2 玩家2：1500",
+        "tile_info_text": "当前位置：格子 0",
+        "status_text": "状态：WaitForRoll"
+      },
+      "popup": {
+        "exists": false,
+        "class": "",
+        "in_viewport": false,
+        "visible": false,
+        "title": "",
+        "message": "",
+        "primary_button_visible": false,
+        "primary_button_enabled": false,
+        "secondary_button_visible": false,
+        "secondary_button_enabled": false
+      }
+    },
+    "roll_requested_at": {
+      "timestamp": 1775890340.920678,
+      "editor_level": "",
+      "preplay_level": "/Game/Maps/L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
+      "is_in_pie": true,
+      "pie_world_count": 1,
+      "game_world_path": "/Game/Maps/UEDPIE_0_L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
+      "default_game_mode_path": "",
+      "preplay_default_game_mode_path": "/Script/Mvpv4TestCodex.MMonopolyGameMode",
+      "game_mode_class": "/Script/Mvpv4TestCodex.MMonopolyGameMode",
+      "game_state_class": "/Script/Mvpv4TestCodex.MMonopolyGameState",
+      "player_controller_class": "/Script/Mvpv4TestCodex.MMonopolyPlayerController",
+      "player_controller": {
+        "show_mouse_cursor": true,
+        "enable_click_events": true,
+        "enable_mouse_over_events": true
+      },
+      "turn_number": 1,
+      "current_player_index": 0,
+      "turn_state": "WAITING_FOR_POPUP",
+      "hud": {
+        "exists": true,
+        "class": "/Script/Mvpv4TestCodex.MGameHUDWidget",
+        "in_viewport": true,
+        "visible": true,
+        "current_player_text": "当前玩家：P1 玩家1",
+        "turn_number_text": "回合：1",
+        "money_summary_text": "P1 玩家1：1420\nP2 玩家2：1500",
+        "tile_info_text": "当前位置：格子 6",
+        "status_text": "状态：WaitingForPopup"
+      },
+      "popup": {
+        "exists": true,
+        "class": "/Script/Mvpv4TestCodex.MPopupWidget",
+        "in_viewport": true,
+        "visible": true,
+        "title": "机会",
+        "message": "玩家1 抽到机会卡：维修房产，支付 80。",
+        "primary_button_visible": true,
+        "primary_button_enabled": true,
+        "secondary_button_visible": false,
+        "secondary_button_enabled": true
+      }
+    },
+    "popup_ready": {
+      "timestamp": 1775890341.2521725,
+      "editor_level": "",
+      "preplay_level": "/Game/Maps/L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
+      "is_in_pie": true,
+      "pie_world_count": 1,
+      "game_world_path": "/Game/Maps/UEDPIE_0_L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
+      "default_game_mode_path": "",
+      "preplay_default_game_mode_path": "/Script/Mvpv4TestCodex.MMonopolyGameMode",
+      "game_mode_class": "/Script/Mvpv4TestCodex.MMonopolyGameMode",
+      "game_state_class": "/Script/Mvpv4TestCodex.MMonopolyGameState",
+      "player_controller_class": "/Script/Mvpv4TestCodex.MMonopolyPlayerController",
+      "player_controller": {
+        "show_mouse_cursor": true,
+        "enable_click_events": true,
+        "enable_mouse_over_events": true
+      },
+      "turn_number": 1,
+      "current_player_index": 0,
+      "turn_state": "WAITING_FOR_POPUP",
+      "hud": {
+        "exists": true,
+        "class": "/Script/Mvpv4TestCodex.MGameHUDWidget",
+        "in_viewport": true,
+        "visible": true,
+        "current_player_text": "当前玩家：P1 玩家1",
+        "turn_number_text": "回合：1",
+        "money_summary_text": "P1 玩家1：1420\nP2 玩家2：1500",
+        "tile_info_text": "当前位置：格子 6",
+        "status_text": "状态：WaitingForPopup"
+      },
+      "popup": {
+        "exists": true,
+        "class": "/Script/Mvpv4TestCodex.MPopupWidget",
+        "in_viewport": true,
+        "visible": true,
+        "title": "机会",
+        "message": "玩家1 抽到机会卡：维修房产，支付 80。",
+        "primary_button_visible": true,
+        "primary_button_enabled": true,
+        "secondary_button_visible": false,
+        "secondary_button_enabled": true
+      }
+    },
+    "smoke_complete": {
+      "timestamp": 1775890343.5863986,
+      "editor_level": "",
+      "preplay_level": "/Game/Maps/L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
+      "is_in_pie": true,
+      "pie_world_count": 1,
+      "game_world_path": "/Game/Maps/UEDPIE_0_L_MonopolyBoard_Pipeline.L_MonopolyBoard_Pipeline",
+      "default_game_mode_path": "",
+      "preplay_default_game_mode_path": "/Script/Mvpv4TestCodex.MMonopolyGameMode",
+      "game_mode_class": "/Script/Mvpv4TestCodex.MMonopolyGameMode",
+      "game_state_class": "/Script/Mvpv4TestCodex.MMonopolyGameState",
+      "player_controller_class": "/Script/Mvpv4TestCodex.MMonopolyPlayerController",
+      "player_controller": {
+        "show_mouse_cursor": true,
+        "enable_click_events": true,
+        "enable_mouse_over_events": true
+      },
+      "turn_number": 2,
+      "current_player_index": 1,
+      "turn_state": "WAIT_FOR_ROLL",
+      "hud": {
+        "exists": true,
+        "class": "/Script/Mvpv4TestCodex.MGameHUDWidget",
+        "in_viewport": true,
+        "visible": true,
+        "current_player_text": "当前玩家：P2 玩家2",
+        "turn_number_text": "回合：2",
+        "money_summary_text": "P1 玩家1：1420\nP2 玩家2：1500",
+        "tile_info_text": "当前位置：格子 0",
+        "status_text": "状态：WaitForRoll"
+      },
+      "popup": {
+        "exists": true,
+        "class": "/Script/Mvpv4TestCodex.MPopupWidget",
+        "in_viewport": false,
+        "visible": false,
+        "title": "机会",
+        "message": "玩家1 抽到机会卡：维修房产，支付 80。",
+        "primary_button_visible": false,
+        "primary_button_enabled": true,
+        "secondary_button_visible": false,
+        "secondary_button_enabled": true
+      }
+    }
+  },
+  "popup_close_method": "primary_button.on_clicked.broadcast",
+  "popup_close_history": [
+    "primary_button.on_clicked.broadcast"
+  ],
+  "roll_trigger_method": "game_mode.on_player_request_roll",
+  "popup_cycle_count": 0,
+  "finished_at": 1775890344.3525615,
+  "status": "success",
+  "message": "TASK 08 运行时会话完成"
+}

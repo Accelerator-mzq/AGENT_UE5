@@ -63,7 +63,7 @@ Design Inputs + Existing Project State Inputs
 | **Greenfield Bootstrap** | 从零启动新样板 | 全量编译 → Full Dynamic Spec Tree |
 | **Brownfield Expansion** | 已有 demo 的二次开发 | 基线理解 + 差量编译 → Delta Dynamic Spec Tree |
 
-Phase 4 已完成 Greenfield 自动生成闭环。Phase 5 已完成 Brownfield 最小闭环。Phase 6 已完成”完整 Spec Tree + 可玩 Runtime”阶段。Phase 7 完成”治理闭环 + 多类型扩展”。Phase 8 引入 Skill-First 6 阶段主链，以 MonopolyGame 为垂直切片验证端到端流程。Phase 9 将 Phase 8 的 MCP 占位骨架升级为真实可工作的 stdio server。Phase 10 准备阶段将 MCP 从执行层 Bridge 包装重定位为认知桥接层（前端 Stage 1-2 认知分解 + 后端证据裁决）。
+Phase 4 已完成 Greenfield 自动生成闭环。Phase 5 已完成 Brownfield 最小闭环。Phase 6 已完成”完整 Spec Tree + 可玩 Runtime”阶段。Phase 7 完成”治理闭环 + 多类型扩展”。Phase 8 引入 Skill-First 6 阶段主链，以 MonopolyGame 为垂直切片验证端到端流程。Phase 9 将 Phase 8 的 MCP 占位骨架升级为真实可工作的 stdio server。Phase 10 已将 MCP 从执行层 Bridge 包装重定位为认知桥接层（前端 Stage 1-2 认知分解 + 后端证据裁决），并完成端到端闭环验证。
 
 ### 1.3 分层原则
 
