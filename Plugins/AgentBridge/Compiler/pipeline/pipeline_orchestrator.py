@@ -21,15 +21,27 @@ from ..cross_review import cross_review
 from ..intake import design_intake
 from ..lowering import lowering
 from ..planner import planner
+from ..stages import clarification_gate as clarification_gate_stage
+from ..stages import cross_review_v2 as cross_review_v2_stage
+from ..stages import domain_skill_runtime as domain_skill_runtime_stage
+from ..stages import handoff_v3 as handoff_v3_stage
+from ..stages.llm_client import load_llm_client_from_config
+from ..stages import lowering_v2 as lowering_v2_stage
+from ..stages import root_skill_contract as root_skill_contract_stage
+from ..stages import skill_graph_planning as skill_graph_planning_stage
 from ..skill_runtime import skill_runtime
-from .session import CompilerSession
+from .session import CompilerSession, get_max_stage as get_session_max_stage
 
 
 PLUGIN_DIR = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = PLUGIN_DIR.parents[1]
 SCHEMAS_DIR = PLUGIN_DIR / "Schemas"
-REVIEWED_HANDOFF_SCHEMA_PATH = SCHEMAS_DIR / "reviewed_handoff_v2.schema.json"
+PROJECT_RUNS_DIR = PROJECT_ROOT / "ProjectState" / "runs"
+REVIEWED_HANDOFF_SCHEMA_PATH_V1 = SCHEMAS_DIR / "reviewed_handoff_v2.schema.json"
+REVIEWED_HANDOFF_SCHEMA_PATH_V2 = SCHEMAS_DIR / "reviewed_handoff_v3.schema.json"
+REVIEWED_HANDOFF_SCHEMA_PATH = REVIEWED_HANDOFF_SCHEMA_PATH_V1
 
-STAGE_NAME_MAP = {
+STAGE_NAME_MAP_V1 = {
     1: "design_intake",
     2: "planner",
     3: "skill_runtime",
@@ -37,7 +49,17 @@ STAGE_NAME_MAP = {
     5: "lowering",
 }
 
-STAGE_ARTIFACT_MAP = {
+STAGE_NAME_MAP_V2 = {
+    1: "root_skill_contract",
+    2: "clarification_gate",
+    3: "skill_graph_planning",
+    4: "domain_skill_runtime",
+    5: "cross_domain_review",
+    6: "lowering",
+    7: "handoff_assembly",
+}
+
+STAGE_ARTIFACT_MAP_V1 = {
     1: {
         "output_file": "gdd_projection.json",
         "schema_file": "gdd_projection.schema.json",
@@ -65,6 +87,77 @@ STAGE_ARTIFACT_MAP = {
         "next_stage_input_key": "build_ir",
     },
 }
+
+STAGE_ARTIFACT_MAP_V2 = {
+    "metadata": {
+        "output_file": "metadata.json",
+        "next_stage_input_key": "metadata",
+    },
+    1: {
+        "output_file": "root_skill_contract.json",
+        "schema_file": "root_skill_contract.schema.json",
+        "next_stage_input_key": "root_skill_contract",
+    },
+    2: {
+        "output_file": "clarification_gate_report.json",
+        "schema_file": "clarification_gate_report.schema.json",
+        "next_stage_input_key": "clarification_gate_report",
+    },
+    3: {
+        "output_file": "skill_graph.json",
+        "schema_file": "skill_graph.schema.json",
+        "next_stage_input_key": "skill_graph",
+    },
+    4: {
+        "output_file": "converged_realization_pack.json",
+        "schema_file": "converged_realization_pack.schema.json",
+        "next_stage_input_key": "converged_realization_pack",
+        "output_files": {
+            "design_space_report": {
+                "output_file": "design_space_report.json",
+                "schema_file": "design_space_report.schema.json",
+            },
+            "realization_candidates": {
+                "output_file": "realization_candidates.json",
+                "schema_file": "realization_candidates.schema.json",
+            },
+            "converged_realization_pack": {
+                "output_file": "converged_realization_pack.json",
+                "schema_file": "converged_realization_pack.schema.json",
+            },
+            "skill_fragments": {
+                "output_dir": "skill_fragments",
+                "schema_file": "skill_fragment_v2.schema.json",
+                "multi_file": True,
+            },
+        },
+    },
+    5: {
+        "output_file": "cross_review_report.json",
+        "schema_file": "cross_review_report_v2.schema.json",
+        "next_stage_input_key": "cross_review_report",
+    },
+    6: {
+        "output_file": "build_ir.json",
+        "schema_file": "build_ir_v2.schema.json",
+        "next_stage_input_key": "build_ir",
+        "sidecar_files": {
+            "naming_resolution_log": {
+                "output_file": "naming_resolution_log.json",
+                "schema_file": "naming_resolution_log.schema.json",
+            },
+        },
+    },
+    7: {
+        "output_file": "reviewed_handoff_v3.json",
+        "schema_file": "reviewed_handoff_v3.schema.json",
+        "next_stage_input_key": "reviewed_handoff_v3",
+    },
+}
+
+# 兼容旧调用：未显式区分版本的内部引用默认指向 v1。
+STAGE_NAME_MAP = STAGE_NAME_MAP_V1
+STAGE_ARTIFACT_MAP = STAGE_ARTIFACT_MAP_V1
 
 
 def _load_json_file(path: str | Path) -> Any:
@@ -126,11 +219,52 @@ def _validate_stage_payload(stage_num: int, payload: Any, schema: Dict[str, Any]
     return formatted_errors
 
 
+def _get_session_version(session: CompilerSession) -> str:
+    """读取 session 版本；旧 session 缺失字段时按 v1.0 路由。"""
+    return getattr(session, "session_version", "1.0") or "1.0"
+
+
+def get_stage_name_map(session: CompilerSession) -> Dict[int, str]:
+    """根据 session_version 返回阶段名映射。"""
+    if _get_session_version(session) == "2.0":
+        return STAGE_NAME_MAP_V2
+    return STAGE_NAME_MAP_V1
+
+
+def get_stage_artifact_map(session: CompilerSession) -> Dict[Any, Dict[str, Any]]:
+    """根据 session_version 返回产物映射。"""
+    if _get_session_version(session) == "2.0":
+        return STAGE_ARTIFACT_MAP_V2
+    return STAGE_ARTIFACT_MAP_V1
+
+
+def get_max_stage(session: CompilerSession) -> int:
+    """根据 session_version 返回 Orchestrator 可调度的最大阶段。"""
+    return get_session_max_stage(_get_session_version(session))
+
+
+def _get_stage_artifact_config(session: CompilerSession, stage_num: int) -> Dict[str, Any]:
+    """读取当前版本下某个 stage 的产物配置。"""
+    return get_stage_artifact_map(session)[stage_num]
+
+
+def _get_stage_name(session: CompilerSession, stage_num: int) -> str:
+    """读取当前版本下某个 stage 的名称。"""
+    return get_stage_name_map(session)[stage_num]
+
+
+def _get_session_output_root(session: CompilerSession) -> Path:
+    """v2 产物固定进入 ProjectState/runs/{run_id}，v1 保持原 output_dir。"""
+    if _get_session_version(session) == "2.0" and session.run_id:
+        return PROJECT_RUNS_DIR / session.run_id
+    return Path(session.output_dir)
+
+
 def _build_stage_output_path(session: CompilerSession, stage_num: int) -> Path:
     """根据阶段号构建标准输出路径。"""
-    stage_config = STAGE_ARTIFACT_MAP[stage_num]
+    stage_config = _get_stage_artifact_config(session, stage_num)
     output_name = stage_config.get("output_file") or stage_config.get("output_dir")
-    return Path(session.output_dir) / str(output_name)
+    return _get_session_output_root(session) / str(output_name)
 
 
 def _load_schema(schema_file: str) -> Dict[str, Any]:
@@ -138,9 +272,9 @@ def _load_schema(schema_file: str) -> Dict[str, Any]:
     return _load_json_file(SCHEMAS_DIR / schema_file)
 
 
-def _get_stage_schema(stage_num: int) -> Dict[str, Any]:
+def _get_stage_schema(session: CompilerSession, stage_num: int) -> Dict[str, Any]:
     """读取指定阶段的输出 schema。"""
-    return _load_schema(STAGE_ARTIFACT_MAP[stage_num]["schema_file"])
+    return _load_schema(_get_stage_artifact_config(session, stage_num)["schema_file"])
 
 
 def _get_stage_output_key(stage_num: int) -> str:
@@ -148,14 +282,14 @@ def _get_stage_output_key(stage_num: int) -> str:
     return f"stage_{stage_num}"
 
 
-def _validate_stage_num(stage_num: int) -> Dict[str, Any] | None:
+def _validate_stage_num(session: CompilerSession, stage_num: int) -> Dict[str, Any] | None:
     """统一校验阶段号。"""
-    if stage_num in STAGE_NAME_MAP:
+    if stage_num in get_stage_name_map(session):
         return None
     return {
         "status": "invalid_stage",
         "stage_num": stage_num,
-        "errors": [f"不支持的阶段号: {stage_num}"],
+        "errors": [f"session_version={_get_session_version(session)} 不支持阶段号: {stage_num}"],
     }
 
 
@@ -181,6 +315,13 @@ def _load_stage_artifact(session: CompilerSession, stage_num: int) -> Any:
 def _load_reviewed_handoff_schema() -> Dict[str, Any]:
     """读取 Reviewed Handoff v2 schema。"""
     return _load_json_file(REVIEWED_HANDOFF_SCHEMA_PATH)
+
+
+def _load_reviewed_handoff_schema_for_session(session: CompilerSession) -> Dict[str, Any]:
+    """按 session_version 读取最终 handoff schema。"""
+    if _get_session_version(session) == "2.0":
+        return _load_json_file(REVIEWED_HANDOFF_SCHEMA_PATH_V2)
+    return _load_json_file(REVIEWED_HANDOFF_SCHEMA_PATH_V1)
 
 
 def _safe_token(raw_value: str, fallback: str = "pipeline") -> str:
@@ -300,19 +441,22 @@ def _update_session_after_save(session: CompilerSession, stage_num: int, output_
     session.current_stage = stage_num
     session.stage_outputs[_get_stage_output_key(stage_num)] = output_path
 
-    if stage_num < 5:
+    max_stage = get_max_stage(session)
+    if stage_num < max_stage:
         session.status = "running"
         session.advance_stage()
-    else:
-        # Stage 5 保存后，等待 assemble_handoff 收尾并将状态切到 completed。
+    elif _get_session_version(session) == "1.0":
+        # v1 Stage 5 之后仍需 assemble_handoff 生成 reviewed_handoff_v2。
         session.status = "pending"
+    else:
+        session.status = "completed"
 
     session.save()
 
 
-def prepare_stage(session: CompilerSession, stage_num: int) -> Dict[str, Any]:
-    """为指定阶段生成模板、schema 和输入上下文。"""
-    invalid_stage = _validate_stage_num(stage_num)
+def _prepare_stage_v1(session: CompilerSession, stage_num: int) -> Dict[str, Any]:
+    """为 v1 五阶段生成模板、schema 和输入上下文。"""
+    invalid_stage = _validate_stage_num(session, stage_num)
     if invalid_stage:
         return invalid_stage
 
@@ -321,13 +465,13 @@ def prepare_stage(session: CompilerSession, stage_num: int) -> Dict[str, Any]:
         return {
             "status": "missing_input",
             "stage_num": stage_num,
-            "stage_name": STAGE_NAME_MAP[stage_num],
+            "stage_name": _get_stage_name(session, stage_num),
             "errors": [f"Stage {stage_num} 缺少上游产物，期望路径: {previous_artifact_path or '<empty>'}"],
         }
 
     if stage_num == 1:
         template = design_intake.create_projection_template(session.gdd_path, session.target_phase)
-        schema = _get_stage_schema(stage_num)
+        schema = _get_stage_schema(session, stage_num)
         input_context = {
             "gdd_path": session.gdd_path,
             "target_phase": session.target_phase,
@@ -339,7 +483,7 @@ def prepare_stage(session: CompilerSession, stage_num: int) -> Dict[str, Any]:
             mode="greenfield",
             target_phase=session.target_phase,
         )
-        schema = _get_stage_schema(stage_num)
+        schema = _get_stage_schema(session, stage_num)
         input_context = {
             STAGE_ARTIFACT_MAP[1]["next_stage_input_key"]: projection,
             "gdd_projection_path": session.get_stage_output_path(1),
@@ -350,7 +494,7 @@ def prepare_stage(session: CompilerSession, stage_num: int) -> Dict[str, Any]:
         planner_output = _load_stage_artifact(session, 2) or {}
         selected_skill_instances = planner_output.get("selected_skill_instances", [])
         template = _build_stage_three_templates(selected_skill_instances, session.target_phase)
-        schema = _get_stage_schema(stage_num)
+        schema = _get_stage_schema(session, stage_num)
         input_context = {
             STAGE_ARTIFACT_MAP[1]["next_stage_input_key"]: projection,
             "gdd_projection_path": session.get_stage_output_path(1),
@@ -363,7 +507,7 @@ def prepare_stage(session: CompilerSession, stage_num: int) -> Dict[str, Any]:
         planner_output = _load_stage_artifact(session, 2) or {}
         input_fragment_ids = [fragment.get("skill_instance_id", "") for fragment in fragments if fragment.get("skill_instance_id")]
         template = cross_review.create_review_report_template(input_fragment_ids=input_fragment_ids)
-        schema = _get_stage_schema(stage_num)
+        schema = _get_stage_schema(session, stage_num)
         input_context = {
             STAGE_ARTIFACT_MAP[3]["next_stage_input_key"]: fragments,
             "skill_fragments_path": session.get_stage_output_path(3),
@@ -377,7 +521,7 @@ def prepare_stage(session: CompilerSession, stage_num: int) -> Dict[str, Any]:
             source_review_id=review_report.get("review_id", ""),
             phase_scope=session.target_phase,
         )
-        schema = _get_stage_schema(stage_num)
+        schema = _get_stage_schema(session, stage_num)
         input_context = {
             STAGE_ARTIFACT_MAP[4]["next_stage_input_key"]: review_report,
             "cross_review_report_path": session.get_stage_output_path(4),
@@ -389,21 +533,252 @@ def prepare_stage(session: CompilerSession, stage_num: int) -> Dict[str, Any]:
         "status": "ready_for_agent",
         "stage": stage_num,
         "stage_num": stage_num,
-        "stage_name": STAGE_NAME_MAP[stage_num],
+        "stage_name": _get_stage_name(session, stage_num),
         "template": template,
         "schema": schema,
         "input_context": input_context,
     }
 
 
-def save_stage(session: CompilerSession, stage_num: int, filled_data: Any) -> Dict[str, Any]:
-    """校验并保存指定阶段产物，成功后更新 session。"""
-    invalid_stage = _validate_stage_num(stage_num)
+def _load_stage_schema_or_error(session: CompilerSession, stage_num: int) -> tuple[Dict[str, Any] | None, Dict[str, Any] | None]:
+    """v2 骨架阶段使用：Schema 缺失时返回结构化错误而不是抛异常。"""
+    schema_file = _get_stage_artifact_config(session, stage_num).get("schema_file")
+    if not schema_file:
+        return None, {
+            "status": "schema_missing",
+            "stage_num": stage_num,
+            "stage_name": _get_stage_name(session, stage_num),
+            "errors": [f"Stage {stage_num} 未配置 schema_file"],
+        }
+
+    schema_path = SCHEMAS_DIR / schema_file
+    if not schema_path.exists():
+        return None, {
+            "status": "schema_missing",
+            "stage_num": stage_num,
+            "stage_name": _get_stage_name(session, stage_num),
+            "errors": [f"Schema 文件尚未存在，等待 TASK 04/10 补齐: {schema_path}"],
+        }
+
+    return _load_json_file(schema_path), None
+
+
+def _load_stage_output_schema_bundle(session: CompilerSession, stage_num: int) -> Dict[str, Dict[str, Any]]:
+    """读取带 output_files 的 stage schema bundle。"""
+    stage_config = _get_stage_artifact_config(session, stage_num)
+    schema_bundle: Dict[str, Dict[str, Any]] = {}
+    for output_key, output_config in stage_config.get("output_files", {}).items():
+        schema_bundle[output_key] = _load_schema(output_config["schema_file"])
+    return schema_bundle
+
+
+def _prepare_stage_v2(session: CompilerSession, stage_num: int) -> Dict[str, Any]:
+    """为 v2 七阶段返回 prepare 结果；已接入 Stage 1/2 的真实生成逻辑。"""
+    invalid_stage = _validate_stage_num(session, stage_num)
     if invalid_stage:
         return invalid_stage
 
-    stage_config = STAGE_ARTIFACT_MAP[stage_num]
-    schema = _get_stage_schema(stage_num)
+    previous_artifact_path = session.get_stage_input_path(stage_num)
+    if stage_num > 1 and (not previous_artifact_path or not Path(previous_artifact_path).exists()):
+        return {
+            "status": "missing_input",
+            "stage_num": stage_num,
+            "stage_name": _get_stage_name(session, stage_num),
+            "errors": [f"Stage {stage_num} 缺少上游产物，期望路径: {previous_artifact_path or '<empty>'}"],
+        }
+
+    schema, schema_error = _load_stage_schema_or_error(session, stage_num)
+    if schema_error:
+        return schema_error
+
+    stage_config = _get_stage_artifact_config(session, stage_num)
+    input_context = {
+        "session_version": session.session_version,
+        "run_id": session.run_id,
+        "target_phase": session.target_phase,
+        "output_root": str(_get_session_output_root(session)),
+        "previous_artifact_path": previous_artifact_path,
+        "auto_generated": stage_num in {1, 2, 3, 4},
+    }
+
+    if stage_num == 1:
+        template = root_skill_contract_stage.create_root_skill_contract(
+            gdd_path=session.gdd_path,
+            target_phase=session.target_phase,
+            run_id=session.run_id,
+        )
+    elif stage_num == 2:
+        root_skill_contract = _load_stage_artifact(session, 1) or {}
+        template = clarification_gate_stage.create_clarification_gate_report(
+            root_skill_contract=root_skill_contract,
+            fast_mode=session.fast_mode,
+            run_id=session.run_id,
+        )
+        input_context.update(
+            {
+                STAGE_ARTIFACT_MAP_V2[1]["next_stage_input_key"]: root_skill_contract,
+                "root_skill_contract_path": session.get_stage_output_path(1),
+                "clarification_items": template.get("items", []),
+                "clarification_items_by_decision": template.get("items_by_decision_summary", {}),
+                "provisional_items": template.get("provisional_items", []),
+                "blocking_items": template.get("blocking_items", []),
+                "retained_clarifications": template.get("retained_clarifications", []),
+                "clarification_gate_policy": template.get("clarification_gate_policy", ""),
+                "downstream_propagation_contract": template.get("downstream_propagation_contract", {}),
+            }
+        )
+    elif stage_num == 3:
+        root_skill_contract = _load_stage_artifact(session, 1) or {}
+        clarification_gate_report = _load_stage_artifact(session, 2) or {}
+        blocking_items = clarification_gate_report.get("blocking_items", [])
+        if blocking_items:
+            return {
+                "status": "blocked_by_clarification",
+                "stage_num": stage_num,
+                "stage_name": _get_stage_name(session, stage_num),
+                "blocking_items": blocking_items,
+                "errors": [
+                    "Clarification Gate 存在 critical blocker，Skill Graph Planning 不允许继续。"
+                ],
+            }
+
+        template = skill_graph_planning_stage.create_skill_graph(
+            root_skill_contract=root_skill_contract,
+            clarification_gate_report=clarification_gate_report,
+            run_id=session.run_id,
+        )
+        gameplay_nodes = [
+            node for node in template.get("nodes", [])
+            if node.get("domain_type") == "gameplay"
+        ]
+        baseline_nodes = [
+            node for node in template.get("nodes", [])
+            if node.get("domain_type") == "baseline"
+        ]
+        input_context.update(
+            {
+                STAGE_ARTIFACT_MAP_V2[1]["next_stage_input_key"]: root_skill_contract,
+                "root_skill_contract_path": session.get_stage_output_path(1),
+                STAGE_ARTIFACT_MAP_V2[2]["next_stage_input_key"]: clarification_gate_report,
+                "clarification_gate_report_path": session.get_stage_output_path(2),
+                "provisional_items": clarification_gate_report.get("provisional_items", []),
+                "retained_clarifications": clarification_gate_report.get("retained_clarifications", []),
+                "downstream_propagation_contract": clarification_gate_report.get("downstream_propagation_contract", {}),
+                "gameplay_nodes": gameplay_nodes,
+                "baseline_nodes": baseline_nodes,
+                "skill_graph_edges": template.get("edges", []),
+            }
+        )
+    elif stage_num == 4:
+        root_skill_contract = _load_stage_artifact(session, 1) or {}
+        clarification_gate_report = _load_stage_artifact(session, 2) or {}
+        skill_graph = _load_stage_artifact(session, 3) or {}
+        # allow_heuristic_fallback: 当前默认允许（无 LLM client 时退化为确定性引擎）
+        # 正式 run 应配置 LLM client，heuristic fallback 产出的 run 自动 promotable=False
+        template = domain_skill_runtime_stage.run_domain_skill_runtime(
+            skill_graph=skill_graph,
+            root_skill_contract=root_skill_contract,
+            clarification_gate_report=clarification_gate_report,
+            phase_scope=session.target_phase,
+            fast_mode=session.fast_mode,
+            allow_heuristic_fallback=True,
+            llm_client=load_llm_client_from_config(),
+        )
+        # 记录 Generator Provider 类型到 session（影响 promotable 判定）
+        gp_type = template.get("generator_provider_type")
+        if gp_type and not session.generator_provider:
+            session.generator_provider = gp_type
+        schema = _load_stage_output_schema_bundle(session, stage_num)
+        input_context.update(
+            {
+                STAGE_ARTIFACT_MAP_V2[1]["next_stage_input_key"]: root_skill_contract,
+                "root_skill_contract_path": session.get_stage_output_path(1),
+                STAGE_ARTIFACT_MAP_V2[2]["next_stage_input_key"]: clarification_gate_report,
+                "clarification_gate_report_path": session.get_stage_output_path(2),
+                STAGE_ARTIFACT_MAP_V2[3]["next_stage_input_key"]: skill_graph,
+                "skill_graph_path": session.get_stage_output_path(3),
+                "execution_order": template.get("execution_order", []),
+                "lifecycle_records": template.get("lifecycle_records", []),
+                "provisional_items": clarification_gate_report.get("provisional_items", []),
+            }
+        )
+    elif stage_num == 5:
+        # Stage 5: Cross-Domain Review v2
+        root_skill_contract = _load_stage_artifact(session, 1) or {}
+        clarification_gate_report = _load_stage_artifact(session, 2) or {}
+        skill_graph = _load_stage_artifact(session, 3) or {}
+        stage4_output = _load_stage_artifact(session, 4) or {}
+        # Stage 4 产物是 converged_realization_pack.json，需要补充 fragments
+        stage4_fragments_path = _get_session_output_root(session) / "skill_fragments"
+        if stage4_fragments_path.is_dir():
+            stage4_fragments = []
+            for fp in sorted(stage4_fragments_path.glob("*.json")):
+                stage4_fragments.append(_load_json_file(fp))
+            stage4_output["skill_fragments"] = stage4_fragments
+        template = cross_review_v2_stage.create_cross_review_report_v2(
+            root_skill_contract=root_skill_contract,
+            clarification_gate_report=clarification_gate_report,
+            skill_graph=skill_graph,
+            stage4_output=stage4_output,
+            phase_scope=session.target_phase,
+        )
+        input_context.update({
+            STAGE_ARTIFACT_MAP_V2[1]["next_stage_input_key"]: root_skill_contract,
+            STAGE_ARTIFACT_MAP_V2[3]["next_stage_input_key"]: skill_graph,
+            "stage4_output": stage4_output,
+        })
+    elif stage_num == 6:
+        # Stage 6: Lowering v2
+        root_skill_contract = _load_stage_artifact(session, 1) or {}
+        skill_graph = _load_stage_artifact(session, 3) or {}
+        cross_review_report = _load_stage_artifact(session, 5) or {}
+        lowering_result = lowering_v2_stage.create_build_ir_v2(
+            cross_review_report=cross_review_report,
+            root_skill_contract=root_skill_contract,
+            skill_graph=skill_graph,
+            phase_scope=session.target_phase,
+        )
+        template = lowering_result["build_ir"]
+        input_context.update({
+            STAGE_ARTIFACT_MAP_V2[5]["next_stage_input_key"]: cross_review_report,
+            "naming_resolution_log": lowering_result["naming_resolution_log"],
+        })
+    else:
+        # Stage 7: Handoff Assembly v3 — prepare 返回占位，实际组装由 assemble_handoff 完成
+        template = {
+            "session_version": session.session_version,
+            "run_id": session.run_id,
+            "stage_num": stage_num,
+            "stage_name": _get_stage_name(session, stage_num),
+            "notes": "Stage 7 由 assemble_handoff 完成组装，prepare 仅做前置检查。",
+        }
+
+    return {
+        "status": "ready_for_agent",
+        "stage": stage_num,
+        "stage_num": stage_num,
+        "stage_name": _get_stage_name(session, stage_num),
+        "template": template,
+        "schema": schema,
+        "input_context": input_context,
+    }
+
+
+def prepare_stage(session: CompilerSession, stage_num: int) -> Dict[str, Any]:
+    """为指定阶段生成模板、schema 和输入上下文，并按 session_version 路由。"""
+    if _get_session_version(session) == "2.0":
+        return _prepare_stage_v2(session, stage_num)
+    return _prepare_stage_v1(session, stage_num)
+
+
+def _save_stage_v1(session: CompilerSession, stage_num: int, filled_data: Any) -> Dict[str, Any]:
+    """校验并保存 v1 阶段产物，成功后更新 session。"""
+    invalid_stage = _validate_stage_num(session, stage_num)
+    if invalid_stage:
+        return invalid_stage
+
+    stage_config = _get_stage_artifact_config(session, stage_num)
+    schema = _get_stage_schema(session, stage_num)
 
     if stage_num > 1:
         prepare_result = prepare_stage(session, stage_num)
@@ -438,7 +813,7 @@ def save_stage(session: CompilerSession, stage_num: int, filled_data: Any) -> Di
             "stage_num": stage_num,
             "output_path": str(output_dir),
             "saved_files": saved_files,
-            "next_stage": session.current_stage if stage_num < 5 else None,
+            "next_stage": session.current_stage if stage_num < get_max_stage(session) else None,
             "session_path": str(session.session_path),
         }
 
@@ -466,19 +841,186 @@ def save_stage(session: CompilerSession, stage_num: int, filled_data: Any) -> Di
         "status": "saved",
         "stage_num": stage_num,
         "output_path": str(saved_path),
-        "next_stage": session.current_stage if stage_num < 5 else None,
+        "next_stage": session.current_stage if stage_num < get_max_stage(session) else None,
         "session_path": str(session.session_path),
     }
 
 
+def _save_stage_v2(session: CompilerSession, stage_num: int, filled_data: Any) -> Dict[str, Any]:
+    """校验并保存 v2 阶段产物；复杂多产物阶段由后续 TASK 扩展。"""
+    invalid_stage = _validate_stage_num(session, stage_num)
+    if invalid_stage:
+        return invalid_stage
+
+    if stage_num > 1:
+        prepare_result = prepare_stage(session, stage_num)
+        if prepare_result.get("status") in {"missing_input", "schema_missing", "blocked_by_clarification"}:
+            return prepare_result
+
+    if stage_num == 4:
+        stage_config = _get_stage_artifact_config(session, stage_num)
+        schema_bundle = _load_stage_output_schema_bundle(session, stage_num)
+        required_keys = [
+            "design_space_report",
+            "realization_candidates",
+            "converged_realization_pack",
+            "skill_fragments",
+        ]
+        missing_keys = [key for key in required_keys if key not in filled_data]
+        if missing_keys:
+            return {
+                "status": "validation_error",
+                "stage_num": stage_num,
+                "stage_name": _get_stage_name(session, stage_num),
+                "errors": [f"Stage 4 缺少必要输出键: {', '.join(missing_keys)}"],
+            }
+
+        validation_errors: List[str] = []
+        for output_key in ("design_space_report", "realization_candidates", "converged_realization_pack"):
+            validation_errors.extend(
+                [
+                    f"{output_key} {error}"
+                    for error in _validate_payload(
+                        filled_data.get(output_key),
+                        schema_bundle[output_key],
+                    )
+                ]
+            )
+
+        fragment_schema = schema_bundle["skill_fragments"]
+        fragments = filled_data.get("skill_fragments", [])
+        if not isinstance(fragments, list):
+            return {
+                "status": "validation_error",
+                "stage_num": stage_num,
+                "stage_name": _get_stage_name(session, stage_num),
+                "errors": ["skill_fragments 必须是列表。"],
+            }
+        for index, fragment in enumerate(fragments):
+            validation_errors.extend(
+                [
+                    f"skill_fragments[{index}] {error}"
+                    for error in _validate_payload(fragment, fragment_schema)
+                ]
+            )
+
+        if validation_errors:
+            return {
+                "status": "validation_error",
+                "stage_num": stage_num,
+                "stage_name": _get_stage_name(session, stage_num),
+                "errors": validation_errors,
+            }
+
+        output_root = _get_session_output_root(session)
+        saved_files: Dict[str, Any] = {}
+        for output_key, output_config in stage_config.get("output_files", {}).items():
+            if output_config.get("multi_file"):
+                output_dir = output_root / output_config["output_dir"]
+                output_dir.mkdir(parents=True, exist_ok=True)
+                fragment_files = []
+                for fragment in fragments:
+                    skill_instance_id = fragment.get("skill_instance_id", "skill_fragment")
+                    fragment_files.append(skill_runtime.save_fragment(fragment, skill_instance_id, str(output_dir)))
+                saved_files[output_key] = fragment_files
+                continue
+
+            output_path = output_root / output_config["output_file"]
+            saved_files[output_key] = _save_json_file(output_path, filled_data.get(output_key))
+
+        _update_session_after_save(
+            session,
+            stage_num,
+            str(output_root / stage_config["output_file"]),
+        )
+
+        return {
+            "status": "saved",
+            "stage_num": stage_num,
+            "stage_name": _get_stage_name(session, stage_num),
+            "output_path": str(output_root / stage_config["output_file"]),
+            "saved_files": saved_files,
+            "next_stage": session.current_stage if stage_num < get_max_stage(session) else None,
+            "session_path": str(session.session_path),
+        }
+
+    # Stage 6 特殊处理：保存 build_ir + naming_resolution_log sidecar
+    if stage_num == 6 and isinstance(filled_data, dict) and "naming_resolution_log" in filled_data:
+        build_ir_data = filled_data.get("build_ir", filled_data)
+        naming_log = filled_data.get("naming_resolution_log", {})
+
+        schema, schema_error = _load_stage_schema_or_error(session, stage_num)
+        if schema_error:
+            return schema_error
+        if schema:
+            validation_errors = _validate_stage_payload(stage_num, build_ir_data, schema)
+            if validation_errors:
+                return {
+                    "status": "validation_error",
+                    "stage_num": stage_num,
+                    "stage_name": _get_stage_name(session, stage_num),
+                    "errors": validation_errors,
+                }
+
+        output_root = _get_session_output_root(session)
+        ir_path = output_root / "build_ir.json"
+        saved_ir = _save_json_file(ir_path, build_ir_data)
+        naming_log_path = output_root / "naming_resolution_log.json"
+        _save_json_file(naming_log_path, naming_log)
+        _update_session_after_save(session, stage_num, saved_ir)
+
+        return {
+            "status": "saved",
+            "stage_num": stage_num,
+            "stage_name": _get_stage_name(session, stage_num),
+            "output_path": saved_ir,
+            "saved_files": {
+                "build_ir": saved_ir,
+                "naming_resolution_log": str(naming_log_path),
+            },
+            "next_stage": session.current_stage if stage_num < get_max_stage(session) else None,
+            "session_path": str(session.session_path),
+        }
+
+    schema, schema_error = _load_stage_schema_or_error(session, stage_num)
+    if schema_error:
+        return schema_error
+
+    validation_errors = _validate_stage_payload(stage_num, filled_data, schema or {})
+    if validation_errors:
+        return {
+            "status": "validation_error",
+            "stage_num": stage_num,
+            "stage_name": _get_stage_name(session, stage_num),
+            "errors": validation_errors,
+        }
+
+    output_path = _build_stage_output_path(session, stage_num)
+    saved_path = _save_json_file(output_path, filled_data)
+    _update_session_after_save(session, stage_num, str(saved_path))
+
+    return {
+        "status": "saved",
+        "stage_num": stage_num,
+        "stage_name": _get_stage_name(session, stage_num),
+        "output_path": str(saved_path),
+        "next_stage": session.current_stage if stage_num < get_max_stage(session) else None,
+        "session_path": str(session.session_path),
+    }
+
+
+def save_stage(session: CompilerSession, stage_num: int, filled_data: Any) -> Dict[str, Any]:
+    """校验并保存指定阶段产物，成功后更新 session，并按 session_version 路由。"""
+    if _get_session_version(session) == "2.0":
+        return _save_stage_v2(session, stage_num, filled_data)
+    return _save_stage_v1(session, stage_num, filled_data)
+
+
 def run_stage(session: CompilerSession, stage_num: int) -> Dict[str, Any]:
     """调度单个阶段的 prepare 逻辑。"""
-    if stage_num not in STAGE_NAME_MAP:
-        return {
-            "status": "invalid_stage",
-            "stage_num": stage_num,
-            "errors": [f"不支持的阶段号: {stage_num}"],
-        }
+    invalid_stage = _validate_stage_num(session, stage_num)
+    if invalid_stage:
+        return invalid_stage
 
     session.current_stage = stage_num
     session.status = "running"
@@ -501,7 +1043,7 @@ def run_pipeline(session: CompilerSession, stage_range: Iterable[int] | None = N
       这里的 run 是“生成各阶段 prepare 结果”，不替代 Agent 填充与 save。
       一旦遇到缺少上游输入，会提前停止并返回已收集结果。
     """
-    stages = list(stage_range) if stage_range is not None else list(range(session.current_stage, 6))
+    stages = list(stage_range) if stage_range is not None else list(range(session.current_stage, get_max_stage(session) + 1))
     results = []
     for stage_num in stages:
         result = run_stage(session, stage_num)
@@ -515,8 +1057,8 @@ def run_pipeline(session: CompilerSession, stage_range: Iterable[int] | None = N
     }
 
 
-def assemble_handoff(session: CompilerSession) -> Dict[str, Any]:
-    """在 Stage 5 完成后组装并保存 Reviewed Handoff v2。"""
+def _assemble_handoff_v1(session: CompilerSession) -> Dict[str, Any]:
+    """在 v1 Stage 5 完成后组装并保存 Reviewed Handoff v2。"""
     required_stage_outputs = [1, 2, 3, 4, 5]
     missing_stages = [stage_num for stage_num in required_stage_outputs if not session.has_stage_output(stage_num)]
     if missing_stages:
@@ -634,7 +1176,7 @@ def assemble_handoff(session: CompilerSession) -> Dict[str, Any]:
         },
     }
 
-    validation_errors = _validate_payload(handoff_payload, _load_reviewed_handoff_schema())
+    validation_errors = _validate_payload(handoff_payload, _load_reviewed_handoff_schema_for_session(session))
     if validation_errors:
         return {
             "status": "validation_error",
@@ -651,3 +1193,90 @@ def assemble_handoff(session: CompilerSession) -> Dict[str, Any]:
         "output_path": saved_path,
         "handoff": handoff_payload,
     }
+
+
+def _assemble_handoff_v2(session: CompilerSession) -> Dict[str, Any]:
+    """v2 handoff assembly: 组装 Reviewed Handoff v3。"""
+    required_stage_outputs = [1, 2, 3, 4, 5, 6]
+    missing_stages = [stage_num for stage_num in required_stage_outputs if not session.has_stage_output(stage_num)]
+    if missing_stages:
+        return {
+            "status": "missing_input",
+            "stage_num": 7,
+            "stage_name": _get_stage_name(session, 7),
+            "errors": [f"assemble_handoff_v3 缺少阶段产物: {missing_stages}"],
+        }
+
+    # 加载全部上游产物
+    root_skill_contract = _load_stage_artifact(session, 1) or {}
+    clarification_gate_report = _load_stage_artifact(session, 2) or {}
+    skill_graph = _load_stage_artifact(session, 3) or {}
+    stage4_output = _load_stage_artifact(session, 4) or {}
+    # 补充 fragments
+    stage4_fragments_path = _get_session_output_root(session) / "skill_fragments"
+    if stage4_fragments_path.is_dir():
+        stage4_fragments = []
+        for fp in sorted(stage4_fragments_path.glob("*.json")):
+            stage4_fragments.append(_load_json_file(fp))
+        stage4_output["skill_fragments"] = stage4_fragments
+    cross_review_report = _load_stage_artifact(session, 5) or {}
+    build_ir = _load_stage_artifact(session, 6) or {}
+
+    # 加载 naming_resolution_log（sidecar）
+    naming_log_path = _get_session_output_root(session) / "naming_resolution_log.json"
+    naming_resolution_log: Dict[str, Any] = {}
+    if naming_log_path.exists():
+        naming_resolution_log = _load_json_file(naming_log_path)
+
+    # 组装
+    session_meta = {
+        "session_id": session.session_id,
+        "run_id": session.run_id,
+        "target_phase": session.target_phase,
+        "gdd_path": session.gdd_path,
+        "fast_mode": session.fast_mode,
+        "session_version": session.session_version,
+    }
+
+    handoff_payload = handoff_v3_stage.assemble_handoff_v3(
+        root_skill_contract=root_skill_contract,
+        clarification_gate_report=clarification_gate_report,
+        skill_graph=skill_graph,
+        stage4_output=stage4_output,
+        cross_review_report=cross_review_report,
+        build_ir=build_ir,
+        naming_resolution_log=naming_resolution_log,
+        session_meta=session_meta,
+    )
+
+    # Schema 校验（如果 schema 存在）
+    schema_path = REVIEWED_HANDOFF_SCHEMA_PATH_V2
+    if schema_path.exists():
+        validation_errors = _validate_payload(handoff_payload, _load_json_file(schema_path))
+        if validation_errors:
+            return {
+                "status": "validation_error",
+                "stage_num": 7,
+                "stage_name": _get_stage_name(session, 7),
+                "errors": validation_errors,
+            }
+
+    # 保存
+    output_path = _get_session_output_root(session) / "reviewed_handoff_v3.json"
+    saved_path = _save_json_file(output_path, handoff_payload)
+    _update_session_after_save(session, 7, str(saved_path))
+
+    return {
+        "status": "saved",
+        "stage_num": 7,
+        "stage_name": _get_stage_name(session, 7),
+        "output_path": saved_path,
+        "handoff": handoff_payload,
+    }
+
+
+def assemble_handoff(session: CompilerSession) -> Dict[str, Any]:
+    """按 session_version 组装最终 handoff，不做跨版本产物转换。"""
+    if _get_session_version(session) == "2.0":
+        return _assemble_handoff_v2(session)
+    return _assemble_handoff_v1(session)

@@ -1,0 +1,13 @@
+# Input Selector — Main Menu 从上游产物中选取所需信息
+
+include_sections:
+  - game_identity           # 项目名称
+  - phase_scope             # 当前阶段范围
+  - baseline_capabilities.main_menu  # Root Skill Contract 中的主菜单标注
+
+exclude_sections:
+  - design_domains           # 所有 gameplay 域不在本 Skill 范围
+  - baseline_capabilities.settings     # 设置页控件不在本 Skill 范围
+  - baseline_capabilities.pause        # 暂停菜单不在本 Skill 范围
+  - baseline_capabilities.results      # 结果页不在本 Skill 范围
+  - implementation_hints     # 实现细节不在编译层

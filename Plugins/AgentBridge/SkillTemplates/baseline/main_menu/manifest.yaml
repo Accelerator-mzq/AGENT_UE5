@@ -1,0 +1,33 @@
+template_id: baseline.main_menu.presence_only
+display_name: Main Menu（主菜单）
+template_kind: baseline_skill
+genre: universal
+template_version: "1.0.0"
+schema_version: "1.0.0"
+evaluator_version: "1.0.0"
+
+phase_scope:
+  - phase1_local_multiplayer
+
+description: |
+  主菜单 Baseline 模板。
+  最低标准：New Game / Settings / Quit 三按钮，点击后触发对应导航。
+  realization_eligible 时可通过 Discovery 探索菜单布局、动画、背景等设计维度。
+
+realization_class: presence_only
+
+input_contract_ref: root_skill_contract.baseline_capabilities.main_menu
+output_schema_ref: output_schema.json
+
+requires_static_vocab:
+  - menu_button
+  - navigation_action
+  - menu_layout
+
+can_emit_families:
+  - main_menu_spec
+
+depends_on_templates:
+  - baseline.start_screen.presence_only
+
+priority: medium

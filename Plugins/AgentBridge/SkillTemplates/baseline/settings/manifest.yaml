@@ -1,0 +1,34 @@
+template_id: baseline.settings.presence_only
+display_name: Settings（设置页）
+template_kind: baseline_skill
+genre: universal
+template_version: "1.0.0"
+schema_version: "1.0.0"
+evaluator_version: "1.0.0"
+
+phase_scope:
+  - phase1_local_multiplayer
+
+description: |
+  设置页 Baseline 模板。
+  不可删减底线：Master Volume + SFX Volume + Window Mode + Resolution + Apply + Back。
+  可 defer 项：Music Volume、Graphics Quality、Key Rebinding、持久化、Restore Defaults。
+  持久化策略默认 session_only（session 内生效即可）。
+
+realization_class: presence_only
+
+input_contract_ref: root_skill_contract.baseline_capabilities.settings
+output_schema_ref: output_schema.json
+
+requires_static_vocab:
+  - volume_slider
+  - window_mode
+  - resolution_option
+  - settings_action
+
+can_emit_families:
+  - settings_spec
+
+depends_on_templates: []
+
+priority: medium

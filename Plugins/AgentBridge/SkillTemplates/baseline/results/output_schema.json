@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Results Screen Spec",
+  "description": "结果页能力规格",
+  "type": "object",
+  "required": ["capability", "display_elements", "buttons", "trigger", "realization_class"],
+  "properties": {
+    "capability": {
+      "type": "string",
+      "const": "game_results_screen",
+      "description": "能力标识"
+    },
+    "display_elements": {
+      "type": "array",
+      "description": "结果页展示元素",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["element_id", "element_type"],
+        "properties": {
+          "element_id": {
+            "type": "string",
+            "description": "元素标识"
+          },
+          "element_type": {
+            "type": "string",
+            "enum": ["text_display", "player_info", "stats_panel"],
+            "description": "元素类型"
+          },
+          "data_binding": {
+            "type": "string",
+            "description": "数据绑定来源"
+          }
+        }
+      }
+    },
+    "buttons": {
+      "type": "array",
+      "description": "结果页按钮",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["button_id", "label", "action"],
+        "properties": {
+          "button_id": { "type": "string", "description": "按钮标识" },
+          "label": { "type": "string", "description": "按钮显示文本" },
+          "action": { "type": "string", "description": "按钮动作" }
+        }
+      }
+    },
+    "trigger": {
+      "type": "object",
+      "description": "结果页触发方式",
+      "required": ["method"],
+      "properties": {
+        "method": {
+          "type": "string",
+          "description": "触发方法名",
+          "default": "ShowResult"
+        },
+        "input_params": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "触发方法参数"
+        }
+      }
+    },
+    "realization_class": {
+      "type": "string",
+      "enum": ["presence_only", "realization_eligible"],
+      "description": "实现级别"
+    },
+    "deliverables": {
+      "type": "object",
+      "description": "产出物声明",
+      "properties": {
+        "widget_class": { "type": "string", "description": "Widget 类名" },
+        "cpp_base_class": { "type": "string", "description": "C++ 基类名" }
+      }
+    }
+  }
+}

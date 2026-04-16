@@ -1,0 +1,31 @@
+template_id: baseline.results.presence_only
+display_name: Results Screen（结果页）
+template_kind: baseline_skill
+genre: universal
+template_version: "1.0.0"
+schema_version: "1.0.0"
+evaluator_version: "1.0.0"
+
+phase_scope:
+  - phase1_local_multiplayer
+
+description: |
+  结果页 Baseline 模板。
+  最低标准：胜者信息 + Return to Menu 按钮 + ShowResult() 调用。
+  Widget + C++ 基类含 ShowResult()。
+
+realization_class: presence_only
+
+input_contract_ref: root_skill_contract.baseline_capabilities.results
+output_schema_ref: output_schema.json
+
+requires_static_vocab:
+  - winner_info
+  - result_action
+
+can_emit_families:
+  - results_spec
+
+depends_on_templates: []
+
+priority: medium

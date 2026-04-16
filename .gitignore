@@ -29,6 +29,7 @@ Plugins/AgentBridge/Gauntlet/bin/
 Plugins/AgentBridge/reports/
 Plugins/AgentBridge/AgentBridgeTests/Binaries/
 Plugins/AgentBridge/AgentBridgeTests/Intermediate/
+Plugins/AgentBridge/Config/llm_config.yaml
 
 # 本地报告与证据目录（如需保留可删除此行）
 reports/

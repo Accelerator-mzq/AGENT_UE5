@@ -20,10 +20,11 @@
 | 6 | `05_Clarification_Gate_Rules.md` | 4 档决策、fast_mode 高风险保护、provisional 传播 |
 | 7 | `07_Design_Space_Discovery_and_Realization.md` | Discovery -> Candidates -> Convergence 协议、design_decision_log 三层分离 |
 | 8 | `08_Skill_Graph_and_Domain_Skill.md` | Skill Graph 结构、Domain Skill 四重职责 |
-| 9 | `10_Naming_and_Path_Convention.md` | GDD-First 四层命名、naming_resolution_log、BP 薄层原则 |
-| 10 | `09_Run_Isolation_Compare_Promote.md` | 三层结构、promotable 判定、fast_mode run 不可 promote |
-| 11 | `11_Schema_and_Artifact_Reference.md` | Schema 变更清单、MCP 工具变更 |
-| 12 | `12_Implementation_Taskbook.md` | 分批计划、优先级、依赖关系 |
+| 9 | `14_Agent_Interaction_Protocol.md` | Generator-Evaluator 门控模型、Context Bundle、Evaluator 质量维度、重试策略 |
+| 10 | `10_Naming_and_Path_Convention.md` | GDD-First 四层命名、naming_resolution_log、BP 薄层原则 |
+| 11 | `09_Run_Isolation_Compare_Promote.md` | 三层结构、promotable 判定、fast_mode run 不可 promote |
+| 12 | `11_Schema_and_Artifact_Reference.md` | Schema 变更清单、MCP 工具变更 |
+| 13 | `12_Implementation_Taskbook.md` | 分批计划、优先级、依赖关系 |
 
 `00_Phase11_Document_Index.md` 可随时查阅作为索引和术语速查。
 
@@ -61,7 +62,8 @@
 | 创建 Clarification Gate Schema | 读完 05 |
 | 创建 Skill Graph Schema | 读完 08 |
 | 修改 `pipeline_orchestrator.py` | 读完 01 + 11（理解 stage map 变更） |
-| 创建 Design Space Discovery 逻辑 | 读完 07 + 08 |
+| 创建 Design Space Discovery 逻辑 | 读完 07 + 08 + **14**（Agent 调用协议） |
+| 实现 Generator-Evaluator 循环 | 读完 **14**（Context Bundle、Evaluator 质量维度、重试策略） |
 | 创建 naming_resolution_log | 读完 10 |
 | 创建 Run 治理工具 | 读完 09 |
 | 修改 MCP 前端工具 | 读完 01（MCP 边界）+ 11（工具变更表） |

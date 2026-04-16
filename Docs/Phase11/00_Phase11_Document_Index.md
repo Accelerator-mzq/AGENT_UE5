@@ -63,9 +63,12 @@
 10. `10_Naming_and_Path_Convention.md` — 命名与路径规范
 11. `11_Schema_and_Artifact_Reference.md` — Schema 与产物参考
 
-### 第四组：实施与交接
-12. `12_Implementation_Taskbook.md` — 实施任务书
-13. `13_Claude_Handoff_and_Reading_Order.md` — Claude 交接文档
+### 第四组：Agent 交互与实施
+12. `14_Agent_Interaction_Protocol.md` — Agent 交互协议（Generator-Evaluator 门控模型）
+
+### 第五组：实施与交接
+13. `12_Implementation_Taskbook.md` — 实施任务书
+14. `13_Claude_Handoff_and_Reading_Order.md` — Claude 交接文档
 
 ---
 

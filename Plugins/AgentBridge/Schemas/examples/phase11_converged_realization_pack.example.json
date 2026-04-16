@@ -1,0 +1,28 @@
+{
+  "pack_version": "1.0",
+  "skill_instance_id": "skill-board-topology",
+  "source_candidates": "realization_candidates.json",
+  "converged_choices": [
+    {
+      "dimension_id": "dim-board-layout-001",
+      "chosen_candidate": "rc-board-layout-compact",
+      "rationale": "Compact centered layout preserves the traditional Monopoly silhouette and leaves stable space for HUD.",
+      "rejected_alternatives": [
+        {
+          "candidate_id": "rc-board-layout-expanded",
+          "rejection_reason": "Expanded layout increases tile size but creates HUD and camera framing risks."
+        }
+      ],
+      "human_confirmation_needed": false,
+      "provisional": false
+    }
+  ],
+  "cross_dimension_consistency": {
+    "checked": true,
+    "conflicts": []
+  },
+  "metadata": {
+    "generated_at": "2026-04-15T14:35:00Z",
+    "generator": "AgentBridge.Compiler.Convergence.v1"
+  }
+}

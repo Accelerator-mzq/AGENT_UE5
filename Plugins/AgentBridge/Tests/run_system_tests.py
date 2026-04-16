@@ -1915,7 +1915,7 @@ def run_stage_10(result, engine_root, completed_results=None):
         invalid_schemas = []
         all_tools = tool_definitions.ALL_TOOLS
         # Phase 10 当前 MCP 基线：28 个 Bridge 工具 + 6 个前端工具 + 8 个后端工具 = 42。
-        expected_tool_count = 42
+        expected_tool_count = 48
         for tool_name, tool_def in all_tools.items():
             schema = tool_definitions.to_json_schema(tool_def)
             if not (
@@ -2002,8 +2002,14 @@ def run_stage_10(result, engine_root, completed_results=None):
 
     compiler_frontend_names = [
         'compiler_create_session',
+        'compiler_root_skill_prepare',
+        'compiler_root_skill_save',
         'compiler_intake_prepare',
         'compiler_intake_save',
+        'compiler_clarification_prepare',
+        'compiler_clarification_save',
+        'compiler_skill_graph_prepare',
+        'compiler_skill_graph_save',
         'compiler_plan_prepare',
         'compiler_plan_save',
         'compiler_get_session_status',

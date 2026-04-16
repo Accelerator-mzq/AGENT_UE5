@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "HUD Spec",
+  "description": "HUD 常驻界面能力规格",
+  "type": "object",
+  "required": ["capability", "hud_elements", "layout", "gameplay_coupling", "realization_class"],
+  "properties": {
+    "capability": {
+      "type": "string",
+      "const": "gameplay_hud",
+      "description": "能力标识"
+    },
+    "hud_elements": {
+      "type": "array",
+      "description": "HUD 展示元素列表",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["element_id", "element_type", "data_binding"],
+        "properties": {
+          "element_id": {
+            "type": "string",
+            "description": "元素标识"
+          },
+          "element_type": {
+            "type": "string",
+            "enum": ["text_display", "player_list", "icon_indicator", "progress_bar", "panel"],
+            "description": "元素类型"
+          },
+          "data_binding": {
+            "type": "string",
+            "description": "数据绑定来源"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": ["always_visible", "on_demand", "turn_highlight"],
+            "description": "可见性策略"
+          },
+          "update_trigger": {
+            "type": "string",
+            "enum": ["real_time", "on_turn_change", "on_event"],
+            "description": "更新触发方式"
+          }
+        }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "description": "HUD 布局配置",
+      "required": ["region"],
+      "properties": {
+        "region": {
+          "type": "string",
+          "enum": ["top_bar", "side_panel", "bottom_bar", "corner_indicators", "custom"],
+          "description": "布局区域"
+        },
+        "anchor": {
+          "type": "string",
+          "description": "锚定位置"
+        }
+      }
+    },
+    "gameplay_coupling": {
+      "type": "array",
+      "description": "依赖的 gameplay skill 列表",
+      "items": {
+        "type": "object",
+        "required": ["skill_id", "data_fields"],
+        "properties": {
+          "skill_id": { "type": "string", "description": "gameplay skill 标识" },
+          "data_fields": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "消费的数据字段"
+          }
+        }
+      }
+    },
+    "realization_class": {
+      "type": "string",
+      "enum": ["presence_only", "realization_eligible"],
+      "description": "实现级别"
+    },
+    "deliverables": {
+      "type": "object",
+      "description": "产出物声明",
+      "properties": {
+        "widget_class": { "type": "string", "description": "Widget 类名" },
+        "cpp_base_class": { "type": "string", "description": "C++ 基类名" }
+      }
+    }
+  }
+}

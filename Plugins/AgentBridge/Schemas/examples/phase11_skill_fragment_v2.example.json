@@ -1,0 +1,52 @@
+{
+  "fragment_version": "2.0",
+  "skill_instance_id": "skill-board-topology",
+  "template_id": "boardgame.monopoly_like.board_topology",
+  "domain_type": "gameplay",
+  "phase_scope": "phase11_v2_pipeline",
+  "status": "completed",
+  "emitted_families": ["board_topology"],
+  "spec_fragments": {
+    "board_topology": {
+      "tile_count": 28,
+      "layout_style": "compact_centered_rectangle",
+      "movement_direction": "clockwise",
+      "corner_tiles": [0, 7, 14, 21]
+    }
+  },
+  "design_decision_log": [
+    {
+      "decision_id": "ddl-board-001",
+      "topic": "board origin",
+      "context": "Compact centered layout still allows top-left or center-origin coordinates.",
+      "chosen": "use board center as world origin",
+      "rationale": "Center origin simplifies camera framing and symmetric tile placement.",
+      "alternatives": [
+        "top-left origin, simpler indexing but less convenient for camera centering"
+      ],
+      "provisional": false,
+      "fast_mode_default": false,
+      "impact": "medium"
+    }
+  ],
+  "assumptions": [
+    {
+      "assumption": "Tiles use equal spacing around the board loop.",
+      "basis": "Selected compact centered rectangle candidate."
+    }
+  ],
+  "open_questions": [],
+  "review_hints": [
+    "Check that 28 tile indices remain closed and clockwise."
+  ],
+  "capability_gaps": [],
+  "confidence": {
+    "coverage": 0.9,
+    "consistency": 0.9
+  },
+  "metadata": {
+    "generated_at": "2026-04-15T14:36:00Z",
+    "generator": "AgentBridge.Compiler.DomainSkillRuntime.v1",
+    "template_version": "1.0"
+  }
+}

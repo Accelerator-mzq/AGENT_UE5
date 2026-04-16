@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Phase 11 Skill Fragment v2",
+  "description": "Phase 11 Domain Skill 输出片段：在 v1 fragment 基础上增加 design_decision_log。",
+  "type": "object",
+  "required": [
+    "fragment_version",
+    "skill_instance_id",
+    "template_id",
+    "domain_type",
+    "phase_scope",
+    "status",
+    "emitted_families",
+    "spec_fragments",
+    "design_decision_log",
+    "metadata"
+  ],
+  "properties": {
+    "fragment_version": {
+      "type": "string",
+      "const": "2.0"
+    },
+    "skill_instance_id": {"type": "string"},
+    "template_id": {"type": "string"},
+    "domain_type": {"type": "string", "enum": ["gameplay", "baseline"]},
+    "phase_scope": {"type": "string"},
+    "status": {"type": "string", "enum": ["completed", "partial", "failed"]},
+    "emitted_families": {"type": "array", "items": {"type": "string"}},
+    "spec_fragments": {
+      "type": "object",
+      "additionalProperties": {"type": "object"}
+    },
+    "design_decision_log": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["decision_id", "topic", "chosen", "rationale", "impact"],
+        "properties": {
+          "decision_id": {"type": "string"},
+          "topic": {"type": "string"},
+          "context": {"type": "string"},
+          "chosen": {"type": "string"},
+          "rationale": {"type": "string"},
+          "alternatives": {"type": "array", "items": {"type": "string"}},
+          "provisional": {"type": "boolean"},
+          "fast_mode_default": {"type": "boolean"},
+          "impact": {"type": "string", "enum": ["low", "medium", "high"]}
+        }
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "assumption": {"type": "string"},
+          "basis": {"type": "string"}
+        }
+      }
+    },
+    "open_questions": {"type": "array", "items": {"type": "string"}},
+    "review_hints": {"type": "array", "items": {"type": "string"}},
+    "capability_gaps": {"type": "array", "items": {"type": "object"}},
+    "confidence": {
+      "type": "object",
+      "properties": {
+        "coverage": {"type": "number", "minimum": 0, "maximum": 1},
+        "consistency": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["generated_at", "generator"],
+      "properties": {
+        "generated_at": {"type": "string"},
+        "generator": {"type": "string"},
+        "template_version": {"type": "string"}
+      }
+    }
+  }
+}

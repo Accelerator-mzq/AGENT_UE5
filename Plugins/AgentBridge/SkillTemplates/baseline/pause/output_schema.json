@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Pause Menu Spec",
+  "description": "暂停菜单能力规格",
+  "type": "object",
+  "required": ["capability", "trigger_input", "buttons", "pause_state_management", "realization_class"],
+  "properties": {
+    "capability": {
+      "type": "string",
+      "const": "pause_menu",
+      "description": "能力标识"
+    },
+    "trigger_input": {
+      "type": "object",
+      "description": "暂停触发输入",
+      "required": ["key", "binding_target"],
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "触发按键",
+          "default": "ESC"
+        },
+        "binding_target": {
+          "type": "string",
+          "description": "绑定目标",
+          "default": "PlayerController"
+        }
+      }
+    },
+    "buttons": {
+      "type": "array",
+      "description": "暂停菜单按钮列表",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["button_id", "label", "action"],
+        "properties": {
+          "button_id": {
+            "type": "string",
+            "enum": ["resume", "settings", "quit_to_menu"],
+            "description": "按钮标识"
+          },
+          "label": { "type": "string", "description": "按钮显示文本" },
+          "action": { "type": "string", "description": "按钮动作描述" }
+        }
+      }
+    },
+    "pause_state_management": {
+      "type": "object",
+      "description": "暂停状态管理",
+      "required": ["on_pause", "on_resume"],
+      "properties": {
+        "on_pause": { "type": "string", "description": "暂停时调用", "default": "SetGamePaused(true)" },
+        "on_resume": { "type": "string", "description": "恢复时调用", "default": "SetGamePaused(false)" }
+      }
+    },
+    "realization_class": {
+      "type": "string",
+      "enum": ["presence_only", "realization_eligible"],
+      "description": "实现级别"
+    },
+    "deliverables": {
+      "type": "object",
+      "description": "产出物声明",
+      "properties": {
+        "widget_class": { "type": "string", "description": "Widget 类名" },
+        "cpp_base_class": { "type": "string", "description": "C++ 基类名" },
+        "controller_binding": { "type": "string", "description": "PlayerController ESC 绑定" }
+      }
+    }
+  }
+}

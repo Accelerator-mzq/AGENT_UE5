@@ -82,7 +82,7 @@ session_version == "2.0":
 
 ### 3.1 工具总数
 
-Phase 10: 42 个 -> Phase 11: 47 个（+5 净增）
+Phase 10: 42 个 -> Phase 11: 50 个（+8 净增）
 
 ### 3.2 MCP 前端（认知桥接层）变更
 
@@ -97,12 +97,14 @@ Phase 10: 42 个 -> Phase 11: 47 个（+5 净增）
 
 旧名在过渡期保留为别名（alias），功能等价。
 
-#### 新增（2 个）
+#### 新增（4 个）
 
 | 工具 | 说明 |
 |------|------|
 | `compiler_clarification_prepare` | 准备 Clarification Gate 输入 |
 | `compiler_clarification_save` | 保存 Clarification Gate 输出 |
+| `compiler_stage4_node_prepare` | Stage 4 交互模式：按 node + phase 返回 SkillTemplate prompt + Context Bundle，Agent 据此做创造性生成 |
+| `compiler_stage4_node_save` | Stage 4 交互模式：接收 Agent 生成的 Discovery/Candidates/Convergence 输出，校验并存储，自动标记 `generator_type: "mcp_agent"` |
 
 #### 保留不变
 

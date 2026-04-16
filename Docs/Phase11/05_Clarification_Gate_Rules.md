@@ -19,6 +19,8 @@ GDD 未明确，但可安全采用保守默认值。
 ### 2.3 send_to_design_space_discovery
 GDD 未明确，但这是 realization-level 设计空间，允许 Agent 继续发现与生成。
 
+该决策的正式含义是：**把问题送入 Compiler Core 内部的真 Agent Stage 4**。后续由 Domain Skill Runtime 触发 Discovery / Candidates / Convergence，而不是在 Clarification Gate 中用启发式默认值提前写死。
+
 ### 2.4 clarification_required
 GDD 未明确，且该问题会显著影响玩法、架构、网络、成本或平台边界，必须追问。
 
@@ -108,8 +110,6 @@ fast_mode 下 Clarification Gate 的自动默认**只适用于低风险缺失项
   "retained_clarifications": ["cg-001", "cg-005"]
 }
 ```
-
----
 
 ## 6. 人类参与点
 

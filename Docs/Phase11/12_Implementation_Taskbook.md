@@ -46,10 +46,10 @@
 | 2.1 | Root Skill Contract 生成逻辑 | `Compiler/stages/root_skill_contract.py` | 1.4, 1.5 | 高 |
 | 2.2 | Clarification Gate 执行逻辑 | `Compiler/stages/clarification_gate.py` | 1.4, 1.6 | 高 |
 | 2.3 | Skill Graph Planning 逻辑 | `Compiler/stages/skill_graph_planning.py` | 1.4, 1.7 | 高 |
-| 2.4 | Domain Skill Runtime 框架 | `Compiler/stages/domain_skill_runtime.py` | 2.3 | 高 |
-| 2.5 | Design Space Discovery 引擎 | `Compiler/stages/discovery_engine.py` | 2.4, 1.8 | 高 |
-| 2.6 | Realization Candidate Generator | `Compiler/stages/realization_generator.py` | 2.5, 1.9 | 高 |
-| 2.7 | Convergence 引擎 | `Compiler/stages/convergence_engine.py` | 2.6, 1.10 | 高 |
+| 2.4 | Domain Skill Runtime 框架（含 Generator-Evaluator 循环 + MCP 交互模式，见 `14_Agent_Interaction_Protocol.md`） | `Compiler/stages/domain_skill_runtime.py`, `Compiler/stages/agent_protocol.py` | 2.3 | 高 |
+| 2.5 | Design Space Discovery Heuristic Fallback（CI/fast_mode 退化路径） | `Compiler/stages/discovery_fallback.py` | 2.4, 1.8 | 高 |
+| 2.6 | Realization Candidate Heuristic Fallback（CI/fast_mode 退化路径） | `Compiler/stages/realization_fallback.py` | 2.5, 1.9 | 高 |
+| 2.7 | Convergence Heuristic Fallback（CI/fast_mode 退化路径） | `Compiler/stages/convergence_fallback.py` | 2.6, 1.10 | 高 |
 | 2.8 | Cross-Domain Review v2 | `Compiler/stages/cross_review_v2.py` | 2.4 | 高 |
 | 2.9 | Build IR v2 + naming_resolution_log | `Compiler/stages/lowering_v2.py` | 2.8 | 高 |
 | 2.10 | Handoff v3 Assembly | `Compiler/stages/handoff_v3.py` | 2.9 | 中 |
@@ -79,6 +79,7 @@
 | D.5 | evidence_promote_run 工具 | `MCP/tools/` | D.2, D.3 | 中 |
 | D.6 | fast_mode 完整实现 | `Compiler/pipeline/` | 第二批全部 | 高 |
 | D.7 | Baseline Domain Skill Template 全套 | `SkillTemplates/baseline/` | 第二批全部 | 高 |
+| D.8 | MCP Stage 4 交互工具（compiler_stage4_node_prepare/save） | `MCP/compiler_tools.py`, `MCP/tool_definitions.py`, `MCP/server.py` | 2.4 | 中 |
 
 ### Defer 项不阻塞核心管线
 

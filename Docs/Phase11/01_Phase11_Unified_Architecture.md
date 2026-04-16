@@ -154,7 +154,7 @@ Design Space Discovery 开始后进入 Compiler Core。
 
 ### 4.4 工具总数
 
-Phase 10: 42 -> Phase 11: 47（重命名 4 个，新增 5 个）
+Phase 10: 42 -> Phase 11: 50（重命名 4 个，新增 8 个：clarification prepare/save、stage4_node prepare/save、evidence 3 个 run 治理工具；旧名 intake/plan 作为 alias 保留不计入新增）
 
 ---
 

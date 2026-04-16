@@ -1,0 +1,53 @@
+{
+  "candidates_version": "1.0",
+  "skill_instance_id": "skill-board-topology",
+  "source_design_space_report": "design_space_report.json",
+  "candidates": [
+    {
+      "dimension_id": "dim-board-layout-001",
+      "candidates": [
+        {
+          "candidate_id": "rc-board-layout-compact",
+          "name": "compact centered rectangle",
+          "description": "Place 28 tiles in a compact centered rectangular loop with clear corner emphasis",
+          "trade_offs": {
+            "pros": [
+              "traditional Monopoly silhouette",
+              "leaves space for HUD"
+            ],
+            "cons": [
+              "tiles are smaller than full-screen layout"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "low",
+          "compatible_with": ["rc-spacing-even"],
+          "conflicts_with": []
+        },
+        {
+          "candidate_id": "rc-board-layout-expanded",
+          "name": "expanded screen-edge rectangle",
+          "description": "Stretch the board near the screen edges to maximize tile size",
+          "trade_offs": {
+            "pros": [
+              "larger tiles",
+              "more room for property labels"
+            ],
+            "cons": [
+              "HUD placement becomes tighter",
+              "camera framing is less forgiving"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "medium",
+          "compatible_with": [],
+          "conflicts_with": ["rc-spacing-tight"]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "generated_at": "2026-04-15T14:34:00Z",
+    "generator": "AgentBridge.Compiler.RealizationCandidates.v1"
+  }
+}

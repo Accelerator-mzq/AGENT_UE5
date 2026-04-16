@@ -1,0 +1,118 @@
+{
+  "contract_version": "1.0",
+  "contract_id": "rsc.monopoly.phase11.20260415",
+  "source_gdd": {
+    "file_path": "ProjectInputs/GDD/GDD_MonopolyGame.md",
+    "scope_summary": "Monopoly Phase 1 local multiplayer rules and UE implementation constraints"
+  },
+  "game_identity": {
+    "game_type": "board_strategy",
+    "subgenre": "monopoly_like",
+    "presentation_model": "top_down_2d",
+    "player_count_range": [2, 4],
+    "win_condition": "last_non_bankrupt_player"
+  },
+  "phase_scope": {
+    "current_phase": "phase11_v2_pipeline",
+    "in_scope": [
+      "local multiplayer",
+      "28 tile board",
+      "2d6 turn loop",
+      "basic economy",
+      "universal baseline shell"
+    ],
+    "out_of_scope": [
+      "online multiplayer",
+      "AI opponents",
+      "auction house rules"
+    ]
+  },
+  "constraint_fields": {
+    "board.tile_count": {
+      "type": "constraint",
+      "value": 28,
+      "gdd_ref": "GDD Monopoly board specification"
+    },
+    "players.count_range": {
+      "type": "constraint",
+      "value": [2, 4],
+      "gdd_ref": "GDD player setup"
+    },
+    "economy.starting_cash": {
+      "type": "constraint",
+      "value": 1500,
+      "gdd_ref": "GDD economy rules"
+    }
+  },
+  "variant_fields": {
+    "board.world_layout_dimensions": {
+      "type": "variant",
+      "bounds": {
+        "must_satisfy": [
+          "28 tiles remain visible from the primary camera",
+          "corner tiles remain readable"
+        ],
+        "must_not": [
+          "overlap gameplay HUD",
+          "hide player tokens behind tile labels"
+        ]
+      }
+    },
+    "hud.layout": {
+      "type": "variant",
+      "bounds": {
+        "must_satisfy": [
+          "show current player",
+          "show cash",
+          "show dice result"
+        ],
+        "must_not": [
+          "block board interaction prompts"
+        ]
+      }
+    }
+  },
+  "soft_intents": {
+    "gameplay_feel": [
+      "fast simplified Monopoly prototype",
+      "clear local party-game feedback"
+    ],
+    "design_tensions": [
+      "traditional board readability vs compact HUD",
+      "simple economy vs enough strategic clarity"
+    ]
+  },
+  "baseline_capabilities": [
+    {
+      "capability_id": "baseline-start-screen",
+      "activation": "required",
+      "realization_class": "presence_only"
+    },
+    {
+      "capability_id": "baseline-settings",
+      "activation": "required",
+      "realization_class": "presence_only"
+    },
+    {
+      "capability_id": "baseline-hud",
+      "activation": "required",
+      "realization_class": "realization_eligible"
+    }
+  ],
+  "gameplay_capabilities": [
+    {
+      "capability_id": "gameplay-board-topology",
+      "activation": "required",
+      "allows_design_space_discovery": true
+    },
+    {
+      "capability_id": "gameplay-turn-loop",
+      "activation": "required",
+      "allows_design_space_discovery": true
+    }
+  ],
+  "metadata": {
+    "generated_at": "2026-04-15T14:30:22Z",
+    "generator": "AgentBridge.Compiler.RootSkill.v1"
+  }
+}

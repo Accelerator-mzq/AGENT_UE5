@@ -1,0 +1,36 @@
+# llm_config.example.yaml — LLM Internal 路径配置模板
+# 复制为 llm_config.yaml 并填入真实 API key 后使用
+
+# provider 类型：anthropic / openai / openai_compatible
+provider: "anthropic"
+
+# API key（必填；openai_compatible 可使用占位值 "not-needed"）
+api_key: "YOUR_API_KEY_HERE"
+
+# 模型名（按 provider 填写对应模型 ID）
+model: "claude-sonnet-4-20250514"
+
+# 可选：自定义 API base URL（仅 openai_compatible 需要）
+# base_url: "http://localhost:11434/v1"
+
+# 可选：生成参数
+max_tokens: 8192
+temperature: 0.7
+
+# 其他 provider 示例：
+#
+# Anthropic（Claude 系列）
+# provider: "anthropic"
+# api_key: "sk-ant-api03-real-key"
+# model: "claude-sonnet-4-20250514"
+#
+# OpenAI（GPT 系列）
+# provider: "openai"
+# api_key: "sk-real-key"
+# model: "gpt-4o"
+#
+# OpenAI 兼容接口（本地模型、第三方代理等）
+# provider: "openai_compatible"
+# api_key: "not-needed"
+# model: "llama3"
+# base_url: "http://localhost:11434/v1"

@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Main Menu Spec",
+  "description": "主菜单能力规格",
+  "type": "object",
+  "required": ["capability", "buttons", "realization_class"],
+  "properties": {
+    "capability": {
+      "type": "string",
+      "const": "main_menu_navigation",
+      "description": "能力标识"
+    },
+    "buttons": {
+      "type": "array",
+      "description": "主菜单按钮列表",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["button_id", "label", "navigation_target"],
+        "properties": {
+          "button_id": {
+            "type": "string",
+            "enum": ["new_game", "settings", "quit"],
+            "description": "按钮标识"
+          },
+          "label": {
+            "type": "string",
+            "description": "按钮显示文本"
+          },
+          "navigation_target": {
+            "type": "string",
+            "description": "点击后导航目标"
+          },
+          "action_type": {
+            "type": "string",
+            "enum": ["open_level", "open_submenu", "quit_game"],
+            "description": "按钮动作类型"
+          }
+        }
+      }
+    },
+    "layout": {
+      "type": "string",
+      "enum": ["vertical_center", "horizontal_center", "custom"],
+      "description": "按钮布局方式（presence_only 默认 vertical_center）"
+    },
+    "realization_class": {
+      "type": "string",
+      "enum": ["presence_only", "realization_eligible"],
+      "description": "实现级别"
+    },
+    "deliverables": {
+      "type": "object",
+      "description": "产出物声明",
+      "properties": {
+        "widget_class": { "type": "string", "description": "Widget 类名" },
+        "cpp_base_class": { "type": "string", "description": "C++ 基类名" }
+      }
+    }
+  }
+}

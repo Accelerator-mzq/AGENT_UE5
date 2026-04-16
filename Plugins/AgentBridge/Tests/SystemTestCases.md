@@ -564,7 +564,7 @@
 | MCP-03 | `create_mcp_server()` 可构造真实 server | `import server; create_mcp_server()` | 返回真实 `Server("agentbridge")` 并可生成 initialization options |
 | MCP-04 | stdio `initialize / tools/list` 协议可用 | `mcp.client.stdio` 连接 `python Plugins/AgentBridge/MCP/server.py` | server name=`agentbridge`，tools=42 |
 | MCP-05 | `tools/call` 返回结构化结果 | stdio client 调用 `capture_screenshot` | 返回 `CallToolResult`，文本内容可解析为含 `status` 的 JSON |
-| MCP-06 | 6 个 Compiler 前端工具已完整注册 | 校验 `COMPILER_FRONTEND_TOOLS` + `compiler_tools.py` | `compiler_create_session / intake_prepare / intake_save / plan_prepare / plan_save / get_session_status` 全部存在 |
+| MCP-06 | 12 个 Compiler 前端工具已完整注册 | 校验 `COMPILER_FRONTEND_TOOLS` + `compiler_tools.py` | `compiler_create_session`、Root Skill prepare/save、旧 intake alias、Clarification prepare/save、Skill Graph prepare/save、旧 plan alias、`compiler_get_session_status` 全部存在 |
 | MCP-07 | 8 个 Evidence 后端工具已完整注册 | 校验 `EVIDENCE_JUDGE_TOOLS` + `evidence_tools.py` | `evidence_load_* / judge / decide / export / list_runs` 全部存在 |
 | MCP-08 | live smoke：`get_current_project_state` 已恢复真实调用 | 读取 `live_smoke_get_current_project_state_2026-04-11.md` | `30010` 端口监听、`/remote/info` 返回 200、`PROJECT_NAME=Mvpv4TestCodex` |
 | MCP-09 | TASK 08 证据后端判定为 `pass / escalate` 且无需直接控制 PIE | 读取 `task08_backend_summary.json` | `judgment in {pass, escalate}`，`needs_human` 与 `open_questions` 字段完整，证据导出摘要可读 |

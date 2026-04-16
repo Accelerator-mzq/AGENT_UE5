@@ -157,6 +157,8 @@ Design Space Discovery（发现可设计维度）
 }
 ```
 
+> **完整 Agent 调用协议**（Generator-Evaluator 门控模型、Context Bundle 结构、各阶段 Evaluator 质量维度、重试策略、Trace 审计）详见 `14_Agent_Interaction_Protocol.md`。
+
 ---
 
 ## 3. design_decision_log 定义
