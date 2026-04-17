@@ -1,18 +1,36 @@
-# Phase 10 任务入口已归档
+# 当前任务入口
 
-> 当前状态：Phase 10 已完成并归档
-> 阶段索引：[00_Index.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/00_Index.md)
-> 正式归档任务单：[task10_phase10.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task10_phase10.md)
-> Phase 10 收尾总览：[17_Phase10_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/17_Phase10_Closeout.md)
+> 当前状态：Phase 11 已归档 / 等待下一阶段建立正式任务书
+> 入口类型：归档跳转页
+> Phase 11 历史任务正文：[task11_phase11.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task11_phase11.md)
+> Phase 11 收尾总览：[18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/18_Phase11_Closeout.md)
+> Phase 11 最终验收：[task15_phase11_final_acceptance.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/task15_phase11_final_acceptance.md)
+> Phase 11 功能覆盖报告：[phase11_feature_coverage_report.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/phase11_feature_coverage_report.md)
+> Phase 11 系统测试对齐：[task_phase11_system_test_alignment.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/task_phase11_system_test_alignment.md)
+
+---
+
+## 当前说明
+
+1. 根目录 `task.md` 不再承载 Phase 11 的全量任务正文。
+2. Phase 11 的正式历史任务副本固定为 [task11_phase11.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task11_phase11.md)。
+3. 当前若尚未建立下一阶段正式任务书，则本页作为唯一入口跳转页保留。
+4. 后续若进入新阶段，应重建根目录 `task.md` 为新阶段任务书，并保留本次归档副本不再改写。
+
+## 建议阅读顺序
+
+1. 先读 [18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/18_Phase11_Closeout.md) 了解 Phase 11 最终稳定事实。
+2. 再读 [task15_phase11_final_acceptance.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/task15_phase11_final_acceptance.md) 查看最终验收结论。
+3. 需要追溯完整执行过程时，阅读 [task11_phase11.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task11_phase11.md)。
+4. 需要对照测试覆盖时，阅读 [SystemTestCases.md](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Tests/SystemTestCases.md) 与 [task_phase11_system_test_alignment.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/task_phase11_system_test_alignment.md)。
+
+## Phase 11 关键证据
+
+- 最终验收：[task15_phase11_final_acceptance.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/task15_phase11_final_acceptance.md)
+- 功能覆盖：[phase11_feature_coverage_report.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/phase11_feature_coverage_report.md)
+- 归档发布记录：[phase11_archive_publish.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/phase11_archive_publish.md)
 
 ## 说明
 
-- 根目录 `task.md` 继续保留为阶段入口占位页，避免历史链接失效。
-- Phase 10 的完整 TASK 定义、执行记录、验收标准与完成标记，均已归档到 [task10_phase10.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task10_phase10.md)。
-- 当前项目正式完成口径以 [17_Phase10_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/17_Phase10_Closeout.md) 和 [00_Index.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/00_Index.md) 为准。
-
-## 快速入口
-
-- 历史任务索引：[00_Task_Index.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/00_Task_Index.md)
-- Phase 10 归档任务单：[task10_phase10.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task10_phase10.md)
-- Phase 10 收尾证据：[task09_final_acceptance_validation.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-11/task09_final_acceptance_validation.md)
+- Phase 10 历史任务见 [task10_phase10.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task10_phase10.md)。
+- 当前页面的存在目的只有一个：把“现在该看哪里”这件事说清楚。

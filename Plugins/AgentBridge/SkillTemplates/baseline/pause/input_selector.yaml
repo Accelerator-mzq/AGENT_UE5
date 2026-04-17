@@ -1,0 +1,13 @@
+# Input Selector — Pause Menu 从上游产物中选取所需信息
+
+include_sections:
+  - game_identity           # 项目名称
+  - phase_scope             # 当前阶段范围
+  - baseline_capabilities.pause  # Root Skill Contract 中的暂停菜单标注
+
+exclude_sections:
+  - design_domains           # 所有 gameplay 域不在本 Skill 范围
+  - baseline_capabilities.start_screen  # 入口壳层不在本 Skill 范围
+  - baseline_capabilities.main_menu     # 主菜单不在本 Skill 范围
+  - baseline_capabilities.settings      # 设置页控件不在本 Skill 范围（只引用入口）
+  - implementation_hints     # 实现细节不在编译层

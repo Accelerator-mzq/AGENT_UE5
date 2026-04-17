@@ -1,0 +1,236 @@
+{
+  "review_id": "cr.monopoly.phase11_task09b_mcp_agent.20260416",
+  "review_version": "v2",
+  "source_contract_id": "rsc.monopoly.phase11_task09b_mcp_agent.20260416",
+  "source_gate_id": "rsc.monopoly.phase11_task09b_mcp_agent.20260416",
+  "source_graph_id": "sg.monopoly.phase11_task09b_mcp_agent.20260416",
+  "input_fragment_ids": [
+    "skill-board-topology"
+  ],
+  "review_status": "approved_with_warnings",
+  "review_checks": [
+    {
+      "check_id": "crv2_constraint_preservation",
+      "check_name": "constraint_preservation",
+      "result": "pass",
+      "issues_count": 0,
+      "description": "Constraint Field 在下游 fragment 中保持不变。"
+    },
+    {
+      "check_id": "crv2_blueprint_thin_layer",
+      "check_name": "blueprint_thin_layer",
+      "result": "pass",
+      "issues_count": 0,
+      "description": "核心玩法逻辑应落在 C++，Blueprint 只承担薄层桥接。"
+    },
+    {
+      "check_id": "crv2_baseline_coverage",
+      "check_name": "baseline_coverage",
+      "result": "warning",
+      "issues_count": 9,
+      "description": "required baseline families 应全部出现。"
+    },
+    {
+      "check_id": "crv2_cross_domain_conflict",
+      "check_name": "cross_domain_conflict",
+      "result": "pass",
+      "issues_count": 0,
+      "description": "检测跨域 naming / realization 冲突。"
+    },
+    {
+      "check_id": "crv2_phase_scope",
+      "check_name": "phase_scope",
+      "result": "pass",
+      "issues_count": 0,
+      "description": "所有 fragment 必须处于当前 phase scope 内。"
+    }
+  ],
+  "issues_found": [
+    {
+      "issue_id": "issue.baseline.audio_foundation_spec",
+      "check_type": "baseline_completeness",
+      "severity": "warning",
+      "family": "audio_foundation_spec",
+      "message": "缺少 required baseline family: audio_foundation_spec"
+    },
+    {
+      "issue_id": "issue.baseline.hud_spec",
+      "check_type": "baseline_completeness",
+      "severity": "warning",
+      "family": "hud_spec",
+      "message": "缺少 required baseline family: hud_spec"
+    },
+    {
+      "issue_id": "issue.baseline.input_foundation_spec",
+      "check_type": "baseline_completeness",
+      "severity": "warning",
+      "family": "input_foundation_spec",
+      "message": "缺少 required baseline family: input_foundation_spec"
+    },
+    {
+      "issue_id": "issue.baseline.main_menu_spec",
+      "check_type": "baseline_completeness",
+      "severity": "warning",
+      "family": "main_menu_spec",
+      "message": "缺少 required baseline family: main_menu_spec"
+    },
+    {
+      "issue_id": "issue.baseline.pause_menu_spec",
+      "check_type": "baseline_completeness",
+      "severity": "warning",
+      "family": "pause_menu_spec",
+      "message": "缺少 required baseline family: pause_menu_spec"
+    },
+    {
+      "issue_id": "issue.baseline.platform_foundation_spec",
+      "check_type": "baseline_completeness",
+      "severity": "warning",
+      "family": "platform_foundation_spec",
+      "message": "缺少 required baseline family: platform_foundation_spec"
+    },
+    {
+      "issue_id": "issue.baseline.results_spec",
+      "check_type": "baseline_completeness",
+      "severity": "warning",
+      "family": "results_spec",
+      "message": "缺少 required baseline family: results_spec"
+    },
+    {
+      "issue_id": "issue.baseline.settings_spec",
+      "check_type": "baseline_completeness",
+      "severity": "warning",
+      "family": "settings_spec",
+      "message": "缺少 required baseline family: settings_spec"
+    },
+    {
+      "issue_id": "issue.baseline.start_screen_spec",
+      "check_type": "baseline_completeness",
+      "severity": "warning",
+      "family": "start_screen_spec",
+      "message": "缺少 required baseline family: start_screen_spec"
+    }
+  ],
+  "phase_scope_check": {
+    "in_scope_confirmed": true,
+    "out_of_scope_violations": []
+  },
+  "constraint_preservation_summary": {
+    "total_constraints": 22,
+    "checked_fields": 3,
+    "violations": 0,
+    "preserved_count": 3,
+    "status": "preserved"
+  },
+  "bp_thin_layer_summary": {
+    "warnings": 0,
+    "suspect_fragments": [],
+    "status": "clean"
+  },
+  "baseline_coverage_summary": {
+    "required": 9,
+    "present": 0,
+    "missing": [
+      "audio_foundation_spec",
+      "hud_spec",
+      "input_foundation_spec",
+      "main_menu_spec",
+      "pause_menu_spec",
+      "platform_foundation_spec",
+      "results_spec",
+      "settings_spec",
+      "start_screen_spec"
+    ],
+    "status": "incomplete"
+  },
+  "cross_domain_conflict_summary": {
+    "realization_conflicts": 0,
+    "naming_conflicts": 0,
+    "naming_conflict_families": [],
+    "status": "clean"
+  },
+  "design_decision_log_summary": {
+    "total_decisions": 3,
+    "provisional_decisions": 0,
+    "high_impact_decisions": 1,
+    "by_skill_instance": {
+      "skill-board-topology": 3
+    }
+  },
+  "family_source_map": {
+    "board_topology_spec": {
+      "skill_instance_id": "skill-board-topology",
+      "template_id": "monopoly.board_topology.phase1",
+      "domain_type": "gameplay",
+      "status": "completed"
+    }
+  },
+  "reviewed_dynamic_spec_tree": {
+    "board_topology_spec": {
+      "capability_id": "gameplay-board-topology",
+      "template_id": "monopoly.board_topology.phase1",
+      "locked_constraints": {
+        "board.tile_count": 28,
+        "board.layout_shape": "square_ring",
+        "board.movement_direction": "clockwise",
+        "board.corner_indices": {
+          "start": 0,
+          "jail_visit": 7,
+          "free_parking": 14,
+          "go_to_jail": 21
+        }
+      },
+      "selected_realization": {
+        "board_visual_scale": "均衡棋盘",
+        "corner_landmark_emphasis": "角格地标道具",
+        "route_readability": "中线引导路径"
+      },
+      "clarification_inputs": [],
+      "dependencies": [],
+      "coupling": [
+        "skill-baseline-hud"
+      ],
+      "tile_count": 28,
+      "layout_shape": "square_ring",
+      "movement_direction": "clockwise",
+      "corner_tiles": {
+        "start": 0,
+        "jail_visit": 7,
+        "free_parking": 14,
+        "go_to_jail": 21
+      }
+    }
+  },
+  "capability_gap_list": [],
+  "provisional_items": [
+    {
+      "item_id": "cg-max-game-length",
+      "topic": "最大游戏时长/僵局处理",
+      "provisional_value": "200 回合上限；若到达上限，则按资金最高者获胜。",
+      "source_decision": "clarification_required",
+      "risk_level": "high",
+      "downstream_impacts": [
+        "design_decision_log[].provisional = true",
+        "build_steps[].execution_hints.contains_provisional = true",
+        "reviewed_handoff_v3.provisional_items[] includes item"
+      ]
+    },
+    {
+      "item_id": "cg-platform-foundation-boundary",
+      "topic": "平台基础能力边界",
+      "provisional_value": "桌面端本地运行；支持窗口模式、分辨率切换，但设置仅本次会话生效。",
+      "source_decision": "clarification_required",
+      "risk_level": "high",
+      "downstream_impacts": [
+        "design_decision_log[].provisional = true",
+        "build_steps[].execution_hints.contains_provisional = true",
+        "reviewed_handoff_v3.provisional_items[] includes item"
+      ]
+    }
+  ],
+  "lowering_ready": true,
+  "metadata": {
+    "generated_at": "2026-04-16T13:35:15.353406+00:00",
+    "generator": "AgentBridge.Compiler.CrossReviewV2.v2",
+    "phase_scope": "phase11_task09b_mcp_agent"
+  }
+}

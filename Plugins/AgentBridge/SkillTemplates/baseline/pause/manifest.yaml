@@ -1,0 +1,33 @@
+template_id: baseline.pause.presence_only
+display_name: Pause Menu（暂停菜单）
+template_kind: baseline_skill
+genre: universal
+template_version: "1.0.0"
+schema_version: "1.0.0"
+evaluator_version: "1.0.0"
+
+phase_scope:
+  - phase1_local_multiplayer
+
+description: |
+  暂停菜单 Baseline 模板。
+  最低标准：ESC 入口、Resume / Settings / Quit to Menu 三按钮、SetGamePaused(true)。
+  Widget + C++ 基类 + PlayerController ESC 绑定。
+
+realization_class: presence_only
+
+input_contract_ref: root_skill_contract.baseline_capabilities.pause
+output_schema_ref: output_schema.json
+
+requires_static_vocab:
+  - pause_action
+  - resume_action
+  - menu_button
+
+can_emit_families:
+  - pause_spec
+
+depends_on_templates:
+  - baseline.settings.presence_only
+
+priority: medium

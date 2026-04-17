@@ -1,0 +1,487 @@
+{
+  "handoff_meta": {
+    "handoff_version": "3.0",
+    "handoff_id": "handoff.monopolygame.run_20260416",
+    "schema_version": "3.0",
+    "created_at": "2026-04-16T13:35:15.353406+00:00",
+    "target_phase": "phase11_task09b_mcp_agent",
+    "build_goal": "playable_template",
+    "run_id": "run-20260416-101010-task10",
+    "session_version": "2.0",
+    "fast_mode": false
+  },
+  "run_id": "run-20260416-101010-task10",
+  "project_context": {
+    "project_name": "MonopolyGame",
+    "game_type": "board_strategy",
+    "subgenre": "monopoly_like",
+    "target_phase": "phase11_task09b_mcp_agent",
+    "source_contract_id": "rsc.monopoly.phase11_task09b_mcp_agent.20260416"
+  },
+  "selected_skill_instances": [
+    {
+      "skill_instance_id": "skill-board-topology",
+      "template_id": "monopoly.board_topology.phase1",
+      "domain_type": "gameplay",
+      "status": "completed",
+      "emitted_families": [
+        "board_topology_spec"
+      ],
+      "capability_gaps": []
+    },
+    {
+      "skill_instance_id": "skill-tile-system",
+      "template_id": "monopoly.tile_event_dispatch.phase1",
+      "domain_type": "gameplay",
+      "status": "pending",
+      "emitted_families": [],
+      "capability_gaps": []
+    },
+    {
+      "skill_instance_id": "skill-turn-loop",
+      "template_id": "monopoly.turn_and_dice_flow.phase1",
+      "domain_type": "gameplay",
+      "status": "pending",
+      "emitted_families": [],
+      "capability_gaps": []
+    },
+    {
+      "skill_instance_id": "skill-dice",
+      "template_id": "monopoly.turn_and_dice_flow.phase1",
+      "domain_type": "gameplay",
+      "status": "pending",
+      "emitted_families": [],
+      "capability_gaps": []
+    },
+    {
+      "skill_instance_id": "skill-economy",
+      "template_id": "monopoly.property_economy.phase1",
+      "domain_type": "gameplay",
+      "status": "pending",
+      "emitted_families": [],
+      "capability_gaps": []
+    },
+    {
+      "skill_instance_id": "skill-player-management",
+      "template_id": "monopoly.jail_and_bankruptcy.phase1",
+      "domain_type": "gameplay",
+      "status": "pending",
+      "emitted_families": [],
+      "capability_gaps": []
+    },
+    {
+      "skill_instance_id": "skill-jail",
+      "template_id": "monopoly.jail_and_bankruptcy.phase1",
+      "domain_type": "gameplay",
+      "status": "pending",
+      "emitted_families": [],
+      "capability_gaps": []
+    },
+    {
+      "skill_instance_id": "skill-baseline-start-screen",
+      "template_id": "baseline.start_screen.presence_only",
+      "domain_type": "baseline",
+      "status": "pending",
+      "emitted_families": [],
+      "capability_gaps": []
+    },
+    {
+      "skill_instance_id": "skill-baseline-main-menu",
+      "template_id": "baseline.main_menu.presence_only",
+      "domain_type": "baseline",
+      "status": "pending",
+      "emitted_families": [],
+      "capability_gaps": []
+    },
+    {
+      "skill_instance_id": "skill-baseline-settings",
+      "template_id": "baseline.settings.presence_only",
+      "domain_type": "baseline",
+      "status": "pending",
+      "emitted_families": [],
+      "capability_gaps": []
+    },
+    {
+      "skill_instance_id": "skill-baseline-pause",
+      "template_id": "baseline.pause.presence_only",
+      "domain_type": "baseline",
+      "status": "pending",
+      "emitted_families": [],
+      "capability_gaps": []
+    },
+    {
+      "skill_instance_id": "skill-baseline-results",
+      "template_id": "baseline.results.presence_only",
+      "domain_type": "baseline",
+      "status": "pending",
+      "emitted_families": [],
+      "capability_gaps": []
+    },
+    {
+      "skill_instance_id": "skill-baseline-hud",
+      "template_id": "baseline.hud.realization_eligible",
+      "domain_type": "baseline",
+      "status": "pending",
+      "emitted_families": [],
+      "capability_gaps": []
+    },
+    {
+      "skill_instance_id": "skill-baseline-input-foundation",
+      "template_id": "baseline.input_foundation.presence_only",
+      "domain_type": "baseline",
+      "status": "pending",
+      "emitted_families": [],
+      "capability_gaps": []
+    },
+    {
+      "skill_instance_id": "skill-baseline-audio-foundation",
+      "template_id": "baseline.audio_foundation.presence_only",
+      "domain_type": "baseline",
+      "status": "pending",
+      "emitted_families": [],
+      "capability_gaps": []
+    },
+    {
+      "skill_instance_id": "skill-baseline-platform-foundation",
+      "template_id": "baseline.platform_foundation.clarification_gated",
+      "domain_type": "baseline",
+      "status": "pending",
+      "emitted_families": [],
+      "capability_gaps": []
+    }
+  ],
+  "design_directions_summary": [
+    {
+      "skill_instance_id": "skill-board-topology",
+      "template_id": "monopoly.board_topology.phase1",
+      "directions": [
+        {
+          "dimension_id": "board_visual_scale",
+          "chosen_candidate": "scale_balanced",
+          "chosen_candidate_name": "均衡棋盘",
+          "rationale": "在桌游仪式感与 HUD 留白之间取得最稳的折中，适合作为默认主路线。",
+          "provisional": false
+        },
+        {
+          "dimension_id": "corner_landmark_emphasis",
+          "chosen_candidate": "corner_landmark_props",
+          "chosen_candidate_name": "角格地标道具",
+          "rationale": "四个角格是局内记忆锚点，用轻量道具更能形成强识别。",
+          "provisional": false
+        },
+        {
+          "dimension_id": "route_readability",
+          "chosen_candidate": "route_midline",
+          "chosen_candidate_name": "中线引导路径",
+          "rationale": "比弱显式更稳定，但又不会像高亮箭头那样打断棋盘整体感。",
+          "provisional": false
+        }
+      ]
+    }
+  ],
+  "constraint_variant_summary": {
+    "constraint_count": 22,
+    "variant_count": 8,
+    "preserved_constraints": 3,
+    "violated_constraints": 0,
+    "explored_variant_directions": 3
+  },
+  "baseline_coverage_summary": {
+    "required": 9,
+    "present": 0,
+    "missing": [
+      "audio_foundation_spec",
+      "hud_spec",
+      "input_foundation_spec",
+      "main_menu_spec",
+      "pause_menu_spec",
+      "platform_foundation_spec",
+      "results_spec",
+      "settings_spec",
+      "start_screen_spec"
+    ],
+    "status": "incomplete"
+  },
+  "provisional_items": [
+    {
+      "item_id": "cg-max-game-length",
+      "topic": "最大游戏时长/僵局处理",
+      "provisional_value": "200 回合上限；若到达上限，则按资金最高者获胜。",
+      "source_decision": "clarification_required",
+      "risk_level": "high",
+      "downstream_impacts": [
+        "design_decision_log[].provisional = true",
+        "build_steps[].execution_hints.contains_provisional = true",
+        "reviewed_handoff_v3.provisional_items[] includes item"
+      ]
+    },
+    {
+      "item_id": "cg-platform-foundation-boundary",
+      "topic": "平台基础能力边界",
+      "provisional_value": "桌面端本地运行；支持窗口模式、分辨率切换，但设置仅本次会话生效。",
+      "source_decision": "clarification_required",
+      "risk_level": "high",
+      "downstream_impacts": [
+        "design_decision_log[].provisional = true",
+        "build_steps[].execution_hints.contains_provisional = true",
+        "reviewed_handoff_v3.provisional_items[] includes item"
+      ]
+    }
+  ],
+  "design_decision_log_summary": {
+    "total_decisions": 3,
+    "provisional_decisions": 0,
+    "high_impact_decisions": 1,
+    "skills_with_decisions": 1,
+    "by_skill_instance": {
+      "skill-board-topology": 3
+    }
+  },
+  "cross_review_summary": {
+    "review_id": "cr.monopoly.phase11_task09b_mcp_agent.20260416",
+    "status": "approved_with_warnings",
+    "issues_found": 9,
+    "review_checks": [
+      {
+        "check_id": "crv2_constraint_preservation",
+        "check_name": "constraint_preservation",
+        "result": "pass",
+        "issues_count": 0,
+        "description": "Constraint Field 在下游 fragment 中保持不变。"
+      },
+      {
+        "check_id": "crv2_blueprint_thin_layer",
+        "check_name": "blueprint_thin_layer",
+        "result": "pass",
+        "issues_count": 0,
+        "description": "核心玩法逻辑应落在 C++，Blueprint 只承担薄层桥接。"
+      },
+      {
+        "check_id": "crv2_baseline_coverage",
+        "check_name": "baseline_coverage",
+        "result": "warning",
+        "issues_count": 9,
+        "description": "required baseline families 应全部出现。"
+      },
+      {
+        "check_id": "crv2_cross_domain_conflict",
+        "check_name": "cross_domain_conflict",
+        "result": "pass",
+        "issues_count": 0,
+        "description": "检测跨域 naming / realization 冲突。"
+      },
+      {
+        "check_id": "crv2_phase_scope",
+        "check_name": "phase_scope",
+        "result": "pass",
+        "issues_count": 0,
+        "description": "所有 fragment 必须处于当前 phase scope 内。"
+      }
+    ],
+    "cross_domain_conflict_summary": {
+      "realization_conflicts": 0,
+      "naming_conflicts": 0,
+      "naming_conflict_families": [],
+      "status": "clean"
+    },
+    "bp_thin_layer_summary": {
+      "warnings": 0,
+      "suspect_fragments": [],
+      "status": "clean"
+    }
+  },
+  "lowering_summary": {
+    "ir_id": "ir.monopoly.phase11_task09b_mcp_agent.20260416",
+    "build_step_count": 1,
+    "validation_point_count": 2,
+    "families_bound": [
+      "board_topology_spec"
+    ],
+    "families_partially_bound": [],
+    "unbound_requirements": [],
+    "naming_resolution_summary": {
+      "total_actions": 1,
+      "resolved_fields": 3,
+      "by_tier": {
+        "2": 1,
+        "3": 2
+      }
+    }
+  },
+  "build_ir": {
+    "ir_id": "ir.monopoly.phase11_task09b_mcp_agent.20260416",
+    "build_steps": [
+      {
+        "step_id": "bir_001_board_topology_spec",
+        "action": "create_cpp_class",
+        "source_skill_instance_id": "skill-board-topology",
+        "source_families": [
+          "board_topology_spec"
+        ],
+        "implementation_layer": "cpp",
+        "target": {
+          "class_name": "AMonopolyBoard",
+          "file_path": "Source/Mvpv4TestCodex/Board/MonopolyBoard.h",
+          "asset_path": "/Game/Mvpv4TestCodex/Blueprints/Board/BP_MonopolyBoard"
+        },
+        "params": {
+          "spec": {
+            "capability_id": "gameplay-board-topology",
+            "template_id": "monopoly.board_topology.phase1",
+            "locked_constraints": {
+              "board.tile_count": 28,
+              "board.layout_shape": "square_ring",
+              "board.movement_direction": "clockwise",
+              "board.corner_indices": {
+                "start": 0,
+                "jail_visit": 7,
+                "free_parking": 14,
+                "go_to_jail": 21
+              }
+            },
+            "selected_realization": {
+              "board_visual_scale": "均衡棋盘",
+              "corner_landmark_emphasis": "角格地标道具",
+              "route_readability": "中线引导路径"
+            },
+            "clarification_inputs": [],
+            "dependencies": [],
+            "coupling": [
+              "skill-baseline-hud"
+            ],
+            "tile_count": 28,
+            "layout_shape": "square_ring",
+            "movement_direction": "clockwise",
+            "corner_tiles": {
+              "start": 0,
+              "jail_visit": 7,
+              "free_parking": 14,
+              "go_to_jail": 21
+            }
+          },
+          "domain_type": "gameplay",
+          "required_elements": [],
+          "selected_realization": {
+            "board_visual_scale": "均衡棋盘",
+            "corner_landmark_emphasis": "角格地标道具",
+            "route_readability": "中线引导路径"
+          }
+        },
+        "constraints_applied": [
+          "corner_tiles",
+          "layout_shape",
+          "locked_constraints",
+          "movement_direction",
+          "tile_count"
+        ],
+        "execution_hints": {
+          "tool_preference": "cpp_code",
+          "thin_blueprint_bridge": true,
+          "contains_provisional": false
+        },
+        "naming_resolution_log": {
+          "class_name": {
+            "resolved": "AMonopolyBoard",
+            "tier": 2,
+            "evidence": "依据 contract_id 推导项目风格命名：Monopoly",
+            "alternatives_considered": [
+              "ABoard",
+              "ABoardTopology"
+            ]
+          },
+          "file_path": {
+            "resolved": "Source/Mvpv4TestCodex/Board/MonopolyBoard.h",
+            "tier": 3,
+            "evidence": "项目规范：Source/Mvpv4TestCodex/Board/",
+            "alternatives_considered": []
+          },
+          "asset_path": {
+            "resolved": "/Game/Mvpv4TestCodex/Blueprints/Board/BP_MonopolyBoard",
+            "tier": 3,
+            "evidence": "项目规范：/Game/Mvpv4TestCodex/ 按 UE5 前缀落盘",
+            "alternatives_considered": []
+          }
+        },
+        "depends_on": []
+      }
+    ],
+    "inline": true
+  },
+  "validation_ir": {
+    "validations": [
+      {
+        "validation_id": "val_bir_001_board_topology_spec_cpp",
+        "after_step": "bir_001_board_topology_spec",
+        "check_type": "cpp_symbol_exists",
+        "description": "验证 AMonopolyBoard 已创建并可编译。",
+        "expected": true
+      },
+      {
+        "validation_id": "val_bir_001_board_topology_spec_bp_bridge",
+        "after_step": "bir_001_board_topology_spec",
+        "check_type": "blueprint_bridge_exists",
+        "description": "验证 /Game/Mvpv4TestCodex/Blueprints/Board/BP_MonopolyBoard 作为薄层 Blueprint 桥接资源存在。",
+        "expected": true
+      }
+    ],
+    "inline": true
+  },
+  "naming_resolution_log": {
+    "entries": [
+      {
+        "ir_action_id": "bir_001_board_topology_spec",
+        "action": "create_cpp_class",
+        "source_skill_instance_id": "skill-board-topology",
+        "naming_resolution_log": {
+          "class_name": {
+            "resolved": "AMonopolyBoard",
+            "tier": 2,
+            "evidence": "依据 contract_id 推导项目风格命名：Monopoly",
+            "alternatives_considered": [
+              "ABoard",
+              "ABoardTopology"
+            ]
+          },
+          "file_path": {
+            "resolved": "Source/Mvpv4TestCodex/Board/MonopolyBoard.h",
+            "tier": 3,
+            "evidence": "项目规范：Source/Mvpv4TestCodex/Board/",
+            "alternatives_considered": []
+          },
+          "asset_path": {
+            "resolved": "/Game/Mvpv4TestCodex/Blueprints/Board/BP_MonopolyBoard",
+            "tier": 3,
+            "evidence": "项目规范：/Game/Mvpv4TestCodex/ 按 UE5 前缀落盘",
+            "alternatives_considered": []
+          }
+        }
+      }
+    ],
+    "summary": {
+      "total_actions": 1,
+      "resolved_fields": 3,
+      "by_tier": {
+        "2": 1,
+        "3": 2
+      }
+    },
+    "inline": true
+  },
+  "capability_gaps": [],
+  "approval": {
+    "approval_status": "approved_with_warnings",
+    "approver": "auto",
+    "blocked_reasons": [],
+    "notes": "Reviewed Handoff v3 由 Compiler Pipeline v2 自动组装。"
+  },
+  "metadata": {
+    "generated_at": "2026-04-16T13:35:15.353406+00:00",
+    "generator": "AgentBridge.Compiler.HandoffV3.v2",
+    "source_contract_id": "rsc.monopoly.phase11_task09b_mcp_agent.20260416",
+    "source_review_id": "cr.monopoly.phase11_task09b_mcp_agent.20260416",
+    "source_ir_id": "ir.monopoly.phase11_task09b_mcp_agent.20260416",
+    "session_id": "task10-validation-session",
+    "run_id": "run-20260416-101010-task10",
+    "gdd_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectInputs\\GDD\\GDD_MonopolyGame.md"
+  }
+}

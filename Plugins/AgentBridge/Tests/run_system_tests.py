@@ -2,7 +2,7 @@
 """
 AgentBridge 系统测试全局入口
 =================================
-一键触发当前登记的系统测试用例，按 10 个 Stage 串行执行。
+一键触发当前登记的系统测试用例，按 11 个 Stage 串行执行。
 
 用法:
     # 全自动执行全部 Stage
@@ -34,6 +34,7 @@ Stage 列表:
     8: Gauntlet CI/CD（GA）      — RunUAT.bat RunUnreal
     9: E2E 三通道一致性           — Python 三通道脚本
     10: MCP Server 集成（MCP）    — 协议脚本 + 证据校验
+    11: Phase 11 设计编译器框架   — 证据对账 + live inventory
 """
 
 import argparse
@@ -177,11 +178,19 @@ STAGES = {
         'requires_editor': False,
         'requires_build': False,
     },
+    11: {
+        'name': 'Phase 11 设计编译器框架（P11）',
+        'cases': 'P11-01 ~ P11-18',
+        'case_ids': make_case_ids('P11', 1, 18),
+        'count': 18,
+        'requires_editor': False,
+        'requires_build': False,
+    },
 }
 
-TOTAL_CASES = sum(s['count'] for s in STAGES.values())  # 248
+TOTAL_CASES = sum(s['count'] for s in STAGES.values())  # 266
 CASE_ID_PATTERN = re.compile(
-    r'^\|\s*((?:SV|BL|Q|W|CL|UI|CMD|PY|ORC|CP|SS|GA|E2E|MCP)-\d{2})\s*\|',
+    r'^\|\s*((?:SV|BL|Q|W|CL|UI|CMD|PY|ORC|CP|SS|GA|E2E|MCP|P11)-\d{2})\s*\|',
     re.MULTILINE,
 )
 PHASE7_STAGE7_CASE_IDS = make_case_ids('CP', 32, 40) + make_case_ids('SS', 14, 20)
@@ -1915,7 +1924,7 @@ def run_stage_10(result, engine_root, completed_results=None):
         invalid_schemas = []
         all_tools = tool_definitions.ALL_TOOLS
         # Phase 10 当前 MCP 基线：28 个 Bridge 工具 + 6 个前端工具 + 8 个后端工具 = 42。
-        expected_tool_count = 42
+        expected_tool_count = 48
         for tool_name, tool_def in all_tools.items():
             schema = tool_definitions.to_json_schema(tool_def)
             if not (
@@ -2002,8 +2011,14 @@ def run_stage_10(result, engine_root, completed_results=None):
 
     compiler_frontend_names = [
         'compiler_create_session',
+        'compiler_root_skill_prepare',
+        'compiler_root_skill_save',
         'compiler_intake_prepare',
         'compiler_intake_save',
+        'compiler_clarification_prepare',
+        'compiler_clarification_save',
+        'compiler_skill_graph_prepare',
+        'compiler_skill_graph_save',
         'compiler_plan_prepare',
         'compiler_plan_save',
         'compiler_get_session_status',
@@ -2123,6 +2138,566 @@ def run_stage_10(result, engine_root, completed_results=None):
         result.message = f'MCP 集成测试未全部通过 ({passed}/{total})，失败项: {", ".join(failed_cases)}'
 
 
+def run_stage_11(result, engine_root, completed_results=None):
+    """Stage 11：Phase 11 设计编译器框架归档前对账入口。"""
+    check_map = {}
+    runtime_dir = os.path.join(PROJECT_ROOT, 'ProjectState', 'Temp', 'run_system_tests_stage11')
+    os.makedirs(runtime_dir, exist_ok=True)
+    result.log_path = runtime_dir
+
+    project_reports_dir = str(get_project_reports_dir())
+    schemas_dir = os.path.join(PLUGIN_ROOT, 'Schemas')
+    batches_dir = os.path.join(PROJECT_ROOT, 'ProjectState', 'batches')
+    runs_root = os.path.join(PROJECT_ROOT, 'ProjectState', 'runs')
+
+    def record_case(case_id, ok, note):
+        """登记单条 Phase 11 用例结果。"""
+        check_map[case_id] = (ok, note)
+
+    def latest_report(prefix, suffix='.md'):
+        """读取指定前缀的最新报告路径。"""
+        return find_latest_report_by_prefix(project_reports_dir, prefix, suffix)
+
+    def extract_line_value(text, key):
+        """从 `KEY=VALUE` 风格的报告行里提取值。"""
+        for line in text.splitlines():
+            if line.startswith(key):
+                return line.split('=', 1)[1].strip()
+        return ''
+
+    def extract_backtick_value(text, label):
+        """从 Markdown 行中提取 `label: `value`` 风格字段。"""
+        match = re.search(rf'{re.escape(label)}:\s*`([^`]+)`', text)
+        return match.group(1).strip() if match else ''
+
+    def artifact_entry_count(payload):
+        """统一读取聚合产物的 entry_count。"""
+        if not isinstance(payload, dict):
+            return 0
+        metadata = payload.get('metadata', {})
+        if isinstance(metadata, dict) and isinstance(metadata.get('entry_count'), int):
+            return metadata.get('entry_count', 0)
+        entries = payload.get('entries', [])
+        return len(entries) if isinstance(entries, list) else 0
+
+    # P11-01: Session v2 字段扩展与兼容升级。
+    task02_report_path = latest_report('task02_phase11_session_v2_validation', '.md')
+    task02_text = load_text_report(task02_report_path)
+    session_schema = load_json_report(os.path.join(schemas_dir, 'compiler_session.schema.json')) or {}
+    session_schema_props = session_schema.get('properties', {}) if isinstance(session_schema, dict) else {}
+    p11_01_ok = (
+        bool(task02_report_path)
+        and 'TASK02_SESSION_TESTS=passed' in task02_text
+        and all(
+            key in session_schema_props
+            for key in ['session_version', 'run_id', 'fast_mode', 'generator_provider']
+        )
+    )
+    record_case(
+        'P11-01',
+        p11_01_ok,
+        f'report={os.path.basename(task02_report_path) if task02_report_path else "缺失"}, '
+        f'schema_props={len(session_schema_props)}',
+    )
+
+    # P11-02: Pipeline v1/v2 路由与产物映射。
+    task03_report_path = latest_report('task03_phase11_pipeline_v2_routing', '.md')
+    task03_text = load_text_report(task03_report_path)
+    orchestrator_source = load_text_report(os.path.join(PLUGIN_ROOT, 'Compiler', 'pipeline', 'pipeline_orchestrator.py'))
+    p11_02_ok = (
+        bool(task03_report_path)
+        and 'TASK03_ORCHESTRATOR_TESTS=passed' in task03_text
+        and 'STAGE_NAME_MAP_V2' in orchestrator_source
+        and 'STAGE_ARTIFACT_MAP_V2' in orchestrator_source
+        and 'reviewed_handoff_v3.json' in orchestrator_source
+        and 'naming_resolution_log.json' in orchestrator_source
+    )
+    record_case(
+        'P11-02',
+        p11_02_ok,
+        f'report={os.path.basename(task03_report_path) if task03_report_path else "缺失"}',
+    )
+
+    # P11-03: 第一批 Schema 与 strict 校验。
+    task04_report_path = latest_report('task04_phase11_schema_batch1_validation', '.md')
+    task04_text = load_text_report(task04_report_path)
+    validate_script = os.path.join(VALIDATION_DIR, 'validate_examples.py')
+    validate_code, validate_stdout, validate_stderr = run_command(
+        [sys.executable, validate_script, '--strict'],
+        cwd=PROJECT_ROOT,
+        timeout=900,
+    )
+    checked_match = re.search(r'Checked examples\s*:\s*(\d+)', validate_stdout)
+    passed_match = re.search(r'Passed\s*:\s*(\d+)', validate_stdout)
+    failed_match = re.search(r'Failed\s*:\s*(\d+)', validate_stdout)
+    checked_examples = int(checked_match.group(1)) if checked_match else 0
+    passed_examples = int(passed_match.group(1)) if passed_match else 0
+    failed_examples = int(failed_match.group(1)) if failed_match else 0
+    p11_03_ok = (
+        bool(task04_report_path)
+        and 'TASK04_SCHEMA_FILE_CHECK=passed' in task04_text
+        and 'TASK04_V2_STAGE1_PREPARE=passed' in task04_text
+        and validate_code == 0
+        and checked_examples >= 26
+        and failed_examples == 0
+        and passed_examples == checked_examples
+    )
+    record_case(
+        'P11-03',
+        p11_03_ok,
+        (
+            f'report={os.path.basename(task04_report_path) if task04_report_path else "缺失"}, '
+            f'checked={checked_examples}, failed={failed_examples}, stderr={"有" if validate_stderr.strip() else "无"}'
+        ),
+    )
+
+    # P11-04: MCP 前端工具与 Stage 4 工具库存。
+    task05_report_path = latest_report('task05_phase11_mcp_frontend_tools', '.md')
+    task05_text = load_text_report(task05_report_path)
+    tool_inventory_ok = False
+    tool_inventory_note = '模块导入失败'
+    try:
+        import importlib
+
+        mcp_dir = os.path.join(PLUGIN_ROOT, 'MCP')
+        if mcp_dir not in sys.path:
+            sys.path.insert(0, mcp_dir)
+
+        tool_definitions = importlib.import_module('tool_definitions')
+        server = importlib.import_module('server')
+
+        required_tool_names = [
+            'compiler_create_session',
+            'compiler_root_skill_prepare',
+            'compiler_root_skill_save',
+            'compiler_clarification_prepare',
+            'compiler_clarification_save',
+            'compiler_skill_graph_prepare',
+            'compiler_skill_graph_save',
+            'compiler_stage4_node_prepare',
+            'compiler_stage4_node_save',
+            'compiler_intake_prepare',
+            'compiler_intake_save',
+            'compiler_plan_prepare',
+            'compiler_plan_save',
+            'compiler_get_session_status',
+        ]
+        alias_tool_names = [
+            'compiler_intake_prepare',
+            'compiler_intake_save',
+            'compiler_plan_prepare',
+            'compiler_plan_save',
+        ]
+        visible_tool_count = len(tool_definitions.ALL_TOOLS)
+        compiler_frontend_count = len(tool_definitions.COMPILER_FRONTEND_TOOLS)
+        evidence_backend_count = len(tool_definitions.EVIDENCE_JUDGE_TOOLS)
+        dispatch_count = len(server.TOOL_DISPATCH)
+        tool_inventory_ok = (
+            'TASK05_TOOL_REGISTRATION=passed' in task05_text
+            and visible_tool_count == 53
+            and dispatch_count == 53
+            and all(name in tool_definitions.ALL_TOOLS for name in required_tool_names)
+            and all(name in tool_definitions.ALL_TOOLS for name in alias_tool_names)
+        )
+        tool_inventory_note = (
+            f'visible={visible_tool_count}, dispatch={dispatch_count}, '
+            f'compiler_frontend={compiler_frontend_count}, evidence_backend={evidence_backend_count}'
+        )
+    except Exception as exc:
+        tool_inventory_note = f'导入失败: {exc}'
+    record_case('P11-04', bool(task05_report_path) and tool_inventory_ok, tool_inventory_note)
+
+    # P11-05: Root Skill Contract。
+    task06_report_path = latest_report('task06_phase11_root_skill_contract_generation', '.md')
+    task06_text = load_text_report(task06_report_path)
+    root_skill_path = extract_line_value(task06_text, 'ROOT_SKILL_CONTRACT')
+    root_skill_payload = load_json_report(root_skill_path) or {}
+    baseline_capabilities = root_skill_payload.get('baseline_capabilities', [])
+    settings_controls = []
+    if isinstance(baseline_capabilities, list):
+        for capability in baseline_capabilities:
+            if capability.get('baseline_item') == 'Settings':
+                settings_controls = capability.get('required_controls', [])
+                break
+    p11_05_ok = (
+        bool(task06_report_path)
+        and 'TASK06_ROOT_SKILL_TESTS=passed' in task06_text
+        and isinstance(root_skill_payload.get('constraint_fields'), dict)
+        and bool(root_skill_payload.get('constraint_fields'))
+        and isinstance(root_skill_payload.get('variant_fields'), dict)
+        and bool(root_skill_payload.get('variant_fields'))
+        and isinstance(baseline_capabilities, list)
+        and bool(baseline_capabilities)
+        and len(settings_controls) == 6
+    )
+    record_case(
+        'P11-05',
+        p11_05_ok,
+        (
+            f'report={os.path.basename(task06_report_path) if task06_report_path else "缺失"}, '
+            f'constraints={len(root_skill_payload.get("constraint_fields", []))}, '
+            f'variants={len(root_skill_payload.get("variant_fields", []))}'
+        ),
+    )
+
+    # P11-06: Clarification Gate。
+    task07_report_path = latest_report('task07_phase11_clarification_gate', '.md')
+    task07_text = load_text_report(task07_report_path)
+    clarification_report_path = extract_line_value(task07_text, 'REPORT_PATH')
+    clarification_payload = load_json_report(clarification_report_path) or {}
+    p11_06_ok = (
+        bool(task07_report_path)
+        and 'MCP_CLAR_SAVE=success' in task07_text
+        and 'CRITICAL_BLOCKING=True' in task07_text
+        and isinstance(clarification_payload.get('provisional_items'), list)
+        and len(clarification_payload.get('provisional_items', [])) >= 1
+        and isinstance(clarification_payload.get('blocking_items'), list)
+        and isinstance(clarification_payload.get('items_by_decision_summary'), dict)
+    )
+    record_case(
+        'P11-06',
+        p11_06_ok,
+        (
+            f'report={os.path.basename(task07_report_path) if task07_report_path else "缺失"}, '
+            f'provisional={len(clarification_payload.get("provisional_items", []))}, '
+            f'blocking={len(clarification_payload.get("blocking_items", []))}'
+        ),
+    )
+
+    # P11-07: Skill Graph Planning。
+    task08_report_path = latest_report('task08_phase11_skill_graph_planning', '.md')
+    task08_text = load_text_report(task08_report_path)
+    skill_graph_path = extract_line_value(task08_text, 'GRAPH_PATH')
+    skill_graph_payload = load_json_report(skill_graph_path) or {}
+    nodes = skill_graph_payload.get('nodes', []) if isinstance(skill_graph_payload, dict) else []
+    edges = skill_graph_payload.get('edges', []) if isinstance(skill_graph_payload, dict) else []
+    p11_07_ok = (
+        bool(task08_report_path)
+        and 'MCP_GRAPH_SAVE=success' in task08_text
+        and 'REALIZATION_KEYS=[]' in task08_text
+        and len(nodes) >= 10
+        and len(edges) >= 1
+    )
+    record_case(
+        'P11-07',
+        p11_07_ok,
+        f'nodes={len(nodes)}, edges={len(edges)}',
+    )
+
+    # P11-08: Stage 4 三路治理口径。
+    task09b_report_path = latest_report('task09b_phase11_three_provider_validation', '.md')
+    task09b_text = load_text_report(task09b_report_path)
+    p11_08_ok = (
+        bool(task09b_report_path)
+        and 'MCP Agent' in task09b_text
+        and 'Heuristic Fallback' in task09b_text
+        and 'LLM Internal' in task09b_text
+        and ('暂停' in task09b_text or '暂停继续测试' in task09b_text)
+    )
+    record_case(
+        'P11-08',
+        p11_08_ok,
+        f'report={os.path.basename(task09b_report_path) if task09b_report_path else "缺失"}',
+    )
+
+    # P11-09: MCP Agent sidecar 持久化与双跑差异。
+    dual_run_json_path = latest_report('mcp_agent_dual_run_variation_test', '.json')
+    dual_run_payload = load_json_report(dual_run_json_path) or {}
+    run_a = dual_run_payload.get('runs', {}).get('run_a', {}) if isinstance(dual_run_payload, dict) else {}
+    run_b = dual_run_payload.get('runs', {}).get('run_b', {}) if isinstance(dual_run_payload, dict) else {}
+    difference_summary = dual_run_payload.get('difference_summary', {}) if isinstance(dual_run_payload, dict) else {}
+    run_a_sidecar = run_a.get('sidecar_root', '')
+    run_b_sidecar = run_b.get('sidecar_root', '')
+    discovery_diff = difference_summary.get('discovery_dimension_names', {})
+    p11_09_ok = (
+        bool(dual_run_json_path)
+        and os.path.isdir(run_a_sidecar)
+        and os.path.isdir(run_b_sidecar)
+        and discovery_diff.get('run_a')
+        and discovery_diff.get('run_b')
+        and discovery_diff.get('run_a') != discovery_diff.get('run_b')
+    )
+    record_case(
+        'P11-09',
+        p11_09_ok,
+        (
+            f'run_a_sidecar={os.path.basename(run_a_sidecar) if run_a_sidecar else "缺失"}, '
+            f'run_b_sidecar={os.path.basename(run_b_sidecar) if run_b_sidecar else "缺失"}'
+        ),
+    )
+
+    # P11-10: TASK 10 输出链路。
+    task10_report_path = latest_report('task10_phase11_review_lowering_handoff_validation', '.md')
+    task10_text = load_text_report(task10_report_path)
+    task10_output_root = os.path.join(project_reports_dir, '2026-04-16', 'task10_validation_outputs')
+    task10_outputs = {
+        'cross_review': load_json_report(os.path.join(task10_output_root, 'phase11_cross_review_report_v2.example.json')) or {},
+        'build_ir': load_json_report(os.path.join(task10_output_root, 'phase11_build_ir_v2.example.json')) or {},
+        'naming': load_json_report(os.path.join(task10_output_root, 'phase11_naming_resolution_log.example.json')) or {},
+        'handoff': load_json_report(os.path.join(task10_output_root, 'phase11_reviewed_handoff_v3.example.json')) or {},
+        'decision_log': load_json_report(os.path.join(task10_output_root, 'phase11_design_decision_log.example.json')) or {},
+    }
+    p11_10_ok = (
+        bool(task10_report_path)
+        and 'TASK10_OUTPUT_SCHEMA_VALIDATION_OK' in task10_text
+        and bool(task10_outputs['cross_review'])
+        and bool(task10_outputs['build_ir'].get('build_steps'))
+        and bool(task10_outputs['handoff'].get('run_id'))
+        and bool(task10_outputs['decision_log'].get('entries') or task10_outputs['decision_log'].get('design_decisions'))
+    )
+    record_case(
+        'P11-10',
+        p11_10_ok,
+        (
+            f'build_steps={len(task10_outputs["build_ir"].get("build_steps", []))}, '
+            f'handoff_run_id={task10_outputs["handoff"].get("run_id", "缺失")}'
+        ),
+    )
+
+    # P11-11: Monopoly v2 run 与主产物。
+    task11_e2e_report_path = latest_report('task11_phase11_e2e_validation', '.md')
+    task11_e2e_text = load_text_report(task11_e2e_report_path)
+    task11_run_id = extract_backtick_value(task11_e2e_text, 'run_id')
+    task11_run_dir = os.path.join(runs_root, task11_run_id) if task11_run_id else ''
+    task11_metadata = load_json_report(os.path.join(task11_run_dir, 'metadata.json')) or {}
+    task11_design_space = load_json_report(os.path.join(task11_run_dir, 'design_space_report.json')) or {}
+    task11_candidates = load_json_report(os.path.join(task11_run_dir, 'realization_candidates.json')) or {}
+    task11_converged = load_json_report(os.path.join(task11_run_dir, 'converged_realization_pack.json')) or {}
+    task11_cross_review = load_json_report(os.path.join(task11_run_dir, 'cross_review_report.json')) or {}
+    task11_build_ir = load_json_report(os.path.join(task11_run_dir, 'build_ir.json')) or {}
+    task11_handoff = load_json_report(os.path.join(task11_run_dir, 'reviewed_handoff_v3.json')) or {}
+    fragments_dir = os.path.join(task11_run_dir, 'skill_fragments')
+    fragment_count = len(os.listdir(fragments_dir)) if os.path.isdir(fragments_dir) else 0
+    p11_11_ok = (
+        bool(task11_e2e_report_path)
+        and bool(task11_run_id)
+        and task11_metadata.get('generator_provider') == 'mcp_agent'
+        and task11_metadata.get('promotable') is True
+        and artifact_entry_count(task11_design_space) > 0
+        and artifact_entry_count(task11_candidates) > 0
+        and artifact_entry_count(task11_converged) > 0
+        and fragment_count > 0
+        and bool(task11_cross_review)
+        and bool(task11_build_ir.get('build_steps'))
+        and bool(task11_handoff.get('run_id'))
+    )
+    record_case(
+        'P11-11',
+        p11_11_ok,
+        (
+            f'run_id={task11_run_id or "缺失"}, '
+            f'design_space={artifact_entry_count(task11_design_space)}, '
+            f'fragments={fragment_count}'
+        ),
+    )
+
+    # P11-12: Monopoly 最小可玩闭环。
+    task11_playability_report_path = latest_report('task11_phase11_playability_validation', '.md')
+    task11_playability_text = load_text_report(task11_playability_report_path)
+    playability_keywords = [
+        '28 格棋盘',
+        '2D6',
+        '经过起点 +200',
+        '地产购买/放弃',
+        '租金支付',
+        '税务扣款',
+        '入狱',
+        '破产',
+        '胜利',
+        'HUD 资金/回合显示',
+    ]
+    p11_12_ok = bool(task11_playability_report_path) and all(
+        keyword in task11_playability_text for keyword in playability_keywords
+    )
+    record_case(
+        'P11-12',
+        p11_12_ok,
+        f'report={os.path.basename(task11_playability_report_path) if task11_playability_report_path else "缺失"}',
+    )
+
+    # P11-13: Universal Baseline 覆盖。
+    task11_baseline_report_path = latest_report('task11_phase11_baseline_coverage_validation', '.md')
+    task11_baseline_text = load_text_report(task11_baseline_report_path)
+    baseline_keywords = [
+        'Start Screen',
+        'Main Menu',
+        'Settings',
+        'Pause',
+        'Results',
+        'HUD',
+        'Master Volume',
+        'SFX Volume',
+        'Window Mode',
+        'Resolution',
+        'Apply',
+        'Back',
+    ]
+    p11_13_ok = bool(task11_baseline_report_path) and all(
+        keyword in task11_baseline_text for keyword in baseline_keywords
+    )
+    record_case(
+        'P11-13',
+        p11_13_ok,
+        f'report={os.path.basename(task11_baseline_report_path) if task11_baseline_report_path else "缺失"}',
+    )
+
+    # P11-14: Compare / Promote 治理。
+    task12_report_path = latest_report('task12_phase11_run_governance_validation', '.md')
+    task12_text = load_text_report(task12_report_path)
+    run_comparison_path = os.path.join(project_reports_dir, '2026-04-16', 'task12_validation_outputs', 'run_comparison.json')
+    run_comparison_payload = load_json_report(run_comparison_path) or {}
+    active_batch_payload = load_json_report(os.path.join(batches_dir, 'active_batch.json')) or {}
+    current_promoted_payload = load_json_report(os.path.join(batches_dir, 'current_promoted_batch.json')) or {}
+    p11_14_ok = (
+        bool(task12_report_path)
+        and 'fast_mode run promote 已明确拒绝' in task12_text
+        and bool(run_comparison_payload.get('comparison_version'))
+        and bool(run_comparison_payload.get('summary'))
+        and bool(active_batch_payload.get('active_batch_id'))
+        and bool(current_promoted_payload.get('batch_id'))
+    )
+    record_case(
+        'P11-14',
+        p11_14_ok,
+        (
+            f'comparison_id={run_comparison_payload.get("comparison_id", "缺失")}, '
+            f'active_batch={active_batch_payload.get("active_batch_id", "缺失")}'
+        ),
+    )
+
+    # P11-15: fast_mode 策略。
+    task13_report_path = latest_report('task13_phase11_fast_mode_validation', '.md')
+    task13_summary_path = os.path.join(project_reports_dir, '2026-04-16', 'task13_validation_outputs', 'task13_fast_mode_summary.json')
+    task13_summary = load_json_report(task13_summary_path) or {}
+    fast_mode_run = task13_summary.get('fast_mode_run', {}) if isinstance(task13_summary, dict) else {}
+    heuristic_fixture = task13_summary.get('heuristic_fixture', {}) if isinstance(task13_summary, dict) else {}
+    stage4_entry_count = fast_mode_run.get('stage4_entry_count', {}) if isinstance(fast_mode_run, dict) else {}
+    p11_15_ok = (
+        bool(task13_report_path)
+        and fast_mode_run.get('promotable') is False
+        and stage4_entry_count.get('design_space') == 0
+        and stage4_entry_count.get('candidates') == 0
+        and stage4_entry_count.get('converged') == 0
+        and heuristic_fixture.get('promotable') is False
+        and heuristic_fixture.get('generator_provider') == 'heuristic_fallback'
+    )
+    record_case(
+        'P11-15',
+        p11_15_ok,
+        (
+            f'fast_mode_run={fast_mode_run.get("run_id", "缺失")}, '
+            f'heuristic_run={heuristic_fixture.get("run_id", "缺失")}'
+        ),
+    )
+
+    # P11-16: Baseline Template 全套。
+    task14_report_path = latest_report('task14_phase11_baseline_template_validation', '.md')
+    task14_summary_path = os.path.join(project_reports_dir, '2026-04-16', 'task14_validation_outputs', 'task14_baseline_template_summary.json')
+    task14_summary = load_json_report(task14_summary_path) or {}
+    template_inventory = task14_summary.get('template_inventory', {}) if isinstance(task14_summary, dict) else {}
+    p11_16_ok = (
+        bool(task14_report_path)
+        and len(template_inventory) == 6
+        and all(len(item.get('files', [])) == 6 for item in template_inventory.values())
+        and task14_summary.get('skill_graph_validation', {}).get('run_id')
+    )
+    record_case(
+        'P11-16',
+        p11_16_ok,
+        (
+            f'templates={len(template_inventory)}, '
+            f'run_id={task14_summary.get("skill_graph_validation", {}).get("run_id", "缺失")}'
+        ),
+    )
+
+    # P11-17: UE 运行时与 standalone smoke。
+    task14a_standalone_report_path = latest_report('task14a_standalone_runtime_smoke_validation', '.md')
+    task14a_playability_report_path = latest_report('task14a_ue_runtime_playability_validation', '.md')
+    task14a_baseline_report_path = latest_report('task14a_baseline_domain_runtime_validation', '.md')
+    task14a_standalone_text = load_text_report(task14a_standalone_report_path)
+    task14a_playability_text = load_text_report(task14a_playability_report_path)
+    task14a_baseline_text = load_text_report(task14a_baseline_report_path)
+    p11_17_ok = (
+        bool(task14a_standalone_report_path)
+        and 'playability_passed=True' in task14a_standalone_text
+        and 'baseline_passed=True' in task14a_standalone_text
+        and '当前结论：`pass`' in task14a_playability_text
+        and '当前结论：`pass`' in task14a_baseline_text
+    )
+    record_case(
+        'P11-17',
+        p11_17_ok,
+        f'standalone_report={os.path.basename(task14a_standalone_report_path) if task14a_standalone_report_path else "缺失"}',
+    )
+
+    # P11-18: 最终验收与文档收尾。
+    task15_report_path = latest_report('task15_phase11_final_acceptance', '.md')
+    coverage_report_path = latest_report('phase11_feature_coverage_report', '.md')
+    task15_text = load_text_report(task15_report_path)
+    coverage_text = load_text_report(coverage_report_path)
+    phase11_closeout_path = os.path.join(PROJECT_ROOT, 'Docs', 'Current', '18_Phase11_Closeout.md')
+    p11_18_ok = (
+        bool(task15_report_path)
+        and bool(coverage_report_path)
+        and os.path.exists(phase11_closeout_path)
+        and 'pass' in task15_text
+        and 'pass' in coverage_text
+    )
+    record_case(
+        'P11-18',
+        p11_18_ok,
+        (
+            f'final_report={os.path.basename(task15_report_path) if task15_report_path else "缺失"}, '
+            f'coverage={os.path.basename(coverage_report_path) if coverage_report_path else "缺失"}'
+        ),
+    )
+
+    summary_path = os.path.join(runtime_dir, 'phase11_case_checks.json')
+    with open(summary_path, 'w', encoding='utf-8') as file:
+        json.dump(
+            {
+                'generated_at': datetime.datetime.now().isoformat(),
+                'cases': {
+                    case_id: {'ok': ok, 'note': note}
+                    for case_id, (ok, note) in check_map.items()
+                },
+            },
+            file,
+            ensure_ascii=False,
+            indent=2,
+        )
+
+    missing_case_ids = [case_id for case_id in STAGES[11]['case_ids'] if case_id not in check_map]
+    if missing_case_ids:
+        result.status = 'failed'
+        result.exit_code = 1
+        result.message = f'Stage 11 用例注册不完整，缺失: {", ".join(missing_case_ids)}'
+        return
+
+    checks = [
+        (case_id, check_map[case_id][0], check_map[case_id][1])
+        for case_id in STAGES[11]['case_ids']
+    ]
+    passed = sum(1 for _, ok, _ in checks if ok)
+    total = len(checks)
+    failed_cases = [case_id for case_id, ok, _ in checks if not ok]
+
+    for case_id, ok, note in checks:
+        print(f'  [{case_id}] {"PASS" if ok else "FAIL"} - {note}')
+
+    if passed == total:
+        result.status = 'passed'
+        result.exit_code = 0
+        result.message = f'Phase 11 归档前对账全部通过 ({passed}/{total})'
+    else:
+        result.status = 'failed'
+        result.exit_code = 1
+        result.message = (
+            f'Phase 11 归档前对账未全部通过 ({passed}/{total})，'
+            f'失败项: {", ".join(failed_cases)}'
+        )
+
+
 # Stage ID -> 执行函数映射
 STAGE_RUNNERS = {
     1: run_stage_1,
@@ -2135,6 +2710,7 @@ STAGE_RUNNERS = {
     8: run_stage_8,
     9: run_stage_9,
     10: run_stage_10,
+    11: run_stage_11,
 }
 
 
@@ -2189,7 +2765,7 @@ def main():
             示例:
               python run_all_tests.py                     # 全自动
               python run_all_tests.py --interactive        # 交互选择
-              python run_all_tests.py --stage=1,6,7,10     # 仅跑纯 Python / 证据
+              python run_all_tests.py --stage=1,6,7,10,11  # 仅跑纯 Python / 证据
               python run_all_tests.py --no-editor          # 跳过需要 Editor 的 Stage
         '''),
     )

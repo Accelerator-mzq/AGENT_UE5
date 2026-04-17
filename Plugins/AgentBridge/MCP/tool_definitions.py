@@ -295,46 +295,94 @@ LAYER3_TOOLS = {
 
 
 # ============================================================
-# Compiler Frontend: Stage 1-2 认知分解工具
+# Compiler Frontend: v1/v2 认知分解工具
 # ============================================================
 
 COMPILER_FRONTEND_TOOLS = {
     "compiler_create_session": {
-        "description": "创建 Compiler Pipeline 会话。Stage 1-2 由 MCP 前端驱动认知分解。",
+        "description": "创建 Compiler Pipeline 会话，支持 v1.0 与 v2.0。",
         "params": {
             "gdd_path": {"type": "string", "required": True, "description": "输入 GDD 文件路径"},
             "target_phase": {"type": "string", "required": True, "description": "目标阶段标识"},
             "output_dir": {"type": "string", "required": True, "description": "本次 pipeline 输出目录"},
+            "session_version": {"type": "string", "required": False, "description": "Pipeline 版本，默认 1.0，可选 2.0"},
+            "run_id": {"type": "string", "required": False, "description": "Phase 11 run_id，可留空自动生成"},
+            "fast_mode": {"type": "boolean", "required": False, "description": "是否启用 fast_mode，默认 false"},
         },
         "returns": "session_id 与 session_path",
     },
+    "compiler_root_skill_prepare": {
+        "description": "Phase 11 Stage 1 准备：生成 Root Skill Contract 模板供 Agent 填充。",
+        "params": {
+            "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
+        },
+        "returns": "Root Skill Contract 模板、schema 与输入上下文",
+    },
+    "compiler_root_skill_save": {
+        "description": "Phase 11 Stage 1 保存：校验并保存 Root Skill Contract。",
+        "params": {
+            "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
+            "filled_data": {"type": "object", "required": True, "description": "已填充完成的 Root Skill Contract"},
+        },
+        "returns": "保存结果与输出路径",
+    },
     "compiler_intake_prepare": {
-        "description": "Stage 1 准备：生成 GDD Projection 模板供 Agent 填充。",
+        "description": "旧名 alias：v1 生成 GDD Projection，v2 等价于 compiler_root_skill_prepare。",
         "params": {
             "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
         },
         "returns": "Stage 1 模板、schema 与输入上下文",
     },
     "compiler_intake_save": {
-        "description": "Stage 1 保存：校验并保存 Agent 填充后的 GDD Projection。",
+        "description": "旧名 alias：v1 保存 GDD Projection，v2 等价于 compiler_root_skill_save。",
         "params": {
             "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
-            "filled_data": {"type": "object", "required": True, "description": "已填充完成的 GDD Projection"},
+            "filled_data": {"type": "object", "required": True, "description": "已填充完成的 Stage 1 产物"},
+        },
+        "returns": "保存结果与输出路径",
+    },
+    "compiler_clarification_prepare": {
+        "description": "Phase 11 Stage 2 准备：生成 Clarification Gate 模板供 Agent 填充。",
+        "params": {
+            "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
+        },
+        "returns": "Clarification Gate 模板、schema 与输入上下文",
+    },
+    "compiler_clarification_save": {
+        "description": "Phase 11 Stage 2 保存：校验并保存 Clarification Gate Report。",
+        "params": {
+            "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
+            "filled_data": {"type": "object", "required": True, "description": "已填充完成的 Clarification Gate Report"},
+        },
+        "returns": "保存结果与输出路径",
+    },
+    "compiler_skill_graph_prepare": {
+        "description": "Phase 11 Stage 3 准备：生成 Skill Graph 模板供 Agent 填充。",
+        "params": {
+            "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
+        },
+        "returns": "Skill Graph 模板、schema 与输入上下文",
+    },
+    "compiler_skill_graph_save": {
+        "description": "Phase 11 Stage 3 保存：校验并保存 Skill Graph。",
+        "params": {
+            "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
+            "filled_data": {"type": "object", "required": True, "description": "已填充完成的 Skill Graph"},
         },
         "returns": "保存结果与输出路径",
     },
     "compiler_plan_prepare": {
-        "description": "Stage 2 准备：生成 Planner Output 模板供 Agent 填充。",
+        "description": "旧名 alias：v1 生成 Planner Output，v2 等价于 compiler_skill_graph_prepare。",
         "params": {
             "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
         },
         "returns": "Stage 2 模板、schema 与输入上下文",
     },
     "compiler_plan_save": {
-        "description": "Stage 2 保存：校验并保存 Agent 填充后的 Planner Output。",
+        "description": "旧名 alias：v1 保存 Planner Output，v2 等价于 compiler_skill_graph_save。",
         "params": {
             "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
-            "filled_data": {"type": "object", "required": True, "description": "已填充完成的 Planner Output"},
+            "filled_data": {"type": "object", "required": True, "description": "已填充完成的 Stage 2 或 Skill Graph 产物"},
         },
         "returns": "保存结果与输出路径",
     },
@@ -344,6 +392,27 @@ COMPILER_FRONTEND_TOOLS = {
             "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
         },
         "returns": "session 当前状态对象",
+    },
+    "compiler_stage4_node_prepare": {
+        "description": "Stage 4 逐节点交互：为指定节点的 Discovery/Candidates/Convergence 阶段准备 Agent 输入（SkillTemplate prompts + Context Bundle + 生成指引）。Agent 读取后做创造性生成。",
+        "params": {
+            "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
+            "node_id": {"type": "string", "required": True, "description": "skill_graph 中的 instance_id"},
+            "phase": {"type": "string", "required": True, "description": "阶段：discovery / candidates / convergence"},
+            "node_state": {"type": "object", "required": False, "description": "前序阶段的 node_state（candidates/convergence 时必须传入 discovery/candidates 结果）"},
+        },
+        "returns": "SkillTemplate prompts、Context Bundle、生成指引、输出结构示例",
+    },
+    "compiler_stage4_node_save": {
+        "description": "Stage 4 逐节点交互：保存 Agent 为指定节点某阶段生成的输出。校验通过后返回 node_state 供下一阶段使用；convergence 完成后自动生成 Fragment。",
+        "params": {
+            "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
+            "node_id": {"type": "string", "required": True, "description": "skill_graph 中的 instance_id"},
+            "phase": {"type": "string", "required": True, "description": "阶段：discovery / candidates / convergence"},
+            "output": {"type": "object", "required": True, "description": "Agent 生成的该阶段输出"},
+            "node_state": {"type": "object", "required": False, "description": "前序阶段的 node_state"},
+        },
+        "returns": "校验结果、更新后的 node_state、Fragment（convergence 完成时）",
     },
 }
 
@@ -410,6 +479,36 @@ EVIDENCE_JUDGE_TOOLS = {
         },
         "returns": "run_id 列表",
     },
+    "evidence_compare_runs": {
+        "description": "比较两个 Phase 11 run 的核心产物差异，覆盖 Constraint、Realization、Fragment、Build IR、Naming、Provisional。",
+        "params": {
+            "run_a_id": {"type": "string", "required": True, "description": "基准 run_id"},
+            "run_b_id": {"type": "string", "required": True, "description": "对比 run_id"},
+            "output_path": {"type": "string", "required": False, "description": "可选：将 run_comparison.json 落盘到指定路径"},
+        },
+        "returns": "run_comparison 结构化比较结果",
+    },
+    "evidence_create_batch": {
+        "description": "从指定 promotable run 创建 batch，复制 promoted_artifacts 并生成 manifest / promotion_report。",
+        "params": {
+            "source_run_id": {"type": "string", "required": True, "description": "来源 run_id"},
+            "promoted_by": {"type": "string", "required": False, "description": "promote 执行者标识"},
+            "notes": {"type": "string", "required": False, "description": "promote 备注"},
+            "make_active": {"type": "boolean", "required": False, "description": "是否将该 batch 设为 active，默认 true"},
+        },
+        "returns": "batch_id、manifest 路径、promotion_report 路径与 promoted_artifacts 目录",
+    },
+    "evidence_promote_run": {
+        "description": "promote run 到 batch，并更新治理层 baseline 指针。",
+        "params": {
+            "source_run_id": {"type": "string", "required": True, "description": "来源 run_id"},
+            "promoted_by": {"type": "string", "required": False, "description": "promote 执行者标识"},
+            "notes": {"type": "string", "required": False, "description": "promote 备注"},
+            "make_active": {"type": "boolean", "required": False, "description": "是否将该 batch 设为 active，默认 true"},
+            "update_base_project": {"type": "boolean", "required": False, "description": "是否更新治理层 baseline 指针，默认 true"},
+        },
+        "returns": "batch_id、manifest 路径、promotion_report 路径与 baseline 指针更新结果",
+    },
 }
 
 
@@ -427,7 +526,8 @@ ALL_TOOLS.update(COMPILER_FRONTEND_TOOLS)
 ALL_TOOLS.update(EVIDENCE_JUDGE_TOOLS)
 
 TOOL_COUNT = len(ALL_TOOLS)
-# 预期：7(query) + 6(write) + 5(service) + 9(asset) + 1(fallback) + 6(compiler_frontend) + 8(evidence_backend) = 42
+# 当前 flat alias layout：
+# 7(query) + 6(write) + 5(service) + 9(asset) + 1(fallback) + 12(compiler_frontend) + 11(evidence_backend) = 51
 
 
 def to_json_schema(tool_def: dict) -> dict:

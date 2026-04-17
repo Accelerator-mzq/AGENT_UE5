@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Settings Spec",
+  "description": "设置页能力规格",
+  "type": "object",
+  "required": ["capability", "required_controls", "persistence", "realization_class"],
+  "properties": {
+    "capability": {
+      "type": "string",
+      "const": "game_settings_panel",
+      "description": "能力标识"
+    },
+    "required_controls": {
+      "type": "array",
+      "description": "不可删减底线控件",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["control_id", "control_type"],
+        "properties": {
+          "control_id": {
+            "type": "string",
+            "enum": [
+              "master_volume_slider", "sfx_volume_slider",
+              "window_mode_selector", "resolution_selector",
+              "apply_button", "back_button"
+            ],
+            "description": "控件标识"
+          },
+          "control_type": {
+            "type": "string",
+            "enum": ["slider", "dropdown", "toggle", "button"],
+            "description": "控件类型"
+          },
+          "min": { "type": "number", "description": "最小值（滑块用）" },
+          "max": { "type": "number", "description": "最大值（滑块用）" },
+          "default_value": { "description": "默认值" },
+          "options": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "可选项列表（下拉/切换用）"
+          },
+          "action": { "type": "string", "description": "按钮动作" }
+        }
+      }
+    },
+    "deferred_controls": {
+      "type": "array",
+      "description": "可 defer 到后续 Phase 的控件",
+      "items": { "type": "string" }
+    },
+    "persistence": {
+      "type": "string",
+      "enum": ["session_only", "save_game", "ini"],
+      "description": "设置持久化策略"
+    },
+    "realization_class": {
+      "type": "string",
+      "enum": ["presence_only", "realization_eligible"],
+      "description": "实现级别"
+    },
+    "deliverables": {
+      "type": "object",
+      "description": "产出物声明",
+      "properties": {
+        "widget_class": { "type": "string", "description": "Widget 类名" },
+        "cpp_base_class": { "type": "string", "description": "C++ 基类名" }
+      }
+    }
+  }
+}

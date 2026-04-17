@@ -1,6 +1,6 @@
 # Skills / Specs 体系概述
 
-> 文档版本：v0.9.0 | 适用范围：AgentBridge 插件 Skills 与 Specs 体系
+> 文档版本：v1.0.0 | 适用范围：AgentBridge 插件 Skills 与 Specs 体系
 
 ---
 
@@ -219,3 +219,17 @@ Reviewed Handoff
 | **Phase 6（已完成）** | Genre Pack 完整化 + `_core` 机制 + boardgame playable pipeline | Boardgame Genre Contracts |
 | **Phase 7（已完成）** | 治理闭环 + Base Domains 最小真实化 + 第二个类型包 | Validation / Recovery / Snapshot / Promotion / JRPG |
 | **Phase 8（已完成）** | Skill Template Pack 三层结构 + Monopoly `monopoly_like` 模板包 | Skill-First Compiler / Reviewed Handoff v2 / Monopoly 垂直切片 |
+| **Phase 9（已完成）** | MCP Server 正式接入 | MCP 28 工具 + 文档治理收口 |
+| **Phase 10（已完成）** | MCP 认知桥接层 + Compiler Pipeline 编排 | Session + Pipeline Orchestrator + MonopolyGame 端到端 |
+| **Phase 11（已完成）** | Skill-First Design Compiler：Domain Skill 四重职责 + Design Space Discovery + Baseline Domain Skills + 三路生成策略 + Skill Graph + Run 治理 | Root Skill Contract + Clarification Gate + Cross Review v2 + Build IR v2 + Handoff v3 + 12 个 Schema + Baseline Template Pack |
+
+Phase 11 新增的框架级规范详见 `Plugins/AgentBridge/Docs/` 下：
+- `root_skill_contract_standard.md`
+- `universal_baseline_standard.md`
+- `baseline_realization_policy.md`
+- `clarification_gate_rules.md`
+- `constraint_variant_policy.md`
+- `design_space_discovery.md`
+- `skill_graph_and_domain_skill.md`
+- `run_isolation_compare_promote.md`
+- `agent_interaction_protocol.md`

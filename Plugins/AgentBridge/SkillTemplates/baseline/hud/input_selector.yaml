@@ -1,0 +1,17 @@
+# Input Selector — HUD 从上游产物中选取所需信息
+
+include_sections:
+  - game_identity           # 项目名称
+  - phase_scope             # 当前阶段范围
+  - baseline_capabilities.hud  # Root Skill Contract 中的 HUD 标注
+  - design_domains.turn_loop        # 回合数据源（回合数、当前玩家）
+  - design_domains.property_rules   # 经济数据源（玩家资金、地产持有）
+  - design_domains.jail_rules       # 入狱状态数据源
+
+exclude_sections:
+  - design_domains.board_layout    # 棋盘拓扑结构不直接影响 HUD
+  - baseline_capabilities.start_screen  # 入口壳层不在本 Skill 范围
+  - baseline_capabilities.main_menu     # 主菜单不在本 Skill 范围
+  - baseline_capabilities.settings      # 设置页不在本 Skill 范围
+  - baseline_capabilities.pause         # 暂停菜单不在本 Skill 范围
+  - implementation_hints     # 实现细节不在编译层

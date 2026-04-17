@@ -1,0 +1,150 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Phase 11 Clarification Gate Report",
+  "description": "Phase 11 Clarification Gate：记录 GDD 缺失、含糊、冲突或高风险未决项的处理决策。",
+  "type": "object",
+  "required": [
+    "gate_version",
+    "source_contract_id",
+    "items",
+    "provisional_items",
+    "blocking_items",
+    "fast_mode",
+    "clarification_gate_policy",
+    "retained_clarifications",
+    "items_by_decision_summary",
+    "downstream_propagation_contract",
+    "metadata"
+  ],
+  "properties": {
+    "gate_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "source_contract_id": {
+      "type": "string"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["item_id", "topic", "decision", "risk_level"],
+        "properties": {
+          "item_id": {"type": "string"},
+          "topic": {"type": "string"},
+          "decision": {
+            "type": "string",
+            "enum": [
+              "accept_as_explicit",
+              "accept_with_safe_default",
+              "send_to_design_space_discovery",
+              "clarification_required"
+            ]
+          },
+          "risk_level": {
+            "type": "string",
+            "enum": ["low", "medium", "high", "critical"]
+          },
+          "impact": {"type": "string"},
+          "default_value": {},
+          "provisional_default": {},
+          "provisional": {"type": "boolean"},
+          "provisional_warning": {"type": "boolean"},
+          "blocking": {"type": "boolean"},
+          "inference_basis": {"type": "string"},
+          "reason": {"type": "string"},
+          "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+        }
+      }
+    },
+    "provisional_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "item_id",
+          "topic",
+          "provisional_value",
+          "source_decision",
+          "risk_level",
+          "downstream_impacts"
+        ],
+        "properties": {
+          "item_id": {"type": "string"},
+          "topic": {"type": "string"},
+          "provisional_value": {},
+          "source_decision": {
+            "type": "string",
+            "enum": [
+              "accept_as_explicit",
+              "accept_with_safe_default",
+              "send_to_design_space_discovery",
+              "clarification_required"
+            ]
+          },
+          "risk_level": {
+            "type": "string",
+            "enum": ["low", "medium", "high", "critical"]
+          },
+          "downstream_impacts": {
+            "type": "array",
+            "items": {"type": "string"}
+          }
+        }
+      }
+    },
+    "blocking_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["item_id", "topic", "blocking_reason"],
+        "properties": {
+          "item_id": {"type": "string"},
+          "topic": {"type": "string"},
+          "blocking_reason": {"type": "string"}
+        }
+      }
+    },
+    "fast_mode": {"type": "boolean"},
+    "clarification_gate_policy": {"type": "string"},
+    "retained_clarifications": {"type": "array", "items": {"type": "string"}},
+    "items_by_decision_summary": {
+      "type": "object",
+      "required": [
+        "accept_as_explicit",
+        "accept_with_safe_default",
+        "send_to_design_space_discovery",
+        "clarification_required"
+      ],
+      "properties": {
+        "accept_as_explicit": {"type": "integer", "minimum": 0},
+        "accept_with_safe_default": {"type": "integer", "minimum": 0},
+        "send_to_design_space_discovery": {"type": "integer", "minimum": 0},
+        "clarification_required": {"type": "integer", "minimum": 0}
+      }
+    },
+    "downstream_propagation_contract": {
+      "type": "object",
+      "required": [
+        "skill_fragment_provisional_flag",
+        "build_ir_provisional_flag",
+        "handoff_provisional_summary"
+      ],
+      "properties": {
+        "skill_fragment_provisional_flag": {"type": "string"},
+        "build_ir_provisional_flag": {"type": "string"},
+        "handoff_provisional_summary": {"type": "string"}
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["generated_at", "generator"],
+      "properties": {
+        "generated_at": {"type": "string"},
+        "generator": {"type": "string"},
+        "source_run_id": {"type": ["string", "null"]},
+        "blocked_by_critical": {"type": "boolean"}
+      }
+    }
+  }
+}

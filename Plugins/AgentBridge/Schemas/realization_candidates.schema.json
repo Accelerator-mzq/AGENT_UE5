@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Phase 11 Realization Candidates",
+  "description": "Phase 11 Realization Candidate Generation 产物：记录每个可设计维度的候选方向和取舍。",
+  "type": "object",
+  "required": [
+    "candidates_version",
+    "skill_instance_id",
+    "candidates",
+    "metadata"
+  ],
+  "properties": {
+    "candidates_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "skill_instance_id": {"type": "string"},
+    "source_design_space_report": {"type": "string"},
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["dimension_id", "candidates"],
+        "properties": {
+          "dimension_id": {"type": "string"},
+          "candidates": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "candidate_id",
+                "name",
+                "description",
+                "trade_offs",
+                "satisfies_bounds",
+                "estimated_complexity"
+              ],
+              "properties": {
+                "candidate_id": {"type": "string"},
+                "name": {"type": "string"},
+                "description": {"type": "string"},
+                "trade_offs": {
+                  "type": "object",
+                  "required": ["pros", "cons"],
+                  "properties": {
+                    "pros": {"type": "array", "items": {"type": "string"}},
+                    "cons": {"type": "array", "items": {"type": "string"}}
+                  }
+                },
+                "satisfies_bounds": {"type": "boolean"},
+                "estimated_complexity": {"type": "string", "enum": ["low", "medium", "high"]},
+                "compatible_with": {"type": "array", "items": {"type": "string"}},
+                "conflicts_with": {"type": "array", "items": {"type": "string"}}
+              }
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["generated_at", "generator"],
+      "properties": {
+        "generated_at": {"type": "string"},
+        "generator": {"type": "string"}
+      }
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "manifest_version": "1.0",
+  "batch_id": "batch-20260416-004",
+  "source_run_id": "run-20260416-142757-47c4",
+  "created_at": "2026-04-16T14:56:45.349288+00:00",
+  "promoted_at": "2026-04-16T14:56:45.349288+00:00",
+  "active": false,
+  "promoted_by": "task12_validation",
+  "promoted_artifacts": [
+    "metadata.json",
+    "root_skill_contract.json",
+    "clarification_gate_report.json",
+    "skill_graph.json",
+    "design_space_report.json",
+    "realization_candidates.json",
+    "converged_realization_pack.json",
+    "skill_fragments",
+    "cross_review_report.json",
+    "build_ir.json",
+    "naming_resolution_log.json",
+    "reviewed_handoff_v3.json"
+  ],
+  "source_snapshot": {
+    "session_version": "2.0",
+    "status": "completed",
+    "fast_mode": false,
+    "generator_provider": "mcp_agent",
+    "pipeline_stages_completed": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "constraint_violations": 0,
+    "promotable": true,
+    "run_output_dir": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\runs\\run-20260416-142757-47c4"
+  },
+  "paths": {
+    "batch_dir": "ProjectState/batches/batch-20260416-004",
+    "promoted_artifacts_dir": "ProjectState/batches/batch-20260416-004/promoted_artifacts",
+    "promotion_report_path": "ProjectState/batches/batch-20260416-004/promotion_report.json"
+  },
+  "cleanup_policy": {
+    "formal_runs": {
+      "policy": "manual_cleanup_only",
+      "retain": "forever"
+    },
+    "fast_mode_runs": {
+      "policy": "keep_latest_n",
+      "default_keep_count": 5
+    },
+    "promoted_batches": {
+      "policy": "retain_forever"
+    },
+    "failed_runs": {
+      "policy": "keep_execution_log",
+      "artifact_cleanup": "optional"
+    }
+  },
+  "metadata": {
+    "base_project_pointer_updated": true,
+    "note": "Phase 11 当前仅更新治理层 baseline 指针，不直接回写 Source/Content。"
+  }
+}

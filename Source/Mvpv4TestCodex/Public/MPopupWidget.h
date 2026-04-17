@@ -42,6 +42,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Monopoly")
 	void ClosePopup();
 
+	// 供自动化 smoke 链在运行时主动确认弹窗。
+	UFUNCTION(BlueprintCallable, Category = "Monopoly")
+	void TriggerButton(int32 ButtonIndex);
+
 private:
 	UPROPERTY()
 	TObjectPtr<UTextBlock> PrimaryButtonText;

@@ -5,20 +5,28 @@
 #include "Components/DirectionalLightComponent.h"
 #include "Components/SkyAtmosphereComponent.h"
 #include "Components/SkyLightComponent.h"
+#include "Engine/Engine.h"
 #include "Engine/DirectionalLight.h"
 #include "Engine/SkyLight.h"
 #include "EngineUtils.h"
 #include "Engine/World.h"
+#include "HAL/PlatformMisc.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "MBoardManager.h"
 #include "MDice.h"
 #include "MGameHUDWidget.h"
+#include "MMenuScreenWidget.h"
 #include "MMonopolyGameState.h"
 #include "MMonopolyPlayerController.h"
 #include "MMonopolyPlayerState.h"
 #include "MPopupWidget.h"
 #include "MPlayerPawn.h"
+#include "MSettingsMenuWidget.h"
 #include "MTile.h"
+#include "Misc/CommandLine.h"
+#include "Misc/App.h"
+#include "Misc/Parse.h"
 
 namespace MonopolyGameMode
 {
@@ -64,10 +72,13 @@ void AMMonopolyGameMode::BeginPlay()
 	CreateHUDWidget();
 	UE_LOG(LogTemp, Log, TEXT("[Phase8] Runtime initialized. Players=%d Tiles=%d"), MonopolyGameState->MonopolyPlayers.Num(), MonopolyGameState->TileDataArray.Num());
 
-	MonopolyGameState->GamePhase = EMGamePhase::InProgress;
-	MonopolyGameState->SetCurrentPlayerIndex(0);
-	SetTurnState(EMTurnState::WaitForRoll);
-	StartTurn();
+	InitializeFrontendShell();
+
+	if (FParse::Param(FCommandLine::Get(), TEXT("Phase11RuntimeSmoke")))
+	{
+		bPhase11RuntimeSmokeEnabled = true;
+		StartPhase11RuntimeSmoke();
+	}
 }
 
 AMMonopolyGameState* AMMonopolyGameMode::GetMonopolyGameState() const
@@ -102,6 +113,37 @@ FLinearColor AMMonopolyGameMode::GetPlayerColor(const int32 PlayerIndex) const
 	};
 
 	return PlayerColors.IsValidIndex(PlayerIndex) ? PlayerColors[PlayerIndex] : FLinearColor::White;
+}
+
+void AMMonopolyGameMode::TogglePauseMenuFromInput()
+{
+	if (!bGameplaySessionStarted || ActivePopupWidget != nullptr)
+	{
+		return;
+	}
+
+	const AMMonopolyGameState* MonopolyGameState = GetMonopolyGameState();
+	if (MonopolyGameState == nullptr || MonopolyGameState->TurnState == EMTurnState::GameOver || MonopolyGameState->TurnState == EMTurnState::WaitingForPopup)
+	{
+		return;
+	}
+
+	if (ActiveOverlayState == EMonopolyOverlayState::PauseMenu)
+	{
+		ResumeGameplayFromPause();
+		return;
+	}
+
+	if (ActiveOverlayState == EMonopolyOverlayState::SettingsFromPause)
+	{
+		ShowPauseMenu();
+		return;
+	}
+
+	if (ActiveOverlayState == EMonopolyOverlayState::None)
+	{
+		ShowPauseMenu();
+	}
 }
 
 void AMMonopolyGameMode::EnsureRuntimeActors()
@@ -395,6 +437,644 @@ void AMMonopolyGameMode::CreateHUDWidget()
 	}
 }
 
+void AMMonopolyGameMode::InitializeFrontendShell()
+{
+	AMMonopolyGameState* MonopolyGameState = GetMonopolyGameState();
+	if (MonopolyGameState == nullptr)
+	{
+		return;
+	}
+
+	bGameplaySessionStarted = false;
+	ActiveOverlayState = EMonopolyOverlayState::None;
+	LoadRuntimeSettings();
+	UpdateHUDVisibility(ESlateVisibility::Collapsed);
+	MonopolyGameState->GamePhase = EMGamePhase::Setup;
+	MonopolyGameState->SetCurrentPlayerIndex(0);
+	SetTurnState(EMTurnState::None);
+	ShowStartScreen();
+}
+
+void AMMonopolyGameMode::StartGameplaySession()
+{
+	AMMonopolyGameState* MonopolyGameState = GetMonopolyGameState();
+	if (MonopolyGameState == nullptr)
+	{
+		return;
+	}
+
+	if (bGameplaySessionStarted)
+	{
+		const FName CurrentLevelName(*UGameplayStatics::GetCurrentLevelName(this, true));
+		UE_LOG(LogTemp, Log, TEXT("[Phase11] New Game requested after an existing session. Reloading level=%s"), *CurrentLevelName.ToString());
+		UGameplayStatics::OpenLevel(this, CurrentLevelName);
+		return;
+	}
+
+	CloseFrontendScreens();
+	CloseActivePopup();
+	UGameplayStatics::SetGamePaused(this, false);
+
+	bGameplaySessionStarted = true;
+	ActiveOverlayState = EMonopolyOverlayState::None;
+	MonopolyGameState->GamePhase = EMGamePhase::InProgress;
+	MonopolyGameState->SetTurnNumber(1);
+	MonopolyGameState->ConsecutiveDoublesCount = 0;
+	MonopolyGameState->SetCurrentPlayerIndex(0);
+	UpdateHUDVisibility(ESlateVisibility::Visible);
+	RestoreGameplayInputMode();
+
+	UE_LOG(LogTemp, Log, TEXT("[Phase11] Gameplay session started."));
+	StartTurn();
+}
+
+void AMMonopolyGameMode::ShowStartScreen()
+{
+	CloseFrontendScreens();
+	UpdateHUDVisibility(ESlateVisibility::Collapsed);
+
+	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	if (PC == nullptr)
+	{
+		return;
+	}
+
+	ActiveMenuScreenWidget = CreateWidget<UMMenuScreenWidget>(PC, UMMenuScreenWidget::StaticClass());
+	if (ActiveMenuScreenWidget == nullptr)
+	{
+		return;
+	}
+
+	ActiveMenuScreenWidget->AddToViewport(3000);
+	ActiveOverlayState = EMonopolyOverlayState::StartScreen;
+	ApplyUIInputMode(ActiveMenuScreenWidget);
+	ActiveMenuScreenWidget->ConfigureScreen(
+		GetProjectDisplayName(),
+		TEXT("欢迎来到大富翁原型。点击下方按钮进入主菜单。"),
+		{ TEXT("进入主菜单") },
+		[this](int32)
+		{
+			ShowMainMenu();
+		});
+
+	UE_LOG(LogTemp, Log, TEXT("[Phase11] Start Screen shown."));
+}
+
+void AMMonopolyGameMode::ShowMainMenu()
+{
+	CloseFrontendScreens();
+	UpdateHUDVisibility(ESlateVisibility::Collapsed);
+	UGameplayStatics::SetGamePaused(this, false);
+
+	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	if (PC == nullptr)
+	{
+		return;
+	}
+
+	ActiveMenuScreenWidget = CreateWidget<UMMenuScreenWidget>(PC, UMMenuScreenWidget::StaticClass());
+	if (ActiveMenuScreenWidget == nullptr)
+	{
+		return;
+	}
+
+	ActiveMenuScreenWidget->AddToViewport(3000);
+	ActiveOverlayState = EMonopolyOverlayState::MainMenu;
+	ApplyUIInputMode(ActiveMenuScreenWidget);
+
+	const FString Subtitle = bGameplaySessionStarted
+		? TEXT("当前棋局已存在。点击“新游戏”会重置并重新开始。")
+		: TEXT("选择下一步操作：开始对局、进入设置或退出。");
+
+	ActiveMenuScreenWidget->ConfigureScreen(
+		GetProjectDisplayName(),
+		Subtitle,
+		{ TEXT("新游戏"), TEXT("设置"), TEXT("退出") },
+		[this, PC](int32 ButtonIndex)
+		{
+			if (ButtonIndex == 0)
+			{
+				StartGameplaySession();
+				return;
+			}
+
+			if (ButtonIndex == 1)
+			{
+				ShowSettingsScreen(false);
+				return;
+			}
+
+			UKismetSystemLibrary::QuitGame(this, PC, EQuitPreference::Quit, false);
+		});
+
+	UE_LOG(LogTemp, Log, TEXT("[Phase11] Main Menu shown."));
+}
+
+void AMMonopolyGameMode::ShowSettingsScreen(const bool bOpenedFromPause)
+{
+	CloseFrontendScreens();
+	UpdateHUDVisibility(ESlateVisibility::Collapsed);
+
+	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	if (PC == nullptr)
+	{
+		return;
+	}
+
+	ActiveSettingsWidget = CreateWidget<UMSettingsMenuWidget>(PC, UMSettingsMenuWidget::StaticClass());
+	if (ActiveSettingsWidget == nullptr)
+	{
+		return;
+	}
+
+	ActiveSettingsWidget->AddToViewport(3100);
+	ActiveOverlayState = bOpenedFromPause ? EMonopolyOverlayState::SettingsFromPause : EMonopolyOverlayState::SettingsFromMainMenu;
+	ApplyUIInputMode(ActiveSettingsWidget);
+	ActiveSettingsWidget->ConfigureSettings(
+		MasterVolumeSetting,
+		SfxVolumeSetting,
+		BuildWindowModeOptions(),
+		GetWindowModeOptionLabel(),
+		BuildResolutionOptions(),
+		GetResolutionOptionLabel(),
+		[this](float InMasterVolume, float InSfxVolume, const FString& InWindowModeOption, const FString& InResolutionOption)
+		{
+			ApplyRuntimeSettingsFromMenu(InMasterVolume, InSfxVolume, InWindowModeOption, InResolutionOption);
+		},
+		[this, bOpenedFromPause]()
+		{
+			if (bOpenedFromPause)
+			{
+				ShowPauseMenu();
+				return;
+			}
+
+			ShowMainMenu();
+		});
+
+	UE_LOG(LogTemp, Log, TEXT("[Phase11] Settings screen shown. Context=%s"), bOpenedFromPause ? TEXT("PauseMenu") : TEXT("MainMenu"));
+}
+
+void AMMonopolyGameMode::ShowPauseMenu()
+{
+	if (!bGameplaySessionStarted || ActivePopupWidget != nullptr)
+	{
+		return;
+	}
+
+	CloseFrontendScreens();
+	UpdateHUDVisibility(ESlateVisibility::Collapsed);
+	UGameplayStatics::SetGamePaused(this, true);
+
+	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	if (PC == nullptr)
+	{
+		return;
+	}
+
+	ActiveMenuScreenWidget = CreateWidget<UMMenuScreenWidget>(PC, UMMenuScreenWidget::StaticClass());
+	if (ActiveMenuScreenWidget == nullptr)
+	{
+		return;
+	}
+
+	ActiveMenuScreenWidget->AddToViewport(3200);
+	ActiveOverlayState = EMonopolyOverlayState::PauseMenu;
+	ApplyUIInputMode(ActiveMenuScreenWidget);
+	ActiveMenuScreenWidget->ConfigureScreen(
+		TEXT("暂停中"),
+		TEXT("当前对局已暂停。你可以继续游戏、调整设置或返回主菜单。"),
+		{ TEXT("继续游戏"), TEXT("设置"), TEXT("返回主菜单") },
+		[this](int32 ButtonIndex)
+		{
+			if (ButtonIndex == 0)
+			{
+				ResumeGameplayFromPause();
+				return;
+			}
+
+			if (ButtonIndex == 1)
+			{
+				ShowSettingsScreen(true);
+				return;
+			}
+
+			ReturnToFrontEndMenu();
+		});
+
+	UE_LOG(LogTemp, Log, TEXT("[Phase11] Pause menu shown."));
+}
+
+void AMMonopolyGameMode::ResumeGameplayFromPause()
+{
+	CloseFrontendScreens();
+	UGameplayStatics::SetGamePaused(this, false);
+	ActiveOverlayState = EMonopolyOverlayState::None;
+	UpdateHUDVisibility(ESlateVisibility::Visible);
+	RestoreGameplayInputMode();
+	UE_LOG(LogTemp, Log, TEXT("[Phase11] Gameplay resumed from pause."));
+}
+
+void AMMonopolyGameMode::ShowResultsScreen(const FString& WinnerName)
+{
+	CloseFrontendScreens();
+	CloseActivePopup();
+	UpdateHUDVisibility(ESlateVisibility::Collapsed);
+	UGameplayStatics::SetGamePaused(this, true);
+
+	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	if (PC == nullptr)
+	{
+		return;
+	}
+
+	ActiveMenuScreenWidget = CreateWidget<UMMenuScreenWidget>(PC, UMMenuScreenWidget::StaticClass());
+	if (ActiveMenuScreenWidget == nullptr)
+	{
+		return;
+	}
+
+	ActiveMenuScreenWidget->AddToViewport(3300);
+	ActiveOverlayState = EMonopolyOverlayState::Results;
+	ApplyUIInputMode(ActiveMenuScreenWidget);
+	ActiveMenuScreenWidget->ConfigureScreen(
+		TEXT("对局结束"),
+		FString::Printf(TEXT("胜利者：%s\n现在可以返回主菜单准备下一局。"), *WinnerName),
+		{ TEXT("返回主菜单") },
+		[this](int32)
+		{
+			ReturnToFrontEndMenu();
+		});
+
+	UE_LOG(LogTemp, Log, TEXT("[Phase11] Results screen shown. Winner=%s"), *WinnerName);
+}
+
+void AMMonopolyGameMode::ReturnToFrontEndMenu()
+{
+	CloseFrontendScreens();
+	CloseActivePopup();
+	UGameplayStatics::SetGamePaused(this, false);
+	UpdateHUDVisibility(ESlateVisibility::Collapsed);
+	ShowMainMenu();
+	UE_LOG(LogTemp, Log, TEXT("[Phase11] Returned to frontend menu."));
+}
+
+void AMMonopolyGameMode::CloseMenuScreen()
+{
+	if (ActiveMenuScreenWidget != nullptr)
+	{
+		ActiveMenuScreenWidget->RemoveFromParent();
+		ActiveMenuScreenWidget = nullptr;
+	}
+}
+
+void AMMonopolyGameMode::CloseSettingsScreen()
+{
+	if (ActiveSettingsWidget != nullptr)
+	{
+		ActiveSettingsWidget->RemoveFromParent();
+		ActiveSettingsWidget = nullptr;
+	}
+}
+
+void AMMonopolyGameMode::CloseFrontendScreens()
+{
+	CloseMenuScreen();
+	CloseSettingsScreen();
+}
+
+void AMMonopolyGameMode::ApplyUIInputMode(UUserWidget* FocusWidget)
+{
+	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	if (PC == nullptr)
+	{
+		return;
+	}
+
+	FInputModeUIOnly InputMode;
+	if (FocusWidget != nullptr)
+	{
+		InputMode.SetWidgetToFocus(FocusWidget->TakeWidget());
+	}
+	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	PC->SetInputMode(InputMode);
+	PC->bShowMouseCursor = true;
+	PC->bEnableClickEvents = true;
+	PC->bEnableMouseOverEvents = true;
+
+	if (AMMonopolyPlayerController* MonopolyPlayerController = Cast<AMMonopolyPlayerController>(PC))
+	{
+		MonopolyPlayerController->SetTurnInputEnabled(false);
+	}
+}
+
+void AMMonopolyGameMode::RestoreGameplayInputMode()
+{
+	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	if (PC == nullptr)
+	{
+		return;
+	}
+
+	FInputModeGameAndUI InputMode;
+	if (ActiveHUDWidget != nullptr)
+	{
+		InputMode.SetWidgetToFocus(ActiveHUDWidget->TakeWidget());
+	}
+	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	InputMode.SetHideCursorDuringCapture(false);
+	PC->SetInputMode(InputMode);
+	PC->bShowMouseCursor = true;
+	PC->bEnableClickEvents = true;
+	PC->bEnableMouseOverEvents = true;
+
+	if (AMMonopolyPlayerController* MonopolyPlayerController = Cast<AMMonopolyPlayerController>(PC))
+	{
+		MonopolyPlayerController->SetTurnInputEnabled(true);
+	}
+}
+
+void AMMonopolyGameMode::LoadRuntimeSettings()
+{
+	if (UGameUserSettings* GameUserSettings = GEngine != nullptr ? GEngine->GetGameUserSettings() : nullptr)
+	{
+		ResolutionSetting = GameUserSettings->GetScreenResolution();
+		if (ResolutionSetting.X <= 0 || ResolutionSetting.Y <= 0)
+		{
+			ResolutionSetting = FIntPoint(1280, 720);
+		}
+
+		WindowModeSetting = GameUserSettings->GetFullscreenMode();
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("[Phase11] Runtime settings loaded. WindowMode=%s Resolution=%dx%d Master=%.2f Sfx=%.2f"),
+		*GetWindowModeOptionLabel(),
+		ResolutionSetting.X,
+		ResolutionSetting.Y,
+		MasterVolumeSetting,
+		SfxVolumeSetting);
+}
+
+void AMMonopolyGameMode::ApplyRuntimeSettingsFromMenu(
+	const float InMasterVolume,
+	const float InSfxVolume,
+	const FString& InWindowModeOption,
+	const FString& InResolutionOption)
+{
+	MasterVolumeSetting = FMath::Clamp(InMasterVolume, 0.0f, 1.0f);
+	SfxVolumeSetting = FMath::Clamp(InSfxVolume, 0.0f, 1.0f);
+
+	if (InWindowModeOption == TEXT("全屏"))
+	{
+		WindowModeSetting = EWindowMode::Fullscreen;
+	}
+	else if (InWindowModeOption == TEXT("无边框窗口"))
+	{
+		WindowModeSetting = EWindowMode::WindowedFullscreen;
+	}
+	else
+	{
+		WindowModeSetting = EWindowMode::Windowed;
+	}
+
+	FString WidthText;
+	FString HeightText;
+	if (InResolutionOption.Split(TEXT("x"), &WidthText, &HeightText))
+	{
+		const int32 ParsedWidth = FCString::Atoi(*WidthText);
+		const int32 ParsedHeight = FCString::Atoi(*HeightText);
+		if (ParsedWidth > 0 && ParsedHeight > 0)
+		{
+			ResolutionSetting = FIntPoint(ParsedWidth, ParsedHeight);
+		}
+	}
+
+	if (UGameUserSettings* GameUserSettings = GEngine != nullptr ? GEngine->GetGameUserSettings() : nullptr)
+	{
+		GameUserSettings->SetFullscreenMode(WindowModeSetting);
+		GameUserSettings->SetScreenResolution(ResolutionSetting);
+		GameUserSettings->ApplySettings(false);
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("[Phase11] Settings applied. Master=%.2f Sfx=%.2f WindowMode=%s Resolution=%dx%d"),
+		MasterVolumeSetting,
+		SfxVolumeSetting,
+		*GetWindowModeOptionLabel(),
+		ResolutionSetting.X,
+		ResolutionSetting.Y);
+}
+
+void AMMonopolyGameMode::StartPhase11RuntimeSmoke()
+{
+	Phase11RuntimeSmokeStep = 0;
+	Phase11RuntimeSmokePopupAcknowledgeCount = 0;
+	UE_LOG(LogTemp, Log, TEXT("[Phase11Smoke] Runtime smoke requested."));
+	SchedulePhase11RuntimeSmoke(0.35f);
+}
+
+void AMMonopolyGameMode::SchedulePhase11RuntimeSmoke(const float DelaySeconds)
+{
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().SetTimer(
+			Phase11RuntimeSmokeTimerHandle,
+			this,
+			&AMMonopolyGameMode::AdvancePhase11RuntimeSmoke,
+			DelaySeconds,
+			false);
+	}
+}
+
+void AMMonopolyGameMode::AdvancePhase11RuntimeSmoke()
+{
+	if (!bPhase11RuntimeSmokeEnabled)
+	{
+		return;
+	}
+
+	switch (Phase11RuntimeSmokeStep)
+	{
+	case 0:
+		UE_LOG(LogTemp, Log, TEXT("[Phase11Smoke] StartScreen observed."));
+		ShowMainMenu();
+		Phase11RuntimeSmokeStep = 1;
+		SchedulePhase11RuntimeSmoke(0.35f);
+		return;
+	case 1:
+		UE_LOG(LogTemp, Log, TEXT("[Phase11Smoke] MainMenu observed."));
+		ShowSettingsScreen(false);
+		Phase11RuntimeSmokeStep = 2;
+		SchedulePhase11RuntimeSmoke(0.35f);
+		return;
+	case 2:
+		UE_LOG(LogTemp, Log, TEXT("[Phase11Smoke] Settings observed from MainMenu."));
+		ApplyRuntimeSettingsFromMenu(0.85f, 0.65f, GetWindowModeOptionLabel(), GetResolutionOptionLabel());
+		ShowMainMenu();
+		Phase11RuntimeSmokeStep = 3;
+		SchedulePhase11RuntimeSmoke(0.35f);
+		return;
+	case 3:
+		UE_LOG(LogTemp, Log, TEXT("[Phase11Smoke] Starting gameplay session."));
+		StartGameplaySession();
+		Phase11RuntimeSmokeStep = 4;
+		SchedulePhase11RuntimeSmoke(0.45f);
+		return;
+	case 4:
+		RunPhase11RuntimeSmokeGameplayTurn();
+		Phase11RuntimeSmokeStep = 5;
+		SchedulePhase11RuntimeSmoke(0.35f);
+		return;
+	case 5:
+		if (TryAdvancePopupForPhase11RuntimeSmoke())
+		{
+			SchedulePhase11RuntimeSmoke(0.25f);
+			return;
+		}
+
+		if (const AMMonopolyGameState* MonopolyGameState = GetMonopolyGameState())
+		{
+			if (MonopolyGameState->CurrentPlayerIndex != 1)
+			{
+				SchedulePhase11RuntimeSmoke(0.25f);
+				return;
+			}
+		}
+
+		UE_LOG(LogTemp, Log, TEXT("[Phase11Smoke] Gameplay turn advanced to PlayerIndex=1."));
+		ShowPauseMenu();
+		UE_LOG(LogTemp, Log, TEXT("[Phase11Smoke] Pause observed."));
+		ShowSettingsScreen(true);
+		UE_LOG(LogTemp, Log, TEXT("[Phase11Smoke] Settings observed from Pause."));
+
+		// 暂停菜单会冻结世界计时器，这里改为同步推进后半段 smoke 链。
+		ApplyRuntimeSettingsFromMenu(0.75f, 0.55f, GetWindowModeOptionLabel(), GetResolutionOptionLabel());
+		ResumeGameplayFromPause();
+		UE_LOG(LogTemp, Log, TEXT("[Phase11Smoke] Gameplay resumed. Showing results."));
+		ShowResultsScreen(TEXT("Smoke Player"));
+		UE_LOG(LogTemp, Log, TEXT("[Phase11Smoke] Results observed."));
+		ReturnToFrontEndMenu();
+		Phase11RuntimeSmokeStep = 11;
+		SchedulePhase11RuntimeSmoke(0.35f);
+		return;
+	default:
+		FinishPhase11RuntimeSmoke();
+		return;
+	}
+}
+
+void AMMonopolyGameMode::RunPhase11RuntimeSmokeGameplayTurn()
+{
+	AMMonopolyGameState* MonopolyGameState = GetMonopolyGameState();
+	AMMonopolyPlayerState* CurrentPlayerState = GetMonopolyPlayerState(MonopolyGameState != nullptr ? MonopolyGameState->CurrentPlayerIndex : INDEX_NONE);
+	if (MonopolyGameState == nullptr || CurrentPlayerState == nullptr)
+	{
+		return;
+	}
+
+	const int32 CurrentPlayerIndex = MonopolyGameState->CurrentPlayerIndex;
+	const int32 OldTileIndex = CurrentPlayerState->CurrentTileIndex;
+	LastDiceResult = { 1, 2, 3, false };
+	MonopolyGameState->ConsecutiveDoublesCount = 0;
+	bPendingExtraTurn = false;
+
+	UE_LOG(LogTemp, Log, TEXT("[Phase11Smoke] Gameplay sequence start. PlayerIndex=%d OldTile=%d"), CurrentPlayerIndex, OldTileIndex);
+	UE_LOG(LogTemp, Log, TEXT("[Phase11Smoke] Roll simulated. DieA=%d DieB=%d Total=%d"), LastDiceResult.DieA, LastDiceResult.DieB, LastDiceResult.Total);
+
+	const int32 TileCount = MonopolyGameState->TileDataArray.Num();
+	const int32 RawTargetIndex = OldTileIndex + LastDiceResult.Total;
+	const int32 NewTileIndex = TileCount > 0 ? RawTargetIndex % TileCount : OldTileIndex;
+	if (RawTargetIndex >= TileCount)
+	{
+		CurrentPlayerState->AddMoney(PassStartReward);
+		MonopolyGameState->OnMoneyChanged.Broadcast(CurrentPlayerState, CurrentPlayerState->Money);
+		UE_LOG(LogTemp, Log, TEXT("[Phase11Smoke] PassStart reward granted. Money=%d"), CurrentPlayerState->Money);
+	}
+
+	SetTurnState(EMTurnState::MovingPawn);
+	MovePlayerPawnToTile(CurrentPlayerIndex, NewTileIndex);
+	UE_LOG(LogTemp, Log, TEXT("[Phase11Smoke] Pawn moved. PlayerIndex=%d NewTile=%d"), CurrentPlayerIndex, NewTileIndex);
+	ResolveCurrentTileEvent();
+}
+
+bool AMMonopolyGameMode::TryAdvancePopupForPhase11RuntimeSmoke()
+{
+	if (ActivePopupWidget == nullptr)
+	{
+		return false;
+	}
+
+	Phase11RuntimeSmokePopupAcknowledgeCount += 1;
+	UE_LOG(LogTemp, Log, TEXT("[Phase11Smoke] Popup acknowledged. Count=%d"), Phase11RuntimeSmokePopupAcknowledgeCount);
+	ActivePopupWidget->TriggerButton(0);
+	return true;
+}
+
+void AMMonopolyGameMode::FinishPhase11RuntimeSmoke()
+{
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(Phase11RuntimeSmokeTimerHandle);
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("[Phase11Smoke] Runtime smoke completed."));
+	FPlatformMisc::RequestExit(false);
+}
+
+FString AMMonopolyGameMode::GetProjectDisplayName() const
+{
+	const FString ProjectName = FApp::GetProjectName();
+	return ProjectName.IsEmpty() ? TEXT("Mvpv4TestCodex") : ProjectName;
+}
+
+TArray<FString> AMMonopolyGameMode::BuildResolutionOptions() const
+{
+	TArray<FString> Options =
+	{
+		TEXT("1280x720"),
+		TEXT("1600x900"),
+		TEXT("1920x1080")
+	};
+
+	const FString CurrentResolution = GetResolutionOptionLabel();
+	if (!Options.Contains(CurrentResolution))
+	{
+		Options.Add(CurrentResolution);
+	}
+
+	return Options;
+}
+
+TArray<FString> AMMonopolyGameMode::BuildWindowModeOptions() const
+{
+	return { TEXT("窗口化"), TEXT("无边框窗口"), TEXT("全屏") };
+}
+
+FString AMMonopolyGameMode::GetResolutionOptionLabel() const
+{
+	return FString::Printf(TEXT("%dx%d"), ResolutionSetting.X, ResolutionSetting.Y);
+}
+
+FString AMMonopolyGameMode::GetWindowModeOptionLabel() const
+{
+	switch (WindowModeSetting.GetValue())
+	{
+	case EWindowMode::Fullscreen:
+		return TEXT("全屏");
+	case EWindowMode::WindowedFullscreen:
+		return TEXT("无边框窗口");
+	default:
+		return TEXT("窗口化");
+	}
+}
+
+void AMMonopolyGameMode::UpdateHUDVisibility(const ESlateVisibility NewVisibility) const
+{
+	if (ActiveHUDWidget != nullptr)
+	{
+		ActiveHUDWidget->SetVisibility(NewVisibility);
+	}
+}
+
 void AMMonopolyGameMode::StartTurn()
 {
 	AMMonopolyGameState* MonopolyGameState = GetMonopolyGameState();
@@ -426,6 +1106,11 @@ void AMMonopolyGameMode::StartTurn()
 
 void AMMonopolyGameMode::OnPlayerRequestRoll()
 {
+	if (!bGameplaySessionStarted)
+	{
+		return;
+	}
+
 	AMMonopolyGameState* MonopolyGameState = GetMonopolyGameState();
 	AMMonopolyPlayerState* CurrentPlayerState = GetMonopolyPlayerState(MonopolyGameState != nullptr ? MonopolyGameState->CurrentPlayerIndex : INDEX_NONE);
 	if (MonopolyGameState == nullptr || CurrentPlayerState == nullptr || MonopolyGameState->TurnState != EMTurnState::WaitForRoll)
@@ -450,7 +1135,7 @@ void AMMonopolyGameMode::OnPlayerRequestRoll()
 
 void AMMonopolyGameMode::RequestEndTurnFromUI()
 {
-	if (GetMonopolyGameState() == nullptr || GetMonopolyGameState()->TurnState == EMTurnState::GameOver)
+	if (!bGameplaySessionStarted || GetMonopolyGameState() == nullptr || GetMonopolyGameState()->TurnState == EMTurnState::GameOver)
 	{
 		return;
 	}
@@ -460,6 +1145,11 @@ void AMMonopolyGameMode::RequestEndTurnFromUI()
 
 void AMMonopolyGameMode::RequestPayBailFromUI()
 {
+	if (!bGameplaySessionStarted)
+	{
+		return;
+	}
+
 	AMMonopolyGameState* MonopolyGameState = GetMonopolyGameState();
 	const int32 CurrentPlayerIndex = MonopolyGameState != nullptr ? MonopolyGameState->CurrentPlayerIndex : INDEX_NONE;
 	AMMonopolyPlayerState* CurrentPlayerState = GetMonopolyPlayerState(CurrentPlayerIndex);
@@ -1074,11 +1764,8 @@ void AMMonopolyGameMode::DeclareWinner(AMMonopolyPlayerState* Winner)
 	SetTurnState(EMTurnState::GameOver);
 	MonopolyGameState->OnGameOver.Broadcast(Winner);
 
-	const FString WinnerName = Winner != nullptr ? Winner->GetResolvedDisplayName() : TEXT("无");
-	ShowPopup(TEXT("游戏结束"), FString::Printf(TEXT("胜利者：%s"), *WinnerName), { TEXT("确定") },
-		[](int32)
-		{
-		});
+	const FString WinnerName = Winner != nullptr ? Winner->GetResolvedDisplayName() : TEXT("未知玩家");
+	ShowResultsScreen(WinnerName);
 }
 
 void AMMonopolyGameMode::ShowPopup(const FString& Title, const FString& Message, const TArray<FString>& ButtonLabels, TFunction<void(int32)> Callback)

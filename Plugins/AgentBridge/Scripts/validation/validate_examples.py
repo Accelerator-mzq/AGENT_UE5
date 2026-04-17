@@ -86,6 +86,36 @@ EXAMPLE_TO_SCHEMA: Dict[str, str] = {
         "reviewed_handoff.schema.json",
     "run_plan_greenfield.example.json":
         "run_plan.schema.json",
+
+    # === Phase 11 第一批管线骨架 example ===
+    "phase11_root_skill_contract.example.json":
+        "root_skill_contract.schema.json",
+    "phase11_clarification_gate_report.example.json":
+        "clarification_gate_report.schema.json",
+    "phase11_skill_graph.example.json":
+        "skill_graph.schema.json",
+    "phase11_design_space_report.example.json":
+        "design_space_report.schema.json",
+    "phase11_realization_candidates.example.json":
+        "realization_candidates.schema.json",
+    "phase11_converged_realization_pack.example.json":
+        "converged_realization_pack.schema.json",
+    "phase11_skill_fragment_v2.example.json":
+        "skill_fragment_v2.schema.json",
+    "phase11_cross_review_report_v2.example.json":
+        "cross_review_report_v2.schema.json",
+    "phase11_build_ir_v2.example.json":
+        "build_ir_v2.schema.json",
+    "phase11_reviewed_handoff_v3.example.json":
+        "reviewed_handoff_v3.schema.json",
+    "phase11_naming_resolution_log.example.json":
+        "naming_resolution_log.schema.json",
+    "phase11_design_decision_log.example.json":
+        "design_decision_log.schema.json",
+    "phase11_run_comparison.example.json":
+        "run_comparison.schema.json",
+    "phase11_batch_manifest.example.json":
+        "batch_manifest.schema.json",
 }
 
 # 这些 example 默认跳过自动 schema 校验，仅作为参考样例。

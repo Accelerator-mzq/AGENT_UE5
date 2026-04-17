@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Compiler Session",
-  "description": "Compiler Pipeline Orchestrator 的会话状态文件",
+  "description": "Compiler Pipeline Orchestrator 的会话状态文件，兼容 Phase 10 v1.0 与 Phase 11 v2.0",
   "type": "object",
   "required": [
     "session_id",
@@ -39,14 +39,14 @@
     "current_stage": {
       "type": "integer",
       "minimum": 1,
-      "maximum": 5,
-      "description": "当前所处阶段（1-5）"
+      "maximum": 7,
+      "description": "当前所处阶段。v1.0 为 1-5，v2.0 为 1-7"
     },
     "stage_outputs": {
       "type": "object",
       "description": "已完成阶段的产物路径映射",
       "patternProperties": {
-        "^stage_[1-5]$": {
+        "^stage_[1-7]$": {
           "type": "string"
         }
       },
@@ -56,7 +56,92 @@
       "type": "string",
       "enum": ["pending", "running", "completed", "failed"],
       "description": "会话状态"
+    },
+    "session_version": {
+      "type": "string",
+      "enum": ["1.0", "2.0"],
+      "default": "1.0",
+      "description": "Pipeline 版本。缺失时按 1.0 兼容处理"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^run-[0-9]{8}-[0-9]{6}-[0-9a-fA-F]{4,12}$",
+      "description": "Phase 11 Run Workspace 标识，格式为 run-{yyyyMMdd}-{HHmmss}-{short_hash}"
+    },
+    "fast_mode": {
+      "type": "boolean",
+      "default": false,
+      "description": "是否启用 Phase 11 快速模式。fast_mode run 后续不可 promote"
+    },
+    "generator_provider": {
+      "type": "string",
+      "enum": ["llm", "mcp_agent", "heuristic_fallback"],
+      "description": "Stage 4 使用的 Generator Provider 类型。heuristic_fallback 运行不可 promote"
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "anyOf": [
+          {
+            "not": {
+              "required": ["session_version"]
+            }
+          },
+          {
+            "required": ["session_version"],
+            "properties": {
+              "session_version": {
+                "const": "1.0"
+              }
+            }
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "current_stage": {
+            "maximum": 5
+          },
+          "stage_outputs": {
+            "type": "object",
+            "patternProperties": {
+              "^stage_[1-5]$": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["session_version"],
+        "properties": {
+          "session_version": {
+            "const": "2.0"
+          }
+        }
+      },
+      "then": {
+        "required": ["run_id"],
+        "properties": {
+          "current_stage": {
+            "maximum": 7
+          },
+          "stage_outputs": {
+            "type": "object",
+            "patternProperties": {
+              "^stage_[1-7]$": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    }
+  ],
   "additionalProperties": false
 }

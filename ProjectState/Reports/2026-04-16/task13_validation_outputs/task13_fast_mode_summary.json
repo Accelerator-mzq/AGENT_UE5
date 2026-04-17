@@ -1,0 +1,46 @@
+{
+  "task": "TASK 13",
+  "validated_at": "2026-04-17T05:14:37.378264+00:00",
+  "gate_validation": {
+    "cg-medium-safe": {
+      "decision": "accept_with_safe_default",
+      "provisional_warning": true
+    },
+    "cg-high-safe": {
+      "decision": "clarification_required",
+      "provisional_warning": false
+    },
+    "cg-critical-safe": {
+      "decision": "clarification_required",
+      "blocking": true
+    }
+  },
+  "fast_mode_run": {
+    "run_id": "run-20260417-051436-ee3d",
+    "promotable": false,
+    "clarification_gate_policy": "auto_default_low_medium_only",
+    "generator_provider": "llm",
+    "stage4_entry_count": {
+      "design_space": 0,
+      "candidates": 0,
+      "converged": 0
+    }
+  },
+  "heuristic_fixture": {
+    "run_id": "run-20260417-051436-b190",
+    "promotable": false,
+    "generator_provider": "heuristic_fallback"
+  },
+  "validate_examples": {
+    "returncode": 0,
+    "summary": {
+      "checked_examples": 26,
+      "passed": 26,
+      "failed": 0,
+      "reference_only_skipped": 0,
+      "unmapped_examples": 0,
+      "missing_schema_targets": 0
+    },
+    "stderr": ""
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "report_version": "1.0",
+  "skill_instance_id": "skill-board-topology",
+  "source_contract_id": "rsc.monopoly.phase11.20260415",
+  "source_graph_id": "sg.monopoly.phase11.20260415",
+  "discovery_dimensions": [
+    {
+      "dimension_id": "dim-board-layout-001",
+      "name": "board world layout",
+      "constraint_source": "variant",
+      "variant_bounds": {
+        "must_satisfy": [
+          "all 28 tiles are visible",
+          "corner tiles remain readable"
+        ],
+        "must_not": [
+          "tile labels overlap",
+          "HUD covers tile interaction prompts"
+        ]
+      },
+      "gdd_hints": [
+        "GDD describes a Monopoly-like ring board but does not prescribe world size"
+      ],
+      "coupled_dimensions": ["dim-board-spacing-002"],
+      "design_freedom": "high"
+    },
+    {
+      "dimension_id": "dim-board-spacing-002",
+      "name": "tile spacing",
+      "constraint_source": "variant",
+      "variant_bounds": {
+        "must_satisfy": [
+          "movement path remains easy to follow"
+        ],
+        "must_not": [
+          "player tokens overlap on adjacent tiles"
+        ]
+      },
+      "gdd_hints": [],
+      "coupled_dimensions": ["dim-board-layout-001"],
+      "design_freedom": "medium"
+    }
+  ],
+  "locked_dimensions": [
+    {
+      "dimension_id": "dim-locked-tile-count",
+      "name": "tile count",
+      "constraint_source": "constraint",
+      "locked_value": 28,
+      "reason": "Root Skill Contract preserves the GDD tile count"
+    }
+  ],
+  "metadata": {
+    "generated_at": "2026-04-15T14:33:00Z",
+    "generator": "AgentBridge.Compiler.DesignSpaceDiscovery.v1"
+  }
+}

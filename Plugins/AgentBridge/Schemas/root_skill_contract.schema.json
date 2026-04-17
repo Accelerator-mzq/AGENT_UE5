@@ -1,0 +1,138 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Phase 11 Root Skill Contract",
+  "description": "Phase 11 Root Skill Contract：能力骨架、约束容器与当前 Phase 启用边界。",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "contract_id",
+    "source_gdd",
+    "game_identity",
+    "phase_scope",
+    "constraint_fields",
+    "variant_fields",
+    "baseline_capabilities",
+    "gameplay_capabilities",
+    "metadata"
+  ],
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "contract_id": {
+      "type": "string",
+      "pattern": "^rsc\\.[a-z0-9_]+\\.[a-z0-9_]+\\.[0-9]{8}$"
+    },
+    "source_gdd": {
+      "type": "object",
+      "required": ["file_path", "scope_summary"],
+      "properties": {
+        "file_path": {"type": "string"},
+        "scope_summary": {"type": "string"}
+      }
+    },
+    "game_identity": {
+      "type": "object",
+      "required": [
+        "game_type",
+        "subgenre",
+        "presentation_model",
+        "player_count_range",
+        "win_condition"
+      ],
+      "properties": {
+        "game_type": {"type": "string"},
+        "subgenre": {"type": "string"},
+        "presentation_model": {"type": "string"},
+        "player_count_range": {
+          "type": "array",
+          "items": {"type": "integer", "minimum": 1},
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "win_condition": {"type": "string"}
+      }
+    },
+    "phase_scope": {
+      "type": "object",
+      "required": ["current_phase", "in_scope", "out_of_scope"],
+      "properties": {
+        "current_phase": {"type": "string"},
+        "in_scope": {"type": "array", "items": {"type": "string"}},
+        "out_of_scope": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "constraint_fields": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["type", "value", "gdd_ref"],
+        "properties": {
+          "type": {"type": "string", "const": "constraint"},
+          "value": {},
+          "gdd_ref": {"type": "string"}
+        }
+      }
+    },
+    "variant_fields": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["type", "bounds"],
+        "properties": {
+          "type": {"type": "string", "const": "variant"},
+          "bounds": {
+            "type": "object",
+            "properties": {
+              "must_satisfy": {"type": "array", "items": {"type": "string"}},
+              "must_not": {"type": "array", "items": {"type": "string"}}
+            }
+          }
+        }
+      }
+    },
+    "soft_intents": {
+      "type": "object",
+      "properties": {
+        "gameplay_feel": {"type": "array", "items": {"type": "string"}},
+        "design_tensions": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "baseline_capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["capability_id", "activation", "realization_class"],
+        "properties": {
+          "capability_id": {"type": "string"},
+          "activation": {"type": "string", "enum": ["required", "optional", "deferred"]},
+          "realization_class": {
+            "type": "string",
+            "enum": ["presence_only", "realization_eligible", "clarification_gated"]
+          }
+        }
+      }
+    },
+    "gameplay_capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["capability_id", "activation", "allows_design_space_discovery"],
+        "properties": {
+          "capability_id": {"type": "string"},
+          "activation": {"type": "string", "enum": ["required", "optional", "deferred"]},
+          "allows_design_space_discovery": {"type": "boolean"}
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["generated_at", "generator"],
+      "properties": {
+        "generated_at": {"type": "string"},
+        "generator": {"type": "string"}
+      }
+    }
+  }
+}

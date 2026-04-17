@@ -1,0 +1,549 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Phase 11 Reviewed Handoff v3",
+  "description": "Stage 7 输出：面向执行层的最终 handoff，补充 run_id、设计方向、provisional 与 design decision 摘要。",
+  "type": "object",
+  "required": [
+    "handoff_meta",
+    "run_id",
+    "project_context",
+    "selected_skill_instances",
+    "design_directions_summary",
+    "constraint_variant_summary",
+    "baseline_coverage_summary",
+    "provisional_items",
+    "design_decision_log_summary",
+    "cross_review_summary",
+    "lowering_summary",
+    "build_ir",
+    "approval",
+    "metadata"
+  ],
+  "properties": {
+    "handoff_meta": {
+      "type": "object",
+      "required": [
+        "handoff_version",
+        "handoff_id",
+        "schema_version",
+        "created_at",
+        "target_phase",
+        "build_goal",
+        "run_id",
+        "session_version",
+        "fast_mode"
+      ],
+      "properties": {
+        "handoff_version": {
+          "type": "string",
+          "const": "3.0"
+        },
+        "handoff_id": {
+          "type": "string",
+          "pattern": "^handoff\\.[a-z0-9_\\.]+$"
+        },
+        "schema_version": {
+          "type": "string",
+          "const": "3.0"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "target_phase": {
+          "type": "string"
+        },
+        "build_goal": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "session_version": {
+          "type": "string"
+        },
+        "fast_mode": {
+          "type": "boolean"
+        }
+      }
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "project_context": {
+      "type": "object",
+      "required": [
+        "project_name",
+        "game_type",
+        "subgenre",
+        "target_phase",
+        "source_contract_id"
+      ],
+      "properties": {
+        "project_name": {
+          "type": "string"
+        },
+        "game_type": {
+          "type": "string"
+        },
+        "subgenre": {
+          "type": "string"
+        },
+        "target_phase": {
+          "type": "string"
+        },
+        "source_contract_id": {
+          "type": "string"
+        }
+      }
+    },
+    "selected_skill_instances": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "skill_instance_id",
+          "template_id",
+          "domain_type",
+          "status",
+          "emitted_families",
+          "capability_gaps"
+        ],
+        "properties": {
+          "skill_instance_id": {
+            "type": "string"
+          },
+          "template_id": {
+            "type": "string"
+          },
+          "domain_type": {
+            "type": "string",
+            "enum": [
+              "gameplay",
+              "baseline"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "emitted_families": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "capability_gaps": {
+            "type": "array",
+            "items": {}
+          }
+        }
+      }
+    },
+    "design_directions_summary": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "skill_instance_id",
+          "directions"
+        ],
+        "properties": {
+          "skill_instance_id": {
+            "type": "string"
+          },
+          "template_id": {
+            "type": "string"
+          },
+          "directions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "dimension_id",
+                "chosen_candidate",
+                "chosen_candidate_name",
+                "rationale",
+                "provisional"
+              ],
+              "properties": {
+                "dimension_id": {
+                  "type": "string"
+                },
+                "chosen_candidate": {
+                  "type": "string"
+                },
+                "chosen_candidate_name": {
+                  "type": "string"
+                },
+                "rationale": {
+                  "type": "string"
+                },
+                "provisional": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "constraint_variant_summary": {
+      "type": "object",
+      "required": [
+        "constraint_count",
+        "variant_count",
+        "preserved_constraints",
+        "violated_constraints",
+        "explored_variant_directions"
+      ],
+      "properties": {
+        "constraint_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "variant_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "preserved_constraints": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "violated_constraints": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "explored_variant_directions": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "baseline_coverage_summary": {
+      "type": "object",
+      "required": [
+        "required",
+        "present",
+        "missing",
+        "status"
+      ],
+      "properties": {
+        "required": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "present": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "provisional_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "item_id",
+          "topic",
+          "provisional_value",
+          "source_decision",
+          "risk_level",
+          "downstream_impacts"
+        ],
+        "properties": {
+          "item_id": {
+            "type": "string"
+          },
+          "topic": {
+            "type": "string"
+          },
+          "provisional_value": {},
+          "source_decision": {
+            "type": "string"
+          },
+          "risk_level": {
+            "type": "string"
+          },
+          "downstream_impacts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "design_decision_log_summary": {
+      "type": "object",
+      "required": [
+        "total_decisions",
+        "provisional_decisions",
+        "high_impact_decisions",
+        "skills_with_decisions",
+        "by_skill_instance"
+      ],
+      "properties": {
+        "total_decisions": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "provisional_decisions": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "high_impact_decisions": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "skills_with_decisions": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "by_skill_instance": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "cross_review_summary": {
+      "type": "object",
+      "required": [
+        "review_id",
+        "status",
+        "issues_found",
+        "review_checks",
+        "cross_domain_conflict_summary",
+        "bp_thin_layer_summary"
+      ],
+      "properties": {
+        "review_id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "approved",
+            "approved_with_warnings",
+            "blocked"
+          ]
+        },
+        "issues_found": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "review_checks": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "cross_domain_conflict_summary": {
+          "type": "object"
+        },
+        "bp_thin_layer_summary": {
+          "type": "object"
+        }
+      }
+    },
+    "lowering_summary": {
+      "type": "object",
+      "required": [
+        "ir_id",
+        "build_step_count",
+        "validation_point_count",
+        "families_bound",
+        "families_partially_bound",
+        "unbound_requirements",
+        "naming_resolution_summary"
+      ],
+      "properties": {
+        "ir_id": {
+          "type": "string"
+        },
+        "build_step_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "validation_point_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "families_bound": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "families_partially_bound": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "unbound_requirements": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "naming_resolution_summary": {
+          "type": "object"
+        }
+      }
+    },
+    "build_ir": {
+      "type": "object",
+      "required": [
+        "ir_id",
+        "build_steps",
+        "inline"
+      ],
+      "properties": {
+        "ir_id": {
+          "type": "string"
+        },
+        "build_steps": {
+          "type": "array"
+        },
+        "inline": {
+          "type": "boolean"
+        }
+      }
+    },
+    "validation_ir": {
+      "type": "object",
+      "properties": {
+        "validations": {
+          "type": "array"
+        },
+        "inline": {
+          "type": "boolean"
+        }
+      }
+    },
+    "naming_resolution_log": {
+      "type": "object",
+      "properties": {
+        "entries": {
+          "type": "array"
+        },
+        "summary": {
+          "type": "object"
+        },
+        "inline": {
+          "type": "boolean"
+        }
+      }
+    },
+    "capability_gaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "source",
+          "description",
+          "severity"
+        ],
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "blocker",
+              "degraded",
+              "cosmetic"
+            ]
+          }
+        }
+      }
+    },
+    "approval": {
+      "type": "object",
+      "required": [
+        "approval_status",
+        "approver",
+        "blocked_reasons",
+        "notes"
+      ],
+      "properties": {
+        "approval_status": {
+          "type": "string",
+          "enum": [
+            "approved",
+            "approved_with_warnings",
+            "blocked"
+          ]
+        },
+        "approver": {
+          "type": "string"
+        },
+        "blocked_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "required": [
+        "generated_at",
+        "generator",
+        "source_contract_id",
+        "source_review_id",
+        "source_ir_id",
+        "session_id",
+        "run_id",
+        "gdd_path"
+      ],
+      "properties": {
+        "generated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "generator": {
+          "type": "string"
+        },
+        "source_contract_id": {
+          "type": "string"
+        },
+        "source_review_id": {
+          "type": "string"
+        },
+        "source_ir_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "gdd_path": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

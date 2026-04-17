@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Phase 11 Design Space Report",
+  "description": "Phase 11 Design Space Discovery 产物：记录可设计维度、锁定维度与约束来源。",
+  "type": "object",
+  "required": [
+    "report_version",
+    "skill_instance_id",
+    "discovery_dimensions",
+    "locked_dimensions",
+    "metadata"
+  ],
+  "properties": {
+    "report_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "skill_instance_id": {"type": "string"},
+    "source_contract_id": {"type": "string"},
+    "source_graph_id": {"type": "string"},
+    "discovery_dimensions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "dimension_id",
+          "name",
+          "constraint_source",
+          "variant_bounds",
+          "design_freedom"
+        ],
+        "properties": {
+          "dimension_id": {"type": "string"},
+          "name": {"type": "string"},
+          "constraint_source": {"type": "string", "enum": ["variant"]},
+          "variant_bounds": {
+            "type": "object",
+            "properties": {
+              "must_satisfy": {"type": "array", "items": {"type": "string"}},
+              "must_not": {"type": "array", "items": {"type": "string"}}
+            }
+          },
+          "gdd_hints": {"type": "array", "items": {"type": "string"}},
+          "coupled_dimensions": {"type": "array", "items": {"type": "string"}},
+          "design_freedom": {"type": "string", "enum": ["low", "medium", "high"]}
+        }
+      }
+    },
+    "locked_dimensions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["dimension_id", "name", "constraint_source", "locked_value", "reason"],
+        "properties": {
+          "dimension_id": {"type": "string"},
+          "name": {"type": "string"},
+          "constraint_source": {"type": "string", "const": "constraint"},
+          "locked_value": {},
+          "reason": {"type": "string"}
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["generated_at", "generator"],
+      "properties": {
+        "generated_at": {"type": "string"},
+        "generator": {"type": "string"}
+      }
+    }
+  }
+}

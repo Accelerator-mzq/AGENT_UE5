@@ -1,0 +1,90 @@
+{
+  "gate_version": "1.0",
+  "source_contract_id": "rsc.monopoly.phase11.20260415",
+  "items": [
+    {
+      "item_id": "cg-max-game-length",
+      "topic": "最大游戏时长/僵局处理",
+      "decision": "clarification_required",
+      "risk_level": "high",
+      "impact": "若无人破产，单局可能无限持续，直接影响胜负收敛与可玩闭环验收。",
+      "provisional_default": "200 回合上限；若到达上限，则按资金最高者获胜。",
+      "provisional": true,
+      "reason": "GDD 只给出目标时长，未定义硬性僵局收敛机制。",
+      "confidence": 0.55
+    },
+    {
+      "item_id": "cg-platform-persistence",
+      "topic": "设置持久化策略",
+      "decision": "accept_with_safe_default",
+      "risk_level": "medium",
+      "default_value": "session_only",
+      "provisional": false,
+      "provisional_warning": true,
+      "inference_basis": "Phase 1 先保证设置页可用；未锁定持久化时采用 session_only 更保守。",
+      "reason": "持久化策略未明确。",
+      "confidence": 0.82
+    },
+    {
+      "item_id": "cg-card-events-phase1",
+      "topic": "Chance / Community 在 Phase 1 的行为",
+      "decision": "accept_as_explicit",
+      "risk_level": "low",
+      "default_value": "踩上去无事发生，不触发卡牌事件。",
+      "inference_basis": "GDD 2.2、2.3 明确写明 Phase 1 留空，不触发事件。",
+      "reason": "这是 GDD 已明确锁定的显式规则，不需要追问。",
+      "confidence": 0.98
+    },
+    {
+      "item_id": "cg-player-token-visual-style",
+      "topic": "玩家棋子视觉样式",
+      "decision": "accept_with_safe_default",
+      "risk_level": "low",
+      "default_value": "简洁彩色几何棋子（圆柱体或锥体）",
+      "inference_basis": "GDD Part B 已建议 Phase 1 使用简单几何体作为棋子模型。",
+      "confidence": 0.9
+    },
+    {
+      "item_id": "cg-hud-layout-style",
+      "topic": "HUD 布局方式",
+      "decision": "send_to_design_space_discovery",
+      "risk_level": "low",
+      "reason": "GDD 只锁定 HUD 必须显示的信息，未锁定布局；属于 realization-level 设计空间"
+    }
+  ],
+  "provisional_items": [
+    {
+      "item_id": "cg-max-game-length",
+      "topic": "最大游戏时长/僵局处理",
+      "provisional_value": "200 回合上限；若到达上限，则按资金最高者获胜。",
+      "source_decision": "clarification_required",
+      "risk_level": "high",
+      "downstream_impacts": [
+        "design_decision_log[].provisional = true",
+        "build_steps[].execution_hints.contains_provisional = true",
+        "reviewed_handoff_v3.provisional_items[] includes item"
+      ]
+    }
+  ],
+  "blocking_items": [],
+  "fast_mode": true,
+  "clarification_gate_policy": "auto_default_low_medium_only",
+  "retained_clarifications": ["cg-max-game-length"],
+  "items_by_decision_summary": {
+    "accept_as_explicit": 1,
+    "accept_with_safe_default": 2,
+    "send_to_design_space_discovery": 1,
+    "clarification_required": 1
+  },
+  "downstream_propagation_contract": {
+    "skill_fragment_provisional_flag": "design_decision_log[].provisional = true",
+    "build_ir_provisional_flag": "build_steps[].execution_hints.contains_provisional = true",
+    "handoff_provisional_summary": "reviewed_handoff_v3.provisional_items[]"
+  },
+  "metadata": {
+    "generated_at": "2026-04-15T14:31:00Z",
+    "generator": "AgentBridge.Compiler.ClarificationGate.v1",
+    "source_run_id": "run-20260415-143100-a1b2",
+    "blocked_by_critical": false
+  }
+}

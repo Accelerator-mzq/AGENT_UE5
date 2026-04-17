@@ -1,12 +1,27 @@
 # Skill Compiler Plane 设计
 
-> 文档版本：v0.9.0（Phase 10 准备口径）
+> 文档版本：v1.0.0（Phase 11 已完成）
 
 ## 1. 定位
 
-Skill Compiler Plane 位于设计输入与执行编排之间，负责把 GDD 编译为 Reviewed Handoff。
+Skill Compiler Plane 位于���计输入与执行���排之间，负责把 GDD 编译为 Reviewed Handoff。
 
-Phase 8 引入 **Skill-First 6 阶段主链**，替代旧的 intake/routing/generation 链路。
+Phase 8 引入 Skill-First 主链，Phase 11 升级为 **7 阶段 Skill-First Design Compiler**，核心变化：
+- 从"翻译编译器"升级为"设���编译器"
+- 新增 Root Skill Contract、Clarification Gate、Skill Graph Planning（MCP 前端 Stage 1-3）
+- 新增 Domain Skill Runtime 三路生成策略（MCP Agent / LLM Internal / Heuristic Fallback）
+- 新增 Design Space Discovery → Realization Candidates → Convergence 创造性管线
+- 升级 Cross Review v2、Build IR v2（含 naming_resolution_log）、Reviewed Handoff v3
+- 新增 Run 治理（run_id、compare、promote、fast_mode）
+
+Phase 11 框架级规范详见：
+- `root_skill_contract_standard.md` — Root Skill Contract 标准
+- `clarification_gate_rules.md` — Clarification Gate 规则
+- `skill_graph_and_domain_skill.md` — Skill Graph 与 Domain Skill
+- `design_space_discovery.md` — Design Space Discovery 协议
+- `agent_interaction_protocol.md` — Stage 4 Agent 交互协议
+- `constraint_variant_policy.md` — Constraint vs Variant 策略
+- `run_isolation_compare_promote.md` — Run 治理
 
 ## 2. 当前模块结构
 

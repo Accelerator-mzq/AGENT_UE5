@@ -1,0 +1,660 @@
+{
+  "graph_version": "1.0",
+  "graph_id": "sg.monopoly.phase11.20260415",
+  "source_contract_id": "rsc.monopoly.phase11.20260415",
+  "source_gate_id": "cg.monopoly.phase11.20260415",
+  "nodes": [
+    {
+      "instance_id": "skill-board-topology",
+      "capability_id": "gameplay-board-topology",
+      "template_id": "monopoly.board_topology.phase1",
+      "domain_type": "gameplay",
+      "status": "pending",
+      "allows_design_space_discovery": true,
+      "convergence_priority": 1,
+      "template_source": "plugin_skill_template",
+      "planning_notes": [
+        "棋盘拓扑是 Monopoly 主链的起点，先锁定 28 格、角格索引与移动方向。"
+      ],
+      "related_clarification_items": [],
+      "gated_by_clarification_items": [],
+      "dependencies": [],
+      "coupling": [
+        "skill-baseline-hud"
+      ]
+    },
+    {
+      "instance_id": "skill-tile-system",
+      "capability_id": "gameplay-tile-system",
+      "template_id": "monopoly.tile_event_dispatch.phase1",
+      "domain_type": "gameplay",
+      "status": "pending",
+      "allows_design_space_discovery": true,
+      "convergence_priority": 2,
+      "template_source": "plugin_skill_template",
+      "planning_notes": [
+        "Tile System 负责格子类型、事件分发矩阵与 Phase 1 留空事件槽位。",
+        "Chance / Community 在 Phase 1 的行为 -> accept_as_explicit"
+      ],
+      "related_clarification_items": [
+        "cg-card-events-phase1"
+      ],
+      "gated_by_clarification_items": [],
+      "dependencies": [
+        "skill-board-topology"
+      ],
+      "coupling": [
+        "skill-jail",
+        "skill-baseline-hud"
+      ]
+    },
+    {
+      "instance_id": "skill-turn-loop",
+      "capability_id": "gameplay-turn-loop",
+      "template_id": "monopoly.turn_and_dice_flow.phase1",
+      "domain_type": "gameplay",
+      "status": "pending",
+      "allows_design_space_discovery": true,
+      "convergence_priority": 3,
+      "template_source": "plugin_skill_template",
+      "planning_notes": [
+        "Turn Loop 组织掷骰、移动、过起点奖励与回合切换，是 gameplay 主骨架。",
+        "最大游戏时长/僵局处理 -> clarification_required"
+      ],
+      "related_clarification_items": [
+        "cg-max-game-length"
+      ],
+      "gated_by_clarification_items": [
+        "cg-max-game-length"
+      ],
+      "dependencies": [
+        "skill-board-topology",
+        "skill-dice"
+      ],
+      "coupling": [
+        "skill-dice"
+      ]
+    },
+    {
+      "instance_id": "skill-dice",
+      "capability_id": "gameplay-dice",
+      "template_id": "monopoly.turn_and_dice_flow.phase1",
+      "domain_type": "gameplay",
+      "status": "pending",
+      "allows_design_space_discovery": true,
+      "convergence_priority": 2,
+      "template_source": "plugin_skill_template",
+      "planning_notes": [
+        "Dice 节点单独保留，方便后续把规则语义与表现反馈拆开处理。",
+        "骰子表现与反馈节奏 -> send_to_design_space_discovery"
+      ],
+      "related_clarification_items": [
+        "cg-dice-roll-feedback"
+      ],
+      "gated_by_clarification_items": [],
+      "dependencies": [],
+      "coupling": [
+        "skill-turn-loop"
+      ]
+    },
+    {
+      "instance_id": "skill-economy",
+      "capability_id": "gameplay-economy",
+      "template_id": "monopoly.property_economy.phase1",
+      "domain_type": "gameplay",
+      "status": "pending",
+      "allows_design_space_discovery": true,
+      "convergence_priority": 4,
+      "template_source": "plugin_skill_template",
+      "planning_notes": [
+        "Economy 负责购买、租金、支付与颜色组翻倍，不在此阶段选择具体表现方案。"
+      ],
+      "related_clarification_items": [],
+      "gated_by_clarification_items": [],
+      "dependencies": [
+        "skill-tile-system",
+        "skill-turn-loop"
+      ],
+      "coupling": [
+        "skill-jail"
+      ]
+    },
+    {
+      "instance_id": "skill-player-management",
+      "capability_id": "gameplay-player-management",
+      "template_id": "monopoly.jail_and_bankruptcy.phase1",
+      "domain_type": "gameplay",
+      "status": "pending",
+      "allows_design_space_discovery": true,
+      "convergence_priority": 5,
+      "template_source": "plugin_skill_template",
+      "planning_notes": [
+        "Player Management 负责玩家顺序、存活状态、淘汰与最终胜者归属。",
+        "最大游戏时长/僵局处理 -> clarification_required",
+        "玩家棋子视觉样式 -> accept_with_safe_default"
+      ],
+      "related_clarification_items": [
+        "cg-max-game-length",
+        "cg-player-token-visual-style"
+      ],
+      "gated_by_clarification_items": [
+        "cg-max-game-length"
+      ],
+      "dependencies": [
+        "skill-turn-loop",
+        "skill-economy"
+      ],
+      "coupling": []
+    },
+    {
+      "instance_id": "skill-jail",
+      "capability_id": "gameplay-jail",
+      "template_id": "monopoly.jail_and_bankruptcy.phase1",
+      "domain_type": "gameplay",
+      "status": "pending",
+      "allows_design_space_discovery": true,
+      "convergence_priority": 5,
+      "template_source": "plugin_skill_template",
+      "planning_notes": [
+        "Jail 作为独立节点保留，便于后续把入狱、出狱与破产关系拆分审查。"
+      ],
+      "related_clarification_items": [],
+      "gated_by_clarification_items": [],
+      "dependencies": [
+        "skill-turn-loop",
+        "skill-player-management"
+      ],
+      "coupling": [
+        "skill-tile-system",
+        "skill-economy"
+      ]
+    },
+    {
+      "instance_id": "skill-baseline-start-screen",
+      "capability_id": "baseline-start-screen",
+      "template_id": "baseline.start_screen.presence_only",
+      "domain_type": "baseline",
+      "status": "pending",
+      "allows_design_space_discovery": false,
+      "convergence_priority": 6,
+      "template_source": "future_baseline_template",
+      "planning_notes": [
+        "Start Screen 只规划入口能力，不在 Skill Graph 中决定具体实现形态。",
+        "baseline_item=Start Screen"
+      ],
+      "related_clarification_items": [],
+      "gated_by_clarification_items": [],
+      "dependencies": [],
+      "coupling": []
+    },
+    {
+      "instance_id": "skill-baseline-main-menu",
+      "capability_id": "baseline-main-menu",
+      "template_id": "baseline.main_menu.presence_only",
+      "domain_type": "baseline",
+      "status": "pending",
+      "allows_design_space_discovery": false,
+      "convergence_priority": 6,
+      "template_source": "future_baseline_template",
+      "planning_notes": [
+        "Main Menu 保持 presence_only，后续只验证入口流转与必要按钮能力。",
+        "baseline_item=Main Menu"
+      ],
+      "related_clarification_items": [],
+      "gated_by_clarification_items": [],
+      "dependencies": [
+        "skill-baseline-start-screen"
+      ],
+      "coupling": []
+    },
+    {
+      "instance_id": "skill-baseline-settings",
+      "capability_id": "baseline-settings",
+      "template_id": "baseline.settings.presence_only",
+      "domain_type": "baseline",
+      "status": "pending",
+      "allows_design_space_discovery": false,
+      "convergence_priority": 5,
+      "template_source": "future_baseline_template",
+      "planning_notes": [
+        "Settings 必须保留六项最低控件，但不在本阶段决定持久化实现细节。",
+        "baseline_item=Settings",
+        "设置持久化策略 -> accept_with_safe_default",
+        "平台基础能力边界 -> clarification_required"
+      ],
+      "related_clarification_items": [
+        "cg-platform-persistence",
+        "cg-platform-foundation-boundary"
+      ],
+      "gated_by_clarification_items": [
+        "cg-platform-foundation-boundary"
+      ],
+      "dependencies": [
+        "skill-baseline-main-menu"
+      ],
+      "coupling": [
+        "skill-baseline-audio-foundation",
+        "skill-baseline-platform-foundation"
+      ]
+    },
+    {
+      "instance_id": "skill-baseline-pause",
+      "capability_id": "baseline-pause",
+      "template_id": "baseline.pause.presence_only",
+      "domain_type": "baseline",
+      "status": "pending",
+      "allows_design_space_discovery": false,
+      "convergence_priority": 5,
+      "template_source": "future_baseline_template",
+      "planning_notes": [
+        "Pause 与 turn loop、input foundation 有耦合，但当前仍只做能力规划。",
+        "baseline_item=Pause"
+      ],
+      "related_clarification_items": [],
+      "gated_by_clarification_items": [],
+      "dependencies": [
+        "skill-baseline-settings",
+        "skill-baseline-input-foundation"
+      ],
+      "coupling": [
+        "skill-baseline-hud"
+      ]
+    },
+    {
+      "instance_id": "skill-baseline-results",
+      "capability_id": "baseline-results",
+      "template_id": "baseline.results.presence_only",
+      "domain_type": "baseline",
+      "status": "pending",
+      "allows_design_space_discovery": false,
+      "convergence_priority": 6,
+      "template_source": "future_baseline_template",
+      "planning_notes": [
+        "Results 依赖胜负与淘汰语义，保留与 player management 的强关联。",
+        "baseline_item=Results",
+        "最大游戏时长/僵局处理 -> clarification_required"
+      ],
+      "related_clarification_items": [
+        "cg-max-game-length"
+      ],
+      "gated_by_clarification_items": [
+        "cg-max-game-length"
+      ],
+      "dependencies": [
+        "skill-economy",
+        "skill-player-management"
+      ],
+      "coupling": [
+        "skill-baseline-hud"
+      ]
+    },
+    {
+      "instance_id": "skill-baseline-hud",
+      "capability_id": "baseline-hud",
+      "template_id": "baseline.hud.realization_eligible",
+      "domain_type": "baseline",
+      "status": "pending",
+      "allows_design_space_discovery": true,
+      "convergence_priority": 4,
+      "template_source": "future_baseline_template",
+      "planning_notes": [
+        "HUD 是 realization_eligible baseline，允许进入后续 Design Space Discovery。",
+        "baseline_item=HUD",
+        "HUD 布局方式 -> send_to_design_space_discovery",
+        "骰子表现与反馈节奏 -> send_to_design_space_discovery"
+      ],
+      "related_clarification_items": [
+        "cg-hud-layout-style",
+        "cg-dice-roll-feedback"
+      ],
+      "gated_by_clarification_items": [],
+      "dependencies": [
+        "skill-turn-loop",
+        "skill-economy",
+        "skill-player-management"
+      ],
+      "coupling": [
+        "skill-board-topology",
+        "skill-tile-system",
+        "skill-baseline-pause",
+        "skill-baseline-results",
+        "skill-baseline-input-foundation"
+      ]
+    },
+    {
+      "instance_id": "skill-baseline-input-foundation",
+      "capability_id": "baseline-input-foundation",
+      "template_id": "baseline.input_foundation.presence_only",
+      "domain_type": "baseline",
+      "status": "pending",
+      "allows_design_space_discovery": false,
+      "convergence_priority": 5,
+      "template_source": "future_baseline_template",
+      "planning_notes": [
+        "Input Foundation 只提供通用输入底座，不提前决定具体交互映射细节。",
+        "baseline_item=Input Foundation"
+      ],
+      "related_clarification_items": [],
+      "gated_by_clarification_items": [],
+      "dependencies": [
+        "skill-baseline-main-menu"
+      ],
+      "coupling": [
+        "skill-baseline-hud"
+      ]
+    },
+    {
+      "instance_id": "skill-baseline-audio-foundation",
+      "capability_id": "baseline-audio-foundation",
+      "template_id": "baseline.audio_foundation.presence_only",
+      "domain_type": "baseline",
+      "status": "pending",
+      "allows_design_space_discovery": false,
+      "convergence_priority": 5,
+      "template_source": "future_baseline_template",
+      "planning_notes": [
+        "Audio Foundation 先保证音量控制与基础 SFX/BGM 能力存在。",
+        "baseline_item=Audio Foundation"
+      ],
+      "related_clarification_items": [],
+      "gated_by_clarification_items": [],
+      "dependencies": [
+        "skill-baseline-settings"
+      ],
+      "coupling": [
+        "skill-baseline-settings"
+      ]
+    },
+    {
+      "instance_id": "skill-baseline-platform-foundation",
+      "capability_id": "baseline-platform-foundation",
+      "template_id": "baseline.platform_foundation.clarification_gated",
+      "domain_type": "baseline",
+      "status": "pending",
+      "allows_design_space_discovery": false,
+      "convergence_priority": 6,
+      "template_source": "future_baseline_template",
+      "planning_notes": [
+        "Platform Foundation 当前受 Clarification Gate 约束，只保留节点与边界，不发散实现。",
+        "baseline_item=Platform Foundation",
+        "平台基础能力边界 -> clarification_required",
+        "设置持久化策略 -> accept_with_safe_default"
+      ],
+      "related_clarification_items": [
+        "cg-platform-foundation-boundary",
+        "cg-platform-persistence"
+      ],
+      "gated_by_clarification_items": [
+        "cg-platform-foundation-boundary"
+      ],
+      "dependencies": [
+        "skill-baseline-settings"
+      ],
+      "coupling": [
+        "skill-baseline-settings"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "skill-board-topology",
+      "to": "skill-tile-system",
+      "type": "dependency",
+      "reason": "tile system 需要先知道棋盘拓扑、角格索引与格子顺序。"
+    },
+    {
+      "from": "skill-dice",
+      "to": "skill-turn-loop",
+      "type": "dependency",
+      "reason": "turn loop 需要骰子规则语义，才能建立回合状态推进。"
+    },
+    {
+      "from": "skill-board-topology",
+      "to": "skill-turn-loop",
+      "type": "dependency",
+      "reason": "移动规则依赖棋盘路线与起点、监狱、前往监狱等关键位置。"
+    },
+    {
+      "from": "skill-tile-system",
+      "to": "skill-economy",
+      "type": "dependency",
+      "reason": "经济系统要先知道地产、税务、机会等格子类型与事件入口。"
+    },
+    {
+      "from": "skill-turn-loop",
+      "to": "skill-economy",
+      "type": "dependency",
+      "reason": "经济结算嵌在回合流转中，需要先有回合与移动语义。"
+    },
+    {
+      "from": "skill-turn-loop",
+      "to": "skill-player-management",
+      "type": "dependency",
+      "reason": "玩家轮转、淘汰与胜负判定依赖回合推进语义。"
+    },
+    {
+      "from": "skill-economy",
+      "to": "skill-player-management",
+      "type": "dependency",
+      "reason": "破产与胜负收敛建立在资金与支付结果之上。"
+    },
+    {
+      "from": "skill-turn-loop",
+      "to": "skill-jail",
+      "type": "dependency",
+      "reason": "入狱、出狱与三连双规则依赖回合和掷骰流程。"
+    },
+    {
+      "from": "skill-player-management",
+      "to": "skill-jail",
+      "type": "dependency",
+      "reason": "监狱状态属于玩家状态机的一部分。"
+    },
+    {
+      "from": "skill-baseline-start-screen",
+      "to": "skill-baseline-main-menu",
+      "type": "dependency",
+      "reason": "主菜单默认从 Start Screen 入口进入。"
+    },
+    {
+      "from": "skill-baseline-main-menu",
+      "to": "skill-baseline-settings",
+      "type": "dependency",
+      "reason": "Settings 默认由 Main Menu 和 Pause 进入，先保留主菜单入口。"
+    },
+    {
+      "from": "skill-baseline-main-menu",
+      "to": "skill-baseline-input-foundation",
+      "type": "dependency",
+      "reason": "输入底座需覆盖菜单确认/取消等基础行为。"
+    },
+    {
+      "from": "skill-baseline-settings",
+      "to": "skill-baseline-audio-foundation",
+      "type": "dependency",
+      "reason": "音频基础能力需要 Settings 提供控制入口。"
+    },
+    {
+      "from": "skill-baseline-settings",
+      "to": "skill-baseline-platform-foundation",
+      "type": "dependency",
+      "reason": "平台基础能力与窗口模式、分辨率、退出处理绑定。"
+    },
+    {
+      "from": "skill-turn-loop",
+      "to": "skill-baseline-hud",
+      "type": "dependency",
+      "reason": "HUD 要展示当前回合、当前玩家与阶段状态，必须依赖回合流转。"
+    },
+    {
+      "from": "skill-economy",
+      "to": "skill-baseline-hud",
+      "type": "dependency",
+      "reason": "HUD 常驻展示玩家资金，依赖经济语义。"
+    },
+    {
+      "from": "skill-player-management",
+      "to": "skill-baseline-hud",
+      "type": "dependency",
+      "reason": "HUD 需要引用玩家状态与当前玩家标识。"
+    },
+    {
+      "from": "skill-baseline-input-foundation",
+      "to": "skill-baseline-pause",
+      "type": "dependency",
+      "reason": "Pause 需要依赖 pause_input / menu_cancel 等输入底座。"
+    },
+    {
+      "from": "skill-baseline-settings",
+      "to": "skill-baseline-pause",
+      "type": "dependency",
+      "reason": "Pause 菜单默认包含 Settings 入口。"
+    },
+    {
+      "from": "skill-player-management",
+      "to": "skill-baseline-results",
+      "type": "dependency",
+      "reason": "Results 需要胜者与被淘汰玩家状态。"
+    },
+    {
+      "from": "skill-economy",
+      "to": "skill-baseline-results",
+      "type": "dependency",
+      "reason": "若胜负由破产或资金状态决定，Results 需要经济结算结果。"
+    },
+    {
+      "from": "skill-board-topology",
+      "to": "skill-baseline-hud",
+      "type": "coupling",
+      "reason": "HUD 布局与棋盘可读性互相影响，需要协调遮挡边界。"
+    },
+    {
+      "from": "skill-tile-system",
+      "to": "skill-baseline-hud",
+      "type": "coupling",
+      "reason": "HUD 与格子信息、购买/租金/监狱弹窗有接口耦合。"
+    },
+    {
+      "from": "skill-turn-loop",
+      "to": "skill-dice",
+      "type": "coupling",
+      "reason": "骰子规则与回合推进强耦合，但仍保留为两个规划节点。"
+    },
+    {
+      "from": "skill-economy",
+      "to": "skill-jail",
+      "type": "coupling",
+      "reason": "保释金、罚金和破产判定会影响监狱流程。"
+    },
+    {
+      "from": "skill-tile-system",
+      "to": "skill-jail",
+      "type": "coupling",
+      "reason": "前往监狱格与监狱探访格属于 tile system 与 jail 的交叉区域。"
+    },
+    {
+      "from": "skill-baseline-pause",
+      "to": "skill-baseline-hud",
+      "type": "coupling",
+      "reason": "暂停时 HUD 的显示/隐藏与输入锁定需协调。"
+    },
+    {
+      "from": "skill-baseline-settings",
+      "to": "skill-baseline-audio-foundation",
+      "type": "coupling",
+      "reason": "音量控制与设置页控件存在双向耦合。"
+    },
+    {
+      "from": "skill-baseline-settings",
+      "to": "skill-baseline-platform-foundation",
+      "type": "coupling",
+      "reason": "窗口模式与分辨率选择会影响平台基础能力边界。"
+    },
+    {
+      "from": "skill-baseline-results",
+      "to": "skill-baseline-hud",
+      "type": "coupling",
+      "reason": "结果页与 HUD 在游戏结束时需要协调信息交接。"
+    },
+    {
+      "from": "skill-baseline-input-foundation",
+      "to": "skill-baseline-hud",
+      "type": "coupling",
+      "reason": "HUD 的操作反馈需要共享基础输入约定。"
+    },
+    {
+      "from": "skill-board-topology",
+      "to": "skill-tile-system",
+      "type": "convergence_order",
+      "reason": "先收敛棋盘拓扑，再收敛格子系统。"
+    },
+    {
+      "from": "skill-tile-system",
+      "to": "skill-turn-loop",
+      "type": "convergence_order",
+      "reason": "格子系统先于回合事件分发收敛。"
+    },
+    {
+      "from": "skill-turn-loop",
+      "to": "skill-economy",
+      "type": "convergence_order",
+      "reason": "先稳定回合流，再细化购买、租金与支付路径。"
+    },
+    {
+      "from": "skill-economy",
+      "to": "skill-player-management",
+      "type": "convergence_order",
+      "reason": "玩家淘汰与胜负判断建立在经济收敛之后。"
+    },
+    {
+      "from": "skill-player-management",
+      "to": "skill-jail",
+      "type": "convergence_order",
+      "reason": "监狱是玩家状态机的特化分支，建议稍后收敛。"
+    },
+    {
+      "from": "skill-jail",
+      "to": "skill-baseline-hud",
+      "type": "convergence_order",
+      "reason": "先稳定监狱与回合状态，再决定 HUD 的最终表达。"
+    },
+    {
+      "from": "skill-baseline-start-screen",
+      "to": "skill-baseline-main-menu",
+      "type": "convergence_order",
+      "reason": "前台入口先于主菜单流转收敛。"
+    },
+    {
+      "from": "skill-baseline-main-menu",
+      "to": "skill-baseline-settings",
+      "type": "convergence_order",
+      "reason": "主菜单先于设置入口收敛。"
+    },
+    {
+      "from": "skill-baseline-settings",
+      "to": "skill-baseline-pause",
+      "type": "convergence_order",
+      "reason": "Pause 依赖设置入口与输入基础，建议后收敛。"
+    },
+    {
+      "from": "skill-baseline-hud",
+      "to": "skill-baseline-results",
+      "type": "convergence_order",
+      "reason": "HUD 稳定后再收敛结束态结果表达更清晰。"
+    }
+  ],
+  "metadata": {
+    "total_gameplay_skills": 7,
+    "total_baseline_skills": 9,
+    "total_edges": 41,
+    "generated_at": "2026-04-15T14:32:00Z",
+    "generator": "AgentBridge.Compiler.SkillGraph.v1",
+    "source_run_id": "run-20260415-143200-a1b3",
+    "retained_clarifications": [
+      "cg-max-game-length",
+      "cg-platform-foundation-boundary"
+    ],
+    "provisional_item_count": 2,
+    "template_boundary_note": "Skill Graph 只引用 template_id；运行时 Skill Instance 将在 TASK 09 创建，不会回写 Plugins/AgentBridge/SkillTemplates/。"
+  }
+}

@@ -1,39 +1,47 @@
 # Mvpv4TestCodex
 
 > 目标引擎版本：UE5.5.4
-> 当前状态：Phase 10 已完成并归档
-> 当前正式口径：[17_Phase10_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/17_Phase10_Closeout.md)
+> 当前状态：Phase 11 已完成并归档
+> 当前正式口径：[18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/18_Phase11_Closeout.md)
 
 ## 项目简介
 
 `Mvpv4TestCodex` 是基于 `AgentBridge` 插件的 UE5 工程，用来验证从设计输入到 Compiler、Handoff、关卡落地、运行时验证、证据裁决与文档治理的完整闭环。
 
-Phase 10 已完成 MCP 认知桥接层与 Compiler Pipeline 编排，并用 MonopolyGame 真实输入跑通：
+Phase 11 在 Phase 10 的 MCP 认知桥接层与 Compiler Pipeline 编排之上，建立了 Skill-First Design Compiler Framework、Run 治理、Baseline Domain 模板体系与 UE5 运行时最小可玩性验证链：
 
-`GDD -> MCP 前端 Stage 1-2 -> Compiler Core Stage 3-5 -> Build IR -> UE5 关卡 -> 运行时证据 -> MCP 后端裁决`
+```text
+GDD -> Root Skill Contract -> Clarification Gate -> Skill Graph Planning
+    -> Domain Skill Runtime (MCP Agent / LLM Internal / Heuristic Fallback)
+    -> Cross Review v2 -> Build IR v2 -> Reviewed Handoff v3
+    -> UE5 关卡 -> 运行时证据 -> MCP 后端裁决
+```
 
 ## 当前入口
 
 - 当前阶段索引：[00_Index.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/00_Index.md)
-- Phase 10 收尾总览：[17_Phase10_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/17_Phase10_Closeout.md)
-- Phase 10 归档任务单：[task10_phase10.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task10_phase10.md)
-- 根目录阶段入口占位页：[task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md)
+- Phase 11 收尾总览：[18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/18_Phase11_Closeout.md)
+- Phase 11 归档任务：[task11_phase11.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task11_phase11.md)
+- Phase 11 最终验收：[task15_phase11_final_acceptance.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/task15_phase11_final_acceptance.md)
+- 根目录归档跳转页：[task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md)
 - 插件入口：[Plugins/AgentBridge/README.md](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/README.md)
 - 系统测试总表：[SystemTestCases.md](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Tests/SystemTestCases.md)
 
-## Phase 10 完成结果
+## Phase 11 完成结果
 
-- MCP 工具总数为 `42`：Bridge `28` + Compiler 前端 `6` + Evidence 后端 `8`
-- `ProjectState/phase10/` 已落地 `12` 个核心 JSON 产物
-- `L_MonopolyBoard_Pipeline` 已作为 Pipeline 独立关卡完成创建与验证
-- 标准化运行时证据目录已生成，最终裁决 `run_id=2026-04-11_fa5c8bec`，`judgment=pass`
-- `SystemTestCases.md` 与 `run_system_tests.py` 当前统一登记为 `248` 条系统测试
+- MCP 工具总数为 `53`：Bridge `28` + Compiler 前端 `10`（含 Stage 4 交互式工具）+ Evidence 后端 `11` + 兼容 alias `4`
+- Phase 11 v2 主链已落地：Root Skill Contract → Clarification Gate → Skill Graph Planning → Domain Skill Runtime → Cross Review v2 → Build IR v2 → Reviewed Handoff v3
+- `session_version 1.0 / 2.0` 共存，引入 `run_id`、`fast_mode`、`generator_provider` 与 `promotable` 治理字段
+- Stage 4 三路生成策略：`mcp_agent` 主路径、`llm` 内置路径（已接入，高负载验收暂缓）、`heuristic_fallback` 显式后备
+- Run compare/promote、fast_mode 不可 promote、Baseline Domain Skill Template 全套已交付
+- Schema 严格校验 `validate_examples.py --strict` 为 `26/26` 通过
+- UE 运行时最小可玩性已通过 Editor game 与 staged standalone 双路径验证
 
 关键证据：
 
-- [task09_final_acceptance_validation.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-11/task09_final_acceptance_validation.md)
-- [task08_runtime_evidence_judgment_validation.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-11/task08_runtime_evidence_judgment_validation.md)
-- [task07_build_ir_level_realization_validation.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-11/task07_build_ir_level_realization_validation.md)
+- [task15_phase11_final_acceptance.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/task15_phase11_final_acceptance.md)
+- [phase11_feature_coverage_report.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/phase11_feature_coverage_report.md)
+- [task_phase11_system_test_alignment.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/task_phase11_system_test_alignment.md)
 
 ## 历史阶段
 
@@ -43,18 +51,22 @@ Phase 10 已完成 MCP 认知桥接层与 Compiler Pipeline 编排，并用 Mono
 - Phase 8：[task8_phase8.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task8_phase8.md)
 - Phase 9：[task9_phase9.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task9_phase9.md)
 - Phase 10：[task10_phase10.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task10_phase10.md)
+- Phase 11：[task11_phase11.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task11_phase11.md)
 
 ## 常用命令
 
 ```powershell
-# Schema example 严格校验
+# Schema example 严格校验（26/26）
 python Plugins/AgentBridge/Scripts/validation/validate_examples.py --strict
 
-# 运行当前登记的关键 Phase 10 对齐 Stage
-python Plugins/AgentBridge/Tests/run_system_tests.py --stage=7,9,10
+# 系统测试：一键执行全部 Stage
+python Plugins/AgentBridge/Tests/run_system_tests.py
 
-# 单独验证 MCP 集成层
-python Plugins/AgentBridge/Tests/run_system_tests.py --stage=10
+# 系统测试：交互模式（选择 Stage）
+python Plugins/AgentBridge/Tests/run_system_tests.py --interactive
+
+# 系统测试：无编辑器模式
+python Plugins/AgentBridge/Tests/run_system_tests.py --no-editor
 
 # 启动 MCP Server
 python Plugins/AgentBridge/MCP/server.py
@@ -63,6 +75,6 @@ python Plugins/AgentBridge/MCP/server.py
 ## 当前约定
 
 - `Docs/Current/*` 是当前项目口径的最高优先级。
-- 根目录 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) 现在是 Phase 10 归档跳转页，不再承载完整任务定义。
-- Phase 10 的正式完成口径以 [17_Phase10_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/17_Phase10_Closeout.md) 和 [task10_phase10.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task10_phase10.md) 为准。
-- [SystemTestCases.md](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Tests/SystemTestCases.md) 与 [run_system_tests.py](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Tests/run_system_tests.py) 当前已对齐为 `248` 条用例。
+- 根目录 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) 现在是 Phase 11 归档跳转页，不再承载完整任务定义。
+- Phase 11 的正式完成口径以 [18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/18_Phase11_Closeout.md) 和 [task11_phase11.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task11_phase11.md) 为准。
+- MCP 当前可见工具注册数为 `53`，其中 `49` 个为正式主工具、`4` 个为兼容 alias。

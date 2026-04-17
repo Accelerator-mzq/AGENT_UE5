@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Start Screen Spec",
+  "description": "入口壳层能力规格",
+  "type": "object",
+  "required": ["capability", "required_elements", "implementation", "realization_class"],
+  "properties": {
+    "capability": {
+      "type": "string",
+      "const": "pre_menu_entry_shell",
+      "description": "能力标识"
+    },
+    "required_elements": {
+      "type": "array",
+      "description": "必须具备的能力元素",
+      "items": {
+        "type": "string",
+        "enum": ["project_identity_display", "user_interaction_trigger", "navigate_to_main_menu"]
+      },
+      "minItems": 3
+    },
+    "implementation": {
+      "type": "string",
+      "enum": ["independent_level", "main_menu_pre_state", "frontend_shell_page"],
+      "description": "选定的实现方式"
+    },
+    "interaction_method": {
+      "type": "string",
+      "enum": ["press_any_key", "click_to_start", "auto_countdown"],
+      "description": "用户交互触发方式"
+    },
+    "project_identity_type": {
+      "type": "string",
+      "enum": ["project_name_text", "logo_image", "splash_animation"],
+      "description": "项目标识展示类型"
+    },
+    "navigation_target": {
+      "type": "string",
+      "description": "导航目标",
+      "default": "main_menu"
+    },
+    "realization_class": {
+      "type": "string",
+      "enum": ["presence_only", "realization_eligible"],
+      "description": "实现级别"
+    },
+    "deliverables": {
+      "type": "object",
+      "description": "产出物声明",
+      "properties": {
+        "widget_class": { "type": "string", "description": "Widget 类名" },
+        "cpp_base_class": { "type": "string", "description": "C++ 基类名" },
+        "level_name": { "type": "string", "description": "Level 名称（independent_level 时）" }
+      }
+    }
+  }
+}

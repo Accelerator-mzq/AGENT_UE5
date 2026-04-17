@@ -1,0 +1,32 @@
+template_id: baseline.start_screen.presence_only
+display_name: Start Screen（入口壳层）
+template_kind: baseline_skill
+genre: universal
+template_version: "1.0.0"
+schema_version: "1.0.0"
+evaluator_version: "1.0.0"
+
+phase_scope:
+  - phase1_local_multiplayer
+
+description: |
+  入口壳层 Baseline 模板。
+  能力级定义：展示项目标识 + 用户交互触发 + 导航到主菜单。
+  与实现方式解耦：默认独立 Level + Widget，也可实现为主菜单前态或 Frontend Shell 页面。
+
+realization_class: presence_only
+
+input_contract_ref: root_skill_contract.baseline_capabilities.start_screen
+output_schema_ref: output_schema.json
+
+requires_static_vocab:
+  - project_identity
+  - interaction_trigger
+  - navigation_target
+
+can_emit_families:
+  - start_screen_spec
+
+depends_on_templates: []
+
+priority: medium

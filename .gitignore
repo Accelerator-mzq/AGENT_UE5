@@ -29,19 +29,25 @@ Plugins/AgentBridge/Gauntlet/bin/
 Plugins/AgentBridge/reports/
 Plugins/AgentBridge/AgentBridgeTests/Binaries/
 Plugins/AgentBridge/AgentBridgeTests/Intermediate/
+Plugins/AgentBridge/Config/llm_config.yaml
 
-# 本地报告与证据目录（如需保留可删除此行）
-reports/
-Docs/History/reports/
-image/
+# 本地报告与证据目录
+# 注意：这里仅忽略根级 reports，避免误伤 ProjectState/Reports 正式证据
+/reports/
+/Docs/History/reports/
+/image/
 
 # ProjectState / 测试运行产物
 ProjectState/Evidence/
 ProjectState/Handoffs/draft/
 ProjectState/Handoffs/approved/
 ProjectState/RuntimeConfigs/
+ProjectState/StagedBuilds/
 ProjectState/Snapshots/
 ProjectState/Temp/
+ProjectState/batches/
+ProjectState/runs/
+ProjectState/phase11_task09_refactor_session/
 ProjectState/Snapshots/*.20*.syntheti.yaml
 TestArtifacts/
 

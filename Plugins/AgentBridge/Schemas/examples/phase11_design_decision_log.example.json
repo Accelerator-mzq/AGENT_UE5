@@ -1,0 +1,50 @@
+{
+  "log_version": "1.0",
+  "source_kind": "skill_fragment",
+  "source_id": "skill-board-topology",
+  "entries": [
+    {
+      "decision_id": "ddl-skill-board-topology-01",
+      "topic": "棋盘视觉尺度",
+      "context": "skill-board-topology 在 Discovery 后对该维度进行了收敛选择。",
+      "chosen": "均衡棋盘",
+      "rationale": "在桌游仪式感与 HUD 留白之间取得最稳的折中，适合作为默认主路线。",
+      "alternatives": [
+        "scale_compact: 对单格阅读支持偏弱"
+      ],
+      "provisional": false,
+      "fast_mode_default": false,
+      "impact": "medium"
+    },
+    {
+      "decision_id": "ddl-skill-board-topology-02",
+      "topic": "角格地标强调",
+      "context": "skill-board-topology 在 Discovery 后对该维度进行了收敛选择。",
+      "chosen": "角格地标道具",
+      "rationale": "四个角格是局内记忆锚点，用轻量道具更能形成强识别。",
+      "alternatives": [
+        "corner_frame: 记忆点强度不足"
+      ],
+      "provisional": false,
+      "fast_mode_default": false,
+      "impact": "high"
+    },
+    {
+      "decision_id": "ddl-skill-board-topology-03",
+      "topic": "路径阅读性",
+      "context": "skill-board-topology 在 Discovery 后对该维度进行了收敛选择。",
+      "chosen": "中线引导路径",
+      "rationale": "比弱显式更稳定，但又不会像高亮箭头那样打断棋盘整体感。",
+      "alternatives": [
+        "route_subtle: 对新玩家不够直接"
+      ],
+      "provisional": false,
+      "fast_mode_default": false,
+      "impact": "medium"
+    }
+  ],
+  "metadata": {
+    "generated_at": "2026-04-16T12:52:58.168816+00:00",
+    "generator": "AgentBridge.Compiler.Task10Validation.v1"
+  }
+}

@@ -1,0 +1,38 @@
+template_id: baseline.hud.realization_eligible
+display_name: HUD（常驻界面）
+template_kind: baseline_skill
+genre: universal
+template_version: "1.0.0"
+schema_version: "1.0.0"
+evaluator_version: "1.0.0"
+
+phase_scope:
+  - phase1_local_multiplayer
+
+description: |
+  HUD Baseline 模板。realization_eligible 级别。
+  最低标准：当前回合数 + 当前玩家标识。
+  具体内容由 gameplay 域决定，因此默认 realization_eligible。
+  通过 Discovery 探索 HUD 布局、信息密度、动态显隐等设计维度。
+
+realization_class: realization_eligible
+
+input_contract_ref: root_skill_contract.baseline_capabilities.hud
+output_schema_ref: output_schema.json
+
+requires_static_vocab:
+  - hud_element
+  - data_binding
+  - hud_layout
+
+can_emit_families:
+  - hud_spec
+
+depends_on_templates: []
+
+gameplay_coupling:
+  - turn_loop
+  - property_economy
+  - jail_and_bankruptcy
+
+priority: medium

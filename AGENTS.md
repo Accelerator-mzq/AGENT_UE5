@@ -1,6 +1,6 @@
-# AGENTS.md — Mvpv4TestCodex 项目
+![1776348092078](image/AGENTS/1776348092078.png)# AGENTS.md — Mvpv4TestCodex 项目
 
-> 目标引擎版本：UE5.5.4 | 文档版本：v1.3（Phase 10 完成口径）
+> 目标引擎版本：UE5.5.4 | 文档版本：v1.5（Phase 11 归档口径）
 >
 > 本文件定义 **本项目** 的 AI Agent 行为规则。
 > 通用的 AgentBridge 插件规则见 → `Plugins/AgentBridge/AGENTS.md`
@@ -71,12 +71,14 @@ Agent 在本项目中需要参考的文档：
 | 文档 | 路径 |
 |------|------|
 | 当前阶段索引 | `Docs/Current/00_Index.md` |
+| Phase 11 收尾总览 | `Docs/Current/18_Phase11_Closeout.md` |
 | Phase 10 收尾总览 | `Docs/Current/17_Phase10_Closeout.md` |
 | Phase 8 收尾总览 | `Docs/Current/10_Phase8_Closeout.md` |
 | 项目基线 | `Docs/Current/01_Project_Baseline.md` |
 | 当前阶段目标 | `Docs/Current/02_Current_Phase_Goals.md` |
 | 实施边界 | `Docs/Current/05_Implementation_Boundary.md` |
-| 当前阶段任务 | 根目录 `task.md`（Phase 10 完成记录与最终验收入口） |
+| 当前阶段任务 | 根目录 `task.md`（当前为归档跳转页，指向 Phase 11 历史任务与最终验收） |
+| Phase 11 历史任务 | `Docs/History/Tasks/task11_phase11.md` |
 | MCP 总口径锚定 | `Docs/Current/14_MCP_Cognitive_Bridge_Anchor.md` |
 | 四层主链定义 | `Docs/Current/15_Skill_Spec_Handoff_Chain.md` |
 | MCP 重定位方案 | `Docs/Current/16_MCP_Repositioning_Plan.md` |
@@ -105,6 +107,8 @@ Agent 在本项目中需要参考的文档：
 | Handoff Schema v2 | `Plugins/AgentBridge/Schemas/reviewed_handoff_v2.schema.json` |
 | Phase 8 新增 Schema | `Plugins/AgentBridge/Schemas/{gdd_projection,planner_output,skill_fragment,cross_review_report,build_ir}.schema.json` |
 | Run Plan Schema | `Plugins/AgentBridge/Schemas/run_plan.schema.json` |
+| Phase 11 框架规范 | `Plugins/AgentBridge/Docs/` 下 8 份新文档（详见 `Docs/Current/00_Index.md`） |
+| Phase 11 设计包归档 | `Docs/History/Phase11_Design_Pack/`（16 份原始设计文档） |
 | 系统测试用例总表 | `Plugins/AgentBridge/Tests/SystemTestCases.md` |
 | 系统测试入口 | `Plugins/AgentBridge/Tests/run_system_tests.py` |
 
@@ -129,18 +133,19 @@ Agent 进入本项目后，按以下顺序阅读：
 3. `Docs/Current/14_MCP_Cognitive_Bridge_Anchor.md` — MCP 总口径（优先裁决依据）
 4. `Docs/Current/15_Skill_Spec_Handoff_Chain.md` — 四层主链定义
 5. `Docs/Current/16_MCP_Repositioning_Plan.md` — MCP 重定位方案
-6. `Docs/Current/17_Phase10_Closeout.md` — Phase 10 收尾总览
+6. `Docs/Current/18_Phase11_Closeout.md` — Phase 11 收尾总览
 7. `Docs/Current/01_Project_Baseline.md` — 项目基线
 8. `Docs/Current/02_Current_Phase_Goals.md` — 阶段目标与完成状态
 9. `Docs/Current/05_Implementation_Boundary.md` — 实施边界
-10. 根目录 `task.md` — 当前阶段正式任务入口与完成记录
+10. 根目录 `task.md` — 当前入口页；若下一阶段尚未建立，则这里是归档跳转页
 11. `Plugins/AgentBridge/README.md` — 插件定义（首次进入必读）
 12. `Plugins/AgentBridge/AGENTS.md` — 通用 Agent 规则（首次进入必读）
-13. `Docs/History/Tasks/task8_phase8.md` — 需要追溯 Phase 8 历史任务时阅读
-14. `Docs/History/Proposals/Phase9_MCP_Implementation_Plan.md` — 需要追溯 Phase 9 实施前方案时阅读
-15. 与当前任务相关的 `Docs/Current/*` 和 `Plugins/AgentBridge/Docs/*`
+13. `Docs/Current/17_Phase10_Closeout.md` — 需要追溯 Phase 10 收尾事实时阅读
+14. `Docs/History/Tasks/task8_phase8.md` — 需要追溯 Phase 8 历史任务时阅读
+15. `Docs/History/Proposals/Phase9_MCP_Implementation_Plan.md` — 需要追溯 Phase 9 实施前方案时阅读
+16. 与当前任务相关的 `Docs/Current/*` 和 `Plugins/AgentBridge/Docs/*`
 
-步骤 1–10 为必读。步骤 11–12 首次进入必读，后续按需复查。步骤 13–14 仅在追溯历史任务或实施前方案时阅读。
+步骤 1–10 为必读。步骤 11–12 首次进入必读，后续按需复查。步骤 13–15 仅在追溯历史任务或实施前方案时阅读。
 
 ### 3.3 文档权威优先级
 

@@ -1,0 +1,77 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Phase 11 Skill Graph",
+  "description": "Phase 11 Skill Graph：Domain Skill 的依赖、耦合与收敛顺序组织载体。",
+  "type": "object",
+  "required": [
+    "graph_version",
+    "graph_id",
+    "source_contract_id",
+    "nodes",
+    "edges",
+    "metadata"
+  ],
+  "properties": {
+    "graph_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "graph_id": {
+      "type": "string"
+    },
+    "source_contract_id": {
+      "type": "string"
+    },
+    "source_gate_id": {
+      "type": "string"
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "instance_id",
+          "template_id",
+          "domain_type",
+          "status",
+          "allows_design_space_discovery",
+          "convergence_priority"
+        ],
+        "properties": {
+          "instance_id": {"type": "string"},
+          "template_id": {"type": "string"},
+          "domain_type": {"type": "string", "enum": ["gameplay", "baseline"]},
+          "status": {"type": "string", "enum": ["pending", "running", "completed", "failed"]},
+          "allows_design_space_discovery": {"type": "boolean"},
+          "dependencies": {"type": "array", "items": {"type": "string"}},
+          "coupling": {"type": "array", "items": {"type": "string"}},
+          "convergence_priority": {"type": "integer", "minimum": 1}
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["from", "to", "type", "reason"],
+        "properties": {
+          "from": {"type": "string"},
+          "to": {"type": "string"},
+          "type": {"type": "string", "enum": ["dependency", "coupling", "convergence_order"]},
+          "reason": {"type": "string"}
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["total_gameplay_skills", "total_baseline_skills", "total_edges", "generated_at"],
+      "properties": {
+        "total_gameplay_skills": {"type": "integer", "minimum": 0},
+        "total_baseline_skills": {"type": "integer", "minimum": 0},
+        "total_edges": {"type": "integer", "minimum": 0},
+        "generated_at": {"type": "string"},
+        "generator": {"type": "string"}
+      }
+    }
+  }
+}

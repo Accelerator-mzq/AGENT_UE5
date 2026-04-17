@@ -1,5 +1,7 @@
 #include "MMonopolyPlayerController.h"
 
+#include "MMonopolyGameMode.h"
+
 AMMonopolyPlayerController::AMMonopolyPlayerController()
 {
 	bShowMouseCursor = true;
@@ -24,9 +26,28 @@ void AMMonopolyPlayerController::BeginPlay()
 		bShowMouseCursor ? TEXT("true") : TEXT("false"));
 }
 
+void AMMonopolyPlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+
+	if (InputComponent != nullptr)
+	{
+		// 用最小绑定补 Pause 入口，避免引入额外的输入资产依赖。
+		InputComponent->BindKey(EKeys::Escape, IE_Pressed, this, &AMMonopolyPlayerController::HandlePausePressed);
+	}
+}
+
 void AMMonopolyPlayerController::SetTurnInputEnabled(const bool bEnabled)
 {
 	bInputEnabledForTurn = bEnabled;
 	SetIgnoreMoveInput(!bEnabled);
 	SetIgnoreLookInput(!bEnabled);
+}
+
+void AMMonopolyPlayerController::HandlePausePressed()
+{
+	if (AMMonopolyGameMode* MonopolyGameMode = GetWorld() != nullptr ? GetWorld()->GetAuthGameMode<AMMonopolyGameMode>() : nullptr)
+	{
+		MonopolyGameMode->TogglePauseMenuFromInput();
+	}
 }

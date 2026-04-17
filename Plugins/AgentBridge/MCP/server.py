@@ -789,11 +789,19 @@ TOOL_DISPATCH.update(
 TOOL_DISPATCH.update(
     {
         "compiler_create_session": ("compiler", compiler_tools.compiler_create_session),
+        "compiler_root_skill_prepare": ("compiler", compiler_tools.compiler_root_skill_prepare),
+        "compiler_root_skill_save": ("compiler", compiler_tools.compiler_root_skill_save),
         "compiler_intake_prepare": ("compiler", compiler_tools.compiler_intake_prepare),
         "compiler_intake_save": ("compiler", compiler_tools.compiler_intake_save),
+        "compiler_clarification_prepare": ("compiler", compiler_tools.compiler_clarification_prepare),
+        "compiler_clarification_save": ("compiler", compiler_tools.compiler_clarification_save),
+        "compiler_skill_graph_prepare": ("compiler", compiler_tools.compiler_skill_graph_prepare),
+        "compiler_skill_graph_save": ("compiler", compiler_tools.compiler_skill_graph_save),
         "compiler_plan_prepare": ("compiler", compiler_tools.compiler_plan_prepare),
         "compiler_plan_save": ("compiler", compiler_tools.compiler_plan_save),
         "compiler_get_session_status": ("compiler", compiler_tools.compiler_get_session_status),
+        "compiler_stage4_node_prepare": ("compiler", compiler_tools.compiler_stage4_node_prepare),
+        "compiler_stage4_node_save": ("compiler", compiler_tools.compiler_stage4_node_save),
     }
 )
 TOOL_DISPATCH.update(
@@ -806,6 +814,9 @@ TOOL_DISPATCH.update(
         "evidence_decide_escalation": ("evidence", evidence_tools.evidence_decide_escalation),
         "evidence_export_summary": ("evidence", evidence_tools.evidence_export_summary),
         "evidence_list_runs": ("evidence", evidence_tools.evidence_list_runs),
+        "evidence_compare_runs": ("evidence", evidence_tools.evidence_compare_runs),
+        "evidence_create_batch": ("evidence", evidence_tools.evidence_create_batch),
+        "evidence_promote_run": ("evidence", evidence_tools.evidence_promote_run),
     }
 )
 

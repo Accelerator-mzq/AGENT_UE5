@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Phase 11 Converged Realization Pack",
+  "description": "Phase 11 Convergence 产物：记录每个设计维度最终选择、理由、被拒候选和跨维度一致性。",
+  "type": "object",
+  "required": [
+    "pack_version",
+    "skill_instance_id",
+    "converged_choices",
+    "cross_dimension_consistency",
+    "metadata"
+  ],
+  "properties": {
+    "pack_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "skill_instance_id": {"type": "string"},
+    "source_candidates": {"type": "string"},
+    "converged_choices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "dimension_id",
+          "chosen_candidate",
+          "rationale",
+          "rejected_alternatives",
+          "human_confirmation_needed",
+          "provisional"
+        ],
+        "properties": {
+          "dimension_id": {"type": "string"},
+          "chosen_candidate": {"type": "string"},
+          "rationale": {"type": "string"},
+          "rejected_alternatives": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["candidate_id", "rejection_reason"],
+              "properties": {
+                "candidate_id": {"type": "string"},
+                "rejection_reason": {"type": "string"}
+              }
+            }
+          },
+          "human_confirmation_needed": {"type": "boolean"},
+          "provisional": {"type": "boolean"}
+        }
+      }
+    },
+    "cross_dimension_consistency": {
+      "type": "object",
+      "required": ["checked", "conflicts"],
+      "properties": {
+        "checked": {"type": "boolean"},
+        "conflicts": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["generated_at", "generator"],
+      "properties": {
+        "generated_at": {"type": "string"},
+        "generator": {"type": "string"}
+      }
+    }
+  }
+}
