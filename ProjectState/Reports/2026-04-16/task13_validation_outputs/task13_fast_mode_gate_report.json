@@ -1,0 +1,81 @@
+{
+  "gate_version": "1.0",
+  "source_contract_id": "task13-fast-mode-gate",
+  "items": [
+    {
+      "item_id": "cg-medium-safe",
+      "topic": "medium safe default item",
+      "decision": "accept_with_safe_default",
+      "risk_level": "medium",
+      "default_value": "medium-default",
+      "provisional": false,
+      "provisional_warning": true,
+      "reason": "medium marker for TASK 13 validation"
+    },
+    {
+      "item_id": "cg-high-safe",
+      "topic": "high safe default item",
+      "decision": "clarification_required",
+      "risk_level": "high",
+      "provisional_default": "high-default",
+      "provisional": true,
+      "provisional_warning": false,
+      "reason": "high marker for TASK 13 validation"
+    },
+    {
+      "item_id": "cg-critical-safe",
+      "topic": "critical safe default item",
+      "decision": "clarification_required",
+      "risk_level": "critical",
+      "provisional_default": "critical-default",
+      "provisional": false,
+      "provisional_warning": false,
+      "reason": "critical marker for TASK 13 validation",
+      "blocking": true
+    }
+  ],
+  "provisional_items": [
+    {
+      "item_id": "cg-high-safe",
+      "topic": "high safe default item",
+      "provisional_value": "high-default",
+      "source_decision": "clarification_required",
+      "risk_level": "high",
+      "downstream_impacts": [
+        "design_decision_log[].provisional = true",
+        "build_steps[].execution_hints.contains_provisional = true",
+        "reviewed_handoff_v3.provisional_items[] includes item"
+      ]
+    }
+  ],
+  "blocking_items": [
+    {
+      "item_id": "cg-critical-safe",
+      "topic": "critical safe default item",
+      "blocking_reason": "critical marker for TASK 13 validation"
+    }
+  ],
+  "fast_mode": true,
+  "clarification_gate_policy": "auto_default_low_medium_only",
+  "retained_clarifications": [
+    "cg-high-safe",
+    "cg-critical-safe"
+  ],
+  "items_by_decision_summary": {
+    "accept_as_explicit": 0,
+    "accept_with_safe_default": 1,
+    "send_to_design_space_discovery": 0,
+    "clarification_required": 2
+  },
+  "downstream_propagation_contract": {
+    "skill_fragment_provisional_flag": "design_decision_log[].provisional = true",
+    "build_ir_provisional_flag": "build_steps[].execution_hints.contains_provisional = true",
+    "handoff_provisional_summary": "reviewed_handoff_v3.provisional_items[]"
+  },
+  "metadata": {
+    "generated_at": "2026-04-17T05:14:36.020316+00:00",
+    "generator": "AgentBridge.Compiler.ClarificationGate.v1",
+    "source_run_id": "task13-fast-mode-gate",
+    "blocked_by_critical": true
+  }
+}

@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "GameFramework/GameUserSettings.h"
 #include "MMonopolyTypes.h"
 #include "MMonopolyGameMode.generated.h"
 
@@ -12,7 +13,20 @@ class AMMonopolyGameState;
 class AMMonopolyPlayerState;
 class AMPlayerPawn;
 class UMGameHUDWidget;
+class UMMenuScreenWidget;
+class UMSettingsMenuWidget;
 class UMPopupWidget;
+
+enum class EMonopolyOverlayState : uint8
+{
+	None,
+	StartScreen,
+	MainMenu,
+	SettingsFromMainMenu,
+	PauseMenu,
+	SettingsFromPause,
+	Results
+};
 
 UCLASS()
 class MVPV4TESTCODEX_API AMMonopolyGameMode : public AGameModeBase
@@ -69,7 +83,26 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Monopoly")
 	FLinearColor GetPlayerColor(int32 PlayerIndex) const;
 
+	// 供 PlayerController 的 ESC 输入调用。
+	void TogglePauseMenuFromInput();
+
 private:
+	bool bGameplaySessionStarted = false;
+	bool bPhase11RuntimeSmokeEnabled = false;
+	int32 Phase11RuntimeSmokeStep = 0;
+	int32 Phase11RuntimeSmokePopupAcknowledgeCount = 0;
+	FTimerHandle Phase11RuntimeSmokeTimerHandle;
+
+	EMonopolyOverlayState ActiveOverlayState = EMonopolyOverlayState::None;
+
+	float MasterVolumeSetting = 1.0f;
+
+	float SfxVolumeSetting = 1.0f;
+
+	FIntPoint ResolutionSetting = FIntPoint(1280, 720);
+
+	TEnumAsByte<EWindowMode::Type> WindowModeSetting = EWindowMode::Windowed;
+
 	UPROPERTY()
 	TObjectPtr<AMBoardManager> BoardManager;
 
@@ -86,6 +119,12 @@ private:
 	TObjectPtr<UMGameHUDWidget> ActiveHUDWidget;
 
 	UPROPERTY()
+	TObjectPtr<UMMenuScreenWidget> ActiveMenuScreenWidget;
+
+	UPROPERTY()
+	TObjectPtr<UMSettingsMenuWidget> ActiveSettingsWidget;
+
+	UPROPERTY()
 	TObjectPtr<UMPopupWidget> ActivePopupWidget;
 
 	UPROPERTY()
@@ -100,6 +139,34 @@ private:
 	void MovePlayerPawnToTile(int32 PlayerIndex, int32 TileIndex);
 	void RefreshTileOwnershipVisuals();
 	void CreateHUDWidget();
+	void InitializeFrontendShell();
+	void StartGameplaySession();
+	void ShowStartScreen();
+	void ShowMainMenu();
+	void ShowSettingsScreen(bool bOpenedFromPause);
+	void ShowPauseMenu();
+	void ResumeGameplayFromPause();
+	void ShowResultsScreen(const FString& WinnerName);
+	void ReturnToFrontEndMenu();
+	void CloseMenuScreen();
+	void CloseSettingsScreen();
+	void CloseFrontendScreens();
+	void ApplyUIInputMode(UUserWidget* FocusWidget);
+	void RestoreGameplayInputMode();
+	void LoadRuntimeSettings();
+	void ApplyRuntimeSettingsFromMenu(float InMasterVolume, float InSfxVolume, const FString& InWindowModeOption, const FString& InResolutionOption);
+	void StartPhase11RuntimeSmoke();
+	void SchedulePhase11RuntimeSmoke(float DelaySeconds);
+	void AdvancePhase11RuntimeSmoke();
+	void RunPhase11RuntimeSmokeGameplayTurn();
+	bool TryAdvancePopupForPhase11RuntimeSmoke();
+	void FinishPhase11RuntimeSmoke();
+	FString GetProjectDisplayName() const;
+	TArray<FString> BuildResolutionOptions() const;
+	TArray<FString> BuildWindowModeOptions() const;
+	FString GetResolutionOptionLabel() const;
+	FString GetWindowModeOptionLabel() const;
+	void UpdateHUDVisibility(ESlateVisibility NewVisibility) const;
 	void StartTurn();
 	void SetTurnState(EMTurnState NewTurnState);
 	void RollAndMoveCurrentPlayer();

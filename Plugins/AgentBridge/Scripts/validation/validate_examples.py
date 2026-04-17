@@ -102,6 +102,20 @@ EXAMPLE_TO_SCHEMA: Dict[str, str] = {
         "converged_realization_pack.schema.json",
     "phase11_skill_fragment_v2.example.json":
         "skill_fragment_v2.schema.json",
+    "phase11_cross_review_report_v2.example.json":
+        "cross_review_report_v2.schema.json",
+    "phase11_build_ir_v2.example.json":
+        "build_ir_v2.schema.json",
+    "phase11_reviewed_handoff_v3.example.json":
+        "reviewed_handoff_v3.schema.json",
+    "phase11_naming_resolution_log.example.json":
+        "naming_resolution_log.schema.json",
+    "phase11_design_decision_log.example.json":
+        "design_decision_log.schema.json",
+    "phase11_run_comparison.example.json":
+        "run_comparison.schema.json",
+    "phase11_batch_manifest.example.json":
+        "batch_manifest.schema.json",
 }
 
 # 这些 example 默认跳过自动 schema 校验，仅作为参考样例。

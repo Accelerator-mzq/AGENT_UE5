@@ -1,0 +1,139 @@
+{
+  "ir_version": "2.0",
+  "ir_id": "ir.monopoly.phase11_task09b_mcp_agent.20260416",
+  "source_review_id": "cr.monopoly.phase11_task09b_mcp_agent.20260416",
+  "source_contract_id": "rsc.monopoly.phase11_task09b_mcp_agent.20260416",
+  "phase_scope": "phase11_task09b_mcp_agent",
+  "build_steps": [
+    {
+      "step_id": "bir_001_board_topology_spec",
+      "action": "create_cpp_class",
+      "source_skill_instance_id": "skill-board-topology",
+      "source_families": [
+        "board_topology_spec"
+      ],
+      "implementation_layer": "cpp",
+      "target": {
+        "class_name": "AMonopolyBoard",
+        "file_path": "Source/Mvpv4TestCodex/Board/MonopolyBoard.h",
+        "asset_path": "/Game/Mvpv4TestCodex/Blueprints/Board/BP_MonopolyBoard"
+      },
+      "params": {
+        "spec": {
+          "capability_id": "gameplay-board-topology",
+          "template_id": "monopoly.board_topology.phase1",
+          "locked_constraints": {
+            "board.tile_count": 28,
+            "board.layout_shape": "square_ring",
+            "board.movement_direction": "clockwise",
+            "board.corner_indices": {
+              "start": 0,
+              "jail_visit": 7,
+              "free_parking": 14,
+              "go_to_jail": 21
+            }
+          },
+          "selected_realization": {
+            "board_visual_scale": "均衡棋盘",
+            "corner_landmark_emphasis": "角格地标道具",
+            "route_readability": "中线引导路径"
+          },
+          "clarification_inputs": [],
+          "dependencies": [],
+          "coupling": [
+            "skill-baseline-hud"
+          ],
+          "tile_count": 28,
+          "layout_shape": "square_ring",
+          "movement_direction": "clockwise",
+          "corner_tiles": {
+            "start": 0,
+            "jail_visit": 7,
+            "free_parking": 14,
+            "go_to_jail": 21
+          }
+        },
+        "domain_type": "gameplay",
+        "required_elements": [],
+        "selected_realization": {
+          "board_visual_scale": "均衡棋盘",
+          "corner_landmark_emphasis": "角格地标道具",
+          "route_readability": "中线引导路径"
+        }
+      },
+      "constraints_applied": [
+        "corner_tiles",
+        "layout_shape",
+        "locked_constraints",
+        "movement_direction",
+        "tile_count"
+      ],
+      "execution_hints": {
+        "tool_preference": "cpp_code",
+        "thin_blueprint_bridge": true,
+        "contains_provisional": false
+      },
+      "naming_resolution_log": {
+        "class_name": {
+          "resolved": "AMonopolyBoard",
+          "tier": 2,
+          "evidence": "依据 contract_id 推导项目风格命名：Monopoly",
+          "alternatives_considered": [
+            "ABoard",
+            "ABoardTopology"
+          ]
+        },
+        "file_path": {
+          "resolved": "Source/Mvpv4TestCodex/Board/MonopolyBoard.h",
+          "tier": 3,
+          "evidence": "项目规范：Source/Mvpv4TestCodex/Board/",
+          "alternatives_considered": []
+        },
+        "asset_path": {
+          "resolved": "/Game/Mvpv4TestCodex/Blueprints/Board/BP_MonopolyBoard",
+          "tier": 3,
+          "evidence": "项目规范：/Game/Mvpv4TestCodex/ 按 UE5 前缀落盘",
+          "alternatives_considered": []
+        }
+      },
+      "depends_on": []
+    }
+  ],
+  "validation_ir": [
+    {
+      "validation_id": "val_bir_001_board_topology_spec_cpp",
+      "after_step": "bir_001_board_topology_spec",
+      "check_type": "cpp_symbol_exists",
+      "description": "验证 AMonopolyBoard 已创建并可编译。",
+      "expected": true
+    },
+    {
+      "validation_id": "val_bir_001_board_topology_spec_bp_bridge",
+      "after_step": "bir_001_board_topology_spec",
+      "check_type": "blueprint_bridge_exists",
+      "description": "验证 /Game/Mvpv4TestCodex/Blueprints/Board/BP_MonopolyBoard 作为薄层 Blueprint 桥接资源存在。",
+      "expected": true
+    }
+  ],
+  "lowering_report": {
+    "families_received": [
+      "board_topology_spec"
+    ],
+    "families_bound": [
+      "board_topology_spec"
+    ],
+    "families_partially_bound": [],
+    "unbound_requirements": [],
+    "dependency_closure_warnings": [],
+    "cpp_step_count": 1,
+    "blueprint_step_count": 0,
+    "baseline_step_count": 0,
+    "gameplay_step_count": 1
+  },
+  "recovery_hints": [],
+  "metadata": {
+    "generated_at": "2026-04-16T13:35:15.353406+00:00",
+    "generator": "AgentBridge.Compiler.LoweringV2.v2",
+    "project_module": "Mvpv4TestCodex"
+  }
+}

@@ -15,6 +15,18 @@ from pathlib import Path
 from typing import Any, Dict, List, Set
 
 
+PLUGIN_DIR = Path(__file__).resolve().parents[2]
+BASELINE_TEMPLATES_ROOT = PLUGIN_DIR / "SkillTemplates" / "baseline"
+STANDARD_TEMPLATE_FILES = {
+    "manifest.yaml",
+    "system_prompt.md",
+    "domain_prompt.md",
+    "evaluator_prompt.md",
+    "input_selector.yaml",
+    "output_schema.json",
+}
+
+
 GAMEPLAY_NODE_CONFIGS: Dict[str, Dict[str, Any]] = {
     "gameplay-board-topology": {
         "instance_id": "skill-board-topology",
@@ -431,6 +443,34 @@ EDGE_BLUEPRINTS: List[Dict[str, str]] = [
 ]
 
 
+def _baseline_template_dir(template_id: str) -> Path:
+    """根据 baseline template_id 解析模板目录。"""
+    parts = template_id.split(".")
+    if len(parts) < 3 or parts[0] != "baseline":
+        return BASELINE_TEMPLATES_ROOT / "__missing__"
+    return BASELINE_TEMPLATES_ROOT / parts[1]
+
+
+def _resolve_baseline_template_source(template_id: str) -> str:
+    """解析 baseline template 是已落地模板还是未来占位模板。"""
+    template_dir = _baseline_template_dir(template_id)
+    if not template_dir.is_dir():
+        return "future_baseline_template"
+
+    existing_files = {path.name for path in template_dir.iterdir() if path.is_file()}
+    if STANDARD_TEMPLATE_FILES.issubset(existing_files):
+        return "plugin_skill_template"
+    return "future_baseline_template"
+
+
+def _missing_baseline_template_warning(template_id: str) -> str:
+    """为缺失 baseline template 生成统一 warning 文案。"""
+    return (
+        f"Baseline Template 未落地：{template_id}。"
+        "Skill Graph 已保留节点，但运行时应以 warning 方式提示该模板仍待补齐。"
+    )
+
+
 def _swap_prefix(raw_value: str, source_prefix: str, target_prefix: str) -> str:
     """把 contract 风格 ID 转成 graph / gate 风格 ID。"""
     if raw_value.startswith(source_prefix):
@@ -565,12 +605,15 @@ def _build_baseline_nodes(
 
         realization_class = capability.get("realization_class", "presence_only")
         allows_design_space_discovery = realization_class == "realization_eligible"
+        template_source = _resolve_baseline_template_source(config["template_id"])
 
         planning_notes = list(config.get("planning_notes", []))
         planning_notes.append(f"baseline_item={capability.get('baseline_item', capability_id)}")
         for item_id in related_item_ids:
             item = gate_item_map[item_id]
             planning_notes.append(f"{item.get('topic', item_id)} -> {item.get('decision', '')}")
+        if template_source != "plugin_skill_template":
+            planning_notes.append(_missing_baseline_template_warning(config["template_id"]))
 
         nodes.append(
             {
@@ -581,7 +624,7 @@ def _build_baseline_nodes(
                 "status": "pending",
                 "allows_design_space_discovery": allows_design_space_discovery,
                 "convergence_priority": config["convergence_priority"],
-                "template_source": config["template_source"],
+                "template_source": template_source,
                 "planning_notes": planning_notes,
                 "related_clarification_items": related_item_ids,
                 "gated_by_clarification_items": gated_item_ids,
@@ -605,6 +648,17 @@ def create_skill_graph(
     edges = _filter_edges(node_ids)
     dependency_map, coupling_map = _build_relationship_maps(edges)
     order_map = _ordered_node_ids(nodes)
+    baseline_template_nodes = [node for node in baseline_nodes if node.get("template_id", "").startswith("baseline.")]
+    available_baseline_templates = [
+        node.get("template_id", "")
+        for node in baseline_template_nodes
+        if node.get("template_source") == "plugin_skill_template"
+    ]
+    missing_baseline_templates = [
+        node.get("template_id", "")
+        for node in baseline_template_nodes
+        if node.get("template_source") != "plugin_skill_template"
+    ]
 
     annotated_nodes = [
         _annotate_node(node, dependency_map, coupling_map, order_map)
@@ -628,6 +682,12 @@ def create_skill_graph(
             "source_run_id": run_id,
             "retained_clarifications": clarification_gate_report.get("retained_clarifications", []),
             "provisional_item_count": len(clarification_gate_report.get("provisional_items", [])),
+            "available_baseline_templates": available_baseline_templates,
+            "missing_baseline_templates": missing_baseline_templates,
+            "missing_baseline_template_warnings": [
+                _missing_baseline_template_warning(template_id)
+                for template_id in missing_baseline_templates
+            ],
             "template_boundary_note": (
                 "Skill Graph 只引用 template_id；运行时 Skill Instance 将在 TASK 09 创建，"
                 "不会回写 Plugins/AgentBridge/SkillTemplates/。"

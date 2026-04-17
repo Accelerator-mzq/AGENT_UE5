@@ -13,6 +13,7 @@ import os
 import warnings
 from pathlib import Path
 from typing import Any, Dict, List
+from urllib.parse import urlparse, urlunparse
 
 try:
     import yaml
@@ -64,6 +65,16 @@ def _normalize_text(value: Any) -> str:
 
 def _extract_openai_text(response: Any) -> str:
     """从 OpenAI 响应对象中提取文本。"""
+    if isinstance(response, str):
+        return response
+    if isinstance(response, dict):
+        choices = response.get("choices", []) or []
+        if not choices:
+            return _normalize_text(response)
+        message = choices[0].get("message", {})
+        content = message.get("content", "")
+        return _normalize_text(content)
+
     choices = getattr(response, "choices", None) or []
     if not choices:
         return ""
@@ -120,6 +131,25 @@ def _is_placeholder_api_key(provider: str, api_key: str) -> bool:
     return False
 
 
+def _normalize_openai_base_url(base_url: str | None) -> str | None:
+    """
+    归一化 OpenAI 风格接口的 base_url。
+
+    约定：
+      - 如果用户只填了站点根路径，则自动补齐 `/v1`
+      - 如果用户已经填了具体 API 路径，则保持原样
+    """
+    if not base_url:
+        return None
+
+    parsed = urlparse(base_url)
+    normalized_path = parsed.path.rstrip("/")
+    if normalized_path:
+        return base_url.rstrip("/")
+
+    return urlunparse(parsed._replace(path="/v1")).rstrip("/")
+
+
 class UnifiedLLMClient:
     """统一 LLM 客户端，兼容 Anthropic / OpenAI / OpenAI-Compatible。"""
 
@@ -131,13 +161,20 @@ class UnifiedLLMClient:
         base_url: str | None = None,
         max_tokens: int = 8192,
         temperature: float = 0.7,
+        timeout_sec: float = 60.0,
     ) -> None:
         self.provider = provider
         self.api_key = api_key
         self.model = model
-        self.base_url = base_url
+        # OpenAI 与 OpenAI-Compatible 在中转站场景下都需要支持自定义 base_url。
+        if provider in {"openai", "openai_compatible"}:
+            self.base_url = _normalize_openai_base_url(base_url)
+        else:
+            self.base_url = base_url
         self.max_tokens = int(max_tokens)
         self.temperature = float(temperature)
+        # Anthropic 路径显式绑定请求超时，避免 Stage 4 长链路无限等待。
+        self.timeout_sec = float(timeout_sec)
         self._client = self._create_client()
 
     def _create_client(self) -> Any:
@@ -145,14 +182,20 @@ class UnifiedLLMClient:
         if self.provider == "anthropic":
             if not HAS_ANTHROPIC:
                 raise RuntimeError("未安装 anthropic SDK。")
-            return anthropic.Anthropic(api_key=self.api_key)
+            client_kwargs: Dict[str, Any] = {
+                "api_key": self.api_key,
+                "timeout": self.timeout_sec,
+            }
+            if self.base_url:
+                client_kwargs["base_url"] = self.base_url
+            return anthropic.Anthropic(**client_kwargs)
 
         if self.provider in {"openai", "openai_compatible"}:
             if not HAS_OPENAI:
                 raise RuntimeError("未安装 openai SDK。")
 
             client_kwargs: Dict[str, Any] = {"api_key": self.api_key}
-            if self.provider == "openai_compatible" and self.base_url:
+            if self.base_url:
                 client_kwargs["base_url"] = self.base_url
             return OpenAI(**client_kwargs)
 
@@ -275,6 +318,7 @@ def load_llm_client_from_config(config_path: str | Path | None = None) -> Unifie
     base_url = _normalize_text(payload.get("base_url", "")).strip() or None
     max_tokens = payload.get("max_tokens", 8192)
     temperature = payload.get("temperature", 0.7)
+    timeout_sec = payload.get("timeout_sec", 60)
 
     if provider not in VALID_PROVIDERS:
         _warn(f"LLM 配置 provider 非法，已忽略：{provider!r}")
@@ -303,6 +347,7 @@ def load_llm_client_from_config(config_path: str | Path | None = None) -> Unifie
             base_url=base_url,
             max_tokens=max_tokens,
             temperature=temperature,
+            timeout_sec=timeout_sec,
         )
     except Exception as exc:
         _warn(f"创建 UnifiedLLMClient 失败，已忽略：{exc}")

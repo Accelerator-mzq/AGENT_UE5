@@ -1,0 +1,714 @@
+{
+  "comparison_version": "1.0",
+  "comparison_id": "cmp-run-20260416-142558-7f47-vs-run-20260416-142757-47c4",
+  "run_a_id": "run-20260416-142558-7f47",
+  "run_b_id": "run-20260416-142757-47c4",
+  "compared_at": "2026-04-17T05:14:29.512799+00:00",
+  "summary": {
+    "constraint_consistent": true,
+    "constraint_changes": 0,
+    "realization_changes": 0,
+    "fragment_changes": 16,
+    "build_ir_changes": 5,
+    "naming_changes": 5,
+    "provisional_delta": 0
+  },
+  "details": {
+    "constraint_differences": [],
+    "realization_differences": [],
+    "fragment_differences": [
+      {
+        "category": "fragment",
+        "item_key": "skill-baseline-audio-foundation.json",
+        "change_type": "changed",
+        "impact": "medium",
+        "run_a_value": {
+          "digest": "bf4ff2062b6ea83debfb848350f2bb42cc62d83628b292f2c4fc4d33c1285959",
+          "emitted_families": [
+            "audio_foundation_spec"
+          ],
+          "status": "completed"
+        },
+        "run_b_value": {
+          "digest": "f95fa04695fee44eb66b6f5819f4f360b3c37e8b4e57c00b4751416d46cedfff",
+          "emitted_families": [
+            "audio_foundation_spec"
+          ],
+          "status": "completed"
+        }
+      },
+      {
+        "category": "fragment",
+        "item_key": "skill-baseline-hud.json",
+        "change_type": "changed",
+        "impact": "medium",
+        "run_a_value": {
+          "digest": "f7ef65890de01b6d13d6e7a3f129913935dc72472547daece22809728970f539",
+          "emitted_families": [
+            "hud_spec"
+          ],
+          "status": "completed"
+        },
+        "run_b_value": {
+          "digest": "5d9da61c6de2331178130530c591d5d78c78b5cdf3e12efa89cfdeeb6da8f71e",
+          "emitted_families": [
+            "hud_spec"
+          ],
+          "status": "completed"
+        }
+      },
+      {
+        "category": "fragment",
+        "item_key": "skill-baseline-input-foundation.json",
+        "change_type": "changed",
+        "impact": "medium",
+        "run_a_value": {
+          "digest": "7fd561506e75a3ba4f9eb88d50b41fe4e21a695f9e6a85b941527f59a4297e58",
+          "emitted_families": [
+            "input_foundation_spec"
+          ],
+          "status": "completed"
+        },
+        "run_b_value": {
+          "digest": "0a9946903c6f7409ea056733dd8cf0090ff554e504c5648ee8502ec7bb8c97b9",
+          "emitted_families": [
+            "input_foundation_spec"
+          ],
+          "status": "completed"
+        }
+      },
+      {
+        "category": "fragment",
+        "item_key": "skill-baseline-main-menu.json",
+        "change_type": "changed",
+        "impact": "medium",
+        "run_a_value": {
+          "digest": "9f54d53aa701ced0e3c7d1ac03f7119cf4f5e93afc4c14f580e9b61ea1759397",
+          "emitted_families": [
+            "main_menu_spec"
+          ],
+          "status": "completed"
+        },
+        "run_b_value": {
+          "digest": "553f7c7ff8782b1dc803cb8e72e00383083010091f455a46652e129cb0ecc518",
+          "emitted_families": [
+            "main_menu_spec"
+          ],
+          "status": "completed"
+        }
+      },
+      {
+        "category": "fragment",
+        "item_key": "skill-baseline-pause.json",
+        "change_type": "changed",
+        "impact": "medium",
+        "run_a_value": {
+          "digest": "582b2ad743b85cbfb9815cb0405884bab9bba46f27db8c94fe11ed70cf89a280",
+          "emitted_families": [
+            "pause_spec"
+          ],
+          "status": "completed"
+        },
+        "run_b_value": {
+          "digest": "fe6b3aa21cf963c07048de99bf2ecf1be7a4dffd2ef4d7e652d733ae927cdda9",
+          "emitted_families": [
+            "pause_spec"
+          ],
+          "status": "completed"
+        }
+      },
+      {
+        "category": "fragment",
+        "item_key": "skill-baseline-platform-foundation.json",
+        "change_type": "changed",
+        "impact": "medium",
+        "run_a_value": {
+          "digest": "a81704b36ad8edffb576daf35dd72f3949fcf8ae5c65c2f0220f2e2e868510b3",
+          "emitted_families": [
+            "platform_foundation_spec"
+          ],
+          "status": "completed"
+        },
+        "run_b_value": {
+          "digest": "a4b0616fb1c7ad9b72592b2795a7321e991a002dafe9cba158109973f8a3b6de",
+          "emitted_families": [
+            "platform_foundation_spec"
+          ],
+          "status": "completed"
+        }
+      },
+      {
+        "category": "fragment",
+        "item_key": "skill-baseline-results.json",
+        "change_type": "changed",
+        "impact": "medium",
+        "run_a_value": {
+          "digest": "0cc79fcacd5b0d42683d58a2448b9cce697f70b23c101f5018c462f2c284a600",
+          "emitted_families": [
+            "results_spec"
+          ],
+          "status": "completed"
+        },
+        "run_b_value": {
+          "digest": "4bf0113e5a3f6715517c1036c748c636e9056ccfa0d623703fe64577eafde34a",
+          "emitted_families": [
+            "results_spec"
+          ],
+          "status": "completed"
+        }
+      },
+      {
+        "category": "fragment",
+        "item_key": "skill-baseline-settings.json",
+        "change_type": "changed",
+        "impact": "medium",
+        "run_a_value": {
+          "digest": "351364c52f962ebef758e26c0bb0a0cde5f9b6f4383d8254c26cd3187365ca97",
+          "emitted_families": [
+            "settings_spec"
+          ],
+          "status": "completed"
+        },
+        "run_b_value": {
+          "digest": "44d13d37f2f82490fceba7c947d1039b1ec541ee18a4af1eac7fc27f97852568",
+          "emitted_families": [
+            "settings_spec"
+          ],
+          "status": "completed"
+        }
+      },
+      {
+        "category": "fragment",
+        "item_key": "skill-baseline-start-screen.json",
+        "change_type": "changed",
+        "impact": "medium",
+        "run_a_value": {
+          "digest": "670874e3c280cbb21a46c7364a77dc8aef61799573679c7c57b9f6aa50b43ed7",
+          "emitted_families": [
+            "start_screen_spec"
+          ],
+          "status": "completed"
+        },
+        "run_b_value": {
+          "digest": "c092d9c7e09e9de34794f9141fb20021882a337d3a2150cd81571882e5a143c1",
+          "emitted_families": [
+            "start_screen_spec"
+          ],
+          "status": "completed"
+        }
+      },
+      {
+        "category": "fragment",
+        "item_key": "skill-board-topology.json",
+        "change_type": "changed",
+        "impact": "medium",
+        "run_a_value": {
+          "digest": "bd6a9750a77c1d31df24f53868d1c3b6ffe8b2fb9dd6dee2923b8f24db0ea4b6",
+          "emitted_families": [
+            "board_topology_spec"
+          ],
+          "status": "completed"
+        },
+        "run_b_value": {
+          "digest": "5f68384cf3cc3233f4bf9d579311cedb483c5018713989a39616b3b0179146d9",
+          "emitted_families": [
+            "board_topology_spec"
+          ],
+          "status": "completed"
+        }
+      },
+      {
+        "category": "fragment",
+        "item_key": "skill-dice.json",
+        "change_type": "changed",
+        "impact": "medium",
+        "run_a_value": {
+          "digest": "bd11c2f8fd42bc6254ea9debbb1e1f8d924b683beec5d9afd9383f9fc6d4d10a",
+          "emitted_families": [
+            "dice_rule_spec"
+          ],
+          "status": "completed"
+        },
+        "run_b_value": {
+          "digest": "ccc6d2dabbeed69f427b9c3c845174850d9b84f3e2f79de081915614c08c8895",
+          "emitted_families": [
+            "dice_rule_spec"
+          ],
+          "status": "completed"
+        }
+      },
+      {
+        "category": "fragment",
+        "item_key": "skill-economy.json",
+        "change_type": "changed",
+        "impact": "medium",
+        "run_a_value": {
+          "digest": "89a71a21f0c6d6a0b09338a4df96d804610b8a6c3560d1c94c47b4c4f92c0f3e",
+          "emitted_families": [
+            "property_economy_spec"
+          ],
+          "status": "completed"
+        },
+        "run_b_value": {
+          "digest": "6f16a65b28458682775e9c1c98ba205f8614b3ae43b5cf371c1a0ab27290fc9e",
+          "emitted_families": [
+            "property_economy_spec"
+          ],
+          "status": "completed"
+        }
+      },
+      {
+        "category": "fragment",
+        "item_key": "skill-jail.json",
+        "change_type": "changed",
+        "impact": "medium",
+        "run_a_value": {
+          "digest": "d55acb5931da880d848eb4c4b35d259c98869f912a480986fbbf56c06a81ae21",
+          "emitted_families": [
+            "jail_rule_spec"
+          ],
+          "status": "completed"
+        },
+        "run_b_value": {
+          "digest": "433dd332e046251af5da5cf35776b0e81f730f4003beccfd0b16e2d7bedfcff0",
+          "emitted_families": [
+            "jail_rule_spec"
+          ],
+          "status": "completed"
+        }
+      },
+      {
+        "category": "fragment",
+        "item_key": "skill-player-management.json",
+        "change_type": "changed",
+        "impact": "medium",
+        "run_a_value": {
+          "digest": "f1ee35caa75c6bf06e4165bff7af42d07243ae21ba06c0d9787b849db36388e8",
+          "emitted_families": [
+            "player_management_spec"
+          ],
+          "status": "completed"
+        },
+        "run_b_value": {
+          "digest": "fd450d81be861b7e884adcf8d29e1f6ad038b6d4c83cf6ec471fbc21b903c140",
+          "emitted_families": [
+            "player_management_spec"
+          ],
+          "status": "completed"
+        }
+      },
+      {
+        "category": "fragment",
+        "item_key": "skill-tile-system.json",
+        "change_type": "changed",
+        "impact": "medium",
+        "run_a_value": {
+          "digest": "58b0d258a39387104fb540bceb0128aad01fd8f69c68bda1db8e1abf005715f8",
+          "emitted_families": [
+            "tile_system_spec"
+          ],
+          "status": "completed"
+        },
+        "run_b_value": {
+          "digest": "a6347a038513b44f820b7eef00cac77bf19f1715f408a818e91da3ecb0920be7",
+          "emitted_families": [
+            "tile_system_spec"
+          ],
+          "status": "completed"
+        }
+      },
+      {
+        "category": "fragment",
+        "item_key": "skill-turn-loop.json",
+        "change_type": "changed",
+        "impact": "medium",
+        "run_a_value": {
+          "digest": "85814bf2159b171e747befa25d13d27ab3ddb9bd13a4e4b928d6e014f82e7f51",
+          "emitted_families": [
+            "turn_flow_spec"
+          ],
+          "status": "completed"
+        },
+        "run_b_value": {
+          "digest": "fbf008bc56bc2f8ef680e4e8201fee90732353d08695c0b8e2bb93cca639f799",
+          "emitted_families": [
+            "turn_flow_spec"
+          ],
+          "status": "completed"
+        }
+      }
+    ],
+    "build_ir_differences": [
+      {
+        "category": "build_ir",
+        "item_key": "bir_003_dice_rule_spec",
+        "change_type": "changed",
+        "impact": "medium",
+        "run_a_value": {
+          "digest": "23e366a06958fb0ea285b499ff1ada5c84a66a8d854e7feea91fcf4ccd28965f",
+          "action": "create_cpp_class",
+          "source_skill_instance_id": "skill-dice"
+        },
+        "run_b_value": {
+          "digest": "4e0481dc60fdaecb13a9b24b585a3b6cceb88b54020a90735586bdcfe3b875db",
+          "action": "create_cpp_class",
+          "source_skill_instance_id": "skill-dice"
+        }
+      },
+      {
+        "category": "build_ir",
+        "item_key": "bir_006_jail_rule_spec",
+        "change_type": "changed",
+        "impact": "medium",
+        "run_a_value": {
+          "digest": "2ea47bb9d24362145a480ba63641add3dfd94c7dcffe0359f9638b32e2f9fd6e",
+          "action": "create_cpp_class",
+          "source_skill_instance_id": "skill-jail"
+        },
+        "run_b_value": {
+          "digest": "3d936235df1b3ae51bf55274fbd7aeda03db173d1f55f1ee5684b05426754dd5",
+          "action": "create_cpp_class",
+          "source_skill_instance_id": "skill-jail"
+        }
+      },
+      {
+        "category": "build_ir",
+        "item_key": "bir_008_pause_spec",
+        "change_type": "changed",
+        "impact": "medium",
+        "run_a_value": {
+          "digest": "f55a3a57a7c890661c5e74d0e204b5f97dde1de25e7a7e44d0ad2d3a78f5881a",
+          "action": "create_cpp_class",
+          "source_skill_instance_id": "skill-baseline-pause"
+        },
+        "run_b_value": {
+          "digest": "c93a396fe93f335b974abff2fbf2690ed7c3addf4b5de5443291c759f3115ac8",
+          "action": "create_widget_blueprint",
+          "source_skill_instance_id": "skill-baseline-pause"
+        }
+      },
+      {
+        "category": "build_ir",
+        "item_key": "bir_011_property_economy_spec",
+        "change_type": "changed",
+        "impact": "medium",
+        "run_a_value": {
+          "digest": "000e4d7bee1bdcb84a0e94594b8a41b03a609ce079ec037f1400254f4b102a30",
+          "action": "create_cpp_class",
+          "source_skill_instance_id": "skill-economy"
+        },
+        "run_b_value": {
+          "digest": "fdbf2c5e5a73c6cc840315a6ffb0eacce5fcdd23b754562aed58a61d37f8cb1d",
+          "action": "create_cpp_class",
+          "source_skill_instance_id": "skill-economy"
+        }
+      },
+      {
+        "category": "build_ir",
+        "item_key": "bir_016_turn_flow_spec",
+        "change_type": "changed",
+        "impact": "medium",
+        "run_a_value": {
+          "digest": "d100dd92dc1946ef548734253fa145483dfd7c5360622fcefba9cfed764b4205",
+          "action": "create_cpp_class",
+          "source_skill_instance_id": "skill-turn-loop"
+        },
+        "run_b_value": {
+          "digest": "446dc2d33fa2d0fa15c9b38d3a137b4fa3af504a357f7e86d1f09b75530386af",
+          "action": "create_cpp_class",
+          "source_skill_instance_id": "skill-turn-loop"
+        }
+      }
+    ],
+    "naming_differences": [
+      {
+        "category": "naming",
+        "item_key": "bir_003_dice_rule_spec",
+        "change_type": "changed",
+        "impact": "low",
+        "run_a_value": {
+          "class_name": {
+            "resolved": "AMonopolyDiceRule",
+            "tier": 2,
+            "evidence": "依据 contract_id 推导项目风格命名：Monopoly",
+            "alternatives_considered": [
+              "ADiceRule"
+            ]
+          },
+          "file_path": {
+            "resolved": "Source/Mvpv4TestCodex/Gameplay/MonopolyDiceRule.h",
+            "tier": 3,
+            "evidence": "项目规范：Source/Mvpv4TestCodex/Gameplay/",
+            "alternatives_considered": []
+          },
+          "asset_path": {
+            "resolved": "/Game/Mvpv4TestCodex/Blueprints/Gameplay/BP_MonopolyDiceRule",
+            "tier": 3,
+            "evidence": "项目规范：/Game/Mvpv4TestCodex/ 按 UE5 前缀落盘",
+            "alternatives_considered": []
+          }
+        },
+        "run_b_value": {
+          "class_name": {
+            "resolved": "AMonopolyDice",
+            "tier": 2,
+            "evidence": "依据 contract_id 推导项目风格命名：Monopoly",
+            "alternatives_considered": [
+              "ADice",
+              "ADiceRule"
+            ]
+          },
+          "file_path": {
+            "resolved": "Source/Mvpv4TestCodex/Gameplay/MonopolyDice.h",
+            "tier": 3,
+            "evidence": "项目规范：Source/Mvpv4TestCodex/Gameplay/",
+            "alternatives_considered": []
+          },
+          "asset_path": {
+            "resolved": "/Game/Mvpv4TestCodex/Blueprints/Gameplay/BP_MonopolyDice",
+            "tier": 3,
+            "evidence": "项目规范：/Game/Mvpv4TestCodex/ 按 UE5 前缀落盘",
+            "alternatives_considered": []
+          }
+        }
+      },
+      {
+        "category": "naming",
+        "item_key": "bir_006_jail_rule_spec",
+        "change_type": "changed",
+        "impact": "low",
+        "run_a_value": {
+          "class_name": {
+            "resolved": "AMonopolyJailRule",
+            "tier": 2,
+            "evidence": "依据 contract_id 推导项目风格命名：Monopoly",
+            "alternatives_considered": [
+              "AJailRule"
+            ]
+          },
+          "file_path": {
+            "resolved": "Source/Mvpv4TestCodex/Gameplay/MonopolyJailRule.h",
+            "tier": 3,
+            "evidence": "项目规范：Source/Mvpv4TestCodex/Gameplay/",
+            "alternatives_considered": []
+          },
+          "asset_path": {
+            "resolved": "/Game/Mvpv4TestCodex/Blueprints/Gameplay/BP_MonopolyJailRule",
+            "tier": 3,
+            "evidence": "项目规范：/Game/Mvpv4TestCodex/ 按 UE5 前缀落盘",
+            "alternatives_considered": []
+          }
+        },
+        "run_b_value": {
+          "class_name": {
+            "resolved": "AMonopolyJail",
+            "tier": 2,
+            "evidence": "依据 contract_id 推导项目风格命名：Monopoly",
+            "alternatives_considered": [
+              "AJail",
+              "AJailRule"
+            ]
+          },
+          "file_path": {
+            "resolved": "Source/Mvpv4TestCodex/Gameplay/MonopolyJail.h",
+            "tier": 3,
+            "evidence": "项目规范：Source/Mvpv4TestCodex/Gameplay/",
+            "alternatives_considered": []
+          },
+          "asset_path": {
+            "resolved": "/Game/Mvpv4TestCodex/Blueprints/Gameplay/BP_MonopolyJail",
+            "tier": 3,
+            "evidence": "项目规范：/Game/Mvpv4TestCodex/ 按 UE5 前缀落盘",
+            "alternatives_considered": []
+          }
+        }
+      },
+      {
+        "category": "naming",
+        "item_key": "bir_008_pause_spec",
+        "change_type": "changed",
+        "impact": "low",
+        "run_a_value": {
+          "class_name": {
+            "resolved": "AMonopolyPause",
+            "tier": 2,
+            "evidence": "依据 contract_id 推导项目风格命名：Monopoly",
+            "alternatives_considered": [
+              "APause"
+            ]
+          },
+          "file_path": {
+            "resolved": "Source/Mvpv4TestCodex/Systems/MonopolyPause.h",
+            "tier": 3,
+            "evidence": "项目规范：Source/Mvpv4TestCodex/Systems/",
+            "alternatives_considered": []
+          },
+          "asset_path": {
+            "resolved": "/Game/Mvpv4TestCodex/Blueprints/Systems/BP_MonopolyPause",
+            "tier": 3,
+            "evidence": "项目规范：/Game/Mvpv4TestCodex/ 按 UE5 前缀落盘",
+            "alternatives_considered": []
+          }
+        },
+        "run_b_value": {
+          "class_name": {
+            "resolved": "UMonopolyPauseMenuWidget",
+            "tier": 2,
+            "evidence": "依据 contract_id 推导项目风格命名：Monopoly",
+            "alternatives_considered": [
+              "UPauseMenuWidget",
+              "UPauseWidget"
+            ]
+          },
+          "file_path": {
+            "resolved": "Source/Mvpv4TestCodex/UI/MonopolyPauseMenuWidget.h",
+            "tier": 3,
+            "evidence": "项目规范：Source/Mvpv4TestCodex/UI/",
+            "alternatives_considered": []
+          },
+          "asset_path": {
+            "resolved": "/Game/Mvpv4TestCodex/UI/Widgets/WBP_MonopolyPauseMenu",
+            "tier": 3,
+            "evidence": "项目规范：/Game/Mvpv4TestCodex/ 按 UE5 前缀落盘",
+            "alternatives_considered": []
+          }
+        }
+      },
+      {
+        "category": "naming",
+        "item_key": "bir_011_property_economy_spec",
+        "change_type": "changed",
+        "impact": "low",
+        "run_a_value": {
+          "class_name": {
+            "resolved": "AMonopolyPropertyEconomy",
+            "tier": 2,
+            "evidence": "依据 contract_id 推导项目风格命名：Monopoly",
+            "alternatives_considered": [
+              "APropertyEconomy"
+            ]
+          },
+          "file_path": {
+            "resolved": "Source/Mvpv4TestCodex/Gameplay/MonopolyPropertyEconomy.h",
+            "tier": 3,
+            "evidence": "项目规范：Source/Mvpv4TestCodex/Gameplay/",
+            "alternatives_considered": []
+          },
+          "asset_path": {
+            "resolved": "/Game/Mvpv4TestCodex/Blueprints/Gameplay/BP_MonopolyPropertyEconomy",
+            "tier": 3,
+            "evidence": "项目规范：/Game/Mvpv4TestCodex/ 按 UE5 前缀落盘",
+            "alternatives_considered": []
+          }
+        },
+        "run_b_value": {
+          "class_name": {
+            "resolved": "AMonopolyEconomy",
+            "tier": 2,
+            "evidence": "依据 contract_id 推导项目风格命名：Monopoly",
+            "alternatives_considered": [
+              "AEconomy",
+              "APropertyEconomy"
+            ]
+          },
+          "file_path": {
+            "resolved": "Source/Mvpv4TestCodex/Gameplay/MonopolyEconomy.h",
+            "tier": 3,
+            "evidence": "项目规范：Source/Mvpv4TestCodex/Gameplay/",
+            "alternatives_considered": []
+          },
+          "asset_path": {
+            "resolved": "/Game/Mvpv4TestCodex/Blueprints/Gameplay/BP_MonopolyEconomy",
+            "tier": 3,
+            "evidence": "项目规范：/Game/Mvpv4TestCodex/ 按 UE5 前缀落盘",
+            "alternatives_considered": []
+          }
+        }
+      },
+      {
+        "category": "naming",
+        "item_key": "bir_016_turn_flow_spec",
+        "change_type": "changed",
+        "impact": "low",
+        "run_a_value": {
+          "class_name": {
+            "resolved": "AMonopolyTurnFlow",
+            "tier": 2,
+            "evidence": "依据 contract_id 推导项目风格命名：Monopoly",
+            "alternatives_considered": [
+              "ATurnFlow"
+            ]
+          },
+          "file_path": {
+            "resolved": "Source/Mvpv4TestCodex/Gameplay/MonopolyTurnFlow.h",
+            "tier": 3,
+            "evidence": "项目规范：Source/Mvpv4TestCodex/Gameplay/",
+            "alternatives_considered": []
+          },
+          "asset_path": {
+            "resolved": "/Game/Mvpv4TestCodex/Blueprints/Gameplay/BP_MonopolyTurnFlow",
+            "tier": 3,
+            "evidence": "项目规范：/Game/Mvpv4TestCodex/ 按 UE5 前缀落盘",
+            "alternatives_considered": []
+          }
+        },
+        "run_b_value": {
+          "class_name": {
+            "resolved": "AMonopolyTurnLoop",
+            "tier": 2,
+            "evidence": "依据 contract_id 推导项目风格命名：Monopoly",
+            "alternatives_considered": [
+              "ATurnLoop",
+              "ATurnFlow"
+            ]
+          },
+          "file_path": {
+            "resolved": "Source/Mvpv4TestCodex/Gameplay/MonopolyTurnLoop.h",
+            "tier": 3,
+            "evidence": "项目规范：Source/Mvpv4TestCodex/Gameplay/",
+            "alternatives_considered": []
+          },
+          "asset_path": {
+            "resolved": "/Game/Mvpv4TestCodex/Blueprints/Gameplay/BP_MonopolyTurnLoop",
+            "tier": 3,
+            "evidence": "项目规范：/Game/Mvpv4TestCodex/ 按 UE5 前缀落盘",
+            "alternatives_considered": []
+          }
+        }
+      }
+    ],
+    "provisional_changes": {
+      "added": [],
+      "removed": []
+    }
+  },
+  "metadata": {
+    "run_a_promotable": true,
+    "run_b_promotable": true,
+    "compared_artifacts": [
+      "root_skill_contract.json",
+      "converged_realization_pack.json",
+      "skill_fragments/*.json",
+      "build_ir.json",
+      "naming_resolution_log.json",
+      "metadata.provisional_items"
+    ],
+    "cleanup_policy": {
+      "formal_runs": {
+        "policy": "manual_cleanup_only",
+        "retain": "forever"
+      },
+      "fast_mode_runs": {
+        "policy": "keep_latest_n",
+        "default_keep_count": 5
+      },
+      "promoted_batches": {
+        "policy": "retain_forever"
+      },
+      "failed_runs": {
+        "policy": "keep_execution_log",
+        "artifact_cleanup": "optional"
+      }
+    }
+  }
+}

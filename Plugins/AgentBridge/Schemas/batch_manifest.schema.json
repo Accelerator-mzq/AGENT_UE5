@@ -1,0 +1,168 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Phase 11 Batch Manifest",
+  "description": "promote 之后写入 batches/{batch_id}/manifest.json 的治理元数据。",
+  "type": "object",
+  "required": [
+    "manifest_version",
+    "batch_id",
+    "source_run_id",
+    "created_at",
+    "promoted_at",
+    "active",
+    "promoted_by",
+    "promoted_artifacts",
+    "source_snapshot",
+    "paths",
+    "cleanup_policy",
+    "metadata"
+  ],
+  "properties": {
+    "manifest_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "batch_id": {
+      "type": "string",
+      "pattern": "^batch-\\d{8}-\\d{3}$"
+    },
+    "source_run_id": {
+      "type": "string",
+      "pattern": "^run-\\d{8}-\\d{6}-[0-9a-fA-F]{4,12}$"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "promoted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "active": {
+      "type": "boolean"
+    },
+    "promoted_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "promoted_artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_snapshot": {
+      "type": "object",
+      "required": [
+        "session_version",
+        "status",
+        "fast_mode",
+        "pipeline_stages_completed",
+        "constraint_violations",
+        "promotable",
+        "run_output_dir"
+      ],
+      "properties": {
+        "session_version": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "fast_mode": {
+          "type": "boolean"
+        },
+        "generator_provider": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pipeline_stages_completed": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": [
+              "integer",
+              "string"
+            ]
+          }
+        },
+        "constraint_violations": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "promotable": {
+          "type": "boolean"
+        },
+        "run_output_dir": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "paths": {
+      "type": "object",
+      "required": [
+        "batch_dir",
+        "promoted_artifacts_dir",
+        "promotion_report_path"
+      ],
+      "properties": {
+        "batch_dir": {
+          "type": "string"
+        },
+        "promoted_artifacts_dir": {
+          "type": "string"
+        },
+        "promotion_report_path": {
+          "type": "string"
+        }
+      }
+    },
+    "cleanup_policy": {
+      "$ref": "#/definitions/cleanup_policy"
+    },
+    "metadata": {
+      "type": "object",
+      "required": [
+        "base_project_pointer_updated",
+        "note"
+      ],
+      "properties": {
+        "base_project_pointer_updated": {
+          "type": "boolean"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "cleanup_policy": {
+      "type": "object",
+      "required": [
+        "formal_runs",
+        "fast_mode_runs",
+        "promoted_batches",
+        "failed_runs"
+      ],
+      "properties": {
+        "formal_runs": {
+          "type": "object"
+        },
+        "fast_mode_runs": {
+          "type": "object"
+        },
+        "promoted_batches": {
+          "type": "object"
+        },
+        "failed_runs": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

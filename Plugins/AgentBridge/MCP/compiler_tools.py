@@ -299,6 +299,14 @@ def _load_stage_artifact(session: CompilerSession, stage_num: int) -> dict:
         return json.load(f)
 
 
+def _resolve_node_state(session: CompilerSession, node_id: str, node_state: dict | None) -> dict | None:
+    """优先使用调用方传入的 node_state，否则尝试从 sidecar 读回已保存状态。"""
+    if node_state is not None:
+        return node_state
+    persisted_state = dsr_stage.load_mcp_node_state(session.output_dir, node_id)
+    return persisted_state or None
+
+
 def compiler_stage4_node_prepare(
     session_path: str,
     node_id: str,
@@ -332,7 +340,7 @@ def compiler_stage4_node_prepare(
             root_skill_contract=root_skill_contract,
             clarification_gate_report=clarification_gate_report,
             phase_scope=session.target_phase,
-            node_state=node_state,
+            node_state=_resolve_node_state(session, node_id, node_state),
         )
 
         if result.get("status") == "error":
@@ -392,7 +400,8 @@ def compiler_stage4_node_save(
             root_skill_contract=root_skill_contract,
             clarification_gate_report=clarification_gate_report,
             phase_scope=session.target_phase,
-            node_state=node_state,
+            node_state=_resolve_node_state(session, node_id, node_state),
+            output_dir=session.output_dir,
         )
 
         if result.get("status") == "error":
@@ -408,7 +417,7 @@ def compiler_stage4_node_save(
 
         # 记录 generator_provider 到 session（MCP Agent 模式）
         if not session.generator_provider:
-            session.generator_provider = "llm"  # MCP Agent 视为 LLM 驱动
+            session.generator_provider = "mcp_agent"
             session.save()
 
         summary = f"Stage 4 节点 {node_id} {phase} 保存成功"

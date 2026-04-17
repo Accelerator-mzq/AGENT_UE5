@@ -31,8 +31,8 @@ can_emit_families:
 depends_on_templates: []
 
 gameplay_coupling:
-  - monopoly_turn_and_dice_flow
-  - monopoly_property_economy
-  - monopoly_jail_and_bankruptcy
+  - turn_loop
+  - property_economy
+  - jail_and_bankruptcy
 
 priority: medium

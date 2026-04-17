@@ -1,7 +1,7 @@
 # AgentBridge 系统测试用例总表
 
-> 来源：`Docs/History/Phase1_MVP/task.md` + `Docs/History/Tasks/task1_phase3.md` + `Docs/History/Tasks/task2_phase4.md` + `Docs/History/Tasks/task3_phase5.md` + `Docs/History/Tasks/task4_phase6.md` + `Docs/History/Tasks/task6_phase7.md` + [task10_phase10.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task10_phase10.md) + [17_Phase10_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/17_Phase10_Closeout.md) 中的验收标准与验证步骤
-> 最后更新：2026-04-11
+> 来源：`Docs/History/Phase1_MVP/task.md` + `Docs/History/Tasks/task1_phase3.md` + `Docs/History/Tasks/task2_phase4.md` + `Docs/History/Tasks/task3_phase5.md` + `Docs/History/Tasks/task4_phase6.md` + `Docs/History/Tasks/task6_phase7.md` + [task10_phase10.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task10_phase10.md) + [17_Phase10_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/17_Phase10_Closeout.md) + [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) + [18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/18_Phase11_Closeout.md) 中的验收标准与验证步骤
+> 最后更新：2026-04-17
 > 维护者：msc
 
 ---
@@ -24,6 +24,7 @@
 - [13. Gauntlet CI/CD（GA）](#13-gauntlet-cicdga)
 - [14. 端到端集成（E2E）](#14-端到端集成e2e)
 - [15. MCP Server 集成（MCP）](#15-mcp-server-集成mcp)
+- [16. Phase 11 设计编译器框架（P11）](#16-phase-11-设计编译器框架p11)
 - [附录 A：UE5 Automation Test ID 速查表](#附录-aue5-automation-test-id-速查表)
 - [附录 B：统计摘要](#附录-b统计摘要)
 - [附录 C：自动化工具链](#附录-c自动化工具链)
@@ -47,8 +48,9 @@
 | SS | Skills & Specs | Python | pytest / `yaml.safe_load` |
 | GA | Gauntlet CI/CD | UE5 + UAT | `RunUAT.bat RunUnreal -test=SmokeTests/AllTests` |
 | E2E | 端到端集成 | 全栈 | 多步流水线（Schema→Cmd→Gauntlet→三通道脚本） |
+| P11 | Phase 11 设计编译器框架 | Python + 报告证据 + 局部 live inventory | `run_system_tests.py --stage=11` / Phase 11 专项脚本 / 证据读回 |
 
-> 全部 248 条用例均已登记到当前测试总表。证据目录分层为：`ProjectState/Reports/`（当期执行）+ `Docs/History/reports/AgentBridgeEvidence/`（历史归档）。
+> 全部 266 条用例均已登记到当前测试总表。证据目录分层为：`ProjectState/Reports/`（当期执行）+ `Docs/History/reports/AgentBridgeEvidence/`（历史归档）。
 
 ---
 
@@ -574,6 +576,37 @@
 
 ---
 
+## 16. Phase 11 设计编译器框架（P11）
+
+> 来源：[task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) `TASK 02 ~ TASK 15` + [18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/18_Phase11_Closeout.md) + [task15_phase11_final_acceptance.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/task15_phase11_final_acceptance.md)
+> 自动化方式：Python 静态校验 + Phase 11 证据报告读回 + 局部 live inventory / schema 检查
+> 环境要求：Python 3.x；若仅做证据对账，不要求 UE5 Editor 常驻
+
+| 编号 | 用例名称 | 测试方式 | 预期结果 |
+|------|---------|---------|---------|
+| P11-01 | Session v2 字段扩展与 `compiler_session.schema.json` 兼容升级 | 读取 `task02_phase11_session_v2_validation.md` + 检查 `compiler_session.schema.json` | `session_version / run_id / fast_mode / generator_provider` 字段存在，v1/v2 兼容验证通过 |
+| P11-02 | Pipeline v1/v2 stage map 与 artifact map 路由 | 读取 `task03_phase11_pipeline_v2_routing.md` + 校验 `pipeline_orchestrator.py` 的 v2 最大阶段数与产物映射 | v1 最大阶段为 5，v2 最大阶段为 7，v2 产物映射覆盖 Stage 1-7 |
+| P11-03 | 第一批 7 个 Schema 与 example 严格校验 | 读取 `task04_phase11_schema_batch1_validation.md` + `python validate_examples.py --strict` | 7 个新 Schema、7 个新 example 已登记，strict 校验通过 |
+| P11-04 | Phase 11 MCP 前端工具、alias 与 Stage 4 工具库存对齐 | 读取 `task05_phase11_mcp_frontend_tools.md` + live 检查 `tool_definitions.py` / `server.py` | 可见工具数为 53；Compiler 前端工具含 Root Skill / Clarification / Skill Graph / Stage 4 prepare/save / alias |
+| P11-05 | Root Skill Contract 真实生成与 Universal Baseline 基线注入 | 读取 `task06_phase11_root_skill_contract_generation.md` + `root_skill_contract.json` | `constraint_fields` / `variant_fields` / `baseline_capabilities` 非空，Settings 六项底线存在 |
+| P11-06 | Clarification Gate 决策、provisional 传播与 fast_mode 风险保护 | 读取 `task07_phase11_clarification_gate.md` + `clarification_gate_report.json` | 四档决策存在，`provisional_items` 可下游传播，high/critical 不会被 fast_mode 偷偷默认 |
+| P11-07 | Skill Graph Planning 节点/边与 baseline 注入 | 读取 `task08_phase11_skill_graph_planning.md` + `skill_graph.json` | gameplay / baseline 节点数量达标，`dependency / coupling / convergence_order` 边存在，未提前写死 realization |
+| P11-08 | Stage 4 GeneratorProvider 三路治理口径 | 读取 `task09b_phase11_three_provider_validation.md` | `MCP Agent` 通过，`Heuristic Fallback` 通过，`LLM Internal` 处于暂停待升级状态且未被误判为通过 |
+| P11-09 | MCP Agent Stage 4 sidecar 持久化与双跑差异化 | 读取 `mcp_agent_dual_run_variation_test.md/json` | `stage4_mcp_agent_sidecar/` 已持久化，双跑同输入的 Discovery / Candidates / Convergence / Fragment 存在差异 |
+| P11-10 | Cross Review v2 / Build IR v2 / Handoff v3 / naming_resolution_log | 读取 `task10_phase11_review_lowering_handoff_validation.md` + TASK 10 定向 example 输出 | 5 个新 Schema 对应 example 与定向输出均通过，`reviewed_handoff_v3` / `design_decision_log` 结构完整 |
+| P11-11 | Monopoly GDD v2 完整 run 与 run metadata 校验 | 读取 `task11_phase11_e2e_validation.md` + run 目录产物 | `metadata.json` 记录 `generator_provider / fast_mode / promotable`，核心 Stage 4-7 产物非空且 schema 可读 |
+| P11-12 | Monopoly 最小可玩闭环的 compiler-level 覆盖矩阵 | 读取 `task11_phase11_playability_validation.md` | 28 格棋盘、2D6、起点奖励、购买/租金、税务、入狱、破产、胜利、HUD 与基础弹窗交互均有编译器产物映射 |
+| P11-13 | Universal Game Baseline 与 Shell Flow 覆盖 | 读取 `task11_phase11_baseline_coverage_validation.md` | Start Screen / Main Menu / Settings / Pause / Results / HUD 与 Settings 六项底线覆盖通过 |
+| P11-14 | Run Compare / Promote 治理工具与批次治理 | 读取 `task12_phase11_run_governance_validation.md` + `run_comparison.json` / batch 指针 | compare 产物通过 schema，promote 只允许 promotable run，fast_mode 与 failed run 被拒绝 |
+| P11-15 | 完整 fast_mode 策略 | 读取 `task13_phase11_fast_mode_validation.md` + `task13_fast_mode_summary.json` | fast_mode run `promotable=false`，Stage 4 聚合产物 entry_count=0 且 `fast_mode_skipped=true`，heuristic_fallback 同样不可 promote |
+| P11-16 | Baseline Domain Skill Template 全套 | 读取 `task14_phase11_baseline_template_validation.md` + `task14_baseline_template_summary.json` | 6 个 baseline 模板目录均含 6 个标准文件，`template_source=plugin_skill_template`，模板不混入 Monopoly 实例数据 |
+| P11-17 | UE 运行时最小可玩性、Baseline Domain 与 cooked/staged standalone | 读取 `task14a_standalone_runtime_smoke_validation.md` + `task14a_ue_runtime_playability_validation.md` + `task14a_baseline_domain_runtime_validation.md` | cooked/staged standalone 路径通过，最小玩法闭环与 6 个 Baseline Domain 均有运行时证据 |
+| P11-18 | Phase 11 最终验收、文档收尾与功能覆盖报告 | 读取 `task15_phase11_final_acceptance.md` + `phase11_feature_coverage_report.md` | `TASK 01-14 / 14A` 证据齐全，Phase 11 文档包功能覆盖完成，Current 文档已切到 Completed 口径 |
+
+> 证据：[task15_phase11_final_acceptance.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/task15_phase11_final_acceptance.md) + [phase11_feature_coverage_report.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/phase11_feature_coverage_report.md) + [task14a_standalone_runtime_smoke_validation.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/task14a_standalone_runtime_smoke_validation.md)
+
+---
+
 ## 附录 A：UE5 Automation Test ID 速查表
 
 | Test ID | 全名 | 类型 | 所属分类 |
@@ -622,7 +655,8 @@
 | GA Gauntlet | 6 | 🟢 全部 |
 | E2E 端到端 | 40 | 🟢 全部 |
 | MCP MCP 集成 | 10 | 🟢 自动+证据 |
-| **合计** | **248** | **🟢 248 条已登记** |
+| P11 Phase 11 设计编译器框架 | 18 | 🟢 自动+证据 |
+| **合计** | **266** | **🟢 266 条已登记** |
 
 ---
 
@@ -647,3 +681,10 @@
 | `bridge_core.py` + `query_tools.py` | Python Bridge 客户端（三通道） | PY, ORC, E2E-11, E2E-17 |
 | Python `import unreal` 脚本 | Channel A（Python Editor Scripting API） | E2E-11 |
 | HTTP `curl localhost:30010` | RC API 探测 / Channel B | BL-06, E2E-11 |
+| `python Plugins/AgentBridge/Tests/scripts/task11_phase11_mcp_e2e.py` | Phase 11 v2 Monopoly run、compiler-level playability 与 baseline 覆盖验收 | P11-11 ~ P11-13 |
+| `python Plugins/AgentBridge/Tests/scripts/task12_phase11_run_governance_validation.py` | Run compare / promote / batch 治理验证 | P11-14 |
+| `python Plugins/AgentBridge/Tests/scripts/task13_phase11_fast_mode_validation.py` | fast_mode 与 heuristic_fallback 不可 promote 验收 | P11-15 |
+| `python Plugins/AgentBridge/Tests/scripts/task14_phase11_baseline_template_validation.py` | Baseline Template 盘点、模板来源与 fragment 结构验证 | P11-16 |
+| `python Plugins/AgentBridge/Tests/scripts/task14a_phase11_ue_runtime_validation.py` | UE 运行时日志回读，可玩性与 Baseline Domain 证据重建 | P11-17 |
+| `python Plugins/AgentBridge/Tests/scripts/task14a_phase11_standalone_smoke.py` | cooked/staged standalone smoke 自动化 | P11-17 |
+| `python Plugins/AgentBridge/Tests/run_system_tests.py --stage=11` | Phase 11 归档前系统测试对账入口 | P11-01 ~ P11-18 |

@@ -1,7 +1,7 @@
 # 历史任务清单索引
 
-> 文档版本：v2
-> 最后更新：2026-04-11
+> 文档版本：v3
+> 最后更新：2026-04-17
 
 ## 说明
 
@@ -23,3 +23,4 @@
 | Phase 8 | `Docs/History/Tasks/task8_phase8.md` | Skill-First Compiler 骨架、Monopoly Template Pack、Phase 8 文档切换 |
 | Phase 9 | `Docs/History/Tasks/task9_phase9.md` | MCP Server 正式接入、28 个 Bridge 工具、文档治理收口 |
 | Phase 10 | `Docs/History/Tasks/task10_phase10.md` | MCP 认知桥接层 + Compiler Pipeline 编排 + MonopolyGame 端到端闭环 |
+| Phase 11 | `Docs/History/Tasks/task11_phase11.md` | Skill-First Design Compiler Framework、Run 治理、Baseline Domain 模板体系、UE 最小可玩性验收 |

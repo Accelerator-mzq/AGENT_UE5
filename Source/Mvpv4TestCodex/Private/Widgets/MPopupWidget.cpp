@@ -112,6 +112,11 @@ void UMPopupWidget::ClosePopup()
 	RemoveFromParent();
 }
 
+void UMPopupWidget::TriggerButton(const int32 ButtonIndex)
+{
+	HandleButtonClicked(ButtonIndex);
+}
+
 void UMPopupWidget::HandlePrimaryButtonClicked()
 {
 	HandleButtonClicked(0);

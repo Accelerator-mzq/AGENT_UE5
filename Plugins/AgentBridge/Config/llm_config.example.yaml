@@ -10,12 +10,14 @@ api_key: "YOUR_API_KEY_HERE"
 # 模型名（按 provider 填写对应模型 ID）
 model: "claude-sonnet-4-20250514"
 
-# 可选：自定义 API base URL（仅 openai_compatible 需要）
+# 可选：自定义 API base URL（中转站 / 兼容接口常用；anthropic 也支持）
 # base_url: "http://localhost:11434/v1"
 
 # 可选：生成参数
 max_tokens: 8192
 temperature: 0.7
+# Anthropic 路径建议显式配置超时，避免 Stage 4 长链路卡太久
+timeout_sec: 60
 
 # 其他 provider 示例：
 #
@@ -23,6 +25,8 @@ temperature: 0.7
 # provider: "anthropic"
 # api_key: "sk-ant-api03-real-key"
 # model: "claude-sonnet-4-20250514"
+# base_url: "https://api.minimaxi.com/anthropic"
+# timeout_sec: 60
 #
 # OpenAI（GPT 系列）
 # provider: "openai"

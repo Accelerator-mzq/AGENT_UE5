@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Phase 11 Design Decision Log",
+  "description": "Stage 4 非平凡设计选择的结构化日志。",
+  "type": "object",
+  "required": [
+    "log_version",
+    "source_kind",
+    "entries",
+    "metadata"
+  ],
+  "properties": {
+    "log_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "source_kind": {
+      "type": "string",
+      "enum": [
+        "skill_fragment",
+        "converged_realization_pack",
+        "manual_review"
+      ]
+    },
+    "source_id": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "decision_id",
+          "topic",
+          "chosen",
+          "rationale",
+          "impact"
+        ],
+        "properties": {
+          "decision_id": {
+            "type": "string"
+          },
+          "topic": {
+            "type": "string"
+          },
+          "context": {
+            "type": "string"
+          },
+          "chosen": {
+            "type": "string"
+          },
+          "rationale": {
+            "type": "string"
+          },
+          "alternatives": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "provisional": {
+            "type": "boolean"
+          },
+          "fast_mode_default": {
+            "type": "boolean"
+          },
+          "impact": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "required": [
+        "generated_at",
+        "generator"
+      ],
+      "properties": {
+        "generated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "generator": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

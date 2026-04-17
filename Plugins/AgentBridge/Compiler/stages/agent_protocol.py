@@ -38,6 +38,11 @@ class ProviderNotAvailable(Exception):
     pass
 
 
+def _now_iso() -> str:
+    """统一当前时间格式。"""
+    return datetime.now(timezone.utc).isoformat()
+
+
 # ---------------------------------------------------------------------------
 # SkillTemplate Prompt 加载
 # ---------------------------------------------------------------------------
@@ -219,12 +224,141 @@ def _default_evaluator_dimensions(phase: str) -> List[str]:
     return []
 
 
+def _is_html_response_text(text: str) -> bool:
+    """检测返回内容是否明显是 HTML 页面，而不是模型 JSON。"""
+    normalized = (text or "").lstrip().lower()
+    return normalized.startswith("<!doctype html") or normalized.startswith("<html")
+
+
+def normalize_phase_output(phase: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    """按阶段对输出做轻量字段归一化，兼容常见别名。"""
+    if not isinstance(payload, dict):
+        return payload
+
+    normalized = dict(payload)
+    if phase == "discovery":
+        if "discovery_dimensions" not in normalized and "open_dimensions" in normalized:
+            normalized["discovery_dimensions"] = normalized.get("open_dimensions", [])
+        normalized.setdefault("locked_dimensions", normalized.get("locked_dimensions", []))
+        return normalized
+
+    if phase == "candidates":
+        if "candidates" not in normalized and "dimensions" in normalized:
+            normalized["candidates"] = normalized.get("dimensions", [])
+        return normalized
+
+    if phase == "convergence":
+        if "converged_choices" not in normalized and "convergence_decisions" in normalized:
+            normalized["converged_choices"] = normalized.get("convergence_decisions", [])
+        if "cross_dimension_consistency" not in normalized:
+            normalized["cross_dimension_consistency"] = normalized.get("consistency", {})
+
+        converged_choices = normalized.get("converged_choices", [])
+        if isinstance(converged_choices, list):
+            patched_choices = []
+            for choice in converged_choices:
+                if not isinstance(choice, dict):
+                    patched_choices.append(choice)
+                    continue
+                patched = dict(choice)
+                if "chosen_candidate" not in patched and "selected_candidate_id" in patched:
+                    patched["chosen_candidate"] = patched.get("selected_candidate_id", "")
+                patched_choices.append(patched)
+            normalized["converged_choices"] = patched_choices
+        return normalized
+
+    return normalized
+
+
+def validate_phase_output_for_acceptance(phase: str, output: Dict[str, Any]) -> List[str]:
+    """按阶段校验输出是否满足最小可接受结构。"""
+    if not isinstance(output, dict):
+        return ["输出必须是 JSON object。"]
+
+    errors: List[str] = []
+    if output.get("empty_response"):
+        errors.append("模型返回了空响应。")
+    if output.get("parse_error"):
+        errors.append("输出不是合法 JSON。")
+
+    raw_response = output.get("raw_response", "")
+    if isinstance(raw_response, str) and _is_html_response_text(raw_response):
+        errors.append("输出看起来是 HTML 页面，不是模型 JSON。")
+
+    normalized = normalize_phase_output(phase, output)
+    if phase == "discovery":
+        dimensions = normalized.get("discovery_dimensions", [])
+        if not isinstance(dimensions, list) or not dimensions:
+            errors.append("discovery_dimensions 必须是非空数组。")
+        locked_dimensions = normalized.get("locked_dimensions", [])
+        if not isinstance(locked_dimensions, list):
+            errors.append("locked_dimensions 必须是数组。")
+        return errors
+
+    if phase == "candidates":
+        candidates = normalized.get("candidates", [])
+        if not isinstance(candidates, list) or not candidates:
+            errors.append("candidates 必须是非空数组。")
+            return errors
+        for index, group in enumerate(candidates):
+            if not isinstance(group, dict):
+                errors.append(f"candidates[{index}] 必须是 object。")
+                continue
+            if not group.get("dimension_id"):
+                errors.append(f"candidates[{index}] 缺少 dimension_id。")
+            group_candidates = group.get("candidates", [])
+            if not isinstance(group_candidates, list) or not group_candidates:
+                errors.append(f"candidates[{index}].candidates 必须是非空数组。")
+        return errors
+
+    if phase == "convergence":
+        choices = normalized.get("converged_choices", [])
+        if not isinstance(choices, list) or not choices:
+            errors.append("converged_choices 必须是非空数组。")
+            return errors
+        for index, choice in enumerate(choices):
+            if not isinstance(choice, dict):
+                errors.append(f"converged_choices[{index}] 必须是 object。")
+                continue
+            if not choice.get("dimension_id"):
+                errors.append(f"converged_choices[{index}] 缺少 dimension_id。")
+            if not choice.get("chosen_candidate"):
+                errors.append(f"converged_choices[{index}] 缺少 chosen_candidate。")
+            if not choice.get("rationale"):
+                errors.append(f"converged_choices[{index}] 缺少 rationale。")
+            rejected = choice.get("rejected_alternatives", [])
+            if not isinstance(rejected, list):
+                errors.append(f"converged_choices[{index}].rejected_alternatives 必须是数组。")
+        consistency = normalized.get("cross_dimension_consistency", {})
+        if consistency is not None and not isinstance(consistency, dict):
+            errors.append("cross_dimension_consistency 必须是 object。")
+        return errors
+
+    return errors
+
+
 # ---------------------------------------------------------------------------
 # 默认启发式 Evaluator（无 LLM 时使用）
 # ---------------------------------------------------------------------------
 
 def heuristic_evaluate_discovery(output: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
     """启发式 Discovery Evaluator。检查结构完整性和基本质量。"""
+    validation_errors = validate_phase_output_for_acceptance("discovery", output)
+    if validation_errors:
+        return {
+            "phase": "discovery",
+            "overall_verdict": "fail",
+            "scores": {
+                "format_validity": {
+                    "score": 0.0,
+                    "verdict": "fail",
+                }
+            },
+            "specific_feedback": validation_errors,
+            "retry_hint": "只返回合法 JSON，并保证 discovery_dimensions 为非空数组。",
+        }
+
+    output = normalize_phase_output("discovery", output)
     dimensions = output.get("discovery_dimensions", [])
     locked = output.get("locked_dimensions", [])
     scores = {}
@@ -273,6 +407,22 @@ def heuristic_evaluate_discovery(output: Dict[str, Any], context: Dict[str, Any]
 
 def heuristic_evaluate_candidates(output: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
     """启发式 Candidates Evaluator。"""
+    validation_errors = validate_phase_output_for_acceptance("candidates", output)
+    if validation_errors:
+        return {
+            "phase": "candidates",
+            "overall_verdict": "fail",
+            "scores": {
+                "format_validity": {
+                    "score": 0.0,
+                    "verdict": "fail",
+                }
+            },
+            "specific_feedback": validation_errors,
+            "retry_hint": "只返回合法 JSON，并保证 candidates 为非空数组。",
+        }
+
+    output = normalize_phase_output("candidates", output)
     candidates = output.get("candidates", [])
     scores = {}
 
@@ -322,6 +472,22 @@ def heuristic_evaluate_candidates(output: Dict[str, Any], context: Dict[str, Any
 
 def heuristic_evaluate_convergence(output: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
     """启发式 Convergence Evaluator。"""
+    validation_errors = validate_phase_output_for_acceptance("convergence", output)
+    if validation_errors:
+        return {
+            "phase": "convergence",
+            "overall_verdict": "fail",
+            "scores": {
+                "format_validity": {
+                    "score": 0.0,
+                    "verdict": "fail",
+                }
+            },
+            "specific_feedback": validation_errors,
+            "retry_hint": "只返回合法 JSON，并保证 converged_choices 为非空数组。",
+        }
+
+    output = normalize_phase_output("convergence", output)
     choices = output.get("converged_choices", [])
     scores = {}
 
@@ -431,7 +597,10 @@ class LLMProvider(GeneratorProvider):
             )
 
         # 组装 prompt
-        system_prompt = template_prompts.get("system_prompt", "")
+        system_prompt = self._build_strict_system_prompt(
+            template_prompts.get("system_prompt", ""),
+            phase,
+        )
         domain_prompt = template_prompts.get("domain_prompt", "")
 
         # 按阶段选择指令
@@ -453,7 +622,29 @@ class LLMProvider(GeneratorProvider):
         raw_response = self._client.call(messages)
 
         # 解析结构化输出
-        return self._parse_response(raw_response, phase)
+        parsed = self._parse_or_repair_response(
+            raw_response=raw_response,
+            phase=phase,
+            original_messages=messages,
+        )
+        if isinstance(parsed, dict):
+            parsed = normalize_phase_output(phase, parsed)
+            parsed.setdefault("metadata", {})
+            parsed["metadata"]["generator_type"] = "llm"
+            parsed["metadata"]["generated_at"] = _now_iso()
+            parsed["metadata"]["promotable"] = True
+        return parsed
+
+    def _build_strict_system_prompt(self, system_prompt: str, phase: str) -> str:
+        """把 JSON-only 约束注入 system prompt。"""
+        strict_rules = (
+            "\n\n# 输出硬约束\n"
+            "你必须只返回一个合法 JSON object。\n"
+            "禁止输出 Markdown、代码块、解释文字、前后缀、致歉语。\n"
+            "如果你无法确定，也必须返回符合结构的 JSON object，而不是空字符串。\n"
+            f"当前阶段必须满足的最小结构如下：\n{self._phase_json_contract(phase)}\n"
+        )
+        return (system_prompt or "").strip() + strict_rules
 
     def _phase_instruction(self, phase: str, kwargs: Dict[str, Any]) -> str:
         """按阶段生成指令片段。"""
@@ -482,6 +673,75 @@ class LLMProvider(GeneratorProvider):
             )
         return ""
 
+    def _phase_json_contract(self, phase: str) -> str:
+        """返回阶段级 JSON 结构契约，供主 prompt 与 repair prompt 复用。"""
+        if phase == "discovery":
+            return json.dumps(
+                {
+                    "discovery_dimensions": [
+                        {
+                            "dimension_id": "string",
+                            "name": "string",
+                            "description": "string",
+                            "design_freedom": "high|medium|low",
+                            "variant_bounds": {},
+                            "coupled_dimensions": [],
+                        }
+                    ],
+                    "locked_dimensions": [],
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        if phase == "candidates":
+            return json.dumps(
+                {
+                    "candidates": [
+                        {
+                            "dimension_id": "string",
+                            "candidates": [
+                                {
+                                    "candidate_id": "string",
+                                    "name": "string",
+                                    "description": "string",
+                                    "trade_offs": {
+                                        "pros": [],
+                                        "cons": [],
+                                    },
+                                    "satisfies_bounds": True,
+                                    "estimated_complexity": "low|medium|high",
+                                }
+                            ],
+                        }
+                    ]
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        return json.dumps(
+            {
+                "converged_choices": [
+                    {
+                        "dimension_id": "string",
+                        "chosen_candidate": "string",
+                        "rationale": "string",
+                        "rejected_alternatives": [
+                            {
+                                "candidate_id": "string",
+                                "rejection_reason": "string",
+                            }
+                        ],
+                        "provisional": False,
+                    }
+                ],
+                "cross_dimension_consistency": {
+                    "conflicts": [],
+                },
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+
     def _build_user_message(
         self,
         phase: str,
@@ -496,8 +756,87 @@ class LLMProvider(GeneratorProvider):
             f"\n## 当前节点\n\n```json\n{json.dumps(node, ensure_ascii=False, indent=2)}\n```",
             f"\n## Context Bundle\n\n```json\n{json.dumps(context_bundle, ensure_ascii=False, indent=2, default=str)}\n```",
             f"\n## 任务：{phase}\n\n{phase_instruction}",
+            f"\n## 输出格式硬约束\n\n只返回一个 JSON object，结构必须满足：\n```json\n{self._phase_json_contract(phase)}\n```",
         ]
         return "\n".join(parts)
+
+    def _parse_or_repair_response(
+        self,
+        raw_response: str,
+        phase: str,
+        original_messages: List[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """先解析，再按阶段结构做 repair；空响应直接视为失败。"""
+        normalized_raw = (raw_response or "").strip()
+        if not normalized_raw:
+            return {
+                "parse_error": True,
+                "empty_response": True,
+                "raw_response": "",
+            }
+
+        parsed = normalize_phase_output(phase, self._parse_response(normalized_raw, phase))
+        validation_errors = validate_phase_output_for_acceptance(phase, parsed)
+        if not validation_errors:
+            return parsed
+
+        # 明显拿到了 HTML 页面时，不再浪费 repair 配额，直接作为 provider 失败线索返回。
+        if _is_html_response_text(normalized_raw):
+            parsed["validation_errors"] = validation_errors
+            return parsed
+
+        last_parsed = parsed
+        for repair_attempt in range(1, 3):
+            repair_messages = self._build_repair_messages(
+                phase=phase,
+                raw_response=normalized_raw,
+                validation_errors=validation_errors,
+            )
+            repaired_response = self._client.call(repair_messages)
+            repaired_text = (repaired_response or "").strip()
+            if not repaired_text:
+                last_parsed = {
+                    "parse_error": True,
+                    "empty_response": True,
+                    "raw_response": "",
+                    "repair_attempt": repair_attempt,
+                }
+                continue
+
+            last_parsed = normalize_phase_output(phase, self._parse_response(repaired_text, phase))
+            validation_errors = validate_phase_output_for_acceptance(phase, last_parsed)
+            if not validation_errors:
+                return last_parsed
+
+        last_parsed["validation_errors"] = validation_errors
+        return last_parsed
+
+    def _build_repair_messages(
+        self,
+        phase: str,
+        raw_response: str,
+        validation_errors: List[str],
+    ) -> List[Dict[str, str]]:
+        """构造 schema-aware repair 消息。"""
+        return [
+            {
+                "role": "system",
+                "content": (
+                    "你是 JSON 修复器。"
+                    "你的唯一任务是把上一条错误输出修复成一个合法 JSON object。"
+                    "禁止解释，禁止 Markdown，禁止额外文字。"
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"当前阶段：{phase}\n"
+                    f"必须满足的 JSON 结构：\n{self._phase_json_contract(phase)}\n\n"
+                    f"当前校验错误：\n- " + "\n- ".join(validation_errors) + "\n\n"
+                    f"待修复的原始输出：\n{raw_response}"
+                ),
+            },
+        ]
 
     def _parse_response(self, raw_response: str, phase: str) -> Dict[str, Any]:
         """从 LLM 原始输出中解析 JSON。"""
@@ -513,6 +852,14 @@ class LLMProvider(GeneratorProvider):
         if json_match:
             try:
                 return json.loads(json_match.group(1))
+            except json.JSONDecodeError:
+                pass
+
+        # 兜底尝试提取任意 fenced code block。
+        fenced_match = re.search(r"```\s*(.*?)\s*```", raw_response, re.DOTALL)
+        if fenced_match:
+            try:
+                return json.loads(fenced_match.group(1))
             except json.JSONDecodeError:
                 pass
 
@@ -680,14 +1027,34 @@ class AgentPhaseRunner:
                 gen_input["prior_feedback"] = feedback
 
             # Generator 调用（通过 Provider）
-            gen_output = self.provider.generate(
-                phase=self.phase,
-                context_bundle=gen_input,
-                template_prompts=template_prompts,
-                node=node,
-                **generator_kwargs,
-            )
+            try:
+                gen_output = self.provider.generate(
+                    phase=self.phase,
+                    context_bundle=gen_input,
+                    template_prompts=template_prompts,
+                    node=node,
+                    **generator_kwargs,
+                )
+            except Exception as exc:
+                failure_eval = {
+                    "phase": self.phase,
+                    "overall_verdict": "fail",
+                    "scores": {},
+                    "specific_feedback": [f"provider 调用失败: {str(exc)}"],
+                    "retry_hint": "检查 provider 配置、base_url 和输出格式约束。",
+                }
+                traces.append(create_trace(
+                    skill_instance_id=skill_instance_id,
+                    phase=self.phase,
+                    role="generator",
+                    attempt=attempt,
+                    input_data=gen_input,
+                    output_data={"error": str(exc), "schema_valid": False},
+                    provider_type=self.provider.provider_type,
+                ))
+                return None, traces, failure_eval
             last_output = gen_output
+            phase_validation_errors = validate_phase_output_for_acceptance(self.phase, gen_output)
 
             traces.append(create_trace(
                 skill_instance_id=skill_instance_id,
@@ -695,7 +1062,11 @@ class AgentPhaseRunner:
                 role="generator",
                 attempt=attempt,
                 input_data=gen_input,
-                output_data={"parsed_json": gen_output, "schema_valid": True},
+                output_data={
+                    "parsed_json": gen_output,
+                    "schema_valid": not phase_validation_errors,
+                    "validation_errors": phase_validation_errors,
+                },
                 provider_type=self.provider.provider_type,
             ))
 

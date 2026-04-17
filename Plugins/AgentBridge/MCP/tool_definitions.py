@@ -479,6 +479,36 @@ EVIDENCE_JUDGE_TOOLS = {
         },
         "returns": "run_id 列表",
     },
+    "evidence_compare_runs": {
+        "description": "比较两个 Phase 11 run 的核心产物差异，覆盖 Constraint、Realization、Fragment、Build IR、Naming、Provisional。",
+        "params": {
+            "run_a_id": {"type": "string", "required": True, "description": "基准 run_id"},
+            "run_b_id": {"type": "string", "required": True, "description": "对比 run_id"},
+            "output_path": {"type": "string", "required": False, "description": "可选：将 run_comparison.json 落盘到指定路径"},
+        },
+        "returns": "run_comparison 结构化比较结果",
+    },
+    "evidence_create_batch": {
+        "description": "从指定 promotable run 创建 batch，复制 promoted_artifacts 并生成 manifest / promotion_report。",
+        "params": {
+            "source_run_id": {"type": "string", "required": True, "description": "来源 run_id"},
+            "promoted_by": {"type": "string", "required": False, "description": "promote 执行者标识"},
+            "notes": {"type": "string", "required": False, "description": "promote 备注"},
+            "make_active": {"type": "boolean", "required": False, "description": "是否将该 batch 设为 active，默认 true"},
+        },
+        "returns": "batch_id、manifest 路径、promotion_report 路径与 promoted_artifacts 目录",
+    },
+    "evidence_promote_run": {
+        "description": "promote run 到 batch，并更新治理层 baseline 指针。",
+        "params": {
+            "source_run_id": {"type": "string", "required": True, "description": "来源 run_id"},
+            "promoted_by": {"type": "string", "required": False, "description": "promote 执行者标识"},
+            "notes": {"type": "string", "required": False, "description": "promote 备注"},
+            "make_active": {"type": "boolean", "required": False, "description": "是否将该 batch 设为 active，默认 true"},
+            "update_base_project": {"type": "boolean", "required": False, "description": "是否更新治理层 baseline 指针，默认 true"},
+        },
+        "returns": "batch_id、manifest 路径、promotion_report 路径与 baseline 指针更新结果",
+    },
 }
 
 
@@ -497,7 +527,7 @@ ALL_TOOLS.update(EVIDENCE_JUDGE_TOOLS)
 
 TOOL_COUNT = len(ALL_TOOLS)
 # 当前 flat alias layout：
-# 7(query) + 6(write) + 5(service) + 9(asset) + 1(fallback) + 12(compiler_frontend) + 8(evidence_backend) = 48
+# 7(query) + 6(write) + 5(service) + 9(asset) + 1(fallback) + 12(compiler_frontend) + 11(evidence_backend) = 51
 
 
 def to_json_schema(tool_def: dict) -> dict:

@@ -13,6 +13,7 @@ public:
 	AMMonopolyPlayerController();
 
 	virtual void BeginPlay() override;
+	virtual void SetupInputComponent() override;
 
 	// 当前局是否允许响应本地输入。
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Monopoly")
@@ -20,4 +21,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Monopoly")
 	void SetTurnInputEnabled(bool bEnabled);
+
+private:
+	void HandlePausePressed();
 };

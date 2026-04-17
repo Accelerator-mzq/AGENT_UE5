@@ -1,0 +1,268 @@
+{
+  "task": "TASK 14",
+  "validated_at": "2026-04-17T05:14:45.861714+00:00",
+  "template_inventory": {
+    "start_screen": {
+      "template_id": "baseline.start_screen.presence_only",
+      "realization_class": "presence_only",
+      "files": [
+        "domain_prompt.md",
+        "evaluator_prompt.md",
+        "input_selector.yaml",
+        "manifest.yaml",
+        "output_schema.json",
+        "system_prompt.md"
+      ],
+      "content_checks": {
+        "required_elements": [
+          "navigate_to_main_menu",
+          "project_identity_display",
+          "user_interaction_trigger"
+        ]
+      }
+    },
+    "main_menu": {
+      "template_id": "baseline.main_menu.presence_only",
+      "realization_class": "presence_only",
+      "files": [
+        "domain_prompt.md",
+        "evaluator_prompt.md",
+        "input_selector.yaml",
+        "manifest.yaml",
+        "output_schema.json",
+        "system_prompt.md"
+      ],
+      "content_checks": {
+        "buttons": [
+          "new_game",
+          "quit",
+          "settings"
+        ]
+      }
+    },
+    "settings": {
+      "template_id": "baseline.settings.presence_only",
+      "realization_class": "presence_only",
+      "files": [
+        "domain_prompt.md",
+        "evaluator_prompt.md",
+        "input_selector.yaml",
+        "manifest.yaml",
+        "output_schema.json",
+        "system_prompt.md"
+      ],
+      "content_checks": {
+        "required_controls": [
+          "apply_button",
+          "back_button",
+          "master_volume_slider",
+          "resolution_selector",
+          "sfx_volume_slider",
+          "window_mode_selector"
+        ]
+      }
+    },
+    "pause": {
+      "template_id": "baseline.pause.presence_only",
+      "realization_class": "presence_only",
+      "files": [
+        "domain_prompt.md",
+        "evaluator_prompt.md",
+        "input_selector.yaml",
+        "manifest.yaml",
+        "output_schema.json",
+        "system_prompt.md"
+      ],
+      "content_checks": {
+        "buttons": [
+          "quit_to_menu",
+          "resume",
+          "settings"
+        ]
+      }
+    },
+    "results": {
+      "template_id": "baseline.results.presence_only",
+      "realization_class": "presence_only",
+      "files": [
+        "domain_prompt.md",
+        "evaluator_prompt.md",
+        "input_selector.yaml",
+        "manifest.yaml",
+        "output_schema.json",
+        "system_prompt.md"
+      ],
+      "content_checks": {
+        "trigger_method": "ShowResult"
+      }
+    },
+    "hud": {
+      "template_id": "baseline.hud.realization_eligible",
+      "realization_class": "realization_eligible",
+      "files": [
+        "domain_prompt.md",
+        "evaluator_prompt.md",
+        "input_selector.yaml",
+        "manifest.yaml",
+        "output_schema.json",
+        "system_prompt.md"
+      ],
+      "content_checks": {
+        "include_sections": [
+          "baseline_capabilities.hud",
+          "design_domains.jail_rules",
+          "design_domains.property_rules",
+          "design_domains.turn_loop",
+          "game_identity",
+          "phase_scope"
+        ]
+      }
+    }
+  },
+  "runtime_resolution": {
+    "baseline.start_screen.presence_only": {
+      "resolved": true,
+      "template_dir": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\SkillTemplates\\baseline\\start_screen"
+    },
+    "baseline.main_menu.presence_only": {
+      "resolved": true,
+      "template_dir": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\SkillTemplates\\baseline\\main_menu"
+    },
+    "baseline.settings.presence_only": {
+      "resolved": true,
+      "template_dir": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\SkillTemplates\\baseline\\settings"
+    },
+    "baseline.pause.presence_only": {
+      "resolved": true,
+      "template_dir": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\SkillTemplates\\baseline\\pause"
+    },
+    "baseline.results.presence_only": {
+      "resolved": true,
+      "template_dir": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\SkillTemplates\\baseline\\results"
+    },
+    "baseline.hud.realization_eligible": {
+      "resolved": true,
+      "template_dir": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\SkillTemplates\\baseline\\hud"
+    }
+  },
+  "skill_graph_validation": {
+    "run_id": "run-20260417-051444-a2b8",
+    "implemented_sources": {
+      "skill-baseline-start-screen": {
+        "template_id": "baseline.start_screen.presence_only",
+        "template_source": "plugin_skill_template"
+      },
+      "skill-baseline-main-menu": {
+        "template_id": "baseline.main_menu.presence_only",
+        "template_source": "plugin_skill_template"
+      },
+      "skill-baseline-settings": {
+        "template_id": "baseline.settings.presence_only",
+        "template_source": "plugin_skill_template"
+      },
+      "skill-baseline-pause": {
+        "template_id": "baseline.pause.presence_only",
+        "template_source": "plugin_skill_template"
+      },
+      "skill-baseline-results": {
+        "template_id": "baseline.results.presence_only",
+        "template_source": "plugin_skill_template"
+      },
+      "skill-baseline-hud": {
+        "template_id": "baseline.hud.realization_eligible",
+        "template_source": "plugin_skill_template"
+      }
+    },
+    "missing_baseline_templates": [
+      "baseline.audio_foundation.presence_only",
+      "baseline.input_foundation.presence_only",
+      "baseline.platform_foundation.clarification_gated"
+    ]
+  },
+  "fragment_validation": {
+    "skill-baseline-start-screen": {
+      "fragment_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\runs\\run-20260417-051444-a2b8\\skill_fragments\\skill-baseline-start-screen.json",
+      "template_id": "baseline.start_screen.presence_only",
+      "status": "completed",
+      "emitted_families": [
+        "start_screen_spec"
+      ],
+      "confidence": {
+        "coverage": 0.92,
+        "consistency": 0.95
+      }
+    },
+    "skill-baseline-main-menu": {
+      "fragment_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\runs\\run-20260417-051444-a2b8\\skill_fragments\\skill-baseline-main-menu.json",
+      "template_id": "baseline.main_menu.presence_only",
+      "status": "completed",
+      "emitted_families": [
+        "main_menu_spec"
+      ],
+      "confidence": {
+        "coverage": 0.92,
+        "consistency": 0.95
+      }
+    },
+    "skill-baseline-settings": {
+      "fragment_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\runs\\run-20260417-051444-a2b8\\skill_fragments\\skill-baseline-settings.json",
+      "template_id": "baseline.settings.presence_only",
+      "status": "completed",
+      "emitted_families": [
+        "settings_spec"
+      ],
+      "confidence": {
+        "coverage": 0.75,
+        "consistency": 0.8
+      }
+    },
+    "skill-baseline-pause": {
+      "fragment_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\runs\\run-20260417-051444-a2b8\\skill_fragments\\skill-baseline-pause.json",
+      "template_id": "baseline.pause.presence_only",
+      "status": "completed",
+      "emitted_families": [
+        "pause_spec"
+      ],
+      "confidence": {
+        "coverage": 0.92,
+        "consistency": 0.95
+      }
+    },
+    "skill-baseline-results": {
+      "fragment_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\runs\\run-20260417-051444-a2b8\\skill_fragments\\skill-baseline-results.json",
+      "template_id": "baseline.results.presence_only",
+      "status": "completed",
+      "emitted_families": [
+        "results_spec"
+      ],
+      "confidence": {
+        "coverage": 0.75,
+        "consistency": 0.8
+      }
+    },
+    "skill-baseline-hud": {
+      "fragment_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\runs\\run-20260417-051444-a2b8\\skill_fragments\\skill-baseline-hud.json",
+      "template_id": "baseline.hud.realization_eligible",
+      "status": "completed",
+      "emitted_families": [
+        "hud_spec"
+      ],
+      "confidence": {
+        "coverage": 0.92,
+        "consistency": 0.95
+      }
+    }
+  },
+  "validate_examples": {
+    "returncode": 0,
+    "summary": {
+      "checked_examples": 26,
+      "passed": 26,
+      "failed": 0,
+      "reference_only_skipped": 0,
+      "unmapped_examples": 0,
+      "missing_schema_targets": 0
+    },
+    "stderr": ""
+  }
+}

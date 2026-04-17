@@ -1,0 +1,369 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Phase 11 Cross Review Report v2",
+  "description": "Stage 5 输出：统一审查 Constraint、Baseline、跨域冲突与 Blueprint 薄层原则。",
+  "type": "object",
+  "required": [
+    "review_id",
+    "review_version",
+    "source_contract_id",
+    "input_fragment_ids",
+    "review_status",
+    "review_checks",
+    "issues_found",
+    "constraint_preservation_summary",
+    "bp_thin_layer_summary",
+    "baseline_coverage_summary",
+    "cross_domain_conflict_summary",
+    "family_source_map",
+    "reviewed_dynamic_spec_tree",
+    "lowering_ready",
+    "metadata"
+  ],
+  "properties": {
+    "review_id": {
+      "type": "string",
+      "pattern": "^cr\\.[a-z0-9_\\.]+$"
+    },
+    "review_version": {
+      "type": "string",
+      "const": "v2"
+    },
+    "source_contract_id": {
+      "type": "string"
+    },
+    "source_gate_id": {
+      "type": "string"
+    },
+    "source_graph_id": {
+      "type": "string"
+    },
+    "input_fragment_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "review_status": {
+      "type": "string",
+      "enum": [
+        "approved",
+        "approved_with_warnings",
+        "blocked"
+      ]
+    },
+    "review_checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "check_id",
+          "check_name",
+          "result",
+          "issues_count",
+          "description"
+        ],
+        "properties": {
+          "check_id": {
+            "type": "string"
+          },
+          "check_name": {
+            "type": "string"
+          },
+          "result": {
+            "type": "string",
+            "enum": [
+              "pass",
+              "warning",
+              "fail"
+            ]
+          },
+          "issues_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "issues_found": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "issue_id",
+          "check_type",
+          "severity",
+          "message"
+        ],
+        "properties": {
+          "issue_id": {
+            "type": "string"
+          },
+          "check_type": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "blocker",
+              "warning",
+              "info"
+            ]
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "phase_scope_check": {
+      "type": "object",
+      "required": [
+        "in_scope_confirmed",
+        "out_of_scope_violations"
+      ],
+      "properties": {
+        "in_scope_confirmed": {
+          "type": "boolean"
+        },
+        "out_of_scope_violations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "constraint_preservation_summary": {
+      "type": "object",
+      "required": [
+        "total_constraints",
+        "checked_fields",
+        "violations",
+        "preserved_count",
+        "status"
+      ],
+      "properties": {
+        "total_constraints": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "checked_fields": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "violations": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "preserved_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "preserved",
+            "violated"
+          ]
+        }
+      }
+    },
+    "bp_thin_layer_summary": {
+      "type": "object",
+      "required": [
+        "warnings",
+        "suspect_fragments",
+        "status"
+      ],
+      "properties": {
+        "warnings": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "suspect_fragments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "clean",
+            "review_needed"
+          ]
+        }
+      }
+    },
+    "baseline_coverage_summary": {
+      "type": "object",
+      "required": [
+        "required",
+        "present",
+        "missing",
+        "status"
+      ],
+      "properties": {
+        "required": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "present": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "complete",
+            "incomplete"
+          ]
+        }
+      }
+    },
+    "cross_domain_conflict_summary": {
+      "type": "object",
+      "required": [
+        "realization_conflicts",
+        "naming_conflicts",
+        "naming_conflict_families",
+        "status"
+      ],
+      "properties": {
+        "realization_conflicts": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "naming_conflicts": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "naming_conflict_families": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "clean",
+            "review_needed"
+          ]
+        }
+      }
+    },
+    "design_decision_log_summary": {
+      "type": "object",
+      "required": [
+        "total_decisions",
+        "provisional_decisions",
+        "high_impact_decisions",
+        "by_skill_instance"
+      ],
+      "properties": {
+        "total_decisions": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "provisional_decisions": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "high_impact_decisions": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "by_skill_instance": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "family_source_map": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "skill_instance_id",
+          "template_id",
+          "domain_type",
+          "status"
+        ],
+        "properties": {
+          "skill_instance_id": {
+            "type": "string"
+          },
+          "template_id": {
+            "type": "string"
+          },
+          "domain_type": {
+            "type": "string",
+            "enum": [
+              "gameplay",
+              "baseline"
+            ]
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "reviewed_dynamic_spec_tree": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object"
+      }
+    },
+    "capability_gap_list": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "provisional_items": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "lowering_ready": {
+      "type": "boolean"
+    },
+    "metadata": {
+      "type": "object",
+      "required": [
+        "generated_at",
+        "generator",
+        "phase_scope"
+      ],
+      "properties": {
+        "generated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "generator": {
+          "type": "string"
+        },
+        "phase_scope": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

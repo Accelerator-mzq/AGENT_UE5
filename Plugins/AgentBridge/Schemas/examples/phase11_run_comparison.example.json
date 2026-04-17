@@ -1,0 +1,114 @@
+{
+  "comparison_version": "1.0",
+  "comparison_id": "cmp-run-20260416-142558-7f47-vs-run-20260416-142757-47c4",
+  "run_a_id": "run-20260416-142558-7f47",
+  "run_b_id": "run-20260416-142757-47c4",
+  "compared_at": "2026-04-16T15:20:00Z",
+  "summary": {
+    "constraint_consistent": true,
+    "constraint_changes": 0,
+    "realization_changes": 6,
+    "fragment_changes": 4,
+    "build_ir_changes": 2,
+    "naming_changes": 2,
+    "provisional_delta": -1
+  },
+  "details": {
+    "constraint_differences": [],
+    "realization_differences": [
+      {
+        "category": "realization",
+        "item_key": "dim-skill-board-topology-spatial_readability",
+        "change_type": "changed",
+        "impact": "medium",
+        "run_a_value": {
+          "chosen_candidate": "rc-dim-skill-board-topology-spatial_readability-coupling_first"
+        },
+        "run_b_value": {
+          "chosen_candidate": "rc-dim-skill-board-topology-spatial_readability-constraint_first"
+        }
+      }
+    ],
+    "fragment_differences": [
+      {
+        "category": "fragment",
+        "item_key": "skill-board-topology.json",
+        "change_type": "changed",
+        "impact": "medium",
+        "run_a_value": {
+          "status": "completed"
+        },
+        "run_b_value": {
+          "status": "completed"
+        }
+      }
+    ],
+    "build_ir_differences": [
+      {
+        "category": "build_ir",
+        "item_key": "bir_002_board_topology_spec",
+        "change_type": "changed",
+        "impact": "medium",
+        "run_a_value": {
+          "action": "create_cpp_class"
+        },
+        "run_b_value": {
+          "action": "create_cpp_class"
+        }
+      }
+    ],
+    "naming_differences": [
+      {
+        "category": "naming",
+        "item_key": "bir_002_board_topology_spec",
+        "change_type": "changed",
+        "impact": "low",
+        "run_a_value": {
+          "class_name": {
+            "resolved": "AMonopolyBoard"
+          }
+        },
+        "run_b_value": {
+          "class_name": {
+            "resolved": "AMonopolyBoard"
+          }
+        }
+      }
+    ],
+    "provisional_changes": {
+      "added": [],
+      "removed": [
+        "cg-max-game-length"
+      ]
+    }
+  },
+  "metadata": {
+    "run_a_promotable": true,
+    "run_b_promotable": true,
+    "compared_artifacts": [
+      "root_skill_contract.json",
+      "converged_realization_pack.json",
+      "skill_fragments/*.json",
+      "build_ir.json",
+      "naming_resolution_log.json",
+      "metadata.provisional_items"
+    ],
+    "cleanup_policy": {
+      "formal_runs": {
+        "policy": "manual_cleanup_only",
+        "retain": "forever"
+      },
+      "fast_mode_runs": {
+        "policy": "keep_latest_n",
+        "default_keep_count": 5
+      },
+      "promoted_batches": {
+        "policy": "retain_forever"
+      },
+      "failed_runs": {
+        "policy": "keep_execution_log",
+        "artifact_cleanup": "optional"
+      }
+    }
+  }
+}

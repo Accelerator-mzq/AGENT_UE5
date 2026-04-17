@@ -175,6 +175,39 @@ def _save_json_file(path: str | Path, payload: Any) -> str:
     return str(target_path)
 
 
+def _load_stage4_output_bundle(session: CompilerSession) -> Dict[str, Any]:
+    """
+    加载 v2 Stage 4 的完整产物集合。
+
+    说明：
+      session.stage_outputs['stage_4'] 只登记 converged_realization_pack.json，
+      但 Stage 5/7 还需要 design_space_report、realization_candidates 与 skill_fragments。
+    """
+    output_root = _get_session_output_root(session)
+    stage4_bundle: Dict[str, Any] = {}
+
+    design_space_path = output_root / "design_space_report.json"
+    if design_space_path.exists():
+        stage4_bundle["design_space_report"] = _load_json_file(design_space_path)
+
+    candidates_path = output_root / "realization_candidates.json"
+    if candidates_path.exists():
+        stage4_bundle["realization_candidates"] = _load_json_file(candidates_path)
+
+    converged_path = output_root / "converged_realization_pack.json"
+    if converged_path.exists():
+        stage4_bundle["converged_realization_pack"] = _load_json_file(converged_path)
+
+    fragments_path = output_root / "skill_fragments"
+    if fragments_path.is_dir():
+        stage4_bundle["skill_fragments"] = [
+            _load_json_file(file_path)
+            for file_path in sorted(fragments_path.glob("*.json"))
+        ]
+
+    return stage4_bundle
+
+
 def _validate_payload(payload: Any, schema: Dict[str, Any]) -> List[str]:
     """返回 schema 校验错误列表；为空表示通过。"""
     validator = Draft7Validator(schema)
@@ -454,6 +487,39 @@ def _update_session_after_save(session: CompilerSession, stage_num: int, output_
     session.save()
 
 
+def build_run_metadata(
+    session: CompilerSession,
+    clarification_gate_report: Dict[str, Any] | None = None,
+    cross_review_report: Dict[str, Any] | None = None,
+    completed_at: str | None = None,
+) -> Dict[str, Any]:
+    """构造 Phase 11 run metadata，供验证脚本与治理工具复用。"""
+    clarification_gate_report = clarification_gate_report or {}
+    cross_review_report = cross_review_report or {}
+    pipeline_stages_completed = sorted(
+        int(stage_key.split("_", 1)[1])
+        for stage_key, output_path in session.stage_outputs.items()
+        if output_path
+    )
+
+    return {
+        "run_id": session.run_id,
+        "session_id": session.session_id,
+        "session_version": session.session_version,
+        "fast_mode": session.fast_mode,
+        "generator_provider": session.generator_provider,
+        "created_at": session.created_at,
+        "completed_at": completed_at or datetime.now(timezone.utc).isoformat(),
+        "status": session.status,
+        "pipeline_stages_completed": pipeline_stages_completed,
+        "constraint_violations": cross_review_report.get("constraint_preservation_summary", {}).get("violations", 0),
+        "provisional_items": clarification_gate_report.get("provisional_items", []),
+        "clarification_gate_policy": clarification_gate_report.get("clarification_gate_policy", ""),
+        "promotable": session.is_promotable,
+        "output_dir": session.output_dir,
+    }
+
+
 def _prepare_stage_v1(session: CompilerSession, stage_num: int) -> Dict[str, Any]:
     """为 v1 五阶段生成模板、schema 和输入上下文。"""
     invalid_stage = _validate_stage_num(session, stage_num)
@@ -684,6 +750,14 @@ def _prepare_stage_v2(session: CompilerSession, stage_num: int) -> Dict[str, Any
             allow_heuristic_fallback=True,
             llm_client=load_llm_client_from_config(),
         )
+        if template.get("status") in {"refused", "validation_failed"}:
+            return {
+                "status": "stage_generation_failed",
+                "stage_num": stage_num,
+                "stage_name": _get_stage_name(session, stage_num),
+                "errors": template.get("acceptance_errors", []) or [template.get("failure_reason", "Stage 4 验收失败。")],
+                "template": template,
+            }
         # 记录 Generator Provider 类型到 session（影响 promotable 判定）
         gp_type = template.get("generator_provider_type")
         if gp_type and not session.generator_provider:
@@ -707,7 +781,7 @@ def _prepare_stage_v2(session: CompilerSession, stage_num: int) -> Dict[str, Any
         root_skill_contract = _load_stage_artifact(session, 1) or {}
         clarification_gate_report = _load_stage_artifact(session, 2) or {}
         skill_graph = _load_stage_artifact(session, 3) or {}
-        stage4_output = _load_stage_artifact(session, 4) or {}
+        stage4_output = _load_stage4_output_bundle(session)
         # Stage 4 产物是 converged_realization_pack.json，需要补充 fragments
         stage4_fragments_path = _get_session_output_root(session) / "skill_fragments"
         if stage4_fragments_path.is_dir():
@@ -782,7 +856,7 @@ def _save_stage_v1(session: CompilerSession, stage_num: int, filled_data: Any) -
 
     if stage_num > 1:
         prepare_result = prepare_stage(session, stage_num)
-        if prepare_result.get("status") == "missing_input":
+        if prepare_result.get("status") != "ready_for_agent":
             return prepare_result
 
     if stage_config.get("multi_file"):
@@ -854,7 +928,7 @@ def _save_stage_v2(session: CompilerSession, stage_num: int, filled_data: Any) -
 
     if stage_num > 1:
         prepare_result = prepare_stage(session, stage_num)
-        if prepare_result.get("status") in {"missing_input", "schema_missing", "blocked_by_clarification"}:
+        if prepare_result.get("status") != "ready_for_agent":
             return prepare_result
 
     if stage_num == 4:
@@ -1211,7 +1285,7 @@ def _assemble_handoff_v2(session: CompilerSession) -> Dict[str, Any]:
     root_skill_contract = _load_stage_artifact(session, 1) or {}
     clarification_gate_report = _load_stage_artifact(session, 2) or {}
     skill_graph = _load_stage_artifact(session, 3) or {}
-    stage4_output = _load_stage_artifact(session, 4) or {}
+    stage4_output = _load_stage4_output_bundle(session)
     # 补充 fragments
     stage4_fragments_path = _get_session_output_root(session) / "skill_fragments"
     if stage4_fragments_path.is_dir():

@@ -814,6 +814,9 @@ TOOL_DISPATCH.update(
         "evidence_decide_escalation": ("evidence", evidence_tools.evidence_decide_escalation),
         "evidence_export_summary": ("evidence", evidence_tools.evidence_export_summary),
         "evidence_list_runs": ("evidence", evidence_tools.evidence_list_runs),
+        "evidence_compare_runs": ("evidence", evidence_tools.evidence_compare_runs),
+        "evidence_create_batch": ("evidence", evidence_tools.evidence_create_batch),
+        "evidence_promote_run": ("evidence", evidence_tools.evidence_promote_run),
     }
 )
 
