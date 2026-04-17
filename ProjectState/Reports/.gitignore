@@ -1,0 +1,57 @@
+# ProjectState/Reports second-level ignore rules
+# Keep formal evidence visible and suppress historical batch/diagnostic noise
+
+# Early historical date directories
+/2026-04-01/
+/2026-04-02/
+/2026-04-05/
+/2026-04-06/
+/2026-04-11/
+
+# Historical loose files under Reports root
+/git_phase8_checkpoint_to_1_0_20260405.md
+/phase8_execution_summary_20260405.md
+/phase8_hud_input_fix_20260405.md
+/phase8_m3_asset_generation_20260405.json
+/vscode_rc_info.json
+
+# Auto batch / replay JSON artifacts
+/**/execution_report_*.json
+/**/phase6_runtime_acceptance_*.json
+/**/phase6_runtime_smoke_*.json
+/**/phase7_jrpg_rc_info_*.json
+/**/phase7_jrpg_runtime_acceptance_*.json
+/**/phase7_jrpg_runtime_smoke_*.json
+/**/phase7_jrpg_pack_consistency_*.json
+/**/phase7_p1_round*_governance_audit.json
+/**/phase7_p1_round*_summary.json
+/**/phase7_p1_round*_pytest.xml
+/**/phase7_p1_stability_summary_*.json
+
+# Historical diagnostics / draft reports
+/**/phase7_archive_preflight_checklist_*.md
+/**/phase7_jrpg_pack_consistency_*.md
+/**/phase7_p1_round*_governance_audit.md
+/**/phase7_p1_round*_summary.md
+/**/phase7_p1_stability_summary_*.md
+/**/phase11_gap_analysis_after_task09.md
+/**/stage4_implementation_guidelines.md
+/**/task09_phase11_doc_alignment.md
+/**/llm_baseurl_fix_validation.md
+/**/llm_minimax_diagnostic.md
+/**/llm_timeout_and_segmented_validation.md
+/**/mcp_agent_run_difference_analysis.md
+/**/mcp_agent_dual_run_variation_test.json
+/**/stage4_candidates_input_*.json
+/**/stage4_candidates_prompt_vs_provider_diagnostic*.json
+/**/stage4_discovery_input_output_*.json
+/**/stage4_segmented_single_node_*.json
+/**/stage4_segmented_single_node_full_stage4.md
+
+# Outdated duplicate validation outputs beyond formal evidence
+/2026-04-16/task10_validation_outputs/phase11_build_ir_v2.example.json
+/2026-04-16/task10_validation_outputs/phase11_cross_review_report_v2.example.json
+/2026-04-16/task10_validation_outputs/phase11_design_decision_log.example.json
+/2026-04-16/task14a_baseline_domain_runtime_validation.md
+/2026-04-16/task14a_ue_runtime_playability_validation.md
+/2026-04-16/task14a_ue_smoke_test_log.md
