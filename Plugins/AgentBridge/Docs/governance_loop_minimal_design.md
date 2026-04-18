@@ -1,7 +1,18 @@
 # Governance Loop Minimal Design
 
-> 状态：Phase 7 当前生效  
-> 范围：最小治理闭环，不扩展为完整审批平台
+> 状态：Phase 7 历史快照，不再代表 Phase 11 当前主链
+> 范围：Phase 7 时期的最小治理闭环，不扩展为完整审批平台
+
+## 当前定位
+
+本文保留为 **Phase 7 历史方案快照**，用于解释早期治理闭环如何围绕 `run_plan`、`execution_report`、`snapshot_manifest` 和最小 promotion 审计搭建。
+
+它不再描述 Phase 11 当前的正式事实。当前 Phase 11 请优先参考：
+
+- [compiler_design.md](compiler_design.md)
+- [reviewed_handoff_design.md](reviewed_handoff_design.md)
+- [run_isolation_compare_promote.md](run_isolation_compare_promote.md)
+- [architecture_overview.md](architecture_overview.md)
 
 ## 目标
 
@@ -15,7 +26,7 @@ Phase 7 的治理闭环只解决 5 件事：
 
 这条链路的目标不是替代现有 Orchestrator，而是在不重写主链的前提下，为 Greenfield / Brownfield / 第二类型包提供可追溯的治理壳层。
 
-## 数据流
+## 数据流（Phase 7 历史口径）
 
 ```text
 Reviewed Handoff
@@ -26,7 +37,7 @@ Reviewed Handoff
   -> execution_report + snapshot_manifest + promotion_status
 ```
 
-## 最小接口增量
+## 最小接口增量（Phase 7 历史口径）
 
 ### Run Plan
 
@@ -85,7 +96,9 @@ Reviewed Handoff
   - 回填 snapshot / promotion
   这三个点做增量接入
 
-## Base Domains 的作用
+## Base Domains 的作用（Phase 7 历史口径）
+
+以下描述的是 Phase 7 时期治理闭环如何消费 `qa_validation` 与 `planning_governance`，不是 Phase 11 当前默认主路径。
 
 治理闭环不直接硬编码所有策略，而是优先走两个真实域：
 
@@ -103,7 +116,7 @@ Reviewed Handoff
 
 其余 8 个基础域在 Phase 7 只提供统一 registry / loader / 可加载骨架，不要求完整治理能力。
 
-## 边界
+## 边界（Phase 7 历史口径）
 
 Phase 7 的治理闭环明确不做：
 
@@ -113,7 +126,7 @@ Phase 7 的治理闭环明确不做：
 - 热更新式恢复编排
 - 自动重跑调度平台
 
-## 验收口径
+## 验收口径（Phase 7 历史口径）
 
 满足以下条件即可判定 Phase 7 治理闭环最小可用：
 

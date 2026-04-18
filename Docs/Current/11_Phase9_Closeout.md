@@ -14,9 +14,9 @@
 
 ## 2. 最终证据
 
-- MCP 实施验证报告： [phase9_mcp_validation_2026-04-06.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-06/phase9_mcp_validation_2026-04-06.md)
-- 文档治理收口报告： [phase9_document_governance_2026-04-06.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-06/phase9_document_governance_2026-04-06.md)
-- 测试矩阵补录与对齐报告： [phase9_test_matrix_alignment_2026-04-06.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-06/phase9_test_matrix_alignment_2026-04-06.md)
+- MCP 实施验证报告：历史报告 `phase9_mcp_validation_2026-04-06.md` 未随当前仓库保留；当前可交叉参考 [system_test_report_2026-04-06_190118.json](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/reports/2026-04-06/system_test_report_2026-04-06_190118.json)
+- 文档治理收口报告：历史报告 `phase9_document_governance_2026-04-06.md` 未随当前仓库保留
+- 测试矩阵补录与对齐报告：历史报告 `phase9_test_matrix_alignment_2026-04-06.md` 未随当前仓库保留
 - Stage 10 MCP 集成测试报告： [system_test_report_2026-04-06_190118.json](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/reports/2026-04-06/system_test_report_2026-04-06_190118.json)
 
 ## 3. 归档口径
@@ -24,7 +24,7 @@
 - Phase 9 历史任务正文已归档到 [task9_phase9.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task9_phase9.md)。
 - 根目录 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) 当前继续承载 Phase 9 正式任务入口与完成记录，不提前切走。
 - Phase 9 实施前方案已归档到 [Phase9_MCP_Implementation_Plan.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Proposals/Phase9_MCP_Implementation_Plan.md)。
-- 根目录临时草稿 `task_temp.md` 与并列方案入口已完成清理，详见 [phase9_document_governance_2026-04-06.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-06/phase9_document_governance_2026-04-06.md)。
+- 根目录临时草稿 `task_temp.md` 与并列方案入口已完成清理；原治理报告 `phase9_document_governance_2026-04-06.md` 未随当前仓库保留。
 
 ## 4. 未决与延后项
 
@@ -33,5 +33,5 @@
 
 ## 5. 对下一阶段的输入
 
-- 若下一阶段继续扩展 AgentBridge 框架，应以 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md)、[11_Phase9_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/11_Phase9_Closeout.md) 和 [phase9_mcp_validation_2026-04-06.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-06/phase9_mcp_validation_2026-04-06.md) 为 Phase 9 真相入口。
+- 若下一阶段继续扩展 AgentBridge 框架，应以 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md)、[11_Phase9_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/11_Phase9_Closeout.md) 与 [system_test_report_2026-04-06_190118.json](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/reports/2026-04-06/system_test_report_2026-04-06_190118.json) 为 Phase 9 当前仓库内可回溯入口。
 - 若下一阶段涉及整体架构重述，应单独确认 Compiler 链、Execution 链与 MCP 接入链的关系后，再更新 canonical 架构图。

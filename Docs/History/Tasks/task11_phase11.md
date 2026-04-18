@@ -10,10 +10,10 @@
 > 目标引擎版本：UE5.5.4
 > 阶段定位：Phase 11 已完成 / 收尾归档期
 > 当前正式入口：本文件
-> Phase 11 文档索引：[00_Phase11_Document_Index.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/00_Phase11_Document_Index.md)
-> Phase 11 交接文档：[13_Claude_Handoff_and_Reading_Order.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/13_Claude_Handoff_and_Reading_Order.md)
-> Phase 11 实施任务书：[12_Implementation_Taskbook.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/12_Implementation_Taskbook.md)
-> Phase 11 Schema 参考：[11_Schema_and_Artifact_Reference.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/11_Schema_and_Artifact_Reference.md)
+> Phase 11 文档索引：[00_Phase11_Document_Index.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/00_Phase11_Document_Index.md)
+> Phase 11 交接文档：[13_Claude_Handoff_and_Reading_Order.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/13_Claude_Handoff_and_Reading_Order.md)
+> Phase 11 实施任务书：[12_Implementation_Taskbook.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/12_Implementation_Taskbook.md)
+> Phase 11 Schema 参考：[11_Schema_and_Artifact_Reference.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/11_Schema_and_Artifact_Reference.md)
 > Phase 10 归档任务：[task10_phase10.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task10_phase10.md)
 
 ---
@@ -58,21 +58,21 @@
 
 | 文档 | 新增能力 / 约束 | task.md 覆盖 | 必须证据 |
 |------|-----------------|--------------|----------|
-| [00_Phase11_Document_Index.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/00_Phase11_Document_Index.md) | 主链、发散创造位置、不发散位置、Phase 11 要解决的 10 类问题 | TASK 01、TASK 09A、TASK 09B、TASK 10、TASK 15 | `phase11_feature_coverage_report.md` |
-| [01_Phase11_Unified_Architecture.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/01_Phase11_Unified_Architecture.md) | 7 阶段主链、MCP 前后端边界、MCP 工具收尾口径（53 可见 / 49 主工具 / 4 alias）、v1/v2 兼容、Run 隔离、GDD-First 命名 | TASK 02、TASK 03、TASK 05、TASK 10、TASK 12、TASK 15 | Session/Orchestrator/MCP/Final 验收报告 |
-| [02_Root_Skill_Contract_Standard.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/02_Root_Skill_Contract_Standard.md) | Root Skill Contract 10 个问题、产物结构、Constraint/Variant 标注 | TASK 04、TASK 06、TASK 10、TASK 11 | `root_skill_contract.json`、TASK 06 报告 |
-| [03_Universal_Baseline_Standard.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/03_Universal_Baseline_Standard.md) | Universal Baseline 分类、presence_only 最低标准、Settings 六项底线、realization_eligible 升级规则 | TASK 06、TASK 09B、TASK 10、TASK 11、TASK 14、TASK 14A、TASK 15 | `baseline_coverage_report`、TASK 14 报告、TASK 14A 运行时报告 |
-| [04_Baseline_Realization_Policy.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/04_Baseline_Realization_Policy.md) | Baseline 三类域、模板结构、Baseline Fragment、Start Screen 能力级定义 | TASK 06、TASK 08、TASK 09B、TASK 14、TASK 14A | Baseline Fragment、模板报告、运行时验收报告 |
-| [05_Clarification_Gate_Rules.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/05_Clarification_Gate_Rules.md) | 4 档决策、provisional 传播、fast_mode 高风险保护、人类参与点 | TASK 07、TASK 10、TASK 13 | `clarification_gate_report.json`、Handoff v3 provisional 汇总 |
-| [06_Constraint_vs_Variant_Policy.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/06_Constraint_vs_Variant_Policy.md) | Constraint/Variant 判据、不可拆分、下游保持性、Variant bounds 传播 | TASK 06、TASK 09B、TASK 10、TASK 11 | Constraint 保持性报告、bounds 校验 |
-| [07_Design_Space_Discovery_and_Realization.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/07_Design_Space_Discovery_and_Realization.md) | Discovery、Candidates、Convergence、design_decision_log、质量检查、fast_mode 行为 | TASK 09B、TASK 11、TASK 13 | Discovery/Candidates/Convergence 报告 |
-| [08_Skill_Graph_and_Domain_Skill.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/08_Skill_Graph_and_Domain_Skill.md) | Skill Graph 节点/边、Domain Skill 四重职责、Baseline/GamePlay 同构、SkillTemplates vs Skills、生命周期 | TASK 08、TASK 09B、TASK 14、TASK 14A | `skill_graph.json`、runtime 生命周期报告、UE 运行时验收报告 |
-| [09_Run_Isolation_Compare_Promote.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/09_Run_Isolation_Compare_Promote.md) | Run Workspace、metadata、promotable、Compare、Promote、fast_mode 隔离、清理策略 | TASK 02、TASK 11、TASK 12、TASK 13 | Run metadata、comparison、batch、promotion 报告 |
-| [10_Naming_and_Path_Convention.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/10_Naming_and_Path_Convention.md) | GDD-First 四层命名、UE5 路径/前缀、naming_resolution_log、C++ 主逻辑 + Blueprint 薄层、命名冲突 | TASK 10、TASK 11、TASK 15 | `naming_resolution_log.json`、Cross Review 报告 |
-| [11_Schema_and_Artifact_Reference.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/11_Schema_and_Artifact_Reference.md) | 14 个 Schema、MCP 工具变更、v2 Run 产物目录、Stage/Artifact Map | TASK 04、TASK 05、TASK 10、TASK 11、TASK 12、TASK 15 | Schema 校验、MCP tools/list、E2E run 目录 |
-| [12_Implementation_Taskbook.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/12_Implementation_Taskbook.md) | 分批策略、关键路径、实施约束、测试策略 | TASK 01-15 | TASK 证据报告汇总 |
-| [13_Claude_Handoff_and_Reading_Order.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/13_Claude_Handoff_and_Reading_Order.md) | 强制阅读顺序、不可跳过前置、绝对不可做、常见陷阱 | 每个 TASK 的”先读这些文件”、TASK 15 | `phase11_feature_coverage_report.md` |
-| [14_Agent_Interaction_Protocol.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/14_Agent_Interaction_Protocol.md) | Prompt-First 硬约束、GeneratorProvider 抽象、Generator-Evaluator gate、Context Bundle、LLM/Heuristic 三路决策、SkillTemplate prompt 结构 | TASK 09A、TASK 09B、TASK 10、TASK 11、TASK 13、TASK 14 | Provider 类型记录、promotable 判定、Stage 4 执行报告 |
+| [00_Phase11_Document_Index.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/00_Phase11_Document_Index.md) | 主链、发散创造位置、不发散位置、Phase 11 要解决的 10 类问题 | TASK 01、TASK 09A、TASK 09B、TASK 10、TASK 15 | `phase11_feature_coverage_report.md` |
+| [01_Phase11_Unified_Architecture.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/01_Phase11_Unified_Architecture.md) | 7 阶段主链、MCP 前后端边界、MCP 工具收尾口径（53 可见 / 49 主工具 / 4 alias）、v1/v2 兼容、Run 隔离、GDD-First 命名 | TASK 02、TASK 03、TASK 05、TASK 10、TASK 12、TASK 15 | Session/Orchestrator/MCP/Final 验收报告 |
+| [02_Root_Skill_Contract_Standard.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/02_Root_Skill_Contract_Standard.md) | Root Skill Contract 10 个问题、产物结构、Constraint/Variant 标注 | TASK 04、TASK 06、TASK 10、TASK 11 | `root_skill_contract.json`、TASK 06 报告 |
+| [03_Universal_Baseline_Standard.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/03_Universal_Baseline_Standard.md) | Universal Baseline 分类、presence_only 最低标准、Settings 六项底线、realization_eligible 升级规则 | TASK 06、TASK 09B、TASK 10、TASK 11、TASK 14、TASK 14A、TASK 15 | `baseline_coverage_report`、TASK 14 报告、TASK 14A 运行时报告 |
+| [04_Baseline_Realization_Policy.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/04_Baseline_Realization_Policy.md) | Baseline 三类域、模板结构、Baseline Fragment、Start Screen 能力级定义 | TASK 06、TASK 08、TASK 09B、TASK 14、TASK 14A | Baseline Fragment、模板报告、运行时验收报告 |
+| [05_Clarification_Gate_Rules.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/05_Clarification_Gate_Rules.md) | 4 档决策、provisional 传播、fast_mode 高风险保护、人类参与点 | TASK 07、TASK 10、TASK 13 | `clarification_gate_report.json`、Handoff v3 provisional 汇总 |
+| [06_Constraint_vs_Variant_Policy.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/06_Constraint_vs_Variant_Policy.md) | Constraint/Variant 判据、不可拆分、下游保持性、Variant bounds 传播 | TASK 06、TASK 09B、TASK 10、TASK 11 | Constraint 保持性报告、bounds 校验 |
+| [07_Design_Space_Discovery_and_Realization.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/07_Design_Space_Discovery_and_Realization.md) | Discovery、Candidates、Convergence、design_decision_log、质量检查、fast_mode 行为 | TASK 09B、TASK 11、TASK 13 | Discovery/Candidates/Convergence 报告 |
+| [08_Skill_Graph_and_Domain_Skill.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/08_Skill_Graph_and_Domain_Skill.md) | Skill Graph 节点/边、Domain Skill 四重职责、Baseline/GamePlay 同构、SkillTemplates vs Skills、生命周期 | TASK 08、TASK 09B、TASK 14、TASK 14A | `skill_graph.json`、runtime 生命周期报告、UE 运行时验收报告 |
+| [09_Run_Isolation_Compare_Promote.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/09_Run_Isolation_Compare_Promote.md) | Run Workspace、metadata、promotable、Compare、Promote、fast_mode 隔离、清理策略 | TASK 02、TASK 11、TASK 12、TASK 13 | Run metadata、comparison、batch、promotion 报告 |
+| [10_Naming_and_Path_Convention.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/10_Naming_and_Path_Convention.md) | GDD-First 四层命名、UE5 路径/前缀、naming_resolution_log、C++ 主逻辑 + Blueprint 薄层、命名冲突 | TASK 10、TASK 11、TASK 15 | `naming_resolution_log.json`、Cross Review 报告 |
+| [11_Schema_and_Artifact_Reference.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/11_Schema_and_Artifact_Reference.md) | 14 个 Schema、MCP 工具变更、v2 Run 产物目录、Stage/Artifact Map | TASK 04、TASK 05、TASK 10、TASK 11、TASK 12、TASK 15 | Schema 校验、MCP tools/list、E2E run 目录 |
+| [12_Implementation_Taskbook.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/12_Implementation_Taskbook.md) | 分批策略、关键路径、实施约束、测试策略 | TASK 01-15 | TASK 证据报告汇总 |
+| [13_Claude_Handoff_and_Reading_Order.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/13_Claude_Handoff_and_Reading_Order.md) | 强制阅读顺序、不可跳过前置、绝对不可做、常见陷阱 | 每个 TASK 的”先读这些文件”、TASK 15 | `phase11_feature_coverage_report.md` |
+| [14_Agent_Interaction_Protocol.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/14_Agent_Interaction_Protocol.md) | Prompt-First 硬约束、GeneratorProvider 抽象、Generator-Evaluator gate、Context Bundle、LLM/Heuristic 三路决策、SkillTemplate prompt 结构 | TASK 09A、TASK 09B、TASK 10、TASK 11、TASK 13、TASK 14 | Provider 类型记录、promotable 判定、Stage 4 执行报告 |
 
 ## 里程碑定义
 
@@ -115,8 +115,8 @@
 - [AGENTS.md](/D:/UnrealProjects/Mvpv4TestCodex/AGENTS.md)
 - [CLAUDE.md](/D:/UnrealProjects/Mvpv4TestCodex/CLAUDE.md)
 - [00_Index.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/00_Index.md)
-- [00_Phase11_Document_Index.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/00_Phase11_Document_Index.md)
-- [13_Claude_Handoff_and_Reading_Order.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/13_Claude_Handoff_and_Reading_Order.md)
+- [00_Phase11_Document_Index.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/00_Phase11_Document_Index.md)
+- [13_Claude_Handoff_and_Reading_Order.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/13_Claude_Handoff_and_Reading_Order.md)
 - [task10_phase10.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task10_phase10.md)
 
 涉及文件：
@@ -154,8 +154,8 @@ Step：
 先读这些文件：
 - [session.py](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Compiler/pipeline/session.py)
 - [compiler_session.schema.json](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Schemas/compiler_session.schema.json)
-- [01_Phase11_Unified_Architecture.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/01_Phase11_Unified_Architecture.md)
-- [09_Run_Isolation_Compare_Promote.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/09_Run_Isolation_Compare_Promote.md)
+- [01_Phase11_Unified_Architecture.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/01_Phase11_Unified_Architecture.md)
+- [09_Run_Isolation_Compare_Promote.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/09_Run_Isolation_Compare_Promote.md)
 
 涉及文件：
 - [session.py](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Compiler/pipeline/session.py)
@@ -191,8 +191,8 @@ Step：
 
 先读这些文件：
 - [pipeline_orchestrator.py](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Compiler/pipeline/pipeline_orchestrator.py)
-- [01_Phase11_Unified_Architecture.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/01_Phase11_Unified_Architecture.md)
-- [11_Schema_and_Artifact_Reference.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/11_Schema_and_Artifact_Reference.md)
+- [01_Phase11_Unified_Architecture.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/01_Phase11_Unified_Architecture.md)
+- [11_Schema_and_Artifact_Reference.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/11_Schema_and_Artifact_Reference.md)
 
 涉及文件：
 - [pipeline_orchestrator.py](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Compiler/pipeline/pipeline_orchestrator.py)
@@ -225,11 +225,11 @@ Step：
 前置依赖：TASK 02 可并行，TASK 03 前后均可执行。
 
 先读这些文件：
-- [02_Root_Skill_Contract_Standard.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/02_Root_Skill_Contract_Standard.md)
-- [05_Clarification_Gate_Rules.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/05_Clarification_Gate_Rules.md)
-- [07_Design_Space_Discovery_and_Realization.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/07_Design_Space_Discovery_and_Realization.md)
-- [08_Skill_Graph_and_Domain_Skill.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/08_Skill_Graph_and_Domain_Skill.md)
-- [11_Schema_and_Artifact_Reference.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/11_Schema_and_Artifact_Reference.md)
+- [02_Root_Skill_Contract_Standard.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/02_Root_Skill_Contract_Standard.md)
+- [05_Clarification_Gate_Rules.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/05_Clarification_Gate_Rules.md)
+- [07_Design_Space_Discovery_and_Realization.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/07_Design_Space_Discovery_and_Realization.md)
+- [08_Skill_Graph_and_Domain_Skill.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/08_Skill_Graph_and_Domain_Skill.md)
+- [11_Schema_and_Artifact_Reference.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/11_Schema_and_Artifact_Reference.md)
 
 涉及文件：
 - `Plugins/AgentBridge/Schemas/root_skill_contract.schema.json`
@@ -270,7 +270,7 @@ Step：
 - [compiler_tools.py](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/MCP/compiler_tools.py)
 - [tool_definitions.py](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/MCP/tool_definitions.py)
 - [server.py](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/MCP/server.py)
-- [01_Phase11_Unified_Architecture.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/01_Phase11_Unified_Architecture.md)
+- [01_Phase11_Unified_Architecture.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/01_Phase11_Unified_Architecture.md)
 
 涉及文件：
 - [compiler_tools.py](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/MCP/compiler_tools.py)
@@ -309,10 +309,10 @@ Step：
 前置依赖：TASK 02-05 完成。
 
 先读这些文件：
-- [02_Root_Skill_Contract_Standard.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/02_Root_Skill_Contract_Standard.md)
-- [03_Universal_Baseline_Standard.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/03_Universal_Baseline_Standard.md)
-- [04_Baseline_Realization_Policy.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/04_Baseline_Realization_Policy.md)
-- [06_Constraint_vs_Variant_Policy.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/06_Constraint_vs_Variant_Policy.md)
+- [02_Root_Skill_Contract_Standard.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/02_Root_Skill_Contract_Standard.md)
+- [03_Universal_Baseline_Standard.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/03_Universal_Baseline_Standard.md)
+- [04_Baseline_Realization_Policy.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/04_Baseline_Realization_Policy.md)
+- [06_Constraint_vs_Variant_Policy.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/06_Constraint_vs_Variant_Policy.md)
 - [GDD_MonopolyGame.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectInputs/GDD/GDD_MonopolyGame.md)
 
 涉及文件：
@@ -353,8 +353,8 @@ Step：
 前置依赖：TASK 06 完成。
 
 先读这些文件：
-- [05_Clarification_Gate_Rules.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/05_Clarification_Gate_Rules.md)
-- [06_Constraint_vs_Variant_Policy.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/06_Constraint_vs_Variant_Policy.md)
+- [05_Clarification_Gate_Rules.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/05_Clarification_Gate_Rules.md)
+- [06_Constraint_vs_Variant_Policy.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/06_Constraint_vs_Variant_Policy.md)
 - `Plugins/AgentBridge/Schemas/root_skill_contract.schema.json`
 
 涉及文件：
@@ -392,8 +392,8 @@ Step：
 前置依赖：TASK 07 完成。
 
 先读这些文件：
-- [08_Skill_Graph_and_Domain_Skill.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/08_Skill_Graph_and_Domain_Skill.md)
-- [04_Baseline_Realization_Policy.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/04_Baseline_Realization_Policy.md)
+- [08_Skill_Graph_and_Domain_Skill.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/08_Skill_Graph_and_Domain_Skill.md)
+- [04_Baseline_Realization_Policy.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/04_Baseline_Realization_Policy.md)
 - `Plugins/AgentBridge/Schemas/skill_graph.schema.json`
 
 涉及文件：
@@ -434,7 +434,7 @@ Step：
 前置依赖：TASK 08 完成。
 
 先读这些文件：
-- [14_Agent_Interaction_Protocol.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/14_Agent_Interaction_Protocol.md)（§4.0 三条路径、§4.1 调用流程）
+- [14_Agent_Interaction_Protocol.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/14_Agent_Interaction_Protocol.md)（§4.0 三条路径、§4.1 调用流程）
 - `Plugins/AgentBridge/Compiler/stages/agent_protocol.py`（LLMProvider 类：399-520 行，resolve_provider 函数：592-616 行）
 - `Plugins/AgentBridge/Compiler/pipeline/pipeline_orchestrator.py`（Stage 4 调用处，当前 llm_client=None，约 684 行）
 
@@ -621,13 +621,13 @@ Step：
 前置依赖：TASK 08 完成，TASK 09A 完成。
 
 先读这些文件：
-- [03_Universal_Baseline_Standard.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/03_Universal_Baseline_Standard.md)
-- [04_Baseline_Realization_Policy.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/04_Baseline_Realization_Policy.md)
-- [06_Constraint_vs_Variant_Policy.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/06_Constraint_vs_Variant_Policy.md)
-- [07_Design_Space_Discovery_and_Realization.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/07_Design_Space_Discovery_and_Realization.md)
-- [08_Skill_Graph_and_Domain_Skill.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/08_Skill_Graph_and_Domain_Skill.md)
-- [14_Agent_Interaction_Protocol.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/14_Agent_Interaction_Protocol.md)
-- [15_Claude_Code_Handoff_to_Codex.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/15_Claude_Code_Handoff_to_Codex.md)
+- [03_Universal_Baseline_Standard.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/03_Universal_Baseline_Standard.md)
+- [04_Baseline_Realization_Policy.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/04_Baseline_Realization_Policy.md)
+- [06_Constraint_vs_Variant_Policy.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/06_Constraint_vs_Variant_Policy.md)
+- [07_Design_Space_Discovery_and_Realization.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/07_Design_Space_Discovery_and_Realization.md)
+- [08_Skill_Graph_and_Domain_Skill.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/08_Skill_Graph_and_Domain_Skill.md)
+- [14_Agent_Interaction_Protocol.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/14_Agent_Interaction_Protocol.md)
+- [15_Claude_Code_Handoff_to_Codex.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/15_Claude_Code_Handoff_to_Codex.md)
 
 涉及文件：
 - `Plugins/AgentBridge/Compiler/stages/agent_protocol.py`（GeneratorProvider 抽象 + LLMProvider + HeuristicFallbackProvider）
@@ -697,10 +697,10 @@ Step：
 前置依赖：TASK 09B 完成。
 
 先读这些文件：
-- [01_Phase11_Unified_Architecture.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/01_Phase11_Unified_Architecture.md)
-- [10_Naming_and_Path_Convention.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/10_Naming_and_Path_Convention.md)
-- [11_Schema_and_Artifact_Reference.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/11_Schema_and_Artifact_Reference.md)
-- [14_Agent_Interaction_Protocol.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/14_Agent_Interaction_Protocol.md)
+- [01_Phase11_Unified_Architecture.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/01_Phase11_Unified_Architecture.md)
+- [10_Naming_and_Path_Convention.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/10_Naming_and_Path_Convention.md)
+- [11_Schema_and_Artifact_Reference.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/11_Schema_and_Artifact_Reference.md)
+- [14_Agent_Interaction_Protocol.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/14_Agent_Interaction_Protocol.md)
 
 涉及文件：
 - `Plugins/AgentBridge/Compiler/stages/cross_review_v2.py`
@@ -734,7 +734,7 @@ Step：
 - `build_ir.json` 每个 action 都有 naming_resolution_log。
 - 每个 naming_resolution_log 至少包含 `resolved`、`tier`、`evidence`，tier 只能为 1-4。
 - Tier 1 命名不可被下游修改；Tier 2-4 命名可记录替代方案。
-- Build IR 的资产路径与前缀符合 [10_Naming_and_Path_Convention.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/10_Naming_and_Path_Convention.md)。
+- Build IR 的资产路径与前缀符合 [10_Naming_and_Path_Convention.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/10_Naming_and_Path_Convention.md)。
 - Build IR 中核心玩法逻辑必须落到 C++，Blueprint 仅承载资产绑定、布局、简单事件响应。
 - `reviewed_handoff_v3.json` 包含 `baseline_coverage_summary`、`constraint_variant_summary`、`provisional_items`、`design_decision_log_summary`。
 - `reviewed_handoff_v3.json` 通过 schema 校验。
@@ -752,8 +752,8 @@ Step：
 
 先读这些文件：
 - [GDD_MonopolyGame.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectInputs/GDD/GDD_MonopolyGame.md)
-- [09_Run_Isolation_Compare_Promote.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/09_Run_Isolation_Compare_Promote.md)
-- [11_Schema_and_Artifact_Reference.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/11_Schema_and_Artifact_Reference.md)
+- [09_Run_Isolation_Compare_Promote.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/09_Run_Isolation_Compare_Promote.md)
+- [11_Schema_and_Artifact_Reference.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/11_Schema_and_Artifact_Reference.md)
 - [pipeline_orchestrator.py](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Compiler/pipeline/pipeline_orchestrator.py)
 
 涉及文件：
@@ -819,8 +819,8 @@ Step：
 前置依赖：TASK 11 完成。
 
 先读这些文件：
-- [09_Run_Isolation_Compare_Promote.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/09_Run_Isolation_Compare_Promote.md)
-- [11_Schema_and_Artifact_Reference.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/11_Schema_and_Artifact_Reference.md)
+- [09_Run_Isolation_Compare_Promote.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/09_Run_Isolation_Compare_Promote.md)
+- [11_Schema_and_Artifact_Reference.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/11_Schema_and_Artifact_Reference.md)
 - [evidence_tools.py](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/MCP/evidence_tools.py)
 
 涉及文件：
@@ -865,9 +865,9 @@ Step：
 前置依赖：TASK 11 完成；建议 TASK 12 完成后执行。
 
 先读这些文件：
-- [05_Clarification_Gate_Rules.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/05_Clarification_Gate_Rules.md)
-- [07_Design_Space_Discovery_and_Realization.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/07_Design_Space_Discovery_and_Realization.md)
-- [09_Run_Isolation_Compare_Promote.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/09_Run_Isolation_Compare_Promote.md)
+- [05_Clarification_Gate_Rules.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/05_Clarification_Gate_Rules.md)
+- [07_Design_Space_Discovery_and_Realization.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/07_Design_Space_Discovery_and_Realization.md)
+- [09_Run_Isolation_Compare_Promote.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/09_Run_Isolation_Compare_Promote.md)
 
 涉及文件：
 - [session.py](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Compiler/pipeline/session.py)
@@ -910,10 +910,10 @@ Step：
 前置依赖：TASK 11 完成；TASK 13 可并行或之后执行。
 
 先读这些文件：
-- [03_Universal_Baseline_Standard.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/03_Universal_Baseline_Standard.md)
-- [04_Baseline_Realization_Policy.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/04_Baseline_Realization_Policy.md)
-- [08_Skill_Graph_and_Domain_Skill.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/08_Skill_Graph_and_Domain_Skill.md)
-- [14_Agent_Interaction_Protocol.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/14_Agent_Interaction_Protocol.md)（Prompt-First 原则 + SkillTemplate prompt 标准结构）
+- [03_Universal_Baseline_Standard.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/03_Universal_Baseline_Standard.md)
+- [04_Baseline_Realization_Policy.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/04_Baseline_Realization_Policy.md)
+- [08_Skill_Graph_and_Domain_Skill.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/08_Skill_Graph_and_Domain_Skill.md)
+- [14_Agent_Interaction_Protocol.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/14_Agent_Interaction_Protocol.md)（Prompt-First 原则 + SkillTemplate prompt 标准结构）
 
 涉及文件：
 - `Plugins/AgentBridge/SkillTemplates/baseline/start_screen/`
@@ -967,10 +967,10 @@ Step：
 
 先读这些文件：
 - [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md)
-- [03_Universal_Baseline_Standard.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/03_Universal_Baseline_Standard.md)
-- [04_Baseline_Realization_Policy.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/04_Baseline_Realization_Policy.md)
-- [08_Skill_Graph_and_Domain_Skill.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/08_Skill_Graph_and_Domain_Skill.md)
-- [10_Naming_and_Path_Convention.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/10_Naming_and_Path_Convention.md)
+- [03_Universal_Baseline_Standard.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/03_Universal_Baseline_Standard.md)
+- [04_Baseline_Realization_Policy.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/04_Baseline_Realization_Policy.md)
+- [08_Skill_Graph_and_Domain_Skill.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/08_Skill_Graph_and_Domain_Skill.md)
+- [10_Naming_and_Path_Convention.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/10_Naming_and_Path_Convention.md)
 - [phase11_reviewed_handoff_v3.example.json](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-16/task10_validation_outputs/phase11_reviewed_handoff_v3.example.json)
 - [phase11_naming_resolution_log.example.json](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-16/task10_validation_outputs/phase11_naming_resolution_log.example.json)
 
@@ -1026,7 +1026,7 @@ Step：
 - [00_Index.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/00_Index.md)
 - [01_Project_Baseline.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/01_Project_Baseline.md)
 - [02_Current_Phase_Goals.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/02_Current_Phase_Goals.md)
-- [12_Implementation_Taskbook.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Phase11/12_Implementation_Taskbook.md)
+- [12_Implementation_Taskbook.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Phase11_Design_Pack/12_Implementation_Taskbook.md)
 
 涉及文件：
 - [Docs/Current/00_Index.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/00_Index.md)

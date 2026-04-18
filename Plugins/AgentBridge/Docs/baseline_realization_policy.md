@@ -1,7 +1,5 @@
-# Baseline Realization and Design Space Policy
-
-> 文档版本：v1.0.0（Phase 11 吸收）
-> 原始来源：Docs/Phase11/04_Baseline_Realization_Policy.md
+# AGENT_UE5 Baseline Realization and Design Space Policy
+> 原始来源：Docs/History/Phase11_Design_Pack/04_Baseline_Realization_Policy.md
 
 ## 1. 一句话结论
 
@@ -22,6 +20,8 @@ Baseline 域必须像 Gameplay 域一样，拥有 Design Space Discovery -> Real
 
 产物：最小 Fragment（spec_fragments 中 realization_class = "presence_only"），design_decision_log 为空。
 
+示例：Logo/Splash 页、基础退出逻辑
+
 ### 2.2 Realization-Eligible Baseline Domains
 
 允许进入 Design Space Discovery。
@@ -33,6 +33,8 @@ Baseline 域必须像 Gameplay 域一样，拥有 Design Space Discovery -> Real
 - 用户要求创造性设计
 
 产物：完整的 design_space_report 条目 + realization_candidates 条目 + converged 选择 + Fragment 含 design_decision_log。
+
+示例：HUD 布局（因为内容取决于 gameplay 域）、主菜单（因为选项取决于游戏模式）
 
 ### 2.3 Clarification-Gated Baseline Domains
 
