@@ -14,5 +14,5 @@
 - `tool_definitions.py` 中的 Bridge 签名偏差已消除，不再存在直接 `**kwargs` 失配风险。
 - Phase 8 复盘要求已被显式写入 Phase 9 任务入口和当前阶段文档。
 - Claude Code `/mcp` 已人工确认 `agentbridge connected`，工具数为 28。
-- 有 Editor 的 live smoke 已通过，真实工程与真实关卡返回正常，证据见 [phase9_mcp_validation_2026-04-06.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-06/phase9_mcp_validation_2026-04-06.md)。
-- Stage 1 / 4 / 5 / 6 / 7 已串行通过，`--no-editor` 等价覆盖已完成，证据见 [phase9_mcp_validation_2026-04-06.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-06/phase9_mcp_validation_2026-04-06.md)。
+- 有 Editor 的 live smoke 已通过，真实工程与真实关卡返回正常；原验证报告 `phase9_mcp_validation_2026-04-06.md` 未随当前仓库保留，当前可交叉参考 [11_Phase9_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/11_Phase9_Closeout.md) 与 [system_test_report_2026-04-06_190118.json](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/reports/2026-04-06/system_test_report_2026-04-06_190118.json)。
+- Stage 1 / 4 / 5 / 6 / 7 已串行通过，`--no-editor` 等价覆盖已完成；原验证报告 `phase9_mcp_validation_2026-04-06.md` 未随当前仓库保留，当前可交叉参考 [11_Phase9_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/11_Phase9_Closeout.md) 与 [system_test_report_2026-04-06_190118.json](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/reports/2026-04-06/system_test_report_2026-04-06_190118.json)。

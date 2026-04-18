@@ -1,7 +1,19 @@
 # Base Skill Domains Design
 
-> 状态：Phase 7 当前生效  
-> 范围：基础域 registry / loader / 两个真实域 + 八个骨架域
+> 状态：Phase 7 历史快照，不再代表 Phase 11 当前主链
+> 范围：Phase 7 时期的基础域 registry / loader / 两个真实域 + 八个骨架域
+
+## 当前定位
+
+本文保留为 **Phase 7 历史方案快照**，用于解释早期 `Skills/base_domains/` 的 registry / loader / 治理域设计来源。
+
+它不再描述 Phase 11 当前的正式事实。当前 Phase 11 请优先参考：
+
+- [skill_graph_and_domain_skill.md](skill_graph_and_domain_skill.md)
+- [universal_baseline_standard.md](universal_baseline_standard.md)
+- [baseline_realization_policy.md](baseline_realization_policy.md)
+- [reviewed_handoff_design.md](reviewed_handoff_design.md)
+- [compiler_design.md](compiler_design.md)
 
 ## 目标
 
@@ -103,7 +115,10 @@ dependencies:
 - `boardgame` 已补齐治理域依赖
 - `jrpg` 作为第二个类型包，必须显式声明治理域依赖
 
-## 与 Handoff / Run Plan 的关系
+## 与 Handoff / Run Plan 的关系（Phase 7 历史口径）
+
+以下关系描述的是 Phase 7 时期的 handoff / run_plan 治理上下文，不是 Phase 11 当前默认主路径。
+Phase 11 当前正式交接物请以 `reviewed_handoff_v3` 与 `run_id` 工作区模型为准。
 
 基础域会通过以下路径写回治理上下文：
 

@@ -1,7 +1,5 @@
-# Root Skill Contract 标准
-
-> 文档版本：v1.0.0（Phase 11 吸收）
-> 原始来源：Docs/Phase11/02_Root_Skill_Contract_Standard.md
+# AGENT_UE5 Root Skill Contract 标准
+> 原始来源：Docs/History/Phase11_Design_Pack/02_Root_Skill_Contract_Standard.md
 
 ## 1. 定义
 
@@ -28,12 +26,8 @@ Root Skill Contract 是：
 - 输入基础、HUD/Popup/结果表达
 - 音频基础、平台基础
 
-详见 `universal_baseline_standard.md`。
-
 ### 2.3 Clarification Gate 结果
 - 已确认项、延后项、默认项、阻塞项
-
-详见 `clarification_gate_rules.md`。
 
 ### 2.4 项目策略
 - run policy、naming policy、placement policy、phase policy
@@ -122,6 +116,6 @@ Root Skill Contract 是：
 
 ## 5. Constraint Field vs Variant Field 标注规则
 
-详见 `constraint_variant_policy.md`。
+详见 `06_Constraint_vs_Variant_Policy.md`。
 
 Root Skill Contract 中每个设计元素必须被标注为 Constraint 或 Variant。标注发生在 Root Skill Contract 形成阶段，贯穿整个管线。

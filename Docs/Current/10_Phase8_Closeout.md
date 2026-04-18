@@ -12,8 +12,8 @@
 
 ## 2. 最终证据
 
-- `TASK 06` 最终汇总： [phase8_task06_validation_2026-04-05_230956.json](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-05/phase8_task06_validation_2026-04-05_230956.json)
-- 人工冒烟报告： [phase8_manual_smoke_report_2026-04-05_210434.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-05/phase8_manual_smoke_report_2026-04-05_210434.md)
+- `TASK 06` 最终汇总：历史汇总文件 `phase8_task06_validation_2026-04-05_230956.json` 未随当前仓库保留
+- 人工冒烟报告：历史报告 `phase8_manual_smoke_report_2026-04-05_210434.md` 未随当前仓库保留
 - Stage 9 / E2E 总报告： [system_test_report_2026-04-05_230956.json](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/reports/2026-04-05/system_test_report_2026-04-05_230956.json)
 - Phase 8 收尾后的问题复盘： [08_Phase8_Retrospective_And_Phase9_Checklist.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/08_Phase8_Retrospective_And_Phase9_Checklist.md)
 

@@ -22,7 +22,7 @@
 | Popup 存在同类空白风险 | HUD 修好后，后续弹窗仍可能“创建成功但不可见” | Popup 采用同样的 `RebuildWidget()` 前置构建方案 | [MPopupWidget.cpp:35](/D:/UnrealProjects/Mvpv4TestCodex/Source/Mvpv4TestCodex/Private/Widgets/MPopupWidget.cpp:35) [MPopupWidget.cpp:130](/D:/UnrealProjects/Mvpv4TestCodex/Source/Mvpv4TestCodex/Private/Widgets/MPopupWidget.cpp:130) |
 | HUD 焦点与鼠标交互未完整恢复 | 鼠标可见但按钮不一定可点击 | `CreateHUDWidget()` 后强制刷新 `GameAndUI`、焦点、点击与悬停事件 | [MMonopolyGameMode.cpp:360](/D:/UnrealProjects/Mvpv4TestCodex/Source/Mvpv4TestCodex/Private/MMonopolyGameMode.cpp:360) [MMonopolyGameMode.cpp:391](/D:/UnrealProjects/Mvpv4TestCodex/Source/Mvpv4TestCodex/Private/MMonopolyGameMode.cpp:391) |
 | PlayerController 覆盖 HUD 焦点 | HUD 刚设好焦点，`BeginPlay()` 又可能改掉输入模式 | `BeginPlay()` 仅保留鼠标事件开关，不再覆盖 HUD 焦点 | [MMonopolyPlayerController.cpp:11](/D:/UnrealProjects/Mvpv4TestCodex/Source/Mvpv4TestCodex/Private/MMonopolyPlayerController.cpp:11) |
-| 缺少修复后运行时证据 | 仅靠肉眼判断不利于追溯 | 已补充修复报告与无头日志证据 | [phase8_hud_input_fix_20260405.md:5](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/phase8_hud_input_fix_20260405.md:5) [Mvpv4TestCodex.log:1087](/D:/UnrealProjects/Mvpv4TestCodex/Saved/Logs/Mvpv4TestCodex.log:1087) [Mvpv4TestCodex.log:1095](/D:/UnrealProjects/Mvpv4TestCodex/Saved/Logs/Mvpv4TestCodex.log:1095) |
+| 缺少修复后运行时证据 | 仅靠肉眼判断不利于追溯 | 已补充修复报告（历史报告 `phase8_hud_input_fix_20260405.md` 未随当前仓库保留）与无头日志证据 | [Mvpv4TestCodex.log:1087](/D:/UnrealProjects/Mvpv4TestCodex/Saved/Logs/Mvpv4TestCodex.log:1087) [Mvpv4TestCodex.log:1095](/D:/UnrealProjects/Mvpv4TestCodex/Saved/Logs/Mvpv4TestCodex.log:1095) |
 
 ## 2. 根因判断
 
@@ -117,6 +117,6 @@ M4 的主回归又主要依赖 `--no-editor` 与 simulated 流程。
 
 ## 4. 关联证据
 
-- HUD / 输入修复报告：[phase8_hud_input_fix_20260405.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/phase8_hud_input_fix_20260405.md)
+- HUD / 输入修复报告：历史报告 `phase8_hud_input_fix_20260405.md` 未随当前仓库保留
 - HUD 修复后日志证据：[Mvpv4TestCodex.log:1087](/D:/UnrealProjects/Mvpv4TestCodex/Saved/Logs/Mvpv4TestCodex.log:1087) [Mvpv4TestCodex.log:1090](/D:/UnrealProjects/Mvpv4TestCodex/Saved/Logs/Mvpv4TestCodex.log:1090) [Mvpv4TestCodex.log:1095](/D:/UnrealProjects/Mvpv4TestCodex/Saved/Logs/Mvpv4TestCodex.log:1095) [Mvpv4TestCodex.log:1098](/D:/UnrealProjects/Mvpv4TestCodex/Saved/Logs/Mvpv4TestCodex.log:1098)
 - Phase 8 交接与任务依据：[Phase8_M3_Handover_to_Execution_Agent.md:452](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Proposals/Phase8_M3_Handover_to_Execution_Agent.md:452) [task8_phase8.md:952](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task8_phase8.md:952) [task8_phase8.md:997](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task8_phase8.md:997) [task8_phase8.md:1065](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task8_phase8.md:1065)

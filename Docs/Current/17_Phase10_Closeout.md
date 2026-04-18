@@ -35,19 +35,17 @@ Phase 10 的目标是把 MCP 从“执行层包装”收敛为“认知桥接层
 
 基线修正与回归证据：
 
-- [mcp_count_baseline_fix.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-11/mcp_count_baseline_fix.md)
+- 历史基线修正说明 `mcp_count_baseline_fix.md` 未随当前仓库保留
 - [system_test_report_2026-04-11_202214.json](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/reports/2026-04-11/system_test_report_2026-04-11_202214.json)
 
 ## 4. 端到端证据
 
-- TASK 06：MonopolyGame GDD 已生成 `12` 个核心 JSON 产物，见 [task06_pipeline_execution_summary.json](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-11/task06_pipeline_execution_summary.json)。
-- TASK 07：`L_MonopolyBoard_Pipeline` 已从空白关卡创建完成，`12/12` 基础验证通过，见 [task07_build_ir_level_realization_validation.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-11/task07_build_ir_level_realization_validation.md)。
-- TASK 08：运行时验证 `19/19` 通过，Evidence 后端裁决 `pass`，run_id 为 `2026-04-11_fa5c8bec`，见 [task08_runtime_evidence_judgment_validation.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-11/task08_runtime_evidence_judgment_validation.md)。
+- TASK 06：MonopolyGame GDD 已生成 `12` 个核心 JSON 产物；历史汇总文件 `task06_pipeline_execution_summary.json` 未随当前仓库保留。
+- TASK 07：`L_MonopolyBoard_Pipeline` 已从空白关卡创建完成，`12/12` 基础验证通过，现存归档副本可见 [task07_build_ir_level_realization_validation.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Evidence/2026-04-11_0f2b314b/reports/task07_build_ir_level_realization_validation.md)。
+- TASK 08：运行时验证 `19/19` 通过，Evidence 后端裁决 `pass`，run_id 为 `2026-04-11_fa5c8bec`；历史总报告 `task08_runtime_evidence_judgment_validation.md` 未随当前仓库保留，当前可交叉参考 [task08_runtime_validation_report.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Evidence/2026-04-11_fa5c8bec/reports/task08_runtime_validation_report.md)、[task08_validation_matrix.json](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Evidence/2026-04-11_fa5c8bec/reports/task08_validation_matrix.json) 与 [task08_anchor_checklist.json](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Evidence/2026-04-11_fa5c8bec/reports/task08_anchor_checklist.json)。
 - 标准化证据目录：
   [ProjectState/Evidence/2026-04-11_fa5c8bec](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Evidence/2026-04-11_fa5c8bec)
-- live smoke 与自动化通道修正：
-  [run_automation_tests_after_fix.json](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-11/run_automation_tests_after_fix.json)
-  [live_smoke_get_current_project_state_2026-04-11.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-11/live_smoke_get_current_project_state_2026-04-11.md)
+- live smoke 与自动化通道修正：历史报告 `run_automation_tests_after_fix.json` 与 `live_smoke_get_current_project_state_2026-04-11.md` 未随当前仓库保留；当前可交叉参考 [task08_automation_trigger.json](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Evidence/2026-04-11_fa5c8bec/reports/task08_automation_trigger.json) 与 [task08_runtime_validation_report.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Evidence/2026-04-11_fa5c8bec/reports/task08_runtime_validation_report.md)。
 
 ## 5. 流程总结
 
@@ -61,6 +59,6 @@ Phase 10 最终形成的正式流程如下：
 
 ## 6. 遗留说明
 
-- monolithic `python Plugins/AgentBridge/Tests/run_system_tests.py --no-editor` 仍保留为长链路参考命令，但 Phase 10 官方验收口径已切换为“Stage 分段等价验证”，证据见 [task08_no_editor_equivalent_regression.json](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/phase10/task08_no_editor_equivalent_regression.json) 与 [no_editor_equivalent_strategy.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-11/no_editor_equivalent_strategy.md)。
-- `L_MonopolyBoard_Pipeline` 的创建路径已经收紧为“从空白关卡创建”，不把复制 `L_MonopolyBoard` 作为推荐路径，说明见 [task07_orchestrate_wording_tighten.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-11/task07_orchestrate_wording_tighten.md)。
+- monolithic `python Plugins/AgentBridge/Tests/run_system_tests.py --no-editor` 仍保留为长链路参考命令，但 Phase 10 官方验收口径已切换为“Stage 分段等价验证”，证据见 [task08_no_editor_equivalent_regression.json](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/phase10/task08_no_editor_equivalent_regression.json)；历史策略说明 `no_editor_equivalent_strategy.md` 未随当前仓库保留。
+- `L_MonopolyBoard_Pipeline` 的创建路径已经收紧为“从空白关卡创建”，不把复制 `L_MonopolyBoard` 作为推荐路径；历史说明文档 `task07_orchestrate_wording_tighten.md` 未随当前仓库保留。
 - Phase 10 完成后，如需继续 Phase 11 或后续阶段，仍应优先遵循 [14_MCP_Cognitive_Bridge_Anchor.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/14_MCP_Cognitive_Bridge_Anchor.md) 与 [15_Skill_Spec_Handoff_Chain.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/15_Skill_Spec_Handoff_Chain.md)。

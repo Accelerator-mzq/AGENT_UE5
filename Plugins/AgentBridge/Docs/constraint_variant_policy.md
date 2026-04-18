@@ -1,7 +1,5 @@
-# Constraint vs Variant 标注策略
-
-> 文档版本：v1.0.0（Phase 11 吸收）
-> 原始来源：Docs/Phase11/06_Constraint_vs_Variant_Policy.md
+# AGENT_UE5 Constraint vs Variant 标注策略
+> 原始来源：Docs/History/Phase11_Design_Pack/06_Constraint_vs_Variant_Policy.md
 
 ## 1. 定义
 
@@ -14,6 +12,27 @@ GDD 明确锁定的值，整个管线中不可变更。
 - 修改该值会改变游戏身份或违背设计者意图
 - 管线中任何阶段都不允许偏离
 
+示例：
+```json
+{
+  "board.tile_count": {
+    "type": "constraint",
+    "value": 28,
+    "gdd_ref": "GDD SS2.1"
+  },
+  "game.player_count_range": {
+    "type": "constraint",
+    "value": [2, 4],
+    "gdd_ref": "GDD SS1.2"
+  },
+  "game.win_condition": {
+    "type": "constraint",
+    "value": "last_non_bankrupt_player",
+    "gdd_ref": "GDD SS1.3"
+  }
+}
+```
+
 ### 1.2 Variant Field
 
 GDD 允许变化的空间，受 bounds 约束但不锁定具体值。
@@ -22,6 +41,26 @@ GDD 允许变化的空间，受 bounds 约束但不锁定具体值。
 - GDD 只给出范围、意图、或完全沉默
 - 具体值由 Design Space Discovery 和 Realization 过程决定
 - 有 `must_satisfy`（必须满足的约束）和 `must_not`（必须避免的条件）
+
+示例：
+```json
+{
+  "board.world_layout_dimensions": {
+    "type": "variant",
+    "bounds": {
+      "must_satisfy": ["格子在俯视相机下清晰可见", "整个棋盘在默认视角下完整可见"],
+      "must_not": ["格子重叠", "格子间距过大导致棋盘破碎感"]
+    }
+  },
+  "hud.layout_style": {
+    "type": "variant",
+    "bounds": {
+      "must_satisfy": ["显示当前回合数", "显示当前玩家标识"],
+      "must_not": ["遮挡棋盘核心区域超过 20%"]
+    }
+  }
+}
+```
 
 ---
 
@@ -42,6 +81,8 @@ GDD 允许变化的空间，受 bounds 约束但不锁定具体值。
 
 ### 3.1 判为 Constraint 的条件
 
+以下任一条件满足即标注为 Constraint：
+
 | 条件 | 示例 |
 |------|------|
 | GDD 给出精确数值 | "棋盘有 28 个格子" |
@@ -51,6 +92,8 @@ GDD 允许变化的空间，受 bounds 约束但不锁定具体值。
 | 修改会改变核心循环 | 将回合制改为实时制 |
 
 ### 3.2 判为 Variant 的条件
+
+以下任一条件满足即标注为 Variant：
 
 | 条件 | 示例 |
 |------|------|
@@ -62,15 +105,25 @@ GDD 允许变化的空间，受 bounds 约束但不锁定具体值。
 
 ### 3.3 边界判定
 
-1. **有疑义时倾向 Constraint**：宁可限制 Agent 创造空间也不冒违背设计者意图的风险
-2. **Clarification Gate 兜底**：如果判断困难且影响显著，送入 `clarification_required`
-3. **不可拆分原则**：一个 GDD 语句中的约束部分和可变部分必须拆分标注
+当判断困难时，使用以下优先规则：
+
+1. **有疑义时倾向 Constraint**：如果无法确定是否可变，先标为 Constraint，宁可限制 Agent 创造空间也不冒违背设计者意图的风险
+2. **Clarification Gate 兜底**：如果判断困难且影响显著，送入 Clarification Gate 的 `clarification_required`
+3. **不可拆分原则**：一个 GDD 语句中的约束部分和可变部分必须拆分标注，不能整体标为 Constraint 或 Variant
+
+拆分示例：
+> GDD: "棋盘有 28 个格子，排列成矩形环形"
+- `board.tile_count = 28` -> Constraint（精确数值）
+- `board.layout_shape = "rectangular_loop"` -> Constraint（明确断言）
+- `board.world_layout_dimensions` -> Variant（未指定具体尺寸）
 
 ---
 
 ## 4. 下游保持性检查
 
 ### 4.1 检查点
+
+Constraint Field 的值必须在以下环节被检查是否保持不变：
 
 | 检查环节 | 检查方式 |
 |---------|---------|
@@ -91,6 +144,8 @@ GDD 允许变化的空间，受 bounds 约束但不锁定具体值。
 
 ## 5. Variant Field 的 bounds 传播
 
+Variant Field 的 bounds 在管线中的传播路径：
+
 ```
 Root Skill Contract (bounds 定义)
   -> Domain Skill (bounds 作为 Discovery 约束输入)
@@ -106,9 +161,14 @@ bounds 本身不可在下游修改。如果 Design Space Discovery 发现 bounds
 
 ## 6. 与 Clarification Gate 的关系
 
+Constraint/Variant 标注和 Clarification Gate 是两个正交维度：
+
 | | 已确认值 | 未确认值 |
 |---|---------|---------|
 | **Constraint** | 直接锁定 | 送 Clarification Gate，回答后锁定 |
 | **Variant** | bounds 已知，进入 Discovery | bounds 不明，送 Clarification Gate 确认 bounds 后进入 Discovery |
 
-两者是正交维度：Constraint/Variant 回答"字段性质是什么"，Clarification Gate 回答"字段值/bounds 是否已知"。
+两者关系：
+- Constraint/Variant 回答"这个字段的性质是什么"
+- Clarification Gate 回答"这个字段的值/bounds 是否已知"
+- 一个字段可以同时是 Variant（性质）且需要 Clarification（bounds 未知）
