@@ -157,3 +157,32 @@ def test_import_from_manifest_unimplemented_bridge_modes_raise_with_clear_messag
             bridge_mode=mode,
         )
     assert mode in str(exc.value)
+
+
+def test_cli_main_simulated_prints_json_and_returns_zero(capsys):
+    """CLI: --manifest + --plan + --bridge-mode simulated 应输出 JSON 到 stdout 并 return 0."""
+    rc = importer.main([
+        "--manifest", str(_MANIFEST_PATH),
+        "--plan", str(_PLAN_PATH),
+        "--bridge-mode", "simulated",
+    ])
+    captured = capsys.readouterr()
+
+    assert rc == 0
+    import json as _json
+    payload = _json.loads(captured.out)
+    assert payload["status"] == "success"
+    assert payload["bridge_mode"] == "simulated"
+    assert len(payload["asset_results"]) == 1
+
+
+def test_cli_main_unimplemented_mode_returns_nonzero(capsys):
+    """CLI: 未实现 mode 应 return 非 0 并把错误打到 stderr,不抛 traceback 出去。"""
+    rc = importer.main([
+        "--manifest", str(_MANIFEST_PATH),
+        "--bridge-mode", "bridge_python",
+    ])
+    captured = capsys.readouterr()
+
+    assert rc != 0
+    assert "bridge_python" in captured.err

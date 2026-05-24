@@ -121,3 +121,48 @@ def _simulate_asset(asset: dict[str, Any]) -> dict[str, Any]:
         "source_uri": asset.get("source_uri"),
         "simulated": True,
     }
+
+
+# ------------------------------------------------------------
+# CLI 入口
+# ------------------------------------------------------------
+
+def main(argv: list[str] | None = None) -> int:
+    """命令行入口:`python -m ... --manifest <path> [--plan <path>] [--bridge-mode simulated]`。
+
+    成功:把 import_from_manifest 结果 JSON 打到 stdout, return 0
+    失败:把错误消息打到 stderr, return 非 0(不抛 traceback)
+    """
+    import argparse
+    import sys as _sys
+
+    parser = argparse.ArgumentParser(
+        description="ForgeUE_codex manifest importer (standalone CLI)",
+    )
+    parser.add_argument("--manifest", required=True, help="ForgeUE_codex manifest.json 路径")
+    parser.add_argument("--plan", default=None, help="ForgeUE_codex import_plan.json 路径(可选)")
+    parser.add_argument(
+        "--bridge-mode",
+        default="simulated",
+        choices=list(_SUPPORTED_BRIDGE_MODES),
+        help="桥接执行模式(默认 simulated)",
+    )
+    args = parser.parse_args(argv)
+
+    try:
+        result = import_from_manifest(
+            manifest_path=args.manifest,
+            plan_path=args.plan,
+            bridge_mode=args.bridge_mode,
+        )
+    except (ValueError, NotImplementedError, FileNotFoundError) as exc:
+        print(f"[forgeue_manifest_importer] {exc}", file=_sys.stderr)
+        return 2
+
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    import sys as _sys
+    _sys.exit(main())
