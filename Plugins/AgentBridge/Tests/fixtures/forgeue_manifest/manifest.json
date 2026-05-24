@@ -1,0 +1,64 @@
+{
+  "manifest_id": "m_run_p4_full",
+  "schema_version": "1.0.0",
+  "run_id": "run_p4_full",
+  "project_target": {
+    "project_name": "FakeForgeProject",
+    "project_root": "D:\\ClaudeProject\\ForgeUE_claude\\demo_artifacts\\p4_demo\\test_p4_full_pipeline_writes_m0\\FakeForgeProject",
+    "asset_root": "/Game/Generated/Tavern",
+    "run_asset_folder": "/Game/Generated/Tavern/run_p4_full",
+    "import_mode": "manifest_only"
+  },
+  "assets": [
+    {
+      "asset_entry_id": "ae_run_p4_full_step_image_cand_e0726e0a_0",
+      "artifact_id": "run_p4_full_step_image_cand_e0726e0a_0",
+      "asset_kind": "texture",
+      "source_uri": "Content/Generated/run_p4_full/run_p4_full_step_image_cand_e0726e0a_0.png",
+      "target_object_path": "/Game/Generated/Tavern/run_p4_full/T_run_p4_full_step_image_cand_e0726e0a_0",
+      "target_package_path": "/Game/Generated/Tavern/run_p4_full/T_run_p4_full_step_image_cand_e0726e0a_0",
+      "ue_naming": {
+        "policy": "house_rules",
+        "prefix": "T_",
+        "base_name": "run_p4_full_step_image_cand_e0726e0a_0",
+        "ue_name": "T_run_p4_full_step_image_cand_e0726e0a_0"
+      },
+      "import_options": {
+        "compression_settings": "default",
+        "color_space": "sRGB",
+        "has_alpha": false,
+        "tileable": false,
+        "usage_hint": "albedo",
+        "source_format": "png"
+      },
+      "metadata_overrides": {
+        "width": 64,
+        "height": 64,
+        "color_space": "sRGB",
+        "transparent_background": false,
+        "intended_use": "tavern_door_concept"
+      }
+    }
+  ],
+  "import_rules": {
+    "dry_run": false,
+    "overwrite_existing": false,
+    "reviewer_selected": [
+      "run_p4_full_step_image_cand_e0726e0a_0"
+    ]
+  },
+  "naming_policy": {
+    "policy": "house_rules",
+    "prefix_table": {
+      "texture": "T_",
+      "sound_wave": "S_",
+      "static_mesh": "SM_",
+      "material": "M_"
+    }
+  },
+  "path_policy": {
+    "run_asset_folder": "/Game/Generated/Tavern/run_p4_full",
+    "asset_root": "/Game/Generated/Tavern"
+  },
+  "dependencies": []
+}

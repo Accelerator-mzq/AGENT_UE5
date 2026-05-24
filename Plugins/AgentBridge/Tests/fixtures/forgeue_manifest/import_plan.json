@@ -1,0 +1,20 @@
+{
+  "plan_id": "p_run_p4_full",
+  "manifest_id": "m_run_p4_full",
+  "operations": [
+    {
+      "op_id": "op_create_folder_root",
+      "kind": "create_folder",
+      "asset_entry_id": "<root>",
+      "depends_on": []
+    },
+    {
+      "op_id": "op_import_texture_ae_run_p4_full_step_image_cand_e0726e0a_0",
+      "kind": "import_texture",
+      "asset_entry_id": "ae_run_p4_full_step_image_cand_e0726e0a_0",
+      "depends_on": [
+        "op_create_folder_root"
+      ]
+    }
+  ]
+}
