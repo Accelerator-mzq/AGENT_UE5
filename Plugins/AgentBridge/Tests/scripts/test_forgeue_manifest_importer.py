@@ -143,3 +143,17 @@ def test_handoff_runner_dispatches_import_assets_to_forgeue_importer():
     assert inner["status"] == "success"
     assert inner["bridge_mode"] == "simulated"
     assert len(inner["asset_results"]) == 1
+
+
+@pytest.mark.parametrize("mode", ["bridge_python", "bridge_rc_api"])
+def test_import_from_manifest_unimplemented_bridge_modes_raise_with_clear_message(mode):
+    """bridge_python / bridge_rc_api 当前未实现, 必须 raise NotImplementedError
+    且消息里点名 mode + 指向后续工作, 不能 silent return 假成功。
+    """
+    with pytest.raises(NotImplementedError) as exc:
+        importer.import_from_manifest(
+            manifest_path=str(_MANIFEST_PATH),
+            plan_path=str(_PLAN_PATH),
+            bridge_mode=mode,
+        )
+    assert mode in str(exc.value)

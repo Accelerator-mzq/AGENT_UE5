@@ -13,6 +13,21 @@
 - simulated 模式必须能完全离线跑通，作为契约不漂移的看护
 """
 
+# ------------------------------------------------------------
+# 未实现部分(后续 milestone 接入)
+# ------------------------------------------------------------
+# bridge_python:
+#   在 UE Editor 进程内通过 unreal Python API 调 AssetTools.ImportAssets,
+#   对每条 op 写 evidence(沿用 ForgeUE_codex 的 evidence.json 契约)。
+#   只能在 UE Editor 内执行,不能离线跑;触发条件:UE Editor 启动 +
+#   AgentBridge subsystem 已 ready。
+#
+# bridge_rc_api:
+#   通过 Remote Control API(端口 30010)远程触发同样的导入。
+#   依赖 bridge.remote_control_client; 触发条件: UE Editor + Remote Control
+#   plugin enabled。
+# ------------------------------------------------------------
+
 from __future__ import annotations
 
 import json
