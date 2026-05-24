@@ -6,8 +6,15 @@ Run Plan Builder
 import uuid
 from typing import Dict, Any, List
 
-from .recovery_planner import build_recovery_plan
-from .validation_inserter import insert_validation_checkpoints
+# 与 handoff_runner 同样的兼容策略:
+# - 以包模块方式加载时(orchestrator.run_plan_builder), relative import 生效
+# - 以裸模块方式加载时, fallback 到平铺路径
+try:
+    from .recovery_planner import build_recovery_plan
+    from .validation_inserter import insert_validation_checkpoints
+except ImportError:
+    from recovery_planner import build_recovery_plan
+    from validation_inserter import insert_validation_checkpoints
 
 
 def build_run_plan_from_handoff(handoff: Dict[str, Any]) -> Dict[str, Any]:

@@ -106,3 +106,40 @@ def test_import_from_manifest_rejects_unknown_bridge_mode():
             manifest_path=str(_MANIFEST_PATH),
             bridge_mode="totally_made_up",
         )
+
+
+def test_handoff_runner_dispatches_import_assets_to_forgeue_importer():
+    """end-to-end: handoff_runner.execute_run_plan 收到 import_assets step
+    时,应 dispatch 到 forgeue_manifest_importer 而不是 fall through 到
+    "未实现的 workflow_type" silent skip 分支。
+    """
+    # 让 handoff_runner 能 import
+    sys.path.insert(0, str(_ORCHESTRATOR_DIR.parent / "bridge"))
+    sys.path.insert(0, str(_ORCHESTRATOR_DIR))
+    import handoff_runner  # noqa: PLC0415
+
+    run_plan = {
+        "run_plan_id": "runplan.test.forgeue.dispatch",
+        "source_handoff_id": "handoff.test.dispatch",
+        "workflow_sequence": [
+            {
+                "step_id": "import_forgeue_textures",
+                "workflow_type": "import_assets",
+                "params": {
+                    "manifest_path": str(_MANIFEST_PATH),
+                    "plan_path": str(_PLAN_PATH),
+                    "bridge_mode": "simulated",
+                },
+            }
+        ],
+    }
+
+    result = handoff_runner.execute_run_plan(run_plan, bridge_mode="simulated")
+
+    assert result["status"] == "succeeded"
+    step_results = result["step_results"]
+    assert len(step_results) == 1
+    inner = step_results[0]["result"]
+    assert inner["status"] == "success"
+    assert inner["bridge_mode"] == "simulated"
+    assert len(inner["asset_results"]) == 1
