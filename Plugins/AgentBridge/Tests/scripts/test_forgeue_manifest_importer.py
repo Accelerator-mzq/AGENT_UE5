@@ -62,3 +62,47 @@ def test_parse_manifest_rejects_non_list_assets(tmp_path):
 
     with pytest.raises(ValueError, match="manifest.assets must be a list"):
         importer.parse_manifest(str(bad))
+
+
+def test_import_from_manifest_simulated_returns_one_op_per_asset():
+    """simulated mode: 每个 asset entry → 一条 op 模拟结果, 状态 success."""
+    result = importer.import_from_manifest(
+        manifest_path=str(_MANIFEST_PATH),
+        plan_path=str(_PLAN_PATH),
+        bridge_mode="simulated",
+    )
+
+    assert result["status"] == "success"
+    assert result["bridge_mode"] == "simulated"
+    assert result["run_id"] == "run_p4_full"
+    assert result["manifest_id"] == "m_run_p4_full"
+    assert result["plan_id"] == "p_run_p4_full"
+    assert len(result["asset_results"]) == 1
+
+    asset_result = result["asset_results"][0]
+    assert asset_result["status"] == "success"
+    assert asset_result["asset_kind"] == "texture"
+    assert asset_result["target_object_path"].startswith("/Game/Generated/Tavern/run_p4_full/T_")
+    assert asset_result["simulated"] is True
+
+
+def test_import_from_manifest_simulated_without_plan_path_still_works():
+    """plan_path 可选: 只有 manifest 时,生成 asset_results 但不带 plan_id。"""
+    result = importer.import_from_manifest(
+        manifest_path=str(_MANIFEST_PATH),
+        plan_path=None,
+        bridge_mode="simulated",
+    )
+
+    assert result["status"] == "success"
+    assert result["plan_id"] is None
+    assert len(result["asset_results"]) == 1
+
+
+def test_import_from_manifest_rejects_unknown_bridge_mode():
+    """contract guard: 未知 bridge_mode 必须早期失败。"""
+    with pytest.raises(ValueError, match="unsupported bridge_mode"):
+        importer.import_from_manifest(
+            manifest_path=str(_MANIFEST_PATH),
+            bridge_mode="totally_made_up",
+        )
