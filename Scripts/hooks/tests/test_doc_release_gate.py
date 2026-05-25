@@ -40,3 +40,49 @@ def test_compute_staged_files_hash_stable_under_order() -> None:
     h2 = gate.compute_staged_files_hash(["c.md", "b.py", "a.py"])
     assert h1 == h2
     assert len(h1) == 64  # sha256 hex
+
+
+def test_validate_evidence_rejects_missing_coverage_map(tmp_path: Path) -> None:
+    # evidence 文件缺 "## Coverage Map" 区块 → reject
+    evidence = tmp_path / "audit.md"
+    evidence.write_text("# Audit\n\n## Documentation health\n\n- README: OK\n", encoding="utf-8")
+    ok, reason = gate.validate_evidence(evidence)
+    assert ok is False
+    assert "Coverage Map" in reason
+
+
+def test_validate_evidence_rejects_missing_health_section(tmp_path: Path) -> None:
+    evidence = tmp_path / "audit.md"
+    evidence.write_text("# Audit\n\n## Coverage Map\n\n| x | y |\n|---|---|\n| a | b |\n", encoding="utf-8")
+    ok, reason = gate.validate_evidence(evidence)
+    assert ok is False
+    assert "Documentation health" in reason
+
+
+def test_validate_evidence_rejects_empty_coverage_map(tmp_path: Path) -> None:
+    # 区块标题存在但下方没有非空行 → reject
+    evidence = tmp_path / "audit.md"
+    evidence.write_text(
+        "# Audit\n\n## Coverage Map\n\n\n## Documentation health\n\n- README: OK\n",
+        encoding="utf-8",
+    )
+    ok, reason = gate.validate_evidence(evidence)
+    assert ok is False
+    assert "Coverage Map" in reason
+
+
+def test_validate_evidence_passes_with_both_sections(tmp_path: Path) -> None:
+    evidence = tmp_path / "audit.md"
+    evidence.write_text(
+        "# Audit\n\n## Coverage Map\n\n| x | y |\n|---|---|\n| a | b |\n\n## Documentation health\n\n- README: Updated\n",
+        encoding="utf-8",
+    )
+    ok, reason = gate.validate_evidence(evidence)
+    assert ok is True
+    assert reason == ""
+
+
+def test_validate_evidence_rejects_missing_file(tmp_path: Path) -> None:
+    ok, reason = gate.validate_evidence(tmp_path / "nope.md")
+    assert ok is False
+    assert "not found" in reason.lower() or "不存在" in reason

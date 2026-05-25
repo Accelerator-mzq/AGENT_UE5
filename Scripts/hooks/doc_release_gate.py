@@ -59,3 +59,31 @@ def compute_staged_files_hash(staged_paths: list[str]) -> str:
     # 排序后 sha256,保证与顺序无关
     payload = "\n".join(sorted(staged_paths))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+# ---- evidence 校验 ----
+
+REQUIRED_SECTIONS = ("## Coverage Map", "## Documentation health")
+
+
+def validate_evidence(path: Path) -> tuple[bool, str]:
+    """校验 audit.md 是否含必填的两个 H2 区块且区块内非空。
+
+    返回 (ok, reason)。ok=False 时 reason 是中文/英文混合的拒绝原因。
+    """
+    if not path.exists():
+        return False, f"evidence not found: {path}"
+    text = path.read_text(encoding="utf-8")
+    for section in REQUIRED_SECTIONS:
+        if section not in text:
+            return False, f"evidence 缺少必填区块: {section}"
+        # 校验区块下方至少有一行非空非空白(不含下一个 H2)
+        idx = text.index(section)
+        rest = text[idx + len(section):]
+        # 截到下一个 H2 之前
+        next_h2 = rest.find("\n## ")
+        block = rest if next_h2 == -1 else rest[:next_h2]
+        non_empty_lines = [ln for ln in block.splitlines() if ln.strip()]
+        if not non_empty_lines:
+            return False, f"evidence 的 {section} 区块为空"
+    return True, ""
