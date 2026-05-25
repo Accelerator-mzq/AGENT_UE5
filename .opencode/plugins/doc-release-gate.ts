@@ -61,8 +61,12 @@ export const DocReleaseGate: Plugin = async ({ $ }) => {
       if (input.tool === "write" || input.tool === "edit") {
         // write 工具用 file_path，edit 工具有时用 path，兼容两种字段名
         const path = (output.args?.file_path ?? output.args?.path ?? "") as string
-        if (path && NOTIFY_PATH_RE.test(path)) {
+        // Windows 路径分隔符标准化：与 Python 层 gate.py is_trivial 的 norm 保持一致
+        // 否则形如 "Docs\\Current\\18_Phase11_Closeout.md" 会与正则静默失配
+        const normalized = path ? path.replace(/\\/g, "/") : ""
+        if (normalized && NOTIFY_PATH_RE.test(normalized)) {
           // notify 模式只记录日志/提示，失败也不阻塞
+          // 传原始 path 给 gate.py，让 Python 层显示用户实际看到的路径
           await runGate($, ["notify", "--path", path])
         }
       }
