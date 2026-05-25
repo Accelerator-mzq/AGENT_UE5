@@ -13,6 +13,7 @@ CLI 子命令:
 from __future__ import annotations
 
 import dataclasses
+import datetime as _dt
 import hashlib
 import json
 from pathlib import Path
@@ -95,8 +96,6 @@ def validate_evidence(path: Path) -> tuple[bool, str]:
 
 # ---- check 主流程 ----
 
-import datetime as _dt
-
 
 @dataclasses.dataclass(frozen=True)
 class CheckResult:
@@ -137,6 +136,9 @@ def check_marker(
 
     # 步骤 7: 24h 过期检查
     marker_time = _dt.datetime.fromisoformat(marker.timestamp)
+    # 防御: marker 文件若由外部脚本/历史遗留写入,可能是 naive timestamp,补 UTC 后再比较
+    if marker_time.tzinfo is None:
+        marker_time = marker_time.replace(tzinfo=_dt.timezone.utc)
     if now - marker_time > MARKER_TTL:
         return CheckResult(False, "marker 已过期(>24h),需重跑 document-release")
 

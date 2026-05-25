@@ -207,3 +207,24 @@ def test_check_blocks_when_evidence_file_missing(tmp_path: Path) -> None:
         now=_dt.datetime.now(_dt.timezone.utc),
     )
     assert result.passed is False
+
+
+def test_check_handles_naive_timestamp_in_marker(tmp_path: Path) -> None:
+    # marker 若由外部脚本写入 naive timestamp, check_marker 应当当 UTC 处理,而不是崩溃
+    marker_dir = tmp_path / "markers"
+    audit = tmp_path / "audit.md"
+    _write_valid_audit(audit)
+    naive_ts = _dt.datetime.now().isoformat()  # 故意 naive
+    gate.write_marker_file(
+        marker_dir,
+        _make_marker(tmp_path, audit_evidence_path=str(audit), timestamp=naive_ts),
+    )
+    result = gate.check_marker(
+        marker_dir=marker_dir,
+        branch="feat/x",
+        head_sha="abc123",
+        staged_paths=["foo.py"],
+        now=_dt.datetime.now(_dt.timezone.utc),
+    )
+    # 不崩,且因为是 naive→UTC 假设,刚写入应当未过期
+    assert result.passed is True
