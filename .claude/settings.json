@@ -6,21 +6,21 @@
         "hooks": [
           {
             "type": "command",
-            "if": "Bash(git commit*)",
+            "if": "Bash(git commit *)",
             "command": "python Scripts/hooks/doc_release_gate.py check --action commit",
             "timeout": 30,
             "statusMessage": "[doc-release] 检查 commit 门禁..."
           },
           {
             "type": "command",
-            "if": "Bash(git push*)",
+            "if": "Bash(git push *)",
             "command": "python Scripts/hooks/doc_release_gate.py check --action push",
             "timeout": 30,
             "statusMessage": "[doc-release] 检查 push 门禁..."
           },
           {
             "type": "command",
-            "if": "Bash(git merge*)",
+            "if": "Bash(git merge *)",
             "command": "python Scripts/hooks/doc_release_gate.py check --action merge",
             "timeout": 30,
             "statusMessage": "[doc-release] 检查 merge 门禁..."
