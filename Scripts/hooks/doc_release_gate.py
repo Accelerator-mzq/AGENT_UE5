@@ -52,7 +52,11 @@ def read_marker_file(marker_dir: Path, branch: str) -> Optional[Marker]:
     path = _marker_path(marker_dir, branch)
     if not path.exists():
         return None
-    return Marker.from_json(path.read_text(encoding="utf-8"))
+    try:
+        return Marker.from_json(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, TypeError) as exc:
+        # marker 文件损坏或字段不兼容,raise 显式异常含路径信息
+        raise ValueError(f"marker 文件损坏: {path}") from exc
 
 
 def compute_staged_files_hash(staged_paths: list[str]) -> str:
@@ -87,3 +91,57 @@ def validate_evidence(path: Path) -> tuple[bool, str]:
         if not non_empty_lines:
             return False, f"evidence 的 {section} 区块为空"
     return True, ""
+
+
+# ---- check 主流程 ----
+
+import datetime as _dt
+
+
+@dataclasses.dataclass(frozen=True)
+class CheckResult:
+    """check_marker 的返回值封装"""
+    passed: bool
+    reason: str  # passed=True 时为空字符串
+
+
+MARKER_TTL = _dt.timedelta(hours=24)
+
+
+def check_marker(
+    *,
+    marker_dir: Path,
+    branch: str,
+    head_sha: str,
+    staged_paths: list[str],
+    now: _dt.datetime,
+) -> CheckResult:
+    """根据 marker / HEAD / staged 决定是否放行。
+
+    与 spec §4.3 步骤 4-9 对应(步骤 1-3 由 CLI 上层处理)。
+    """
+    marker = read_marker_file(marker_dir, branch)
+    if marker is None:
+        return CheckResult(False, f"marker not found for branch {branch}")
+
+    staged_hash = compute_staged_files_hash(staged_paths)
+    head_match = marker.head_sha == head_sha
+    hash_match = marker.staged_files_hash == staged_hash
+    # 步骤 6: head 与 hash 任一变化即视为新内容,需重审
+    if not head_match and not hash_match:
+        return CheckResult(False, "HEAD 与 staged 文件集均与 marker 不一致,需要重跑 document-release")
+    if not head_match:
+        return CheckResult(False, "HEAD 已变化,需重跑 document-release")
+    if not hash_match:
+        return CheckResult(False, "staged 文件集已变化,需重跑 document-release")
+
+    # 步骤 7: 24h 过期检查
+    marker_time = _dt.datetime.fromisoformat(marker.timestamp)
+    if now - marker_time > MARKER_TTL:
+        return CheckResult(False, "marker 已过期(>24h),需重跑 document-release")
+
+    # 步骤 8: evidence 文件存在性检查
+    if not Path(marker.audit_evidence_path).exists():
+        return CheckResult(False, f"evidence 文件不存在: {marker.audit_evidence_path}")
+
+    return CheckResult(True, "")
