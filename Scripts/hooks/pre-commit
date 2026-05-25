@@ -1,0 +1,6 @@
+#!/bin/sh
+# git pre-commit hook: trivial / marker 校验
+# 不在此处看 commit message; message 由 commit-msg hook 兜底处理 [skip-doc]
+SCRIPT_DIR="$(cd "$(dirname "$0")"/../.. && pwd)"
+python "$SCRIPT_DIR/Scripts/hooks/doc_release_gate.py" check --action commit
+exit $?
