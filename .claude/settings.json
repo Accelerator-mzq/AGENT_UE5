@@ -7,9 +7,9 @@
           {
             "type": "command",
             "if": "Bash(git commit *)",
-            "command": "python Scripts/hooks/doc_release_gate.py check --action commit",
+            "command": "python Scripts/hooks/doc_release_gate.py check --action commit --trivial-only",
             "timeout": 30,
-            "statusMessage": "[doc-release] 检查 commit 门禁..."
+            "statusMessage": "[doc-release] 检查 commit 门禁(trivial-only, commit-msg hook 兜底)..."
           },
           {
             "type": "command",

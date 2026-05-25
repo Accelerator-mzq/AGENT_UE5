@@ -388,3 +388,49 @@ def test_cli_check_trivial_only_passes_even_with_nontrivial_staged(tmp_path: Pat
         "--trivial-only",
     ])
     assert exit_code == 0  # pre-commit 放行,由 commit-msg 兜底
+
+
+# ---- Fix C1: push 上下文跳过 staged hash 校验 ----
+
+def test_check_push_skips_staged_hash_check(tmp_path: Path) -> None:
+    # push 上下文 staged 为空时, 不应因 hash mismatch 拦截
+    marker_dir = tmp_path / "markers"
+    audit = tmp_path / "audit.md"
+    _write_valid_audit(audit)
+    gate.write_marker_file(marker_dir, _make_marker(tmp_path, audit_evidence_path=str(audit)))
+    result = gate.check_marker(
+        marker_dir=marker_dir,
+        branch="feat/x",
+        head_sha="abc123",
+        staged_paths=[],  # push 时 git diff --cached 返回空列表
+        now=_dt.datetime.now(_dt.timezone.utc),
+        skip_staged_check=True,
+    )
+    assert result.passed is True
+
+
+def test_check_push_still_blocks_on_head_mismatch(tmp_path: Path) -> None:
+    # push 上下文 skip_staged_check=True 时,HEAD 不一致仍应阻止
+    marker_dir = tmp_path / "markers"
+    audit = tmp_path / "audit.md"
+    _write_valid_audit(audit)
+    gate.write_marker_file(marker_dir, _make_marker(tmp_path, audit_evidence_path=str(audit)))
+    result = gate.check_marker(
+        marker_dir=marker_dir,
+        branch="feat/x",
+        head_sha="DIFFERENT_HEAD",  # 与 marker 中 abc123 不一致
+        staged_paths=[],
+        now=_dt.datetime.now(_dt.timezone.utc),
+        skip_staged_check=True,
+    )
+    assert result.passed is False
+    assert "HEAD" in result.reason
+
+
+# ---- Fix I2: skill SHA 一致性校验 ----
+
+def test_skill_sha_consistency_check_passes() -> None:
+    # 默认情况下 canonical 与 mirror 内容一致(已由 sync_skills.py 同步), 函数返回 True
+    ok, reason = gate._check_skill_sha_consistency()
+    assert ok is True
+    assert reason == ""

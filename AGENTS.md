@@ -215,6 +215,6 @@ implementation / fix
 
 - staged 文件全部落在 `Saved/` / `Intermediate/` / `DerivedDataCache/` / `Binaries/` / `Build/` / `.codex/` / `*.lock` 内 → 自动放行,不写 marker
 - commit message 首行写 `[skip-doc]` → 跳过,但记录到 `ProjectState/Reports/<today>/doc_release_skipped.log`
-- `git commit --no-verify` → 跳过,事后追写 skipped.log
+- `git commit --no-verify` → git 自身跳过 hook,skipped.log 不会自动记录(用户应自觉为后续 PR 描述说明跳过原因)
 
 skill 完整规范见 `.claude/skills/document-release/SKILL.md`(canonical) 和 `.agents/skills/document-release/SKILL.md`(Codex 副本);设计依据见 `Docs/superpowers/specs/2026-05-25-document-release-port-design.md`。

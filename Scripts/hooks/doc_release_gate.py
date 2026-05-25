@@ -121,25 +121,35 @@ def check_marker(
     head_sha: str,
     staged_paths: list[str],
     now: _dt.datetime,
+    skip_staged_check: bool = False,  # 新参数: push 上下文不校验 staged hash
 ) -> CheckResult:
     """根据 marker / HEAD / staged 决定是否放行。
 
     与 spec §4.3 步骤 4-9 对应(步骤 1-3 由 CLI 上层处理)。
+    push 上下文传 skip_staged_check=True,跳过 staged_files_hash 比对,
+    因为 push 时 git diff --cached 返回空列表,强行比对会永久失效。
     """
     marker = read_marker_file(marker_dir, branch)
     if marker is None:
         return CheckResult(False, f"marker not found for branch {branch}")
 
-    staged_hash = compute_staged_files_hash(staged_paths)
     head_match = marker.head_sha == head_sha
-    hash_match = marker.staged_files_hash == staged_hash
-    # 步骤 6: head 与 hash 任一变化即视为新内容,需重审
-    if not head_match and not hash_match:
-        return CheckResult(False, "HEAD 与 staged 文件集均与 marker 不一致,需要重跑 document-release")
-    if not head_match:
-        return CheckResult(False, "HEAD 已变化,需重跑 document-release")
-    if not hash_match:
-        return CheckResult(False, "staged 文件集已变化,需重跑 document-release")
+
+    if not skip_staged_check:
+        # commit/merge 上下文: 同时校验 HEAD SHA 与 staged 文件集 hash
+        staged_hash = compute_staged_files_hash(staged_paths)
+        hash_match = marker.staged_files_hash == staged_hash
+        # 步骤 6: head 与 hash 任一变化即视为新内容,需重审
+        if not head_match and not hash_match:
+            return CheckResult(False, "HEAD 与 staged 文件集均与 marker 不一致,需要重跑 document-release")
+        if not head_match:
+            return CheckResult(False, "HEAD 已变化,需重跑 document-release")
+        if not hash_match:
+            return CheckResult(False, "staged 文件集已变化,需重跑 document-release")
+    else:
+        # push 上下文: git diff --cached 返回空列表,只校验 HEAD SHA
+        if not head_match:
+            return CheckResult(False, "HEAD 已变化,需重跑 document-release (push 上下文)")
 
     # 步骤 7: 24h 过期检查
     marker_time = _dt.datetime.fromisoformat(marker.timestamp)
@@ -250,6 +260,25 @@ def _git_current_branch() -> str:
         return "UNKNOWN"
 
 
+def _check_skill_sha_consistency() -> tuple[bool, str]:
+    """校验 canonical 与 mirror SKILL.md SHA 一致。mirror 不存在只 warn 不阻塞。
+
+    对应 spec §4.3 step 3。
+    """
+    canonical = PROJECT_ROOT / ".claude" / "skills" / "document-release" / "SKILL.md"
+    mirror = PROJECT_ROOT / ".agents" / "skills" / "document-release" / "SKILL.md"
+    if not canonical.exists():
+        return False, f"canonical SKILL.md 不存在: {canonical}"
+    if not mirror.exists():
+        # 副本不存在不阻塞(spec §4.3 step 3 fallback)
+        return True, ""
+    c_sha = hashlib.sha256(canonical.read_bytes()).hexdigest()
+    m_sha = hashlib.sha256(mirror.read_bytes()).hexdigest()
+    if c_sha != m_sha:
+        return False, f"skill drift: canonical SHA != mirror SHA,请跑 python Scripts/sync_skills.py sync"
+    return True, ""
+
+
 def _cmd_check(args: argparse.Namespace) -> int:
     branch = args.branch or _git_current_branch()
     head = args.head or _git_head_sha()
@@ -263,7 +292,13 @@ def _cmd_check(args: argparse.Namespace) -> int:
         # 非 trivial 文件: 放行, 等 commit-msg hook 做完整校验
         return 0
 
-    # 步骤 0: 逃生通道之 commit message [skip-doc]
+    # 步骤 0a: skill SHA 一致性校验(spec §4.3 step 3)
+    skill_ok, skill_reason = _check_skill_sha_consistency()
+    if not skill_ok:
+        print(f"\n[document-release gate] 阻止 {args.action}:\n  原因: {skill_reason}\n", file=sys.stderr)
+        return 2
+
+    # 步骤 0b: 逃生通道之 commit message [skip-doc]
     if args.commit_msg and is_skip_doc_commit(args.commit_msg):
         # dry-run 不写日志,只走逻辑判断
         if not args.dry_run:
@@ -274,13 +309,14 @@ def _cmd_check(args: argparse.Namespace) -> int:
     if is_trivial(staged):
         return 0
 
-    # 步骤 2: marker 校验
+    # 步骤 2: marker 校验; push 上下文跳过 staged hash 比对
     result = check_marker(
         marker_dir=_marker_dir(),
         branch=branch,
         head_sha=head,
         staged_paths=staged,
         now=_dt.datetime.now(_dt.timezone.utc),
+        skip_staged_check=(args.action == "push"),  # push 时 git diff --cached 为空,不校验 staged
     )
     if result.passed:
         return 0
