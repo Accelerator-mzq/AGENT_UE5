@@ -108,3 +108,6 @@ Thumbs.db
 !Plugins/AgentBridge/AgentBridgeTests/**/*.Build.cs
 !Plugins/AgentBridge/AgentBridgeTests/**/*.h
 !Plugins/AgentBridge/AgentBridgeTests/**/*.cpp
+
+# document-release marker(运行时状态,不入仓库)
+ProjectState/RuntimeConfigs/doc-release-markers/

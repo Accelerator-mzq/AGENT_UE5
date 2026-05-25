@@ -198,3 +198,23 @@ Agent 不得：
 - 框架级设计文档主要位于插件内部；阶段设计、交接和历史任务文档位于项目层 `Docs/History/`
 - 根目录 `MCP实现方案.md` 已归档为 `Docs/History/Proposals/Phase9_MCP_Implementation_Plan.md`
 - 根目录 `task_temp.md` 已删除，不再作为任何阶段的正式入口
+
+### 3.8 任务收尾流程
+
+非 trivial 改动(改变行为 / backlog / 当前文档 / 契约 / 测试 / 示例 / 验收证据)必须按以下链条收尾:
+
+```
+implementation / fix
+ → superpowers:verification-before-completion
+ → document-release  (Mvpv4TestCodex 本地 skill)
+ → superpowers:verification-before-completion (对 doc 改动再 verify)
+ → superpowers:finishing-a-development-branch (merge / push)
+```
+
+`document-release` 是**强制门禁**:`git commit / push / merge` 之前必须跑过它,否则 git pre-commit/pre-push hook 以及 Claude Code / OpenCode 平台 hook 会拦下来。逃生通道:
+
+- staged 文件全部落在 `Saved/` / `Intermediate/` / `DerivedDataCache/` / `Binaries/` / `Build/` / `.codex/` / `*.lock` 内 → 自动放行,不写 marker
+- commit message 首行写 `[skip-doc]` → 跳过,但记录到 `ProjectState/Reports/<today>/doc_release_skipped.log`
+- `git commit --no-verify` → 跳过,事后追写 skipped.log
+
+skill 完整规范见 `.claude/skills/document-release/SKILL.md`(canonical) 和 `.agents/skills/document-release/SKILL.md`(Codex 副本);设计依据见 `Docs/superpowers/specs/2026-05-25-document-release-port-design.md`。
