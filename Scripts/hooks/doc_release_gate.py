@@ -227,7 +227,7 @@ def _git_staged_paths() -> list[str]:
             cwd=PROJECT_ROOT,
             encoding="utf-8",
         )
-    except (subprocess.CalledProcessError, FileNotFoundError):
+    except (subprocess.CalledProcessError, OSError):
         return []
     return [ln.strip() for ln in out.splitlines() if ln.strip()]
 
@@ -237,7 +237,7 @@ def _git_head_sha() -> str:
         return subprocess.check_output(
             ["git", "rev-parse", "HEAD"], cwd=PROJECT_ROOT, encoding="utf-8"
         ).strip()
-    except (subprocess.CalledProcessError, FileNotFoundError):
+    except (subprocess.CalledProcessError, OSError):
         return "UNKNOWN"
 
 
@@ -246,7 +246,7 @@ def _git_current_branch() -> str:
         return subprocess.check_output(
             ["git", "branch", "--show-current"], cwd=PROJECT_ROOT, encoding="utf-8"
         ).strip() or "HEAD-detached"
-    except (subprocess.CalledProcessError, FileNotFoundError):
+    except (subprocess.CalledProcessError, OSError):
         return "UNKNOWN"
 
 
@@ -257,7 +257,9 @@ def _cmd_check(args: argparse.Namespace) -> int:
 
     # 步骤 0: 逃生通道之 commit message [skip-doc]
     if args.commit_msg and is_skip_doc_commit(args.commit_msg):
-        log_skipped(_default_skipped_log(), reason="commit msg [skip-doc]", branch=branch, head=head)
+        # dry-run 不写日志,只走逻辑判断
+        if not args.dry_run:
+            log_skipped(_default_skipped_log(), reason="commit msg [skip-doc]", branch=branch, head=head)
         return 0
 
     # 步骤 1: trivial 白名单
@@ -308,6 +310,9 @@ def _cmd_write_marker(args: argparse.Namespace) -> int:
         audit_evidence_path=str(evidence),
         timestamp=_dt.datetime.now(_dt.timezone.utc).isoformat(),
     )
+    if args.dry_run:
+        print(f"[document-release] dry-run: marker 不写入 (branch={marker.branch}, head={marker.head_sha[:12]})", file=sys.stderr)
+        return 0
     write_marker_file(_marker_dir(), marker)
     print(f"[document-release] marker 已写入: {marker.branch} @ {marker.head_sha[:12]}", file=sys.stderr)
     return 0
@@ -335,6 +340,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     pw.add_argument("--head")
     pw.add_argument("--simulate-staged", nargs="*", default=None)
     pw.add_argument("--evidence", required=True)
+    pw.add_argument("--dry-run", action="store_true")
     pw.set_defaults(func=_cmd_write_marker)
 
     args = p.parse_args(argv)

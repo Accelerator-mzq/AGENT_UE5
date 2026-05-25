@@ -336,3 +336,42 @@ def test_cli_notify_never_blocks_and_writes_stderr(tmp_path: Path, monkeypatch, 
     captured = capsys.readouterr()
     assert exit_code == 0
     assert "task.md" in captured.err
+
+
+# ---- dry-run 副作用抑制测试 (Task 4 review follow-up) ----
+
+def test_cli_check_dry_run_does_not_write_skipped_log(tmp_path: Path, monkeypatch) -> None:
+    # dry-run + [skip-doc] commit msg 不应写 skipped.log
+    skipped = tmp_path / "skipped.log"
+    monkeypatch.setenv("DOC_RELEASE_MARKER_DIR", str(tmp_path / "markers"))
+    monkeypatch.setenv("DOC_RELEASE_SKIPPED_LOG", str(skipped))
+    exit_code = gate.main([
+        "check",
+        "--action", "commit",
+        "--branch", "feat/x",
+        "--head", "abc",
+        "--simulate-staged", "src/foo.py",
+        "--commit-msg", "[skip-doc] test",
+        "--dry-run",
+    ])
+    assert exit_code == 0
+    assert not skipped.exists()
+
+
+def test_cli_write_marker_dry_run_does_not_write_marker(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("DOC_RELEASE_MARKER_DIR", str(tmp_path / "markers"))
+    monkeypatch.setenv("DOC_RELEASE_SKIPPED_LOG", str(tmp_path / "skipped.log"))
+    good = tmp_path / "audit.md"
+    _write_valid_audit(good)
+    exit_code = gate.main([
+        "write-marker",
+        "--branch", "feat/x",
+        "--head", "abc",
+        "--simulate-staged", "src/foo.py",
+        "--evidence", str(good),
+        "--dry-run",
+    ])
+    assert exit_code == 0
+    # marker 不应被写入
+    marker = gate.read_marker_file(tmp_path / "markers", "feat/x")
+    assert marker is None
