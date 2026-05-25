@@ -84,6 +84,9 @@ __pycache__/
 Gauntlet/obj/
 PhaseDoc
 
+# 例外: document-release gate 的 skipped 审计日志需纳入版本控制
+!ProjectState/Reports/**/doc_release_skipped.log
+
 # 系统文件
 .DS_Store
 Thumbs.db

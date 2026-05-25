@@ -255,6 +255,14 @@ def _cmd_check(args: argparse.Namespace) -> int:
     head = args.head or _git_head_sha()
     staged = args.simulate_staged or _git_staged_paths()
 
+    # --trivial-only 模式: 仅做 trivial 白名单检查, 供 pre-commit hook 使用
+    # pre-commit 阶段 COMMIT_EDITMSG 尚未写入, 完整 gate 由 commit-msg hook 负责
+    if getattr(args, "trivial_only", False):
+        if is_trivial(staged):
+            return 0
+        # 非 trivial 文件: 放行, 等 commit-msg hook 做完整校验
+        return 0
+
     # 步骤 0: 逃生通道之 commit message [skip-doc]
     if args.commit_msg and is_skip_doc_commit(args.commit_msg):
         # dry-run 不写日志,只走逻辑判断
@@ -329,6 +337,9 @@ def main(argv: Optional[list[str]] = None) -> int:
     pc.add_argument("--simulate-staged", nargs="*", default=None)
     pc.add_argument("--commit-msg", default=None)
     pc.add_argument("--dry-run", action="store_true")
+    # 仅做 trivial 白名单检查, 跳过 marker / skip-doc 逻辑
+    # 供 pre-commit hook 使用: 该阶段 COMMIT_EDITMSG 未写入
+    pc.add_argument("--trivial-only", action="store_true")
     pc.set_defaults(func=_cmd_check)
 
     pn = sub.add_parser("notify", help="软提示,不阻塞")

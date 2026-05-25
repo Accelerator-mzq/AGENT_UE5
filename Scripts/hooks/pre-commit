@@ -1,6 +1,7 @@
 #!/bin/sh
-# git pre-commit hook: trivial / marker 校验
-# 不在此处看 commit message; message 由 commit-msg hook 兜底处理 [skip-doc]
+# git pre-commit hook: 仅做 trivial 白名单快速放行
+# 完整 gate 校验（marker / [skip-doc] 逃生）由 commit-msg hook 负责
+# 原因: pre-commit 阶段 COMMIT_EDITMSG 尚未写入, 无法读取 commit message
 SCRIPT_DIR="$(cd "$(dirname "$0")"/../.. && pwd)"
-python "$SCRIPT_DIR/Scripts/hooks/doc_release_gate.py" check --action commit
+python "$SCRIPT_DIR/Scripts/hooks/doc_release_gate.py" check --action commit --trivial-only
 exit $?
