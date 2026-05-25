@@ -375,3 +375,16 @@ def test_cli_write_marker_dry_run_does_not_write_marker(tmp_path: Path, monkeypa
     # marker 不应被写入
     marker = gate.read_marker_file(tmp_path / "markers", "feat/x")
     assert marker is None
+
+
+def test_cli_check_trivial_only_passes_even_with_nontrivial_staged(tmp_path: Path, monkeypatch) -> None:
+    # pre-commit 阶段(--trivial-only)对 non-trivial 也放行,完整 gate 留给 commit-msg
+    monkeypatch.setenv("DOC_RELEASE_MARKER_DIR", str(tmp_path / "markers"))
+    monkeypatch.setenv("DOC_RELEASE_SKIPPED_LOG", str(tmp_path / "skipped.log"))
+    exit_code = gate.main([
+        "check", "--action", "commit",
+        "--branch", "feat/x", "--head", "abc",
+        "--simulate-staged", "Docs/SomeDoc.md",  # 非 trivial
+        "--trivial-only",
+    ])
+    assert exit_code == 0  # pre-commit 放行,由 commit-msg 兜底
