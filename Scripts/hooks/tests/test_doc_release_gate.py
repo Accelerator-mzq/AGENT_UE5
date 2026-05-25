@@ -228,3 +228,111 @@ def test_check_handles_naive_timestamp_in_marker(tmp_path: Path) -> None:
     )
     # 不崩,且因为是 naive→UTC 假设,刚写入应当未过期
     assert result.passed is True
+
+
+# ---- Step 4.1: 逃生通道测试 ----
+
+def test_trivial_whitelist_only_saved_files_passes() -> None:
+    # 全部在白名单内 → trivial
+    assert gate.is_trivial(["Saved/foo.tmp", "Intermediate/bar.o"]) is True
+
+
+def test_trivial_whitelist_mixed_with_source_is_not_trivial() -> None:
+    assert gate.is_trivial(["Saved/foo.tmp", "src/main.py"]) is False
+
+
+def test_trivial_whitelist_empty_paths_is_not_trivial() -> None:
+    # 空 staged 不应自动放行(可能是 push 上下文)
+    assert gate.is_trivial([]) is False
+
+
+def test_skip_doc_marker_in_commit_message() -> None:
+    assert gate.is_skip_doc_commit("[skip-doc] WIP refactor") is True
+    assert gate.is_skip_doc_commit("feat: real change") is False
+    assert gate.is_skip_doc_commit("docs: typo [skip-doc] inline") is False  # 必须在首行开头
+
+
+def test_log_skipped_appends_line(tmp_path: Path) -> None:
+    log = tmp_path / "skipped.log"
+    gate.log_skipped(log, reason="commit msg [skip-doc]", branch="feat/x", head="abc")
+    gate.log_skipped(log, reason="--no-verify", branch="feat/x", head="def")
+    lines = log.read_text(encoding="utf-8").strip().split("\n")
+    assert len(lines) == 2
+    assert "skip-doc" in lines[0]
+    assert "no-verify" in lines[1]
+
+
+# ---- Step 4.4: CLI 入口测试 ----
+
+def test_cli_check_dry_run_blocks_when_no_marker(tmp_path: Path, monkeypatch, capsys) -> None:
+    monkeypatch.setenv("DOC_RELEASE_MARKER_DIR", str(tmp_path / "markers"))
+    monkeypatch.setenv("DOC_RELEASE_SKIPPED_LOG", str(tmp_path / "skipped.log"))
+    exit_code = gate.main([
+        "check",
+        "--action", "commit",
+        "--branch", "feat/x",
+        "--head", "abc",
+        "--simulate-staged", "src/foo.py",
+        "--dry-run",
+    ])
+    assert exit_code != 0
+
+
+def test_cli_check_dry_run_passes_with_trivial_only(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("DOC_RELEASE_MARKER_DIR", str(tmp_path / "markers"))
+    monkeypatch.setenv("DOC_RELEASE_SKIPPED_LOG", str(tmp_path / "skipped.log"))
+    exit_code = gate.main([
+        "check",
+        "--action", "commit",
+        "--branch", "feat/x",
+        "--head", "abc",
+        "--simulate-staged", "Saved/foo.tmp",
+        "--dry-run",
+    ])
+    assert exit_code == 0
+
+
+def test_cli_write_marker_rejects_invalid_evidence(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("DOC_RELEASE_MARKER_DIR", str(tmp_path / "markers"))
+    monkeypatch.setenv("DOC_RELEASE_SKIPPED_LOG", str(tmp_path / "skipped.log"))
+    bad = tmp_path / "bad.md"
+    bad.write_text("# 只有标题\n", encoding="utf-8")
+    exit_code = gate.main([
+        "write-marker",
+        "--branch", "feat/x",
+        "--head", "abc",
+        "--simulate-staged", "src/foo.py",
+        "--evidence", str(bad),
+    ])
+    assert exit_code != 0
+
+
+def test_cli_write_marker_accepts_valid_evidence(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("DOC_RELEASE_MARKER_DIR", str(tmp_path / "markers"))
+    monkeypatch.setenv("DOC_RELEASE_SKIPPED_LOG", str(tmp_path / "skipped.log"))
+    good = tmp_path / "audit.md"
+    _write_valid_audit(good)
+    exit_code = gate.main([
+        "write-marker",
+        "--branch", "feat/x",
+        "--head", "abc",
+        "--simulate-staged", "src/foo.py",
+        "--evidence", str(good),
+    ])
+    assert exit_code == 0
+    # marker 应已写入
+    marker = gate.read_marker_file(tmp_path / "markers", "feat/x")
+    assert marker is not None
+    assert marker.head_sha == "abc"
+
+
+def test_cli_notify_never_blocks_and_writes_stderr(tmp_path: Path, monkeypatch, capsys) -> None:
+    monkeypatch.setenv("DOC_RELEASE_MARKER_DIR", str(tmp_path / "markers"))
+    monkeypatch.setenv("DOC_RELEASE_SKIPPED_LOG", str(tmp_path / "skipped.log"))
+    exit_code = gate.main([
+        "notify",
+        "--path", "task.md",
+    ])
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "task.md" in captured.err

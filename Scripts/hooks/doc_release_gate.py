@@ -12,10 +12,15 @@ CLI 子命令:
 """
 from __future__ import annotations
 
+import argparse
 import dataclasses
 import datetime as _dt
 import hashlib
 import json
+import os
+import re
+import subprocess
+import sys
 from pathlib import Path
 from typing import Optional
 
@@ -39,8 +44,10 @@ class Marker:
 
 
 def _marker_path(marker_dir: Path, branch: str) -> Path:
-    # branch 名中的 / 替换为 -- 以适配 Windows 文件系统
-    safe = branch.replace("/", "--")
+    # branch 名中的 / 及 Windows 非法字符替换为 --,适配 NTFS / 跨平台
+    safe = branch
+    for ch in r'/\:*?"<>|':
+        safe = safe.replace(ch, "--")
     return marker_dir / f"{safe}.json"
 
 
@@ -147,3 +154,192 @@ def check_marker(
         return CheckResult(False, f"evidence 文件不存在: {marker.audit_evidence_path}")
 
     return CheckResult(True, "")
+
+
+# ---- 逃生通道 ----
+
+TRIVIAL_PREFIXES = (
+    "Saved/", "Intermediate/", "DerivedDataCache/",
+    "Binaries/", "Build/", ".codex/",
+)
+TRIVIAL_SUFFIXES = (".lock",)
+
+
+def is_trivial(staged_paths: list[str]) -> bool:
+    """全部 staged 文件落在白名单内 → trivial,自动放行,不写 marker。"""
+    if not staged_paths:
+        return False
+    for p in staged_paths:
+        norm = p.replace("\\", "/")
+        if any(norm.startswith(pre) for pre in TRIVIAL_PREFIXES):
+            continue
+        if any(norm.endswith(suf) for suf in TRIVIAL_SUFFIXES):
+            continue
+        return False
+    return True
+
+
+def is_skip_doc_commit(message: str) -> bool:
+    """commit message 首行是否以 [skip-doc] 开头(允许前置空白)。"""
+    if not message:
+        return False
+    first_line = message.splitlines()[0]
+    return bool(re.match(r"\s*\[skip-doc\]", first_line))
+
+
+def log_skipped(log_path: Path, *, reason: str, branch: str, head: str) -> None:
+    """append 一行到 skipped log,格式: ISO 时间 | branch | head | reason"""
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    ts = _dt.datetime.now(_dt.timezone.utc).isoformat()
+    line = f"{ts} | {branch} | {head} | {reason}\n"
+    with log_path.open("a", encoding="utf-8") as f:
+        f.write(line)
+
+
+# ---- CLI ----
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_MARKER_DIR = PROJECT_ROOT / "ProjectState" / "RuntimeConfigs" / "doc-release-markers"
+DEFAULT_REPORTS_DIR = PROJECT_ROOT / "ProjectState" / "Reports"
+
+
+def _marker_dir() -> Path:
+    return Path(os.environ.get("DOC_RELEASE_MARKER_DIR", str(DEFAULT_MARKER_DIR)))
+
+
+def _today_reports_dir() -> Path:
+    today = _dt.datetime.now().strftime("%Y-%m-%d")
+    return DEFAULT_REPORTS_DIR / today
+
+
+def _default_skipped_log() -> Path:
+    p = os.environ.get("DOC_RELEASE_SKIPPED_LOG")
+    if p:
+        return Path(p)
+    return _today_reports_dir() / "doc_release_skipped.log"
+
+
+def _git_staged_paths() -> list[str]:
+    """通过 git diff --cached --name-only 取得当前 staged 文件列表"""
+    try:
+        out = subprocess.check_output(
+            ["git", "diff", "--cached", "--name-only"],
+            cwd=PROJECT_ROOT,
+            encoding="utf-8",
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return []
+    return [ln.strip() for ln in out.splitlines() if ln.strip()]
+
+
+def _git_head_sha() -> str:
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=PROJECT_ROOT, encoding="utf-8"
+        ).strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return "UNKNOWN"
+
+
+def _git_current_branch() -> str:
+    try:
+        return subprocess.check_output(
+            ["git", "branch", "--show-current"], cwd=PROJECT_ROOT, encoding="utf-8"
+        ).strip() or "HEAD-detached"
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return "UNKNOWN"
+
+
+def _cmd_check(args: argparse.Namespace) -> int:
+    branch = args.branch or _git_current_branch()
+    head = args.head or _git_head_sha()
+    staged = args.simulate_staged or _git_staged_paths()
+
+    # 步骤 0: 逃生通道之 commit message [skip-doc]
+    if args.commit_msg and is_skip_doc_commit(args.commit_msg):
+        log_skipped(_default_skipped_log(), reason="commit msg [skip-doc]", branch=branch, head=head)
+        return 0
+
+    # 步骤 1: trivial 白名单
+    if is_trivial(staged):
+        return 0
+
+    # 步骤 2: marker 校验
+    result = check_marker(
+        marker_dir=_marker_dir(),
+        branch=branch,
+        head_sha=head,
+        staged_paths=staged,
+        now=_dt.datetime.now(_dt.timezone.utc),
+    )
+    if result.passed:
+        return 0
+
+    msg = (
+        f"\n[document-release gate] 阻止 {args.action}:\n"
+        f"  原因: {result.reason}\n"
+        f"  分支: {branch}  HEAD: {head[:12]}\n"
+        f"  staged: {len(staged)} files\n"
+        f"  逃生: 提交信息首行写 [skip-doc] 跳过,或调用 document-release skill 后重试\n"
+    )
+    print(msg, file=sys.stderr)
+    return 2  # exit 2 让上层 hook 阻塞
+
+
+def _cmd_notify(args: argparse.Namespace) -> int:
+    print(
+        f"[document-release notify] 你正在改 {args.path};收尾前记得调用 document-release skill。",
+        file=sys.stderr,
+    )
+    return 0
+
+
+def _cmd_write_marker(args: argparse.Namespace) -> int:
+    evidence = Path(args.evidence)
+    ok, reason = validate_evidence(evidence)
+    if not ok:
+        print(f"[document-release] 拒绝写 marker: {reason}", file=sys.stderr)
+        return 2
+    staged = args.simulate_staged or _git_staged_paths()
+    marker = Marker(
+        branch=args.branch or _git_current_branch(),
+        head_sha=args.head or _git_head_sha(),
+        staged_files_hash=compute_staged_files_hash(staged),
+        audit_evidence_path=str(evidence),
+        timestamp=_dt.datetime.now(_dt.timezone.utc).isoformat(),
+    )
+    write_marker_file(_marker_dir(), marker)
+    print(f"[document-release] marker 已写入: {marker.branch} @ {marker.head_sha[:12]}", file=sys.stderr)
+    return 0
+
+
+def main(argv: Optional[list[str]] = None) -> int:
+    p = argparse.ArgumentParser(prog="doc_release_gate", description="document-release 跨平台门禁")
+    sub = p.add_subparsers(dest="cmd", required=True)
+
+    pc = sub.add_parser("check", help="校验是否允许 commit/push")
+    pc.add_argument("--action", choices=["commit", "push", "merge"], required=True)
+    pc.add_argument("--branch")
+    pc.add_argument("--head")
+    pc.add_argument("--simulate-staged", nargs="*", default=None)
+    pc.add_argument("--commit-msg", default=None)
+    pc.add_argument("--dry-run", action="store_true")
+    pc.set_defaults(func=_cmd_check)
+
+    pn = sub.add_parser("notify", help="软提示,不阻塞")
+    pn.add_argument("--path", required=True)
+    pn.set_defaults(func=_cmd_notify)
+
+    pw = sub.add_parser("write-marker", help="document-release skill 完成后写 marker")
+    pw.add_argument("--branch")
+    pw.add_argument("--head")
+    pw.add_argument("--simulate-staged", nargs="*", default=None)
+    pw.add_argument("--evidence", required=True)
+    pw.set_defaults(func=_cmd_write_marker)
+
+    args = p.parse_args(argv)
+    return args.func(args)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
