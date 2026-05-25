@@ -57,12 +57,13 @@ metadata:
 | 概念 | 本项目落点 |
 |---|---|
 | 需求基线 | `Docs/Current/01_Project_Baseline.md` + `02_Current_Phase_Goals.md` |
-| 设计 | `Plugins/AgentBridge/Docs/architecture_overview.md` + 9 份 Phase 11 框架规范文档 |
+| 设计 | `Plugins/AgentBridge/Docs/*.md`(全部框架文档,随阶段递增) |
 | 测试 | `Plugins/AgentBridge/Tests/SystemTestCases.md` |
 | 验收 | `ProjectState/Reports/<date>/*acceptance*.md` |
 | 增量(CHANGELOG 替代) | `Docs/Current/0X_Closeout.md` |
 | Backlog active + archived | `Docs/Current/03_Active_Backlog.md` + `04_Open_Risks.md`;归档进 `Docs/History/Tasks/`、`0X_Closeout.md` |
 | 实施边界 | `Docs/Current/05_Implementation_Boundary.md` |
+| 架构 / MCP 锚定 | `Docs/Current/12_*` / `14_*` / `15_*` / `16_*` 与历代 `0X_Closeout.md`(随阶段演进,以 `00_Index.md` 为准) |
 
 ### Layer C — 插件层框架(行为变更时必审)
 | Surface | Path |
