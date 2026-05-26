@@ -104,7 +104,7 @@
 | UE57-BC-022 | uproject Plugins[]: ModelingToolsEditorMode + RemoteControlWebInterface | RemoteControlWebInterface 含 marketplace URL 是 5.4 时代格式 |
 | UE57-BC-023 | AgentBridge.uplugin Plugins[] | EditorScriptingUtilities 与 BC-008 重叠,Gauntlet beta |
 
-### P3(低置信、推测)— 7+ 条
+### P3(低置信、推测)— 6 条
 
 | id | api_or_key | 1-line 上下文 |
 |----|------------|----------------|
