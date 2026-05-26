@@ -8,7 +8,7 @@
 
 ## 1. 模块概述
 
-本 LLD 不对应单一代码模块,而是把 SRS §3.7 一次性覆盖的 6 个跨域子系统集中落实:**运行时执行域**(F-RT-01..05)负责 UE Editor 在线引导 + Standalone Staged 脱机运行,并把每次运行的副作用收敛到 `ProjectState/` 下三个分轨目录(Evidence / Reports / runs);**测试体系**(F-TST-01..04)以 C++ Automation L1/L2/L3 + Gauntlet Controller 为引擎内闭环、以 `run_system_tests.py` 11 个 Stage 为引擎外编排,共约 26 条 C++ 测试 + 240 条系统测试用例 = 266 条总测试用例;**治理 Hook**(F-HOOK-01/02)用 `doc_release_gate.py` 跨平台门禁脚本 + `install_git_hooks.py` 模板安装器实现 commit/push 前文档释放强制,逃生通道为 `[skip-doc]` 标记 + trivial 白名单 + `--no-verify`;**输入实例**(F-INP-01/02)以 `ProjectInputs/GDD/{boardgame_tictactoe_v1, GDD_MonopolyGame, jrpg_turn_based_v1}.md` + `ProjectInputs/Presets/{compiler_profile, mode_override}.yaml` 给上游 Compiler 提供 3 套 GDD + 2 套预设,Profile 默认值不可改,所有改动通过 mode_override 实现以便回溯;**可运行 Demo**(F-DEMO-02/03)由 `Scripts/run_{greenfield,brownfield,boardgame_playable,jrpg_turn_based}_demo.py` 4 个脚本 + Phase 7 P1 收敛入口 + Monopoly 资产生成 + Skills 同步辅助 6 个脚本组成;**治理校验**(F-VAL-01..03)聚焦 Plugin 发布 staging、Schema 校验(`--strict` 26/26 通过)、legacy Automation token 检测、Functional Map 生成与 Editor 证据捕获。F-* IDs 计 RT 5 + TST 4 + HOOK 2 + INP 2 + DEMO 2 + VAL 3 = 18 行,完全对齐 SRS §3.7 表头。6 子域共用 `ProjectState/` 落盘根目录但各占独立子目录,共用 `Plugins/AgentBridge/Scripts/` + `Scripts/` 双 import 根,共用 Run ID 与日期两套索引维度。
+本 LLD 不对应单一代码模块,而是把 SRS §3.7 一次性覆盖的 6 个跨域子系统集中落实:**运行时执行域**(F-RT-01..05)负责 UE Editor 在线引导 + Standalone Staged 脱机运行,并把每次运行的副作用收敛到 `ProjectState/` 下三个分轨目录(Evidence / Reports / runs);**测试体系**(F-TST-01..04)以 C++ Automation L1/L2/L3 + Gauntlet Controller 为引擎内闭环、以 `run_system_tests.py` 11 个 Stage 为引擎外编排,系统测试 TOTAL_CASES = 266(Phase 11 后从 FEATURE_INVENTORY 早期登记的 240 扩到 266),C++ Automation 独立 ~26 条测试不计入 266;**治理 Hook**(F-HOOK-01/02)用 `doc_release_gate.py` 跨平台门禁脚本 + `install_git_hooks.py` 模板安装器实现 commit/push 前文档释放强制,逃生通道为 `[skip-doc]` 标记 + trivial 白名单 + `--no-verify`;**输入实例**(F-INP-01/02)以 `ProjectInputs/GDD/{boardgame_tictactoe_v1, GDD_MonopolyGame, jrpg_turn_based_v1}.md` + `ProjectInputs/Presets/{compiler_profile, mode_override}.yaml` 给上游 Compiler 提供 3 套 GDD + 2 套预设,Profile 默认值不可改,所有改动通过 mode_override 实现以便回溯;**可运行 Demo**(F-DEMO-02/03)由 `Scripts/run_{greenfield,brownfield,boardgame_playable,jrpg_turn_based}_demo.py` 4 个脚本 + Phase 7 P1 收敛入口 + Monopoly 资产生成 + Skills 同步辅助 6 个脚本组成;**治理校验**(F-VAL-01..03)聚焦 Plugin 发布 staging、Schema 校验(`--strict` 26/26 通过)、legacy Automation token 检测、Functional Map 生成与 Editor 证据捕获。F-* IDs 计 RT 5 + TST 4 + HOOK 2 + INP 2 + DEMO 2 + VAL 3 = 18 行,完全对齐 SRS §3.7 表头。6 子域共用 `ProjectState/` 落盘根目录但各占独立子目录,共用 `Plugins/AgentBridge/Scripts/` + `Scripts/` 双 import 根,共用 Run ID 与日期两套索引维度。
 
 ## 2. 内部分层
 
@@ -38,7 +38,7 @@
 | F-INP-02 | Compiler Profile / Mode Override 预设 | `ProjectInputs/Presets/{compiler_profile, mode_override}.yaml` | 编译器开关 + 模式路由覆盖 |
 | F-DEMO-02 | 可运行游戏 demo 族 | `Scripts/run_{greenfield,brownfield,boardgame_playable,jrpg_turn_based}_demo.py` + `Scripts/run_phase7_p1_convergence.py` | Compiler→Orchestrator→UE 端到端入口 |
 | F-DEMO-03 | 资产生成 / Skills 同步辅助 | `Scripts/phase8_generate_monopoly_assets.py` + `Scripts/sync_skills.py` | 批量造 Monopoly Asset + 同步 SkillTemplates |
-| F-VAL-01 | Plugin/Project 治理校验脚本族 | `Plugins/AgentBridge/Scripts/validation/{stage_plugin_release.ps1, validate_no_legacy_automation_entrypoints.ps1}` + `Scripts/validation/phase7_governance_audit.py` | 发布前 staging + 法 legacy token 扫描 + 治理审计 |
+| F-VAL-01 | Plugin/Project 治理校验脚本族 | `Plugins/AgentBridge/Scripts/validation/{stage_plugin_release.ps1, validate_no_legacy_automation_entrypoints.ps1}` + `Scripts/validation/phase7_governance_audit.py` | 发布前 staging + 对 legacy token 扫描 + 治理审计 |
 | F-VAL-02 | Schema 校验脚本族 | `Plugins/AgentBridge/Scripts/validation/{validate_examples.py, test_handoff_schema.py}` | `--strict` 模式 26/26 通过 |
 | F-VAL-03 | Evidence / Functional Map 生成 | `Scripts/validation/{capture_editor_evidence.py, create_task15_functional_map.py}` | Editor 内截图证据 + Task15 FTEST 地图自动建图 |
 
@@ -58,7 +58,7 @@ def run_command(cmd, timeout=...) -> tuple[int, str, str]:
     # 通用子进程包装,捕获 stdout/stderr 并落 Reports/<date>/
 def parse_args() -> argparse.Namespace:
     # --interactive / --stage=N / --engine-root / --report-dir / --no-editor
-# Stage 1..11 各自的 stage_* 入口函数(SV/BL/RC/L1L2L3/CMD/PY/ORC/GA/E2E/MCP/PhaseDC)
+# Stage 1..11 各自的 run_stage_N 入口函数(SV/BL/L1L2L3/CMD/PY/ORC/CP+SS/GA/E2E/MCP/P11,共 11 类)
 ```
 
 **Standalone Staged Smoke — `Plugins/AgentBridge/Tests/scripts/task14a_phase11_standalone_smoke.py`:**
@@ -180,7 +180,7 @@ class UAgentBridgeGauntletController : public UGauntletTestController {
 
 4. **新增 Hook 类型(F-HOOK-02):** 在 `Scripts/hooks/` 添加新模板(如 `post-commit` / `pre-rebase`),更新 `install_git_hooks.HOOK_NAMES` 元组,sync 到 `.git/hooks/`;若 hook 需要复用 doc-release marker,通过 `doc_release_gate.py` 的 `check` 子命令 + 显式 `--context=<new>` 串接,不要在 hook 模板里塞业务逻辑。
 
-5. **新增 GDD / Preset(F-INP-01/02):** GDD markdown 放 `ProjectInputs/GDD/<game>_v<n>.md`,filename 必须能被 `compiler/intake.read_gdd_from_directory` 扫描到;新预设落 `ProjectInputs/Presets/<name>.yaml`,在 `mode_override.yaml` 中追加覆盖键。**不要直接改 `compiler_profile.yaml` 默认值**——所有改动通过 `mode_override.yaml` 实现,以便回溯。
+5. **新增 GDD / Preset(F-INP-01/02):** GDD markdown 放 `ProjectInputs/GDD/<game>_v<n>.md`,filename 由上游 Compiler intake(`Plugins/AgentBridge/Compiler/intake/design_intake.py` 或 Demo 脚本直接读 `ProjectInputs/GDD/*.md`)消化;新预设落 `ProjectInputs/Presets/<name>.yaml`,在 `mode_override.yaml` 中追加覆盖键。**不要直接改 `compiler_profile.yaml` 默认值**——所有改动通过 `mode_override.yaml` 实现,以便回溯。
 
 6. **新增 C++ 自动化测试(F-TST-01..03):** L1 接口测试在 `Plugins/AgentBridge/AgentBridgeTests/Source/AgentBridgeTests/Private/L1_*Tests.cpp` 添加 `IMPLEMENT_SIMPLE_AUTOMATION_TEST`;L2 闭环用 `BEGIN_DEFINE_SPEC` / `END_DEFINE_SPEC` BDD 风格;L3 关卡测试创建新 `AFunctionalTest` 子类并在专用 `FTEST_*` 地图放置(可参考 `create_task15_functional_map.py` 自动建图)。Test Filter 命名约定为 `Project.AgentBridge.<L1|L2|L3>.<TestName>`,会被 Gauntlet Controller 的 `TestFilter` 命令行参数过滤匹配。
 
