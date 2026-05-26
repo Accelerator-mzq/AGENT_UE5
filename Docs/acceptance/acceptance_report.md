@@ -172,32 +172,122 @@ python -c "from Plugins.AgentBridge.MCP.tool_definitions import ALL_TOOLS; print
 为保证 105 F-* IDs 验收门禁底座完整、四份契约 + 七份 LLD + 108 条 redirects 齐全、
 25 条 BC 全部裁决到位,提供如下逐项对账模板:
 
-### 4.1 FEATURE_INVENTORY 105 F-* IDs 全量勾选模板
+### 4.1 FEATURE_INVENTORY 105 F-* IDs 全量勾选
 
-每行需逐一确认在 UE 5.7 下的状态:
+每行 F-* ID 在 UE 5.7 重构完成后,由 msc 实测对照 SRS / LLD 锚点逐项勾选。完整 105 行(自 Phase 2.3 由 `ProjectState/Reports/2026-05-26/_acceptance_checklist_gen.md` 生成):
 
-- [ ] F-CPP-01..06 共 6 行(C++ 核心类)
-- [ ] F-BRG-01..09 共 9 行(Bridge Python 模块)
-- [ ] F-ORC-01..08 共 8 行(Orchestrator 模块)
-- [ ] F-CMP-01..24 共 24 行(Legacy v1 6 + Phase 11 主链 / 框架 18)
-- [ ] F-MCP-01..13 共 13 行(MCP 工具族)
-- [ ] F-SKL-01..04 共 4 行(SkillGraph / Domain Skill / 模板)
-- [ ] F-RT-01..05 共 5 行(Runtime / Evidence / Reports / Run Workspace)
-- [ ] F-CHN-01..07 + F-CHN-S4-01..03 + F-CHN-MODE-01..03 共 13 行(主链 / Stage 4 三路 / 模式路由)
-- [ ] F-GOV-01..04 共 4 行(run_id / fast_mode / generator_provider / compare/promote)
-- [ ] F-SCH-01..06 共 6 行(Schema 集)
-- [ ] F-VAL-01..03 共 3 行(治理 / Schema / Evidence 校验)
-- [ ] F-TST-01..04 共 4 行(L1/L2/L3 + 系统测试套件)
-- [ ] F-HOOK-01..02 共 2 行(document-release gate + Git hooks)
-- [ ] F-INP-01..02 共 2 行(GDD 实例 + Compiler Preset)
-- [ ] F-DEMO-02..03 共 2 行(可运行 demo + 资产生成辅助)
+- [ ] F-CPP-01 UAgentBridgeSubsystem
+- [ ] F-CPP-02 UAgentBridgeCommandlet
+- [ ] F-CPP-03 FUATRunner
+- [ ] F-CPP-04 FAutomationDriverAdapter
+- [ ] F-CPP-05 BridgeTypes 共享类型
+- [ ] F-CPP-06 FAgentBridgeModule
+- [ ] F-BRG-01 L1 查询接口族
+- [ ] F-BRG-02 L1 写接口族
+- [ ] F-BRG-03 L1 反馈接口族
+- [ ] F-BRG-04 L3 UI 自动化族
+- [ ] F-BRG-05 Remote Control HTTP 客户端
+- [ ] F-BRG-06 UAT 包装器 Python 侧
+- [ ] F-BRG-07 UE 资产/关卡 helpers
+- [ ] F-BRG-08 项目配置解析
+- [ ] F-BRG-09 bridge_core 通信主体
+- [ ] F-ORC-01 主体编排 + 通道选择
+- [ ] F-ORC-02 Plan 生成
+- [ ] F-ORC-03 Spec 读取
+- [ ] F-ORC-04 验证与对标
+- [ ] F-ORC-05 报告生成
+- [ ] F-ORC-06 故障恢复规划
+- [ ] F-ORC-07 Handoff 执行
+- [ ] F-ORC-08 ForgeUE manifest 导入
+- [ ] F-CMP-01 Legacy Compiler — analysis
+- [ ] F-CMP-02 Legacy Compiler — generation
+- [ ] F-CMP-03 Legacy Compiler — handoff
+- [ ] F-CMP-04 Legacy Compiler — intake
+- [ ] F-CMP-05 Legacy Compiler — review
+- [ ] F-CMP-06 Legacy Compiler — routing
+- [ ] F-CMP-07 Phase 11 Pipeline 主入口
+- [ ] F-CMP-08 Stage — root_skill_contract
+- [ ] F-CMP-09 Stage 2 — 澄清门/Clarification Gate
+- [ ] F-CMP-10 Stage 3 — 技能图规划/Skill Graph Planning
+- [ ] F-CMP-11 Stage 4 路 A — 设计空间发现/Discovery Fallback
+- [ ] F-CMP-12 Stage 4 路 B — 实现化/Realization Fallback
+- [ ] F-CMP-13 Stage 4 路 C — 收敛/Convergence Fallback
+- [ ] F-CMP-14 Stage 通用 — Agent 协议/Agent Protocol
+- [ ] F-CMP-15 Stage 通用 — LLM 客户端/LLM Client
+- [ ] F-CMP-16 Stage 7 — Handoff v3 输出/Handoff v3
+- [ ] F-CMP-17 Stage 5 — 跨审 v2/Cross Review v2
+- [ ] F-CMP-18 Stage 6 — 下降 v2/Lowering v2
+- [ ] F-CMP-19 Stage 4 — 领域技能运行时/Domain Skill Runtime
+- [ ] F-CMP-20 Framework — cross_review (Legacy v1 Pipeline)
+- [ ] F-CMP-21 Framework — intake (Legacy v1 Pipeline)
+- [ ] F-CMP-22 Framework — lowering (Legacy v1 Pipeline)
+- [ ] F-CMP-23 Framework — planner (Legacy v1 Pipeline)
+- [ ] F-CMP-24 Framework — skill_runtime (Legacy v1 Pipeline)
+- [ ] F-MCP-01 Bridge L1 查询族(MCP 暴露)
+- [ ] F-MCP-02 Bridge L1 写族(MCP 暴露)
+- [ ] F-MCP-03 Bridge L1 反馈族(MCP 暴露)
+- [ ] F-MCP-04 Bridge L2 编辑器服务族
+- [ ] F-MCP-05 Bridge L3 UI 族(MCP 暴露)
+- [ ] F-MCP-06 前端 Stage 1 Root Skill Contract 族
+- [ ] F-MCP-07 前端 Stage 2 Clarification Gate 族
+- [ ] F-MCP-08 前端 Stage 3 Skill Graph Planning 族
+- [ ] F-MCP-09 前端 Stage 4 节点交互族
+- [ ] F-MCP-10 后端 Evidence 读写族
+- [ ] F-MCP-11 后端 Run 治理族
+- [ ] F-MCP-12 兼容 alias 族
+- [ ] F-MCP-13 MCP Server 主入口
+- [ ] F-SKL-01 SkillGraph 数据结构
+- [ ] F-SKL-02 Domain Skill Runtime
+- [ ] F-SKL-03 Baseline 6 Skill 模板
+- [ ] F-SKL-04 Genre Pack — Boardgame
+- [ ] F-RT-01 UE Editor 在线引导关卡
+- [ ] F-RT-02 Standalone Staged 运行时
+- [ ] F-RT-03 Evidence 落盘
+- [ ] F-RT-04 Reports 生成
+- [ ] F-RT-05 Run Workspace 隔离
+- [ ] F-CHN-01 主链 Stage 1 — Root Skill Contract
+- [ ] F-CHN-02 主链 Stage 2 — Clarification Gate
+- [ ] F-CHN-03 主链 Stage 3 — Skill Graph Planning
+- [ ] F-CHN-04 主链 Stage 4 — Design / Realization / Convergence
+- [ ] F-CHN-05 主链 Stage 5 — Cross Review v2
+- [ ] F-CHN-06 主链 Stage 6 — Lowering v2
+- [ ] F-CHN-07 主链 Stage 7 — Handoff v3
+- [ ] F-CHN-S4-01 Stage 4 路 A — Design Space Discovery
+- [ ] F-CHN-S4-02 Stage 4 路 B — Realization
+- [ ] F-CHN-S4-03 Stage 4 路 C — Convergence
+- [ ] F-CHN-MODE-01 模式路由 — Greenfield
+- [ ] F-CHN-MODE-02 模式路由 — Brownfield
+- [ ] F-CHN-MODE-03 模式路由 — Playable Runtime
+- [ ] F-GOV-01 run_id 生命周期
+- [ ] F-GOV-02 fast_mode 不可 promote
+- [ ] F-GOV-03 generator_provider 影响 is_promotable
+- [ ] F-GOV-04 compare/promote 工具
+- [ ] F-SCH-01 主链 v3 Schema 集
+- [ ] F-SCH-02 v1/v2 兼容 Schema
+- [ ] F-SCH-03 共享基础 Schema
+- [ ] F-SCH-04 反馈契约 Schema
+- [ ] F-SCH-05 治理 Schema
+- [ ] F-SCH-06 Examples 与版本清单
+- [ ] F-VAL-01 Plugin/Project 治理校验脚本族
+- [ ] F-VAL-02 Schema 校验脚本族
+- [ ] F-VAL-03 Evidence / Functional Map 生成
+- [ ] F-TST-01 L1 测试族(Query/Write/UITool)
+- [ ] F-TST-02 L2 闭环测试族
+- [ ] F-TST-03 L3 FunctionalTest + Gauntlet 控制器
+- [ ] F-TST-04 系统测试套件(266 case)
+- [ ] F-HOOK-01 document-release gate
+- [ ] F-HOOK-02 Git hooks 安装与 CC 通知
+- [ ] F-INP-01 GDD 实例输入族
+- [ ] F-INP-02 Compiler Profile / Mode Override 预设
+- [ ] F-DEMO-02 可运行游戏 demo 族
+- [ ] F-DEMO-03 资产生成 / Skills 同步辅助族
 
-合计 6+9+8+24+13+4+5+13+4+6+3+4+2+2+2 = **105 行**(对应 FEATURE_INVENTORY 主表 105 行,验收门禁底座)。
+合计 **105 行**(对应 FEATURE_INVENTORY 主表 105 行,验收门禁底座)。
 
 勾选规则:每行需在 UE 5.7 重构完成后,由 msc 实测对照 SRS / LLD 锚点 + 证据源代码路径
-后单独裁决。UE 5.7 状态列取值受限于 `unchanged` / `migration` / `deprecated` / `new` 四态,
-不允许保留 `TBD`;若实测发现旧功能在 5.7 下变为新形态,需要在 inventory 表新增一行 new
-状态行,旧行标 `deprecated`,以保证血缘可追溯。
+后单独裁决。UE 5.7 状态列取值受限于 `unchanged` / `migration` / `deprecated` / `new` 四态
+(或 `unchanged-pending-test`),不允许保留 `TBD`;若实测发现旧功能在 5.7 下变为新形态,
+需要在 inventory 表新增一行 new 状态行,旧行标 `deprecated`,以保证血缘可追溯。
 
 ### 4.2 contracts 4 份契约完整
 
@@ -232,6 +322,130 @@ python -c "from Plugins.AgentBridge.MCP.tool_definitions import ALL_TOOLS; print
 
 > 注:scan spec §4 P1 行写作 "7 条已裁决",其中 1 条 false-positive + 6 条 confirmed,
 > 与 §3 表内 false_positive_status 字段完全一致。本节按 scan spec 实际值 25 条对账。
+
+### 4.6 mcp_tools_catalog 53 工具全量勾选
+
+每工具按 6 字段(工具名/类别/输入 Schema/输出 Schema/错误码/使用场景)完整核对,在 UE 5.7 重构完成后由 msc 实测对照 mcp_tools_catalog.md 主表逐项勾选:
+
+- [ ] mcp_tool: `get_current_project_state` — Bridge L1 查询
+- [ ] mcp_tool: `list_level_actors` — Bridge L1 查询
+- [ ] mcp_tool: `get_actor_state` — Bridge L1 查询
+- [ ] mcp_tool: `get_actor_bounds` — Bridge L1 查询
+- [ ] mcp_tool: `get_asset_metadata` — Bridge L1 查询
+- [ ] mcp_tool: `get_dirty_assets` — Bridge L1 查询
+- [ ] mcp_tool: `run_map_check` — Bridge L1 查询
+- [ ] mcp_tool: `spawn_actor` — Bridge L1 写
+- [ ] mcp_tool: `set_actor_transform` — Bridge L1 写
+- [ ] mcp_tool: `import_assets` — Bridge L1 写
+- [ ] mcp_tool: `create_blueprint_child` — Bridge L1 写
+- [ ] mcp_tool: `set_actor_collision` — Bridge L1 写
+- [ ] mcp_tool: `assign_material` — Bridge L1 写
+- [ ] mcp_tool: `capture_screenshot` — Bridge L1 服务
+- [ ] mcp_tool: `save_named_assets` — Bridge L1 服务
+- [ ] mcp_tool: `build_project` — Bridge L1 服务
+- [ ] mcp_tool: `run_automation_tests` — Bridge L1 服务
+- [ ] mcp_tool: `undo_last_transaction` — Bridge L1 服务
+- [ ] mcp_tool: `create_level` — Bridge L2 资产
+- [ ] mcp_tool: `create_material` — Bridge L2 资产
+- [ ] mcp_tool: `create_material_instance` — Bridge L2 资产
+- [ ] mcp_tool: `create_widget_blueprint` — Bridge L2 资产
+- [ ] mcp_tool: `set_blueprint_defaults` — Bridge L2 资产
+- [ ] mcp_tool: `configure_gamemode_bp` — Bridge L2 资产
+- [ ] mcp_tool: `configure_world_settings` — Bridge L2 资产
+- [ ] mcp_tool: `open_level` — Bridge L2 资产
+- [ ] mcp_tool: `save_all` — Bridge L2 资产
+- [ ] mcp_tool: `run_editor_python` — Bridge L3 兜底
+- [ ] mcp_tool: `compiler_create_session` — 前端 Compiler
+- [ ] mcp_tool: `compiler_root_skill_prepare` — 前端 Compiler
+- [ ] mcp_tool: `compiler_root_skill_save` — 前端 Compiler
+- [ ] mcp_tool: `compiler_intake_prepare` — 前端 Compiler
+- [ ] mcp_tool: `compiler_intake_save` — 前端 Compiler
+- [ ] mcp_tool: `compiler_clarification_prepare` — 前端 Compiler
+- [ ] mcp_tool: `compiler_clarification_save` — 前端 Compiler
+- [ ] mcp_tool: `compiler_skill_graph_prepare` — 前端 Compiler
+- [ ] mcp_tool: `compiler_skill_graph_save` — 前端 Compiler
+- [ ] mcp_tool: `compiler_plan_prepare` — 前端 Compiler
+- [ ] mcp_tool: `compiler_plan_save` — 前端 Compiler
+- [ ] mcp_tool: `compiler_get_session_status` — 前端 Compiler
+- [ ] mcp_tool: `compiler_stage4_node_prepare` — 前端 Compiler
+- [ ] mcp_tool: `compiler_stage4_node_save` — 前端 Compiler
+- [ ] mcp_tool: `evidence_load_manifest` — 后端 Evidence
+- [ ] mcp_tool: `evidence_load_screenshots` — 后端 Evidence
+- [ ] mcp_tool: `evidence_load_logs` — 后端 Evidence
+- [ ] mcp_tool: `evidence_load_report` — 后端 Evidence
+- [ ] mcp_tool: `evidence_judge_acceptance` — 后端 Evidence
+- [ ] mcp_tool: `evidence_decide_escalation` — 后端 Evidence
+- [ ] mcp_tool: `evidence_export_summary` — 后端 Evidence
+- [ ] mcp_tool: `evidence_list_runs` — 后端 Evidence
+- [ ] mcp_tool: `evidence_compare_runs` — 后端 Evidence
+- [ ] mcp_tool: `evidence_create_batch` — 后端 Evidence
+- [ ] mcp_tool: `evidence_promote_run` — 后端 Evidence
+
+合计 **53 工具**(实测 `python -c "from MCP.tool_definitions import TOOL_COUNT; print(TOOL_COUNT)"` 应输出 53)。
+
+### 4.7 schemas_catalog 41 主 Schema 全量勾选
+
+每 Schema 按 5 字段(文件/用途/版本/引用方/关键字段清单)完整核对(examples 26 份附录见 catalog §附录 A):
+
+- [ ] Schema: `batch_manifest.schema.json` — Phase 11 batch promote 治理元数据
+- [ ] Schema: `build_ir.schema.json` — Lowering 输出构建中间表示
+- [ ] Schema: `build_ir_v2.schema.json` — Stage 6 Build IR v2
+- [ ] Schema: `clarification_gate_report.schema.json` — Clarification Gate 决策记录
+- [ ] Schema: `common/bounds.schema.json` — UE5 包围盒
+- [ ] Schema: `common/collision.schema.json` — UE5 碰撞结构
+- [ ] Schema: `common/error.schema.json` — 统一 warnings/errors 数组
+- [ ] Schema: `common/material.schema.json` — UE5 材质槽位
+- [ ] Schema: `common/primitives.schema.json` — 基础类型(所有 Schema 底层依赖)
+- [ ] Schema: `common/transform.schema.json` — UE5 Actor Transform
+- [ ] Schema: `compiler_session.schema.json` — Pipeline Orchestrator 会话状态
+- [ ] Schema: `converged_realization_pack.schema.json` — Convergence 最终选择产物
+- [ ] Schema: `cross_review_report.schema.json` — Cross-Spec Review 统一审查报告(v1)
+- [ ] Schema: `cross_review_report_v2.schema.json` — Stage 5 跨域冲突审查(v2)
+- [ ] Schema: `design_decision_log.schema.json` — Stage 4 非平凡设计选择日志
+- [ ] Schema: `design_space_report.schema.json` — Design Space Discovery 产物
+- [ ] Schema: `evidence_manifest.schema.json` — Phase 10 证据裁决标准化清单
+- [ ] Schema: `feedback/actor/get_actor_bounds.response.schema.json` — Actor 包围盒查询反馈
+- [ ] Schema: `feedback/actor/get_actor_state.response.schema.json` — Actor 核心状态查询反馈
+- [ ] Schema: `feedback/actor/get_component_state.response.schema.json` — Actor 组件相对变换查询反馈
+- [ ] Schema: `feedback/actor/get_material_assignment.response.schema.json` — Actor 材质槽位查询反馈
+- [ ] Schema: `feedback/asset/get_asset_metadata.response.schema.json` — 单资产元数据查询反馈
+- [ ] Schema: `feedback/asset/get_dirty_assets.response.schema.json` — 脏资产列表查询反馈
+- [ ] Schema: `feedback/level/list_level_actors.response.schema.json` — 关卡 Actor 列表查询反馈
+- [ ] Schema: `feedback/project/get_current_project_state.response.schema.json` — 项目状态查询反馈
+- [ ] Schema: `feedback/validation/run_map_check.response.schema.json` — Map Check 反馈
+- [ ] Schema: `gdd_projection.schema.json` — Design Intake GDD 结构化投影
+- [ ] Schema: `naming_resolution_log.schema.json` — Build IR v2 命名审计 sidecar
+- [ ] Schema: `planner_output.schema.json` — Planner / Routing Agent 输出
+- [ ] Schema: `realization_candidates.schema.json` — Realization Candidate Generation 产物
+- [ ] Schema: `reviewed_handoff.schema.json` — Compiler→Orchestrator 交接物 v1
+- [ ] Schema: `reviewed_handoff_v2.schema.json` — Skill-First 交接物 v2
+- [ ] Schema: `reviewed_handoff_v3.schema.json` — Stage 7 最终 handoff v3
+- [ ] Schema: `root_skill_contract.schema.json` — Phase 11 能力骨架/约束容器
+- [ ] Schema: `run_comparison.schema.json` — 跨 run 治理比较产物
+- [ ] Schema: `run_plan.schema.json` — Orchestrator 执行计划
+- [ ] Schema: `skill_fragment.schema.json` — Skill Instance 运行时输出 v1
+- [ ] Schema: `skill_fragment_v2.schema.json` — Phase 11 Domain Skill 输出 v2
+- [ ] Schema: `skill_graph.schema.json` — Phase 11 Domain Skill 依赖图
+- [ ] Schema: `versions/v0.1_manifest.json` — v0.1 Schema 清单 manifest
+- [ ] Schema: `write_feedback/write_operation_feedback.response.schema.json` — 通用写操作反馈
+
+合计 **41 主 Schema**(实测 `find Plugins/AgentBridge/Schemas -name "*.json" -not -path "*/examples/*" | wc -l` 应输出 41;examples 26 份附录见 schemas_catalog.md §附录 A)。
+
+### 4.8 总勾选规模
+
+本 §4 全量勾选清单合计:
+
+- §4.1 F-* IDs:**105 行**
+- §4.2 contracts 4 份契约
+- §4.3 LLD 7 份
+- §4.4 redirects.json 108 条
+- §4.5 BC 25 条
+- §4.6 MCP 工具:**53 行**
+- §4.7 主 Schema:**41 行**
+
+**合计 343 个勾选位**(三类对账主体 105+53+41=199 + 4 类辅助 4+7+108+25=144 = 343)。
+
+本清单完整覆盖 spec v1.1 §8 验收门禁"符号/工具/字段/用例级双向 traceability"要求。
 
 ## 附:Phase 11 残留与重构注意事项
 

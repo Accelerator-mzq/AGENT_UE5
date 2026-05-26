@@ -8,13 +8,13 @@
 
 | 旧路径 | 内容主题 | 新归宿 | 状态 |
 |--------|----------|--------|------|
-| `Docs/Current/00_Index.md` | 当前阶段索引 | Planned: INDEX.md (全替换) | already-consumed |
+| `Docs/Current/00_Index.md` | 当前阶段索引 | INDEX.md (全替换) | already-consumed |
 | `Docs/Current/01_Project_Baseline.md` | Phase 11 项目基线 | requirements/SRS.md#1 + acceptance/acceptance_report.md#1 | already-consumed |
 | `Docs/Current/02_Current_Phase_Goals.md` | 阶段目标完成状态 | acceptance/acceptance_report.md#1 | already-consumed |
 | `Docs/Current/03_Active_Backlog.md` | 活动 backlog | acceptance/acceptance_report.md#1-附 | archive-only |
 | `Docs/Current/04_Open_Risks.md` | 风险记录 | Planned: archive/current/04_Open_Risks.md | archive-only |
 | `Docs/Current/05_Implementation_Boundary.md` | 实施边界 | requirements/SRS.md#6.5 + governance.md#6 | already-consumed |
-| `Docs/Current/06_Current_Task_List.md` | 当前任务入口 | Planned: INDEX.md#3 | already-consumed |
+| `Docs/Current/06_Current_Task_List.md` | 当前任务入口 | INDEX.md#3 | already-consumed |
 | `Docs/Current/07_Evidence_And_Artifacts.md` | Evidence 落盘规则 | requirements/SRS.md#6.3 + governance.md#1 | already-consumed |
 | `Docs/Current/08_Phase8_Retrospective_And_Phase9_Checklist.md` | Phase 8 复盘 | Planned: archive/current/08_Phase8_Retrospective_And_Phase9_Checklist.md | archive-only |
 | `Docs/Current/10_Phase8_Closeout.md` | Phase 8 收尾 | Planned: archive/current/10_Phase8_Closeout.md | archive-only |
@@ -104,11 +104,11 @@
 | `Plugins/AgentBridge/Docs/field_specification_v0_1.md` | Field Specification v0.1 | contracts/field_specification.md | already-consumed |
 | `Plugins/AgentBridge/Docs/forgeue_manifest_integration.md` | ForgeUE Manifest 集成 | design/LLD/02_bridge.md + design/LLD/03_orchestrator.md | already-consumed |
 | `Plugins/AgentBridge/Docs/genre_pack_core_design.md` | Genre Pack 核心设计 | design/LLD/06_skills_and_templates.md | already-consumed |
-| `Plugins/AgentBridge/Docs/governance_loop_minimal_design.md` | 治理闭环最小设计 | Planned: governance.md#3 | already-consumed |
+| `Plugins/AgentBridge/Docs/governance_loop_minimal_design.md` | 治理闭环最小设计 | governance.md#3 | already-consumed |
 | `Plugins/AgentBridge/Docs/greenfield_pipeline.md` | Greenfield 流水线 | design/LLD/03_orchestrator.md | already-consumed |
 | `Plugins/AgentBridge/Docs/jrpg_genre_pack_design.md` | JRPG Genre Pack 设计 | design/LLD/06_skills_and_templates.md + testing/test_spec.md | already-consumed |
 | `Plugins/AgentBridge/Docs/orchestrator_design.md` | Orchestrator 设计 | design/LLD/03_orchestrator.md | already-consumed |
-| `Plugins/AgentBridge/Docs/reviewed_handoff_design.md` | Reviewed Handoff 设计 | Planned: design/LLD/04_compiler.md + contracts/handoff_contract.md | already-consumed |
+| `Plugins/AgentBridge/Docs/reviewed_handoff_design.md` | Reviewed Handoff 设计 | design/LLD/04_compiler.md §3.2 + contracts/tool_contract.md §7 | already-consumed |
 | `Plugins/AgentBridge/Docs/root_skill_contract_standard.md` | Root Skill Contract 标准 | design/HLD.md#2.1 + requirements/SRS.md#3 + design/LLD/06_skills_and_templates.md | already-consumed |
 | `Plugins/AgentBridge/Docs/run_isolation_compare_promote.md` | Run 隔离/对比/提升 | design/HLD.md#3 + design/LLD/03_orchestrator.md + governance.md#3 | already-consumed |
 | `Plugins/AgentBridge/Docs/skill_graph_and_domain_skill.md` | Skill Graph 与 Domain Skill | design/HLD.md#2 + design/LLD/06_skills_and_templates.md | already-consumed |

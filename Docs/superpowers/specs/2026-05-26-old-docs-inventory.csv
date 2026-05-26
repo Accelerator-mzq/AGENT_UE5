@@ -1,11 +1,11 @@
 old_path,content_topic,status,planned_new_anchor,cross_refs_count,notes
-Docs/Current/00_Index.md,当前阶段索引,already-consumed,Planned: INDEX.md (全替换),16,cross_refs_count 用 basename 在全部 md 内扫描得出 (排除自身与本任务 spec/plan)
+Docs/Current/00_Index.md,当前阶段索引,already-consumed,INDEX.md (全替换),16,cross_refs_count 用 basename 在全部 md 内扫描得出 (排除自身与本任务 spec/plan)
 Docs/Current/01_Project_Baseline.md,Phase 11 项目基线,already-consumed,requirements/SRS.md#1 + acceptance/acceptance_report.md#1,12,
 Docs/Current/02_Current_Phase_Goals.md,阶段目标完成状态,already-consumed,acceptance/acceptance_report.md#1,12,
 Docs/Current/03_Active_Backlog.md,活动 backlog,archive-only,acceptance/acceptance_report.md#1-附,9,
 Docs/Current/04_Open_Risks.md,风险记录,archive-only,Planned: archive/current/04_Open_Risks.md,10,
 Docs/Current/05_Implementation_Boundary.md,实施边界,already-consumed,requirements/SRS.md#6.5 + governance.md#6,11,
-Docs/Current/06_Current_Task_List.md,当前任务入口,already-consumed,Planned: INDEX.md#3,3,
+Docs/Current/06_Current_Task_List.md,当前任务入口,already-consumed,INDEX.md#3,3,
 Docs/Current/07_Evidence_And_Artifacts.md,Evidence 落盘规则,already-consumed,requirements/SRS.md#6.3 + governance.md#1,8,
 Docs/Current/08_Phase8_Retrospective_And_Phase9_Checklist.md,Phase 8 复盘,archive-only,Planned: archive/current/08_Phase8_Retrospective_And_Phase9_Checklist.md,4,
 Docs/Current/10_Phase8_Closeout.md,Phase 8 收尾,archive-only,Planned: archive/current/10_Phase8_Closeout.md,1,
@@ -95,11 +95,11 @@ Plugins/AgentBridge/Docs/feedback_write_mapping.md,Feedback Write 映射,already
 Plugins/AgentBridge/Docs/field_specification_v0_1.md,Field Specification v0.1,already-consumed,contracts/field_specification.md,3,
 Plugins/AgentBridge/Docs/forgeue_manifest_integration.md,ForgeUE Manifest 集成,already-consumed,design/LLD/02_bridge.md + design/LLD/03_orchestrator.md,1,
 Plugins/AgentBridge/Docs/genre_pack_core_design.md,Genre Pack 核心设计,already-consumed,design/LLD/06_skills_and_templates.md,1,
-Plugins/AgentBridge/Docs/governance_loop_minimal_design.md,治理闭环最小设计,already-consumed,Planned: governance.md#3,1,
+Plugins/AgentBridge/Docs/governance_loop_minimal_design.md,治理闭环最小设计,already-consumed,governance.md#3,1,
 Plugins/AgentBridge/Docs/greenfield_pipeline.md,Greenfield 流水线,already-consumed,design/LLD/03_orchestrator.md,3,
 Plugins/AgentBridge/Docs/jrpg_genre_pack_design.md,JRPG Genre Pack 设计,already-consumed,design/LLD/06_skills_and_templates.md + testing/test_spec.md,1,
 Plugins/AgentBridge/Docs/orchestrator_design.md,Orchestrator 设计,already-consumed,design/LLD/03_orchestrator.md,3,
-Plugins/AgentBridge/Docs/reviewed_handoff_design.md,Reviewed Handoff 设计,already-consumed,Planned: design/LLD/04_compiler.md + contracts/handoff_contract.md,5,
+Plugins/AgentBridge/Docs/reviewed_handoff_design.md,Reviewed Handoff 设计,already-consumed,design/LLD/04_compiler.md §3.2 + contracts/tool_contract.md §7,5,handoff_contract.md 未单独成文;Handoff v3 契约抽到 LLD/04 §3.2 + tool_contract §7
 Plugins/AgentBridge/Docs/root_skill_contract_standard.md,Root Skill Contract 标准,already-consumed,design/HLD.md#2.1 + requirements/SRS.md#3 + design/LLD/06_skills_and_templates.md,5,
 Plugins/AgentBridge/Docs/run_isolation_compare_promote.md,Run 隔离/对比/提升,already-consumed,design/HLD.md#3 + design/LLD/03_orchestrator.md + governance.md#3,6,
 Plugins/AgentBridge/Docs/skill_graph_and_domain_skill.md,Skill Graph 与 Domain Skill,already-consumed,design/HLD.md#2 + design/LLD/06_skills_and_templates.md,7,
