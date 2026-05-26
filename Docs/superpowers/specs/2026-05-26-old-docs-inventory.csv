@@ -84,7 +84,7 @@ Plugins/AgentBridge/Docs/architecture_overview.md,AgentBridge 架构总览,alrea
 Plugins/AgentBridge/Docs/base_skill_domains_design.md,Base Skill Domains 设计,already-consumed,Planned: design/LLD/06_skills_and_templates.md,2,
 Plugins/AgentBridge/Docs/baseline_realization_policy.md,Baseline 实例化策略,already-consumed,design/HLD.md#2 + design/LLD/06_skills_and_templates.md,4,
 Plugins/AgentBridge/Docs/boardgame_playable_pipeline.md,Boardgame Playable 流水线,already-consumed,Planned: design/LLD/03_orchestrator.md,0,
-Plugins/AgentBridge/Docs/bridge_verification_and_error_handling.md,Bridge 校验与错误处理,already-consumed,Planned: design/LLD/02_bridge.md,2,
+Plugins/AgentBridge/Docs/bridge_verification_and_error_handling.md,Bridge 校验与错误处理,already-consumed,design/LLD/02_bridge.md,2,
 Plugins/AgentBridge/Docs/clarification_gate_rules.md,澄清门规则,already-consumed,design/HLD.md#2-3 + design/LLD/04_compiler.md,4,
 Plugins/AgentBridge/Docs/compiler_design.md,Compiler 设计,already-consumed,Planned: design/LLD/04_compiler.md,12,
 Plugins/AgentBridge/Docs/constraint_variant_policy.md,约束与变体策略,already-consumed,design/HLD.md#2 + design/LLD/06_skills_and_templates.md,4,

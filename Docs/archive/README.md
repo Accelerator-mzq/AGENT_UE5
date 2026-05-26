@@ -93,7 +93,7 @@
 | `Plugins/AgentBridge/Docs/base_skill_domains_design.md` | Base Skill Domains 设计 | Planned: design/LLD/06_skills_and_templates.md | already-consumed |
 | `Plugins/AgentBridge/Docs/baseline_realization_policy.md` | Baseline 实例化策略 | design/HLD.md#2 + design/LLD/06_skills_and_templates.md | already-consumed |
 | `Plugins/AgentBridge/Docs/boardgame_playable_pipeline.md` | Boardgame Playable 流水线 | Planned: design/LLD/03_orchestrator.md | already-consumed |
-| `Plugins/AgentBridge/Docs/bridge_verification_and_error_handling.md` | Bridge 校验与错误处理 | Planned: design/LLD/02_bridge.md | already-consumed |
+| `Plugins/AgentBridge/Docs/bridge_verification_and_error_handling.md` | Bridge 校验与错误处理 | design/LLD/02_bridge.md | already-consumed |
 | `Plugins/AgentBridge/Docs/clarification_gate_rules.md` | 澄清门规则 | design/HLD.md#2-3 + design/LLD/04_compiler.md | already-consumed |
 | `Plugins/AgentBridge/Docs/compiler_design.md` | Compiler 设计 | Planned: design/LLD/04_compiler.md | already-consumed |
 | `Plugins/AgentBridge/Docs/constraint_variant_policy.md` | 约束与变体策略 | design/HLD.md#2 + design/LLD/06_skills_and_templates.md | already-consumed |
