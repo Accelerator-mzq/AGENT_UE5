@@ -140,6 +140,22 @@ python compiler_main.py
 - YAML/JSON：中文 description
 - 文档：中文
 
+## 任务收尾流程
+
+非 trivial 改动收尾链:
+
+```
+实现 / 修复
+ → superpowers:verification-before-completion
+ → document-release  (本项目 skill, .claude/skills/document-release/SKILL.md)
+ → superpowers:verification-before-completion (对 doc 改动再 verify)
+ → superpowers:finishing-a-development-branch (merge / push)
+```
+
+强制门禁已通过 git pre-commit/pre-push hook + Claude Code PreToolUse hook 联合实现,任何 commit/push 之前必须跑过 document-release。逃生通道:`[skip-doc]` 标记 / trivial 路径白名单 / `--no-verify`。
+
+详见 AGENTS.md §3.8 与 `Docs/superpowers/specs/2026-05-25-document-release-port-design.md`。
+
 ## 当前阶段
 
 Phase 11 已完成 — Skill-First Design Compiler Framework

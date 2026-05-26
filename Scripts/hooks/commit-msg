@@ -1,0 +1,9 @@
+#!/bin/sh
+# git commit-msg hook: 检测 [skip-doc] 标记并放行
+SCRIPT_DIR="$(cd "$(dirname "$0")"/../.. && pwd)"
+MSG_FILE="$1"
+MSG="$(cat "$MSG_FILE")"
+python "$SCRIPT_DIR/Scripts/hooks/doc_release_gate.py" check \
+    --action commit \
+    --commit-msg "$MSG"
+exit $?
