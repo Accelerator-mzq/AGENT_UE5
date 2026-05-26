@@ -451,8 +451,109 @@ def _importer_path_mesh(
     asset: dict[str, Any], source_uri: Path, target_pkg: str,
     overwrite: bool, import_options: dict[str, Any], bridge_mode: str,
 ) -> dict[str, Any]:
-    """static_mesh 真机导入(待 Task 8 填充)。"""
-    raise NotImplementedError("static_mesh importer pending Task 8")
+    """static_mesh 真机导入:按 import_options.source_format 路由 FBX/GLTF/OBJ Factory。"""
+    import time
+    import unreal
+    start = time.monotonic()
+
+    # 目标 package 已存在 + 不允许覆盖 → skipped(不阻塞其他 asset)
+    if not overwrite and unreal.EditorAssetLibrary.does_asset_exist(target_pkg):
+        return _evidence_skipped(
+            asset, bridge_mode,
+            f"target asset exists and overwrite_existing=false: {target_pkg}",
+            source_uri_abs=source_uri,
+        )
+
+    # 按 source_format 选 Factory
+    fmt = import_options.get("source_format", "fbx").lower()
+    factory, factory_class_name = _build_mesh_factory(fmt, import_options)
+    if factory is None:
+        return _evidence_failure(
+            asset, bridge_mode,
+            f"unsupported mesh source_format: {fmt} (expected fbx/gltf/glb/obj)",
+            source_uri_abs=source_uri,
+        )
+
+    # 构造 AssetImportTask
+    task = unreal.AssetImportTask()
+    task.filename = str(source_uri)
+    task.destination_path = target_pkg.rsplit("/", 1)[0]   # 目录部分
+    task.destination_name = target_pkg.rsplit("/", 1)[-1]  # 资产名:SM_*
+    task.replace_existing = overwrite
+    task.automated = True
+    task.save = True
+    task.factory = factory
+
+    # 执行导入(同步) — wrap UE API 异常,spec §3.5
+    asset_tools = unreal.AssetToolsHelpers.get_asset_tools()
+    try:
+        asset_tools.import_asset_tasks([task])
+    except Exception as exc:  # noqa: BLE001  # UE API 异常类型不可枚举,catch-all 必须
+        return _evidence_failure(
+            asset, bridge_mode,
+            f"import_asset_tasks raised: {type(exc).__name__}: {exc}",
+            source_uri_abs=source_uri,
+        )
+
+    # 校验:imported_object_paths 应有 1 个新对象
+    if not task.imported_object_paths:
+        return _evidence_failure(
+            asset, bridge_mode,
+            f"static_mesh import returned no objects (filename={source_uri}, fmt={fmt})",
+            source_uri_abs=source_uri,
+        )
+
+    duration_ms = int((time.monotonic() - start) * 1000)
+    return _evidence_success(
+        asset, bridge_mode,
+        source_uri_abs=source_uri,
+        uasset_object_path=task.imported_object_paths[0],
+        factory_class=factory_class_name,
+        duration_ms=duration_ms,
+        import_log_excerpt=f"imported static_mesh ({fmt}) from {source_uri.name}",
+    )
+
+
+def _build_mesh_factory(fmt: str, import_options: dict[str, Any]) -> tuple[Any, str]:
+    """按 source_format 选 FBX/GLTF/OBJ Factory。
+
+    Args:
+        fmt: source_format 字符串(已 lowercase)
+        import_options: manifest entry 的 import_options dict
+
+    Returns:
+        (factory_instance, factory_class_name) 元组
+        - fmt 不支持时 factory_instance 为 None,caller 应返 evidence_failure
+        - GLTF/OBJ 路径在 UE 5.5 可能无显式 Factory 类,本 milestone 留 follow-up
+
+    本 milestone fixture 只测 FBX(mesh_cube.fbx),GLTF/OBJ 路径未覆盖,
+    后续 fixture 扩展后再实测验证。
+    """
+    import unreal
+
+    if fmt == "fbx":
+        factory = unreal.FbxFactory()
+        # FBX import 选项 — 避免导入材质/合并 mesh 等不需要的副作用
+        fbx_import_data = unreal.FbxImportUI()
+        fbx_import_data.import_materials = import_options.get("import_materials", False)
+        fbx_import_data.import_textures = import_options.get("import_materials", False)
+        fbx_import_data.static_mesh_import_data.combine_meshes = import_options.get("combine_meshes", False)
+        factory.set_editor_property("import_options", fbx_import_data)
+        return factory, "unreal.FbxFactory"
+
+    if fmt in ("gltf", "glb"):
+        # UE 5.5 GLTF importer 通常通过 AssetTools.import_assets_automated 自动 dispatch,
+        # 无独立 Python Factory 类。本 milestone fixture 不含 GLTF,留 follow-up。
+        return None, f"unreal.GLTFImporter (auto-selected by UE; not implemented)"
+
+    if fmt == "obj":
+        # UE 5.5 ObjFactory 类名待实测;本 milestone fixture 不含 OBJ,留 follow-up
+        factory_class = getattr(unreal, "ObjFactory", None)
+        if factory_class is None:
+            return None, "unreal.ObjFactory (not found in this UE build; not implemented)"
+        return factory_class(), "unreal.ObjFactory"
+
+    return None, f"unknown source_format: {fmt}"
 
 
 def _creator_path_material(
