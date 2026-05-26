@@ -4,10 +4,12 @@
 含一个 BlueprintCallable UFUNCTION:import_assets_from_manifest。
 
 外部通过 remote_control_client.call_function(
-    object_path="/Script/PythonGeneratedClass.Default__AgentBridgeForgeUEEndpoint",
+    object_path=<probe log 输出的真实 default object path>,
     function_name="ImportAssetsFromManifest",
     parameters={"ManifestPath": "...", "PlanPath": "...", "OverwriteExisting": false}
 ) 触发。
+
+实际 object_path 在 Editor 启动后由 [AgentBridge probe] log 给出。
 
 设计原则:
 - endpoint 在 Editor 内,等价于 bridge_python 触发器
@@ -57,3 +59,16 @@ class AgentBridgeForgeUEEndpoint(unreal.Object):
                 {"status": "error", "error_class": type(exc).__name__, "message": str(exc)},
                 ensure_ascii=False,
             )
+
+
+# ============================================================
+# 自我探测:注册完成后立即 log 出 class path / default object path,
+# 便于外部 RC 拼对 object_path(PythonScripted UCLASS 的真实路径由 UE 决定)
+# ============================================================
+try:
+    _cls_path = AgentBridgeForgeUEEndpoint.static_class().get_path_name()
+    _default_obj_path = AgentBridgeForgeUEEndpoint.get_default_object().get_path_name()
+    unreal.log(f"[AgentBridge probe] class path = {_cls_path}")
+    unreal.log(f"[AgentBridge probe] default obj path = {_default_obj_path}")
+except Exception as _probe_exc:
+    unreal.log_error(f"[AgentBridge probe] failed: {_probe_exc}")
