@@ -1,0 +1,392 @@
+{
+  "report_type": "phase7_p1_stability_summary",
+  "generated_at": "2026-04-02T22:09:41.993328",
+  "round_count": 3,
+  "rounds": [
+    {
+      "round_index": 1,
+      "round_label": "phase7_p1_round1",
+      "generated_at": "2026-04-02T22:04:20.857413",
+      "commands": [
+        {
+          "name": "phase7_pytest",
+          "command": [
+            "C:\\Python312\\python.exe",
+            "-m",
+            "pytest",
+            "Plugins/AgentBridge/Tests/scripts/test_phase7_governance_and_jrpg.py",
+            "--junitxml",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round1_pytest.xml"
+          ],
+          "returncode": 0,
+          "log_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round1_phase7_pytest.log",
+          "new_reports": [
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.f37a9560_20260402_220140.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.6ab94261_20260402_220140.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.9b6a0736_20260402_220141.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_rc_info_20260402_220141.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.ad0e0cf7_20260402_220152.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_runtime_smoke_20260402_220243.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_runtime_acceptance_20260402_220259.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.5efda768_20260402_220259.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.c13363bf_20260402_220300.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase6_runtime_smoke_20260402_220300.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.f11e81d3_20260402_220300.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase6_runtime_acceptance_20260402_220300.json"
+          ],
+          "stdout_tail": "============================= test session starts =============================\nplatform win32 -- Python 3.12.6, pytest-9.0.2, pluggy-1.6.0\ncachedir: TestArtifacts\\PytestCache\nrootdir: D:\\UnrealProjects\\Mvpv4TestCodex\nconfigfile: pytest.ini\nplugins: anyio-4.12.1\ncollected 26 items\n\nPlugins\\AgentBridge\\Tests\\scripts\\test_phase7_governance_and_jrpg.py ... [ 11%]\n.......................                                                  [100%]\n\n- generated xml file: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round1_pytest.xml -\n======================== 26 passed in 81.24s (0:01:21) ========================\n",
+          "stderr_tail": ""
+        },
+        {
+          "name": "boardgame_greenfield_simulated",
+          "command": [
+            "C:\\Python312\\python.exe",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\Scripts\\run_greenfield_demo.py",
+            "simulated"
+          ],
+          "returncode": 0,
+          "log_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round1_boardgame_greenfield_simulated.log",
+          "new_reports": [
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.bd6f5ba9_20260402_220301.json"
+          ],
+          "stdout_tail": "yaml\n\n[�׶� 3] Orchestrator����ȡ approved Handoff �� ���� Run Plan �� ִ��\n  Bridge ģʽ: simulated\n  ִ�в���: spawn_Board (spawn_actor)\n  ִ�в���: spawn_PieceX_1 (spawn_actor)\n  ִ�в���: spawn_PieceO_1 (spawn_actor)\n  �����ѱ���: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.bd6f5ba9_20260402_220301.json\n\n============================================================\nִ�н������\n============================================================\n  ִ��״̬: succeeded\n  ������: 3\n  [OK] spawn_Board: success\n  [OK] spawn_PieceX_1: success\n  [OK] spawn_PieceO_1: success\n\n  Draft Handoff: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\draft\\handoff.boardgame.prototype.bd6f5ba9.yaml\n  Approved Handoff: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\approved\\handoff.boardgame.prototype.bd6f5ba9.yaml\n  ����Ŀ¼: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\n============================================================\n",
+          "stderr_tail": ""
+        },
+        {
+          "name": "boardgame_brownfield_simulated",
+          "command": [
+            "C:\\Python312\\python.exe",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\Scripts\\run_brownfield_demo.py",
+            "simulated"
+          ],
+          "returncode": 0,
+          "log_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round1_boardgame_brownfield_simulated.log",
+          "new_reports": [
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.1d91b48e_20260402_220301.json"
+          ],
+          "stdout_tail": "============================================================\nBrownfield + Boardgame + Delta Handoff ��С�ջ�\n============================================================\n\n[1/4] ʹ�� Brownfield ģ�� baseline...\n  ��ǰ�ؿ�: /Game/Maps/TestMap\n  ��ǰ Actor: ['Board', 'PieceX_1']\n\n[2/4] ���� Brownfield Handoff...\n  Handoff ID: handoff.boardgame.prototype.1d91b48e\n  Handoff ״̬: reviewed\n  Delta Intent: append_actor\n  Delta Actors: ['PieceO_1']\n  Draft: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\draft\\handoff.boardgame.prototype.1d91b48e.yaml\n\n[3/4] �Զ������� approved_for_execution...\n  Approved: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\approved\\handoff.boardgame.prototype.1d91b48e.yaml\n\n[4/4] ִ�� Handoff...\n  ִ�в���: spawn_PieceO_1 (spawn_actor)\n  �����ѱ���: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.1d91b48e_20260402_220301.json\n  ִ��״̬: succeeded\n",
+          "stderr_tail": ""
+        },
+        {
+          "name": "boardgame_playable_simulated",
+          "command": [
+            "C:\\Python312\\python.exe",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\Scripts\\run_boardgame_playable_demo.py",
+            "simulated"
+          ],
+          "returncode": 0,
+          "log_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round1_boardgame_playable_simulated.log",
+          "new_reports": [
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.ca10cc85_20260402_220301.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase6_runtime_smoke_20260402_220301.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase6_runtime_acceptance_20260402_220301.json"
+          ],
+          "stdout_tail": " �ڵ�: ['board_layout_spec', 'boardgame_spec', 'decision_ui_spec', 'generation_trace', 'piece_movement_spec', 'runtime_wiring_spec', 'scene_spec', 'turn_flow_spec', 'validation_spec', 'world_build_spec']\n  Draft: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\draft\\handoff.boardgame.prototype.ca10cc85.yaml\n\n[2/4] �Զ������� approved_for_execution...\n  Approved: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\approved\\handoff.boardgame.prototype.ca10cc85.yaml\n\n[3/4] ִ�� runtime_playable ͶӰ...\n  ִ�в���: spawn_BoardRuntimeActor (spawn_actor)\n  �����ѱ���: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.ca10cc85_20260402_220301.json\n  ִ��״̬: succeeded\n  Runtime Smoke: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase6_runtime_smoke_20260402_220301.json\n  Phase 6 Acceptance: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase6_runtime_acceptance_20260402_220301.json\n\n[4/4] ��ɡ�\n",
+          "stderr_tail": ""
+        },
+        {
+          "name": "jrpg_greenfield_simulated",
+          "command": [
+            "C:\\Python312\\python.exe",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\Scripts\\run_jrpg_turn_based_demo.py",
+            "simulated",
+            "greenfield_bootstrap"
+          ],
+          "returncode": 0,
+          "log_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round1_jrpg_greenfield_simulated.log",
+          "new_reports": [
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.eaa83420_20260402_220302.json"
+          ],
+          "stdout_tail": "==========================\nJRPG Turn-Based + Handoff ��С�ջ�\n============================================================\n  ��Ϸ����: jrpg\n  ִ��ģʽ: greenfield_bootstrap\n  Handoff ID: handoff.jrpg.prototype.eaa83420\n  Handoff ״̬: reviewed\n  ���������: ['product_scope', 'runtime_gameplay', 'presentation_asset', 'qa_validation', 'planning_governance']\n  ִ�в���: spawn_BattleArena (spawn_actor)\n  ִ�в���: spawn_HeroUnit_1 (spawn_actor)\n  ִ�в���: spawn_EnemyUnit_1 (spawn_actor)\n  ִ�в���: spawn_CommandMenuAnchor (spawn_actor)\n  �����ѱ���: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.eaa83420_20260402_220302.json\n  ִ��״̬: succeeded\n  Draft Handoff: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\draft\\handoff.jrpg.prototype.eaa83420.yaml\n  Approved Handoff: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\approved\\handoff.jrpg.prototype.eaa83420.yaml\n  ����Ŀ¼: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\n",
+          "stderr_tail": ""
+        },
+        {
+          "name": "jrpg_greenfield_smoke",
+          "command": [
+            "C:\\Python312\\python.exe",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\Scripts\\run_jrpg_turn_based_demo.py",
+            "bridge_rc_api",
+            "greenfield_bootstrap"
+          ],
+          "returncode": 0,
+          "log_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round1_jrpg_greenfield_smoke.log",
+          "new_reports": [
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_rc_info_20260402_220302.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.9fe3e4ea_20260402_220313.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_runtime_smoke_20260402_220404.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_runtime_acceptance_20260402_220420.json"
+          ],
+          "stdout_tail": "tState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.9fe3e4ea_20260402_220313.json\n  ִ��״̬: succeeded\n  Draft Handoff: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\draft\\handoff.jrpg.prototype.9fe3e4ea.yaml\n  Approved Handoff: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\approved\\handoff.jrpg.prototype.9fe3e4ea.yaml\n  ����Ŀ¼: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\n  ֤��˵��: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Evidence\\Phase7\\notes\\phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_evidence.md\n  ֤����־: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Evidence\\Phase7\\logs\\phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_capture.json\nPHASE7_SMOKE_REPORT=D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_runtime_smoke_20260402_220404.json\nPHASE7_ACCEPTANCE_REPORT=D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_runtime_acceptance_20260402_220420.json\n",
+          "stderr_tail": ""
+        }
+      ],
+      "governance_audit": {
+        "json_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round1_governance_audit.json",
+        "md_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round1_governance_audit.md",
+        "overall_status": "passed"
+      },
+      "status": "passed",
+      "json_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round1_summary.json",
+      "md_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round1_summary.md"
+    },
+    {
+      "round_index": 2,
+      "round_label": "phase7_p1_round2",
+      "generated_at": "2026-04-02T22:07:01.161142",
+      "commands": [
+        {
+          "name": "phase7_pytest",
+          "command": [
+            "C:\\Python312\\python.exe",
+            "-m",
+            "pytest",
+            "Plugins/AgentBridge/Tests/scripts/test_phase7_governance_and_jrpg.py",
+            "--junitxml",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round2_pytest.xml"
+          ],
+          "returncode": 0,
+          "log_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round2_phase7_pytest.log",
+          "new_reports": [
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.1356db63_20260402_220422.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.3ce226c9_20260402_220422.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.cbcd56e8_20260402_220422.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_rc_info_20260402_220422.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.82f3379c_20260402_220434.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_runtime_smoke_20260402_220525.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_runtime_acceptance_20260402_220541.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.08691204_20260402_220541.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.497d9bfd_20260402_220541.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.ab5109c7_20260402_220541.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase6_runtime_smoke_20260402_220541.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase6_runtime_acceptance_20260402_220541.json"
+          ],
+          "stdout_tail": "============================= test session starts =============================\nplatform win32 -- Python 3.12.6, pytest-9.0.2, pluggy-1.6.0\ncachedir: TestArtifacts\\PytestCache\nrootdir: D:\\UnrealProjects\\Mvpv4TestCodex\nconfigfile: pytest.ini\nplugins: anyio-4.12.1\ncollected 26 items\n\nPlugins\\AgentBridge\\Tests\\scripts\\test_phase7_governance_and_jrpg.py ... [ 11%]\n.......................                                                  [100%]\n\n- generated xml file: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round2_pytest.xml -\n======================== 26 passed in 80.84s (0:01:20) ========================\n",
+          "stderr_tail": ""
+        },
+        {
+          "name": "boardgame_greenfield_simulated",
+          "command": [
+            "C:\\Python312\\python.exe",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\Scripts\\run_greenfield_demo.py",
+            "simulated"
+          ],
+          "returncode": 0,
+          "log_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round2_boardgame_greenfield_simulated.log",
+          "new_reports": [
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.038bbd85_20260402_220542.json"
+          ],
+          "stdout_tail": "yaml\n\n[�׶� 3] Orchestrator����ȡ approved Handoff �� ���� Run Plan �� ִ��\n  Bridge ģʽ: simulated\n  ִ�в���: spawn_Board (spawn_actor)\n  ִ�в���: spawn_PieceX_1 (spawn_actor)\n  ִ�в���: spawn_PieceO_1 (spawn_actor)\n  �����ѱ���: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.038bbd85_20260402_220542.json\n\n============================================================\nִ�н������\n============================================================\n  ִ��״̬: succeeded\n  ������: 3\n  [OK] spawn_Board: success\n  [OK] spawn_PieceX_1: success\n  [OK] spawn_PieceO_1: success\n\n  Draft Handoff: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\draft\\handoff.boardgame.prototype.038bbd85.yaml\n  Approved Handoff: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\approved\\handoff.boardgame.prototype.038bbd85.yaml\n  ����Ŀ¼: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\n============================================================\n",
+          "stderr_tail": ""
+        },
+        {
+          "name": "boardgame_brownfield_simulated",
+          "command": [
+            "C:\\Python312\\python.exe",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\Scripts\\run_brownfield_demo.py",
+            "simulated"
+          ],
+          "returncode": 0,
+          "log_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round2_boardgame_brownfield_simulated.log",
+          "new_reports": [
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.53302ae4_20260402_220542.json"
+          ],
+          "stdout_tail": "============================================================\nBrownfield + Boardgame + Delta Handoff ��С�ջ�\n============================================================\n\n[1/4] ʹ�� Brownfield ģ�� baseline...\n  ��ǰ�ؿ�: /Game/Maps/TestMap\n  ��ǰ Actor: ['Board', 'PieceX_1']\n\n[2/4] ���� Brownfield Handoff...\n  Handoff ID: handoff.boardgame.prototype.53302ae4\n  Handoff ״̬: reviewed\n  Delta Intent: append_actor\n  Delta Actors: ['PieceO_1']\n  Draft: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\draft\\handoff.boardgame.prototype.53302ae4.yaml\n\n[3/4] �Զ������� approved_for_execution...\n  Approved: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\approved\\handoff.boardgame.prototype.53302ae4.yaml\n\n[4/4] ִ�� Handoff...\n  ִ�в���: spawn_PieceO_1 (spawn_actor)\n  �����ѱ���: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.53302ae4_20260402_220542.json\n  ִ��״̬: succeeded\n",
+          "stderr_tail": ""
+        },
+        {
+          "name": "boardgame_playable_simulated",
+          "command": [
+            "C:\\Python312\\python.exe",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\Scripts\\run_boardgame_playable_demo.py",
+            "simulated"
+          ],
+          "returncode": 0,
+          "log_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round2_boardgame_playable_simulated.log",
+          "new_reports": [
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase6_runtime_smoke_20260402_220542.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.cc0e09e4_20260402_220542.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase6_runtime_acceptance_20260402_220542.json"
+          ],
+          "stdout_tail": " �ڵ�: ['board_layout_spec', 'boardgame_spec', 'decision_ui_spec', 'generation_trace', 'piece_movement_spec', 'runtime_wiring_spec', 'scene_spec', 'turn_flow_spec', 'validation_spec', 'world_build_spec']\n  Draft: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\draft\\handoff.boardgame.prototype.cc0e09e4.yaml\n\n[2/4] �Զ������� approved_for_execution...\n  Approved: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\approved\\handoff.boardgame.prototype.cc0e09e4.yaml\n\n[3/4] ִ�� runtime_playable ͶӰ...\n  ִ�в���: spawn_BoardRuntimeActor (spawn_actor)\n  �����ѱ���: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.cc0e09e4_20260402_220542.json\n  ִ��״̬: succeeded\n  Runtime Smoke: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase6_runtime_smoke_20260402_220542.json\n  Phase 6 Acceptance: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase6_runtime_acceptance_20260402_220542.json\n\n[4/4] ��ɡ�\n",
+          "stderr_tail": ""
+        },
+        {
+          "name": "jrpg_greenfield_simulated",
+          "command": [
+            "C:\\Python312\\python.exe",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\Scripts\\run_jrpg_turn_based_demo.py",
+            "simulated",
+            "greenfield_bootstrap"
+          ],
+          "returncode": 0,
+          "log_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round2_jrpg_greenfield_simulated.log",
+          "new_reports": [
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.0bed1df7_20260402_220543.json"
+          ],
+          "stdout_tail": "==========================\nJRPG Turn-Based + Handoff ��С�ջ�\n============================================================\n  ��Ϸ����: jrpg\n  ִ��ģʽ: greenfield_bootstrap\n  Handoff ID: handoff.jrpg.prototype.0bed1df7\n  Handoff ״̬: reviewed\n  ���������: ['product_scope', 'runtime_gameplay', 'presentation_asset', 'qa_validation', 'planning_governance']\n  ִ�в���: spawn_BattleArena (spawn_actor)\n  ִ�в���: spawn_HeroUnit_1 (spawn_actor)\n  ִ�в���: spawn_EnemyUnit_1 (spawn_actor)\n  ִ�в���: spawn_CommandMenuAnchor (spawn_actor)\n  �����ѱ���: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.0bed1df7_20260402_220543.json\n  ִ��״̬: succeeded\n  Draft Handoff: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\draft\\handoff.jrpg.prototype.0bed1df7.yaml\n  Approved Handoff: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\approved\\handoff.jrpg.prototype.0bed1df7.yaml\n  ����Ŀ¼: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\n",
+          "stderr_tail": ""
+        },
+        {
+          "name": "jrpg_greenfield_smoke",
+          "command": [
+            "C:\\Python312\\python.exe",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\Scripts\\run_jrpg_turn_based_demo.py",
+            "bridge_rc_api",
+            "greenfield_bootstrap"
+          ],
+          "returncode": 0,
+          "log_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round2_jrpg_greenfield_smoke.log",
+          "new_reports": [
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_rc_info_20260402_220543.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.793066b0_20260402_220554.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_runtime_smoke_20260402_220645.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_runtime_acceptance_20260402_220700.json"
+          ],
+          "stdout_tail": "tState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.793066b0_20260402_220554.json\n  ִ��״̬: succeeded\n  Draft Handoff: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\draft\\handoff.jrpg.prototype.793066b0.yaml\n  Approved Handoff: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\approved\\handoff.jrpg.prototype.793066b0.yaml\n  ����Ŀ¼: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\n  ֤��˵��: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Evidence\\Phase7\\notes\\phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_evidence.md\n  ֤����־: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Evidence\\Phase7\\logs\\phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_capture.json\nPHASE7_SMOKE_REPORT=D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_runtime_smoke_20260402_220645.json\nPHASE7_ACCEPTANCE_REPORT=D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_runtime_acceptance_20260402_220700.json\n",
+          "stderr_tail": ""
+        }
+      ],
+      "governance_audit": {
+        "json_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round2_governance_audit.json",
+        "md_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round2_governance_audit.md",
+        "overall_status": "passed"
+      },
+      "status": "passed",
+      "json_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round2_summary.json",
+      "md_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round2_summary.md"
+    },
+    {
+      "round_index": 3,
+      "round_label": "phase7_p1_round3",
+      "generated_at": "2026-04-02T22:09:41.682437",
+      "commands": [
+        {
+          "name": "phase7_pytest",
+          "command": [
+            "C:\\Python312\\python.exe",
+            "-m",
+            "pytest",
+            "Plugins/AgentBridge/Tests/scripts/test_phase7_governance_and_jrpg.py",
+            "--junitxml",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round3_pytest.xml"
+          ],
+          "returncode": 0,
+          "log_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round3_phase7_pytest.log",
+          "new_reports": [
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.aef532a6_20260402_220702.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.fca47e4a_20260402_220703.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.385c8a87_20260402_220703.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_rc_info_20260402_220703.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.04a088d1_20260402_220714.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_runtime_smoke_20260402_220805.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_runtime_acceptance_20260402_220821.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.3abc2143_20260402_220821.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.83d8074b_20260402_220821.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.04108938_20260402_220822.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase6_runtime_smoke_20260402_220822.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase6_runtime_acceptance_20260402_220822.json"
+          ],
+          "stdout_tail": "============================= test session starts =============================\nplatform win32 -- Python 3.12.6, pytest-9.0.2, pluggy-1.6.0\ncachedir: TestArtifacts\\PytestCache\nrootdir: D:\\UnrealProjects\\Mvpv4TestCodex\nconfigfile: pytest.ini\nplugins: anyio-4.12.1\ncollected 26 items\n\nPlugins\\AgentBridge\\Tests\\scripts\\test_phase7_governance_and_jrpg.py ... [ 11%]\n.......................                                                  [100%]\n\n- generated xml file: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round3_pytest.xml -\n======================== 26 passed in 80.62s (0:01:20) ========================\n",
+          "stderr_tail": ""
+        },
+        {
+          "name": "boardgame_greenfield_simulated",
+          "command": [
+            "C:\\Python312\\python.exe",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\Scripts\\run_greenfield_demo.py",
+            "simulated"
+          ],
+          "returncode": 0,
+          "log_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round3_boardgame_greenfield_simulated.log",
+          "new_reports": [
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.7a4825e4_20260402_220822.json"
+          ],
+          "stdout_tail": "yaml\n\n[�׶� 3] Orchestrator����ȡ approved Handoff �� ���� Run Plan �� ִ��\n  Bridge ģʽ: simulated\n  ִ�в���: spawn_Board (spawn_actor)\n  ִ�в���: spawn_PieceX_1 (spawn_actor)\n  ִ�в���: spawn_PieceO_1 (spawn_actor)\n  �����ѱ���: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.7a4825e4_20260402_220822.json\n\n============================================================\nִ�н������\n============================================================\n  ִ��״̬: succeeded\n  ������: 3\n  [OK] spawn_Board: success\n  [OK] spawn_PieceX_1: success\n  [OK] spawn_PieceO_1: success\n\n  Draft Handoff: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\draft\\handoff.boardgame.prototype.7a4825e4.yaml\n  Approved Handoff: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\approved\\handoff.boardgame.prototype.7a4825e4.yaml\n  ����Ŀ¼: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\n============================================================\n",
+          "stderr_tail": ""
+        },
+        {
+          "name": "boardgame_brownfield_simulated",
+          "command": [
+            "C:\\Python312\\python.exe",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\Scripts\\run_brownfield_demo.py",
+            "simulated"
+          ],
+          "returncode": 0,
+          "log_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round3_boardgame_brownfield_simulated.log",
+          "new_reports": [
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.f241ef02_20260402_220822.json"
+          ],
+          "stdout_tail": "============================================================\nBrownfield + Boardgame + Delta Handoff ��С�ջ�\n============================================================\n\n[1/4] ʹ�� Brownfield ģ�� baseline...\n  ��ǰ�ؿ�: /Game/Maps/TestMap\n  ��ǰ Actor: ['Board', 'PieceX_1']\n\n[2/4] ���� Brownfield Handoff...\n  Handoff ID: handoff.boardgame.prototype.f241ef02\n  Handoff ״̬: reviewed\n  Delta Intent: append_actor\n  Delta Actors: ['PieceO_1']\n  Draft: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\draft\\handoff.boardgame.prototype.f241ef02.yaml\n\n[3/4] �Զ������� approved_for_execution...\n  Approved: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\approved\\handoff.boardgame.prototype.f241ef02.yaml\n\n[4/4] ִ�� Handoff...\n  ִ�в���: spawn_PieceO_1 (spawn_actor)\n  �����ѱ���: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.f241ef02_20260402_220822.json\n  ִ��״̬: succeeded\n",
+          "stderr_tail": ""
+        },
+        {
+          "name": "boardgame_playable_simulated",
+          "command": [
+            "C:\\Python312\\python.exe",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\Scripts\\run_boardgame_playable_demo.py",
+            "simulated"
+          ],
+          "returncode": 0,
+          "log_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round3_boardgame_playable_simulated.log",
+          "new_reports": [
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.52280215_20260402_220823.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase6_runtime_smoke_20260402_220823.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase6_runtime_acceptance_20260402_220823.json"
+          ],
+          "stdout_tail": " �ڵ�: ['board_layout_spec', 'boardgame_spec', 'decision_ui_spec', 'generation_trace', 'piece_movement_spec', 'runtime_wiring_spec', 'scene_spec', 'turn_flow_spec', 'validation_spec', 'world_build_spec']\n  Draft: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\draft\\handoff.boardgame.prototype.52280215.yaml\n\n[2/4] �Զ������� approved_for_execution...\n  Approved: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\approved\\handoff.boardgame.prototype.52280215.yaml\n\n[3/4] ִ�� runtime_playable ͶӰ...\n  ִ�в���: spawn_BoardRuntimeActor (spawn_actor)\n  �����ѱ���: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.52280215_20260402_220823.json\n  ִ��״̬: succeeded\n  Runtime Smoke: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase6_runtime_smoke_20260402_220823.json\n  Phase 6 Acceptance: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase6_runtime_acceptance_20260402_220823.json\n\n[4/4] ��ɡ�\n",
+          "stderr_tail": ""
+        },
+        {
+          "name": "jrpg_greenfield_simulated",
+          "command": [
+            "C:\\Python312\\python.exe",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\Scripts\\run_jrpg_turn_based_demo.py",
+            "simulated",
+            "greenfield_bootstrap"
+          ],
+          "returncode": 0,
+          "log_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round3_jrpg_greenfield_simulated.log",
+          "new_reports": [
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.d8704ade_20260402_220823.json"
+          ],
+          "stdout_tail": "==========================\nJRPG Turn-Based + Handoff ��С�ջ�\n============================================================\n  ��Ϸ����: jrpg\n  ִ��ģʽ: greenfield_bootstrap\n  Handoff ID: handoff.jrpg.prototype.d8704ade\n  Handoff ״̬: reviewed\n  ���������: ['product_scope', 'runtime_gameplay', 'presentation_asset', 'qa_validation', 'planning_governance']\n  ִ�в���: spawn_BattleArena (spawn_actor)\n  ִ�в���: spawn_HeroUnit_1 (spawn_actor)\n  ִ�в���: spawn_EnemyUnit_1 (spawn_actor)\n  ִ�в���: spawn_CommandMenuAnchor (spawn_actor)\n  �����ѱ���: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.d8704ade_20260402_220823.json\n  ִ��״̬: succeeded\n  Draft Handoff: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\draft\\handoff.jrpg.prototype.d8704ade.yaml\n  Approved Handoff: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\approved\\handoff.jrpg.prototype.d8704ade.yaml\n  ����Ŀ¼: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\n",
+          "stderr_tail": ""
+        },
+        {
+          "name": "jrpg_greenfield_smoke",
+          "command": [
+            "C:\\Python312\\python.exe",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\Scripts\\run_jrpg_turn_based_demo.py",
+            "bridge_rc_api",
+            "greenfield_bootstrap"
+          ],
+          "returncode": 0,
+          "log_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round3_jrpg_greenfield_smoke.log",
+          "new_reports": [
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_rc_info_20260402_220823.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.95fa9d75_20260402_220834.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_runtime_smoke_20260402_220925.json",
+            "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_runtime_acceptance_20260402_220941.json"
+          ],
+          "stdout_tail": "tState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.95fa9d75_20260402_220834.json\n  ִ��״̬: succeeded\n  Draft Handoff: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\draft\\handoff.jrpg.prototype.95fa9d75.yaml\n  Approved Handoff: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\approved\\handoff.jrpg.prototype.95fa9d75.yaml\n  ����Ŀ¼: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\n  ֤��˵��: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Evidence\\Phase7\\notes\\phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_evidence.md\n  ֤����־: D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Evidence\\Phase7\\logs\\phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_capture.json\nPHASE7_SMOKE_REPORT=D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_runtime_smoke_20260402_220925.json\nPHASE7_ACCEPTANCE_REPORT=D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_runtime_acceptance_20260402_220941.json\n",
+          "stderr_tail": ""
+        }
+      ],
+      "governance_audit": {
+        "json_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round3_governance_audit.json",
+        "md_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round3_governance_audit.md",
+        "overall_status": "passed"
+      },
+      "status": "passed",
+      "json_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round3_summary.json",
+      "md_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_round3_summary.md"
+    }
+  ],
+  "jrpg_pack_consistency": {
+    "json_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_pack_consistency_2026-04-02.json",
+    "md_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_pack_consistency_2026-04-02.md",
+    "overall_status": "passed",
+    "brownfield_log_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_p1_consistency_jrpg_brownfield_simulated.log"
+  },
+  "overall_status": "passed"
+}

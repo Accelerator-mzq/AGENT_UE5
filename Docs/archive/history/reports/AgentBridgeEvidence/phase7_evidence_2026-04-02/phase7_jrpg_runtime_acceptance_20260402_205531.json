@@ -1,0 +1,545 @@
+{
+  "report_type": "phase7_jrpg_runtime_acceptance",
+  "generated_at": "2026-04-02T20:55:31.105930",
+  "bridge_mode": "bridge_rc_api",
+  "overall_status": "failed",
+  "checks": {
+    "E2E-35": {
+      "name": "JRPG 真实 UE5 smoke 成功并产出完整证据链",
+      "status": "failed",
+      "details": {
+        "bridge_mode": "bridge_rc_api",
+        "rc_ready": true,
+        "smoke_report_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_runtime_smoke_20260402_205531.json",
+        "layout_assertions": {
+          "checks": {
+            "arena_near_origin": {
+              "passed": false,
+              "actual_location": [
+                0.0,
+                200.0,
+                0.0
+              ]
+            },
+            "hero_on_left_side": {
+              "passed": false,
+              "actual_location": [
+                0.0,
+                200.0,
+                0.0
+              ]
+            },
+            "enemy_on_right_side": {
+              "passed": false,
+              "actual_location": [
+                0.0,
+                200.0,
+                0.0
+              ]
+            },
+            "command_menu_below_arena": {
+              "passed": false,
+              "actual_location": [
+                0.0,
+                200.0,
+                0.0
+              ]
+            },
+            "all_bounds_non_zero": {
+              "passed": true,
+              "details": {
+                "BattleArena": [
+                  210.0,
+                  95.0,
+                  120.0
+                ],
+                "HeroUnit_1": [
+                  210.0,
+                  95.0,
+                  120.0
+                ],
+                "EnemyUnit_1": [
+                  210.0,
+                  95.0,
+                  120.0
+                ],
+                "CommandMenuAnchor": [
+                  210.0,
+                  95.0,
+                  120.0
+                ]
+              }
+            }
+          },
+          "overall_passed": false
+        },
+        "structure_assertions": {
+          "checks": {
+            "mode_is_greenfield_bootstrap": {
+              "passed": true,
+              "actual_mode": "greenfield_bootstrap"
+            },
+            "turn_queue_spec_present": {
+              "passed": true,
+              "queue_order": [
+                "HeroUnit_1",
+                "EnemyUnit_1"
+              ]
+            },
+            "command_menu_spec_present": {
+              "passed": true,
+              "commands": [
+                "Attack",
+                "Skill",
+                "Defend"
+              ]
+            },
+            "runtime_wiring_spec_present": {
+              "passed": true,
+              "runtime_wiring": {
+                "battle_controller_actor_class": "/Script/Engine.StaticMeshActor",
+                "command_menu_actor_name": "CommandMenuAnchor",
+                "projection_profile": "preview_static"
+              }
+            },
+            "scene_spec_declares_minimal_battle_actors": {
+              "passed": true,
+              "scene_actor_names": [
+                "BattleArena",
+                "HeroUnit_1",
+                "EnemyUnit_1",
+                "CommandMenuAnchor"
+              ]
+            },
+            "turn_queue_matches_scene": {
+              "passed": true,
+              "queue_order": [
+                "HeroUnit_1",
+                "EnemyUnit_1"
+              ]
+            },
+            "command_menu_matches_gdd": {
+              "passed": true,
+              "commands": [
+                "Attack",
+                "Skill",
+                "Defend"
+              ]
+            },
+            "runtime_wiring_points_to_command_menu_anchor": {
+              "passed": true,
+              "runtime_wiring": {
+                "battle_controller_actor_class": "/Script/Engine.StaticMeshActor",
+                "command_menu_actor_name": "CommandMenuAnchor",
+                "projection_profile": "preview_static"
+              }
+            },
+            "runtime_scene_matches_declared_actor_count": {
+              "passed": true,
+              "runtime_actor_names": [
+                "BattleArena",
+                "HeroUnit_1",
+                "EnemyUnit_1",
+                "CommandMenuAnchor"
+              ]
+            }
+          },
+          "overall_passed": true
+        },
+        "actor_presence": {
+          "BattleArena": {
+            "actor_name": "BattleArena",
+            "actor_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CEDECD02_1752235051",
+            "listed_actor_path": "",
+            "state_response": {
+              "status": "success",
+              "summary": "Actor state fetched successfully",
+              "data": {
+                "actor_name": "truck_01",
+                "actor_path": "/Game/Maps/TestMap.TestMap:PersistentLevel.truck_01",
+                "class": "/Script/MyGame.BP_DecorTruck_C",
+                "target_level": "/Game/Maps/TestMap",
+                "transform": {
+                  "location": [
+                    0.0,
+                    200.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    0.0,
+                    90.0,
+                    0.0
+                  ],
+                  "relative_scale3d": [
+                    1.25,
+                    1.25,
+                    1.25
+                  ]
+                },
+                "collision": {
+                  "collision_profile_name": "BlockAll",
+                  "collision_enabled": "QueryAndPhysics",
+                  "generate_overlap_events": false,
+                  "collision_box_extent": [
+                    210.0,
+                    95.0,
+                    120.0
+                  ],
+                  "can_affect_navigation": true
+                },
+                "tags": [
+                  "Vehicle",
+                  "Prop"
+                ]
+              },
+              "warnings": [],
+              "errors": []
+            },
+            "bounds_response": {
+              "status": "success",
+              "summary": "Actor bounds fetched successfully",
+              "data": {
+                "actor_path": "/Game/Maps/TestMap.TestMap:PersistentLevel.truck_01",
+                "world_bounds_origin": [
+                  0.0,
+                  200.0,
+                  110.0
+                ],
+                "world_bounds_extent": [
+                  210.0,
+                  95.0,
+                  120.0
+                ]
+              },
+              "warnings": [],
+              "errors": []
+            },
+            "status": "passed",
+            "actual_actor_name": "truck_01",
+            "transform": {
+              "location": [
+                0.0,
+                200.0,
+                0.0
+              ],
+              "rotation": [
+                0.0,
+                90.0,
+                0.0
+              ],
+              "relative_scale3d": [
+                1.25,
+                1.25,
+                1.25
+              ]
+            },
+            "bounds_origin": [
+              0.0,
+              200.0,
+              110.0
+            ],
+            "bounds_extent": [
+              210.0,
+              95.0,
+              120.0
+            ]
+          },
+          "HeroUnit_1": {
+            "actor_name": "HeroUnit_1",
+            "actor_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CEDECD02_1754281052",
+            "listed_actor_path": "",
+            "state_response": {
+              "status": "success",
+              "summary": "Actor state fetched successfully",
+              "data": {
+                "actor_name": "truck_01",
+                "actor_path": "/Game/Maps/TestMap.TestMap:PersistentLevel.truck_01",
+                "class": "/Script/MyGame.BP_DecorTruck_C",
+                "target_level": "/Game/Maps/TestMap",
+                "transform": {
+                  "location": [
+                    0.0,
+                    200.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    0.0,
+                    90.0,
+                    0.0
+                  ],
+                  "relative_scale3d": [
+                    1.25,
+                    1.25,
+                    1.25
+                  ]
+                },
+                "collision": {
+                  "collision_profile_name": "BlockAll",
+                  "collision_enabled": "QueryAndPhysics",
+                  "generate_overlap_events": false,
+                  "collision_box_extent": [
+                    210.0,
+                    95.0,
+                    120.0
+                  ],
+                  "can_affect_navigation": true
+                },
+                "tags": [
+                  "Vehicle",
+                  "Prop"
+                ]
+              },
+              "warnings": [],
+              "errors": []
+            },
+            "bounds_response": {
+              "status": "success",
+              "summary": "Actor bounds fetched successfully",
+              "data": {
+                "actor_path": "/Game/Maps/TestMap.TestMap:PersistentLevel.truck_01",
+                "world_bounds_origin": [
+                  0.0,
+                  200.0,
+                  110.0
+                ],
+                "world_bounds_extent": [
+                  210.0,
+                  95.0,
+                  120.0
+                ]
+              },
+              "warnings": [],
+              "errors": []
+            },
+            "status": "passed",
+            "actual_actor_name": "truck_01",
+            "transform": {
+              "location": [
+                0.0,
+                200.0,
+                0.0
+              ],
+              "rotation": [
+                0.0,
+                90.0,
+                0.0
+              ],
+              "relative_scale3d": [
+                1.25,
+                1.25,
+                1.25
+              ]
+            },
+            "bounds_origin": [
+              0.0,
+              200.0,
+              110.0
+            ],
+            "bounds_extent": [
+              210.0,
+              95.0,
+              120.0
+            ]
+          },
+          "EnemyUnit_1": {
+            "actor_name": "EnemyUnit_1",
+            "actor_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CEDECD02_1756324053",
+            "listed_actor_path": "",
+            "state_response": {
+              "status": "success",
+              "summary": "Actor state fetched successfully",
+              "data": {
+                "actor_name": "truck_01",
+                "actor_path": "/Game/Maps/TestMap.TestMap:PersistentLevel.truck_01",
+                "class": "/Script/MyGame.BP_DecorTruck_C",
+                "target_level": "/Game/Maps/TestMap",
+                "transform": {
+                  "location": [
+                    0.0,
+                    200.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    0.0,
+                    90.0,
+                    0.0
+                  ],
+                  "relative_scale3d": [
+                    1.25,
+                    1.25,
+                    1.25
+                  ]
+                },
+                "collision": {
+                  "collision_profile_name": "BlockAll",
+                  "collision_enabled": "QueryAndPhysics",
+                  "generate_overlap_events": false,
+                  "collision_box_extent": [
+                    210.0,
+                    95.0,
+                    120.0
+                  ],
+                  "can_affect_navigation": true
+                },
+                "tags": [
+                  "Vehicle",
+                  "Prop"
+                ]
+              },
+              "warnings": [],
+              "errors": []
+            },
+            "bounds_response": {
+              "status": "success",
+              "summary": "Actor bounds fetched successfully",
+              "data": {
+                "actor_path": "/Game/Maps/TestMap.TestMap:PersistentLevel.truck_01",
+                "world_bounds_origin": [
+                  0.0,
+                  200.0,
+                  110.0
+                ],
+                "world_bounds_extent": [
+                  210.0,
+                  95.0,
+                  120.0
+                ]
+              },
+              "warnings": [],
+              "errors": []
+            },
+            "status": "passed",
+            "actual_actor_name": "truck_01",
+            "transform": {
+              "location": [
+                0.0,
+                200.0,
+                0.0
+              ],
+              "rotation": [
+                0.0,
+                90.0,
+                0.0
+              ],
+              "relative_scale3d": [
+                1.25,
+                1.25,
+                1.25
+              ]
+            },
+            "bounds_origin": [
+              0.0,
+              200.0,
+              110.0
+            ],
+            "bounds_extent": [
+              210.0,
+              95.0,
+              120.0
+            ]
+          },
+          "CommandMenuAnchor": {
+            "actor_name": "CommandMenuAnchor",
+            "actor_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CEDECD02_1758385054",
+            "listed_actor_path": "",
+            "state_response": {
+              "status": "success",
+              "summary": "Actor state fetched successfully",
+              "data": {
+                "actor_name": "truck_01",
+                "actor_path": "/Game/Maps/TestMap.TestMap:PersistentLevel.truck_01",
+                "class": "/Script/MyGame.BP_DecorTruck_C",
+                "target_level": "/Game/Maps/TestMap",
+                "transform": {
+                  "location": [
+                    0.0,
+                    200.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    0.0,
+                    90.0,
+                    0.0
+                  ],
+                  "relative_scale3d": [
+                    1.25,
+                    1.25,
+                    1.25
+                  ]
+                },
+                "collision": {
+                  "collision_profile_name": "BlockAll",
+                  "collision_enabled": "QueryAndPhysics",
+                  "generate_overlap_events": false,
+                  "collision_box_extent": [
+                    210.0,
+                    95.0,
+                    120.0
+                  ],
+                  "can_affect_navigation": true
+                },
+                "tags": [
+                  "Vehicle",
+                  "Prop"
+                ]
+              },
+              "warnings": [],
+              "errors": []
+            },
+            "bounds_response": {
+              "status": "success",
+              "summary": "Actor bounds fetched successfully",
+              "data": {
+                "actor_path": "/Game/Maps/TestMap.TestMap:PersistentLevel.truck_01",
+                "world_bounds_origin": [
+                  0.0,
+                  200.0,
+                  110.0
+                ],
+                "world_bounds_extent": [
+                  210.0,
+                  95.0,
+                  120.0
+                ]
+              },
+              "warnings": [],
+              "errors": []
+            },
+            "status": "passed",
+            "actual_actor_name": "truck_01",
+            "transform": {
+              "location": [
+                0.0,
+                200.0,
+                0.0
+              ],
+              "rotation": [
+                0.0,
+                90.0,
+                0.0
+              ],
+              "relative_scale3d": [
+                1.25,
+                1.25,
+                1.25
+              ]
+            },
+            "bounds_origin": [
+              0.0,
+              200.0,
+              110.0
+            ],
+            "bounds_extent": [
+              210.0,
+              95.0,
+              120.0
+            ]
+          }
+        },
+        "note_path": "",
+        "log_path": "",
+        "screenshots": {}
+      }
+    }
+  }
+}

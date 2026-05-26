@@ -1,0 +1,526 @@
+{
+  "report_type": "phase7_governance_audit_summary",
+  "generated_at": "2026-04-02T22:07:01.156177",
+  "summary_name": "phase7_p1_round2_governance_audit",
+  "entries": [
+    {
+      "entry_name": "boardgame_greenfield_simulated",
+      "execution_report_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.038bbd85_20260402_220542.json",
+      "snapshot_ref": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Snapshots\\2026-04-02\\snapshot_manifest_execution_report_handoff.boardgame.prototype.038bbd85_20260402_220542.json",
+      "promotion_status": {
+        "current_state": "approved",
+        "snapshot_ref": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Snapshots\\2026-04-02\\snapshot_manifest_execution_report_handoff.boardgame.prototype.038bbd85_20260402_220542.json",
+        "transitions": [
+          {
+            "from": "draft",
+            "to": "reviewed",
+            "at": "2026-04-02T22:05:42.622707"
+          },
+          {
+            "from": "reviewed",
+            "to": "approved",
+            "at": "2026-04-02T22:05:42.622707"
+          }
+        ],
+        "audit_note": "Phase 7 最小 promotion 审计记录"
+      },
+      "regression_summary": {
+        "status": "captured",
+        "baseline_ref": "",
+        "delta_intent": "greenfield_bootstrap",
+        "added_actor_names": [
+          "Board",
+          "PieceX_1",
+          "PieceO_1"
+        ],
+        "required_regression_checks": []
+      },
+      "extra_reports": {},
+      "checks": {
+        "execution_report_exists": {
+          "passed": true,
+          "actual": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.038bbd85_20260402_220542.json"
+        },
+        "execution_report_is_succeeded": {
+          "passed": true,
+          "actual": "succeeded"
+        },
+        "regression_summary_present": {
+          "passed": true,
+          "actual": {
+            "status": "captured",
+            "baseline_ref": "",
+            "delta_intent": "greenfield_bootstrap",
+            "added_actor_names": [
+              "Board",
+              "PieceX_1",
+              "PieceO_1"
+            ],
+            "required_regression_checks": []
+          }
+        },
+        "snapshot_manifest_complete": {
+          "passed": true,
+          "actual": {
+            "baseline_ref": "",
+            "digest": "73101e9d62216208633c30cb76a57f5e5f64db4f",
+            "source_report": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.038bbd85_20260402_220542.json",
+            "created_at": "2026-04-02T22:05:42.621707",
+            "execution_status": "succeeded",
+            "handoff_id": "handoff.boardgame.prototype.038bbd85"
+          }
+        },
+        "promotion_status_complete": {
+          "passed": true,
+          "actual": {
+            "current_state": "approved",
+            "snapshot_ref": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Snapshots\\2026-04-02\\snapshot_manifest_execution_report_handoff.boardgame.prototype.038bbd85_20260402_220542.json",
+            "transitions": [
+              {
+                "from": "draft",
+                "to": "reviewed",
+                "at": "2026-04-02T22:05:42.622707"
+              },
+              {
+                "from": "reviewed",
+                "to": "approved",
+                "at": "2026-04-02T22:05:42.622707"
+              }
+            ],
+            "audit_note": "Phase 7 最小 promotion 审计记录"
+          }
+        }
+      },
+      "overall_status": "passed"
+    },
+    {
+      "entry_name": "boardgame_brownfield_simulated",
+      "execution_report_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.53302ae4_20260402_220542.json",
+      "snapshot_ref": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Snapshots\\2026-04-02\\snapshot_manifest_baseline.boardgame.20260402_220542.syntheti.json",
+      "promotion_status": {
+        "current_state": "approved",
+        "snapshot_ref": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Snapshots\\2026-04-02\\snapshot_manifest_baseline.boardgame.20260402_220542.syntheti.json",
+        "transitions": [
+          {
+            "from": "draft",
+            "to": "reviewed",
+            "at": "2026-04-02T22:05:42.793987"
+          },
+          {
+            "from": "reviewed",
+            "to": "approved",
+            "at": "2026-04-02T22:05:42.793987"
+          }
+        ],
+        "audit_note": "Phase 7 最小 promotion 审计记录"
+      },
+      "regression_summary": {
+        "status": "captured",
+        "baseline_ref": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Snapshots\\2026-04-02\\baseline.boardgame.20260402_220542.syntheti.yaml",
+        "delta_intent": "append_actor",
+        "added_actor_names": [
+          "PieceO_1"
+        ],
+        "required_regression_checks": [
+          "boardgame-core-loop-closure-check",
+          "boardgame-decision-ui-smoke-check",
+          "boardgame-turn-smoke-check",
+          "existing_actor_presence",
+          "map_check_clean",
+          "new_actor_presence"
+        ]
+      },
+      "extra_reports": {},
+      "checks": {
+        "execution_report_exists": {
+          "passed": true,
+          "actual": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.53302ae4_20260402_220542.json"
+        },
+        "execution_report_is_succeeded": {
+          "passed": true,
+          "actual": "succeeded"
+        },
+        "regression_summary_present": {
+          "passed": true,
+          "actual": {
+            "status": "captured",
+            "baseline_ref": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Snapshots\\2026-04-02\\baseline.boardgame.20260402_220542.syntheti.yaml",
+            "delta_intent": "append_actor",
+            "added_actor_names": [
+              "PieceO_1"
+            ],
+            "required_regression_checks": [
+              "boardgame-core-loop-closure-check",
+              "boardgame-decision-ui-smoke-check",
+              "boardgame-turn-smoke-check",
+              "existing_actor_presence",
+              "map_check_clean",
+              "new_actor_presence"
+            ]
+          }
+        },
+        "snapshot_manifest_complete": {
+          "passed": true,
+          "actual": {
+            "baseline_ref": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Snapshots\\2026-04-02\\baseline.boardgame.20260402_220542.syntheti.yaml",
+            "digest": "synthetic-brownfield-demo",
+            "source_report": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.53302ae4_20260402_220542.json",
+            "created_at": "2026-04-02T22:05:42.792115",
+            "execution_status": "succeeded",
+            "handoff_id": "handoff.boardgame.prototype.53302ae4"
+          }
+        },
+        "promotion_status_complete": {
+          "passed": true,
+          "actual": {
+            "current_state": "approved",
+            "snapshot_ref": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Snapshots\\2026-04-02\\snapshot_manifest_baseline.boardgame.20260402_220542.syntheti.json",
+            "transitions": [
+              {
+                "from": "draft",
+                "to": "reviewed",
+                "at": "2026-04-02T22:05:42.793987"
+              },
+              {
+                "from": "reviewed",
+                "to": "approved",
+                "at": "2026-04-02T22:05:42.793987"
+              }
+            ],
+            "audit_note": "Phase 7 最小 promotion 审计记录"
+          }
+        }
+      },
+      "overall_status": "passed"
+    },
+    {
+      "entry_name": "boardgame_playable_simulated",
+      "execution_report_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.cc0e09e4_20260402_220542.json",
+      "snapshot_ref": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Snapshots\\2026-04-02\\snapshot_manifest_execution_report_handoff.boardgame.prototype.cc0e09e4_20260402_220542.json",
+      "promotion_status": {
+        "current_state": "approved",
+        "snapshot_ref": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Snapshots\\2026-04-02\\snapshot_manifest_execution_report_handoff.boardgame.prototype.cc0e09e4_20260402_220542.json",
+        "transitions": [
+          {
+            "from": "draft",
+            "to": "reviewed",
+            "at": "2026-04-02T22:05:42.950712"
+          },
+          {
+            "from": "reviewed",
+            "to": "approved",
+            "at": "2026-04-02T22:05:42.950712"
+          }
+        ],
+        "audit_note": "Phase 7 最小 promotion 审计记录"
+      },
+      "regression_summary": {
+        "status": "captured",
+        "baseline_ref": "",
+        "delta_intent": "greenfield_bootstrap",
+        "added_actor_names": [
+          "BoardRuntimeActor"
+        ],
+        "required_regression_checks": []
+      },
+      "extra_reports": {
+        "phase6_runtime_smoke": {
+          "path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase6_runtime_smoke_20260402_220542.json",
+          "exists": true,
+          "report_type": "phase6_runtime_smoke",
+          "overall_status": ""
+        },
+        "phase6_runtime_acceptance": {
+          "path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase6_runtime_acceptance_20260402_220542.json",
+          "exists": true,
+          "report_type": "phase6_runtime_acceptance",
+          "overall_status": "passed"
+        }
+      },
+      "checks": {
+        "execution_report_exists": {
+          "passed": true,
+          "actual": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.cc0e09e4_20260402_220542.json"
+        },
+        "execution_report_is_succeeded": {
+          "passed": true,
+          "actual": "succeeded"
+        },
+        "regression_summary_present": {
+          "passed": true,
+          "actual": {
+            "status": "captured",
+            "baseline_ref": "",
+            "delta_intent": "greenfield_bootstrap",
+            "added_actor_names": [
+              "BoardRuntimeActor"
+            ],
+            "required_regression_checks": []
+          }
+        },
+        "snapshot_manifest_complete": {
+          "passed": true,
+          "actual": {
+            "baseline_ref": "",
+            "digest": "73101e9d62216208633c30cb76a57f5e5f64db4f",
+            "source_report": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.boardgame.prototype.cc0e09e4_20260402_220542.json",
+            "created_at": "2026-04-02T22:05:42.947597",
+            "execution_status": "succeeded",
+            "handoff_id": "handoff.boardgame.prototype.cc0e09e4"
+          }
+        },
+        "promotion_status_complete": {
+          "passed": true,
+          "actual": {
+            "current_state": "approved",
+            "snapshot_ref": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Snapshots\\2026-04-02\\snapshot_manifest_execution_report_handoff.boardgame.prototype.cc0e09e4_20260402_220542.json",
+            "transitions": [
+              {
+                "from": "draft",
+                "to": "reviewed",
+                "at": "2026-04-02T22:05:42.950712"
+              },
+              {
+                "from": "reviewed",
+                "to": "approved",
+                "at": "2026-04-02T22:05:42.950712"
+              }
+            ],
+            "audit_note": "Phase 7 最小 promotion 审计记录"
+          }
+        },
+        "phase6_runtime_smoke_present": {
+          "passed": true,
+          "actual": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase6_runtime_smoke_20260402_220542.json"
+        },
+        "phase6_runtime_smoke_passed": {
+          "passed": true,
+          "actual": ""
+        },
+        "phase6_runtime_acceptance_present": {
+          "passed": true,
+          "actual": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase6_runtime_acceptance_20260402_220542.json"
+        },
+        "phase6_runtime_acceptance_passed": {
+          "passed": true,
+          "actual": "passed"
+        }
+      },
+      "overall_status": "passed"
+    },
+    {
+      "entry_name": "jrpg_greenfield_simulated",
+      "execution_report_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.0bed1df7_20260402_220543.json",
+      "snapshot_ref": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Snapshots\\2026-04-02\\snapshot_manifest_execution_report_handoff.jrpg.prototype.0bed1df7_20260402_220543.json",
+      "promotion_status": {
+        "current_state": "approved",
+        "snapshot_ref": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Snapshots\\2026-04-02\\snapshot_manifest_execution_report_handoff.jrpg.prototype.0bed1df7_20260402_220543.json",
+        "transitions": [
+          {
+            "from": "draft",
+            "to": "reviewed",
+            "at": "2026-04-02T22:05:43.114520"
+          },
+          {
+            "from": "reviewed",
+            "to": "approved",
+            "at": "2026-04-02T22:05:43.114520"
+          }
+        ],
+        "audit_note": "Phase 7 最小 promotion 审计记录"
+      },
+      "regression_summary": {
+        "status": "captured",
+        "baseline_ref": "",
+        "delta_intent": "greenfield_bootstrap",
+        "added_actor_names": [
+          "BattleArena",
+          "HeroUnit_1",
+          "EnemyUnit_1",
+          "CommandMenuAnchor"
+        ],
+        "required_regression_checks": []
+      },
+      "extra_reports": {},
+      "checks": {
+        "execution_report_exists": {
+          "passed": true,
+          "actual": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.0bed1df7_20260402_220543.json"
+        },
+        "execution_report_is_succeeded": {
+          "passed": true,
+          "actual": "succeeded"
+        },
+        "regression_summary_present": {
+          "passed": true,
+          "actual": {
+            "status": "captured",
+            "baseline_ref": "",
+            "delta_intent": "greenfield_bootstrap",
+            "added_actor_names": [
+              "BattleArena",
+              "HeroUnit_1",
+              "EnemyUnit_1",
+              "CommandMenuAnchor"
+            ],
+            "required_regression_checks": []
+          }
+        },
+        "snapshot_manifest_complete": {
+          "passed": true,
+          "actual": {
+            "baseline_ref": "",
+            "digest": "jrpg-greenfield-demo",
+            "source_report": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.0bed1df7_20260402_220543.json",
+            "created_at": "2026-04-02T22:05:43.112885",
+            "execution_status": "succeeded",
+            "handoff_id": "handoff.jrpg.prototype.0bed1df7"
+          }
+        },
+        "promotion_status_complete": {
+          "passed": true,
+          "actual": {
+            "current_state": "approved",
+            "snapshot_ref": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Snapshots\\2026-04-02\\snapshot_manifest_execution_report_handoff.jrpg.prototype.0bed1df7_20260402_220543.json",
+            "transitions": [
+              {
+                "from": "draft",
+                "to": "reviewed",
+                "at": "2026-04-02T22:05:43.114520"
+              },
+              {
+                "from": "reviewed",
+                "to": "approved",
+                "at": "2026-04-02T22:05:43.114520"
+              }
+            ],
+            "audit_note": "Phase 7 最小 promotion 审计记录"
+          }
+        }
+      },
+      "overall_status": "passed"
+    },
+    {
+      "entry_name": "jrpg_greenfield_smoke",
+      "execution_report_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.793066b0_20260402_220554.json",
+      "snapshot_ref": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Snapshots\\2026-04-02\\snapshot_manifest_execution_report_handoff.jrpg.prototype.793066b0_20260402_220554.json",
+      "promotion_status": {
+        "current_state": "approved",
+        "snapshot_ref": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Snapshots\\2026-04-02\\snapshot_manifest_execution_report_handoff.jrpg.prototype.793066b0_20260402_220554.json",
+        "transitions": [
+          {
+            "from": "draft",
+            "to": "reviewed",
+            "at": "2026-04-02T22:05:54.324637"
+          },
+          {
+            "from": "reviewed",
+            "to": "approved",
+            "at": "2026-04-02T22:05:54.324637"
+          }
+        ],
+        "audit_note": "Phase 7 最小 promotion 审计记录"
+      },
+      "regression_summary": {
+        "status": "captured",
+        "baseline_ref": "",
+        "delta_intent": "greenfield_bootstrap",
+        "added_actor_names": [
+          "BattleArena",
+          "HeroUnit_1",
+          "EnemyUnit_1",
+          "CommandMenuAnchor"
+        ],
+        "required_regression_checks": []
+      },
+      "extra_reports": {
+        "phase7_jrpg_runtime_smoke": {
+          "path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_runtime_smoke_20260402_220645.json",
+          "exists": true,
+          "report_type": "phase7_jrpg_runtime_smoke",
+          "overall_status": "passed"
+        },
+        "phase7_jrpg_runtime_acceptance": {
+          "path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_runtime_acceptance_20260402_220700.json",
+          "exists": true,
+          "report_type": "phase7_jrpg_runtime_acceptance",
+          "overall_status": "passed"
+        }
+      },
+      "checks": {
+        "execution_report_exists": {
+          "passed": true,
+          "actual": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.793066b0_20260402_220554.json"
+        },
+        "execution_report_is_succeeded": {
+          "passed": true,
+          "actual": "succeeded"
+        },
+        "regression_summary_present": {
+          "passed": true,
+          "actual": {
+            "status": "captured",
+            "baseline_ref": "",
+            "delta_intent": "greenfield_bootstrap",
+            "added_actor_names": [
+              "BattleArena",
+              "HeroUnit_1",
+              "EnemyUnit_1",
+              "CommandMenuAnchor"
+            ],
+            "required_regression_checks": []
+          }
+        },
+        "snapshot_manifest_complete": {
+          "passed": true,
+          "actual": {
+            "baseline_ref": "",
+            "digest": "jrpg-greenfield-demo",
+            "source_report": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.793066b0_20260402_220554.json",
+            "created_at": "2026-04-02T22:05:54.321636",
+            "execution_status": "succeeded",
+            "handoff_id": "handoff.jrpg.prototype.793066b0"
+          }
+        },
+        "promotion_status_complete": {
+          "passed": true,
+          "actual": {
+            "current_state": "approved",
+            "snapshot_ref": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Snapshots\\2026-04-02\\snapshot_manifest_execution_report_handoff.jrpg.prototype.793066b0_20260402_220554.json",
+            "transitions": [
+              {
+                "from": "draft",
+                "to": "reviewed",
+                "at": "2026-04-02T22:05:54.324637"
+              },
+              {
+                "from": "reviewed",
+                "to": "approved",
+                "at": "2026-04-02T22:05:54.324637"
+              }
+            ],
+            "audit_note": "Phase 7 最小 promotion 审计记录"
+          }
+        },
+        "phase7_jrpg_runtime_smoke_present": {
+          "passed": true,
+          "actual": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_runtime_smoke_20260402_220645.json"
+        },
+        "phase7_jrpg_runtime_smoke_passed": {
+          "passed": true,
+          "actual": "passed"
+        },
+        "phase7_jrpg_runtime_acceptance_present": {
+          "passed": true,
+          "actual": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_runtime_acceptance_20260402_220700.json"
+        },
+        "phase7_jrpg_runtime_acceptance_passed": {
+          "passed": true,
+          "actual": "passed"
+        }
+      },
+      "overall_status": "passed"
+    }
+  ],
+  "overall_status": "passed"
+}

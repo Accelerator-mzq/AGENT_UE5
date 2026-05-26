@@ -1,0 +1,133 @@
+{
+  "status": "success",
+  "generated_at": "2026-04-02T22:09:41.518474",
+  "phase": "Phase7",
+  "workflow_ref": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Docs\\editor_screenshot_evidence_workflow.md",
+  "current_level": "/Temp/Untitled_1",
+  "handoff_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\approved\\handoff.jrpg.prototype.95fa9d75.yaml",
+  "report_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_runtime_smoke_20260402_220925.json",
+  "rc_info_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_rc_info_20260402_220823.json",
+  "captured_items": [
+    {
+      "view": "overview_oblique",
+      "camera_location": [
+        -820.0,
+        -620.0,
+        520.0
+      ],
+      "camera_rotation": [
+        -26.83178035381513,
+        37.09283729704154,
+        0.0
+      ],
+      "camera_actor_path": "（活动视口机位）",
+      "capture_backend": "AgentBridgeSubsystem.CaptureLevelViewportScreenshot",
+      "task_object_path": "（同步视口截图）",
+      "source_output_path": "D:/UnrealProjects/Mvpv4TestCodex/Saved/Automation/Screenshots/phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_overview_oblique.png",
+      "evidence_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Evidence\\Phase7\\screenshots\\phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_overview_oblique.png",
+      "evidence_file_size": 1314932,
+      "evidence_sha256": "735d090db49c9e878d9ee894ae85ca42db01a205aac58e46bce499406dc537b0"
+    },
+    {
+      "view": "topdown_alignment",
+      "camera_location": [
+        0.0,
+        0.0,
+        820.0
+      ],
+      "camera_rotation": [
+        -90.0,
+        0.0,
+        0.0
+      ],
+      "camera_actor_path": "（活动视口机位）",
+      "capture_backend": "AgentBridgeSubsystem.CaptureLevelViewportScreenshot",
+      "task_object_path": "（同步视口截图）",
+      "source_output_path": "D:/UnrealProjects/Mvpv4TestCodex/Saved/Automation/Screenshots/phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_topdown_alignment.png",
+      "evidence_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Evidence\\Phase7\\screenshots\\phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_topdown_alignment.png",
+      "evidence_file_size": 160912,
+      "evidence_sha256": "3c15f409f19bc939ae7cc6937d1b6ffc22ace0e419e8f618205795d257a4bb42"
+    },
+    {
+      "view": "actor_battlearena_closeup",
+      "camera_location": [
+        -420.0,
+        -320.0,
+        260.0
+      ],
+      "camera_rotation": [
+        -26.216101261093073,
+        37.30394827798343,
+        0.0
+      ],
+      "camera_actor_path": "（活动视口机位）",
+      "capture_backend": "AgentBridgeSubsystem.CaptureLevelViewportScreenshot",
+      "task_object_path": "（同步视口截图）",
+      "source_output_path": "D:/UnrealProjects/Mvpv4TestCodex/Saved/Automation/Screenshots/phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_actor_battlearena_closeup.png",
+      "evidence_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Evidence\\Phase7\\screenshots\\phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_actor_battlearena_closeup.png",
+      "evidence_file_size": 1382197,
+      "evidence_sha256": "f4d3a76d1ee284afda3ff497f769f41e9cd6ef25669246ffea08fe924dbf18e3"
+    },
+    {
+      "view": "actor_herounit_1_closeup",
+      "camera_location": [
+        -400.0,
+        -160.0,
+        230.0
+      ],
+      "camera_rotation": [
+        -33.492333762014894,
+        36.02737338510361,
+        0.0
+      ],
+      "camera_actor_path": "（活动视口机位）",
+      "capture_backend": "AgentBridgeSubsystem.CaptureLevelViewportScreenshot",
+      "task_object_path": "（同步视口截图）",
+      "source_output_path": "D:/UnrealProjects/Mvpv4TestCodex/Saved/Automation/Screenshots/phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_actor_herounit_1_closeup.png",
+      "evidence_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Evidence\\Phase7\\screenshots\\phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_actor_herounit_1_closeup.png",
+      "evidence_file_size": 1498502,
+      "evidence_sha256": "7bd2db2d4a4d80c28cc03f9f4eb7473604ef1b693775925364e4125d65302aa2"
+    },
+    {
+      "view": "actor_enemyunit_1_closeup",
+      "camera_location": [
+        400.0,
+        160.0,
+        230.0
+      ],
+      "camera_rotation": [
+        -33.492333762014894,
+        -143.9726266148964,
+        0.0
+      ],
+      "camera_actor_path": "（活动视口机位）",
+      "capture_backend": "AgentBridgeSubsystem.CaptureLevelViewportScreenshot",
+      "task_object_path": "（同步视口截图）",
+      "source_output_path": "D:/UnrealProjects/Mvpv4TestCodex/Saved/Automation/Screenshots/phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_actor_enemyunit_1_closeup.png",
+      "evidence_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Evidence\\Phase7\\screenshots\\phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_actor_enemyunit_1_closeup.png",
+      "evidence_file_size": 1466166,
+      "evidence_sha256": "4acf6b52920ade5e0e1a92cc7f9f802635581ecddaebbfb0679e22a481537bcc"
+    },
+    {
+      "view": "actor_commandmenuanchor_closeup",
+      "camera_location": [
+        -220.0,
+        -480.0,
+        180.0
+      ],
+      "camera_rotation": [
+        -24.226651451042542,
+        45.0,
+        0.0
+      ],
+      "camera_actor_path": "（活动视口机位）",
+      "capture_backend": "AgentBridgeSubsystem.CaptureLevelViewportScreenshot",
+      "task_object_path": "（同步视口截图）",
+      "source_output_path": "D:/UnrealProjects/Mvpv4TestCodex/Saved/Automation/Screenshots/phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_actor_commandmenuanchor_closeup.png",
+      "evidence_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Evidence\\Phase7\\screenshots\\phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_actor_commandmenuanchor_closeup.png",
+      "evidence_file_size": 1425877,
+      "evidence_sha256": "7e330db47f37549455c926a14e0fd98b0e57087782254c9de086d9f7b14b8de6"
+    }
+  ],
+  "note_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Evidence\\Phase7\\notes\\phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_evidence.md"
+}
