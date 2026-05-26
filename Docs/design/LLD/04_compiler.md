@@ -78,7 +78,8 @@ class CompilerSession:  # @dataclass; session_id/run_id/gdd_path/target_phase/ou
     def has_stage_output(self, stage_num: int) -> bool  # 路径登记且文件真实存在
     def advance_stage(self) -> bool  # 当前阶段产物存在时推进 current_stage
 def create_session(gdd_path, target_phase, output_dir, session_version="2.0", run_id=None, fast_mode=False) -> CompilerSession  # 新建会话
-def get_max_stage(session_version: Optional[str] = None) -> int  # v1 → 5,v2 → 7
+def get_max_stage(session_version: Optional[str] = None) -> int  # session.py:67;v1 → 5,v2 → 7
+# 注:pipeline_orchestrator.py:274 有同名 wrapper get_max_stage(session) 接 session 对象,grep 命中 2 处
 ```
 
 ### 3.2 Phase 11 七主链 Stage 主入口(F-CMP-08/09/10/19/17/18/16)
@@ -113,7 +114,7 @@ def check_phase_scope(fragments, phase_scope) -> Tuple[List[Dict], Dict]  # phas
 
 # Stage 6: lowering_v2.py  (F-CMP-18)
 def create_build_ir_v2(cross_review_report, root_skill_contract, skill_graph, phase_scope: str) -> Dict[str, Any]  # Build IR + naming_resolution_log
-def _generate_build_step(...) -> Dict[str, Any]  # 单 step 生成,内含 __RUNTIME_CONFIG_REF__ 占位
+def _generate_build_step(...) -> Dict[str, Any]  # 单 build_step 生成(写 naming_resolution_log 段,**不**写 __RUNTIME_CONFIG_REF__ 占位)
 def _generate_validation_points(build_steps) -> List[Dict[str, Any]]  # validation_ir 生成
 
 # Stage 7: handoff_v3.py  (F-CMP-16)
@@ -229,10 +230,10 @@ GDD (.md)
 domain_skill_runtime.run_domain_skill_runtime
   └─ 对每个 skill_graph.node (按 _topological_execution_order):
      ├─ Phase: discovery
-     │   ├─ Provider 三路探测(优先级):
-     │   │   ├─ MCP Agent  (sidecar:MCP_NODE_STATE_PATH)
-     │   │   ├─ LLM (UnifiedLLMClient)
-     │   │   └─ Heuristic Fallback → discovery_fallback.create_design_space_report
+     │   ├─ 输入源探测(MCP sidecar 第一优先,Provider 二路兜底):
+     │   │   ├─ MCP Agent 旁路输入(读 env MCP_NODE_STATE_PATH 文件;非 GeneratorProvider 子类)
+     │   │   ├─ LLM Provider (UnifiedLLMClient,agent_protocol.LLMProvider)
+     │   │   └─ Heuristic Fallback Provider → discovery_fallback.create_design_space_report
      │   ├─ ≤ 2 轮质量重试(_validate_stage4_node_acceptance)
      │   └─ ≤ 2 次 schema 修复
      ├─ Phase: candidates
@@ -243,7 +244,7 @@ domain_skill_runtime.run_domain_skill_runtime
                                         → session.is_promotable = False (F-GOV-03)
 ```
 
-> **三 fallback 文件 ↔ 三 Phase 是一一对应**(discovery↔discovery_fallback、candidates↔realization_fallback、convergence↔convergence_fallback);**Provider 三路(MCP/LLM/Heuristic)** 与 phase 三路是**正交两个维度**(HLD §2.2 已澄清,易混点)。
+> **三 fallback 文件 ↔ 三 Phase 是一一对应**(discovery↔discovery_fallback、candidates↔realization_fallback、convergence↔convergence_fallback);**MCP/LLM/Heuristic 三路输入** 与 phase 三路是**正交两个维度**(HLD §2.2 已澄清,易混点)。**术语澄清**:`agent_protocol.resolve_provider` 只实例化 2 个 `GeneratorProvider` 子类(`LLMProvider` / `HeuristicFallbackProvider`);MCP 不是 Provider 子类,而是 **sidecar 旁路输入**(读 `env MCP_NODE_STATE_PATH` 文件供 domain_skill_runtime 优先采纳)。`session.generator_provider` 字段枚举 `{"llm","mcp_agent","heuristic_fallback"}` 是**输入来源标签**而非 Provider 类实例化。
 
 ### 4.3 Session 生命周期 + is_promotable 治理
 
@@ -306,7 +307,7 @@ Scripts/compiler/routing/mode_router.resolve_mode(config, project_state)
 - **`fast_mode=True` 不可 promote**(F-GOV-02):`is_promotable` 同上,fast_mode 主要用于开发期快速跑通流程,**生产 run 必须 `fast_mode=False`**。
 - **3 个 fallback 文件 ↔ 三 phase 一一对应,Provider 三路与 phase 三路是不同维度**:三 fallback(`discovery_fallback` / `realization_fallback` / `convergence_fallback`)是"在 phase X 下作为 heuristic Provider 的具体实现",Provider 三路(MCP/LLM/Heuristic)是"在同一 phase 下选哪条 Provider 路径"。HLD §2.2 已澄清,这是 Phase 11 最易被误读为"3×3=9 个组合"的地方,**实际只有 3 phase × 3 provider = 9 个调度点,fallback 文件只是其中 3 个 heuristic 单元**。
 - **Stage 4 ≤ 2 轮质量重试 + ≤ 2 次 schema 修复**:`_validate_stage4_node_acceptance` 硬上限,超限直接 `status="validation_failed"` → pipeline_orchestrator 返回 `stage_generation_failed`,**不可在节点层自行加重试循环**,这是 cost / latency 控制硬约束。
-- **`naming_resolution_log` 必填,占位 `__RUNTIME_CONFIG_REF__` 由 Stage 6 lowering_v2 解析**:Stage 6 输出 `build_ir.json` + sidecar `naming_resolution_log.json`,前者内含 `__RUNTIME_CONFIG_REF__` 占位字符串(由 `_generate_build_step` 写入),Orchestrator handoff_runner `execute_post_spawn_actions` 在执行期 resolve;若 Stage 6 输出缺 sidecar 会让 handoff_runner 在 `__RUNTIME_CONFIG_REF__` 解析处报 KeyError。
+- **`naming_resolution_log` sidecar(Phase 11 Stage 6 lowering_v2 产出)**:Stage 6 输出 `build_ir.json` + sidecar `naming_resolution_log.json`,后者承载 GDD 名 → UE 路径解析记录,供 handoff_v3 与 Orchestrator 联合溯源使用。**注**:占位 `__RUNTIME_CONFIG_REF__` **不属于** Phase 11 v2 链路 — `lowering_v2._generate_build_step` 不写该字符串。该占位是 **Legacy v1 链路**(`Scripts/compiler/generation/boardgame_scene_generator.py:163,169`)写入,在 `Scripts/compiler/handoff/handoff_builder._materialize_runtime_config`(line 207-243)解析,`Scripts/orchestrator/handoff_runner.py:341-344` 兜底兼容。Phase 11 v3 链路通过 naming_resolution_log + handoff_v3 资产产物间接表达,**不依赖**该占位机制。
 - **`clarification_required=true` 阻断 promote**(F-GOV-01):Stage 2 输出若有 `blocking_items`,Stage 3 `_prepare_stage_v2` 直接返回 `blocked_by_clarification`;若有 `provisional_items` 但无 blocker,允许继续但治理元数据中 `provisional_items` 进 `build_run_metadata`,下游 promotion gate 决定是否阻断。
 - **Legacy v1 与 Phase 11 共用 `Schemas/`**:v1 用 `reviewed_handoff_v2.schema.json`,v2 用 `reviewed_handoff_v3.schema.json`;同名 `cross_review_report.schema.json` 在 v1/v2 路径下指向不同 schema 文件(`cross_review_report_v2.schema.json`),**写测试 fixture 时必须先确认 schema_version**。
 - **`Scripts/compiler/intake/project_state_intake.py` 依赖 bridge**:此模块通过 `bridge.query_tools` 拉真实工程状态,无 Editor 时走 `_build_mock_fallback_snapshot`,**但 Phase 11 主链 root_skill_contract 不依赖这条路径**(Phase 11 GDD 是唯一输入)。
