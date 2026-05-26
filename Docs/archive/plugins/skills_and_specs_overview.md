@@ -1,0 +1,235 @@
+# Skills / Specs 体系概述
+
+> 文档版本：v1.0.0 | 适用范围：AgentBridge 插件 Skills 与 Specs 体系
+
+---
+
+## 1. 概述
+
+Skills 和 Specs 是 AgentBridge 框架的两个互补体系：
+
+- **Skills**：编译驱动力 — 决定"怎么编译"（编译策略、类型化规则、审查扩展）
+- **Specs**：编译地基 — 决定"编译的边界是什么"（静态基座、契约、模板）
+
+两者共同服务于 Skill Compiler Plane，将设计输入转化为合法的 Dynamic Spec Tree。
+
+---
+
+## 2. Skills 体系
+
+### 2.1 双核心架构
+
+| 核心 | 定位 | 阶段 |
+|------|------|------|
+| **Base Skill Domains** | 通用编译骨架（10 个域） | Phase 7 最小真实化 |
+| **Genre Skill Packs** | 类型化编译策略包 | Phase 6 完整化 |
+
+### 2.2 Base Skill Domains（10 个域）
+
+通用编译能力骨架，适用于所有游戏类型：
+
+| 域 | 职责 | 优先级 |
+|----|------|--------|
+| Design & Project State Intake | 设计输入和项目状态吸收 | P0 |
+| Baseline Understanding | 基线理解（Brownfield） | P0 |
+| Delta Scope Analysis | 增量范围分析（Brownfield） | P0 |
+| Product & Scope | 产品范围和目标 | P0 |
+| Runtime & Gameplay | 运行时和游戏逻辑 | P0 |
+| World & Level | 世界和关卡构建 | P0 |
+| Presentation & Asset | 视觉呈现和资产 | P1 |
+| Config & Platform | 配置和平台 | P1 |
+| QA & Validation | 测试和验证 | P1 |
+| Planning & Governance | 规划和治理 | P2 |
+
+**当前状态**：目录已保留，Phase 7 落地真实 registry / loader，并优先实装 `qa_validation` 与 `planning_governance`。
+
+### 2.3 Skill Template Pack（Phase 8 新增）
+
+Phase 8 引入三层 Skill 结构：
+
+| 层次 | 定位 | 生命周期 |
+|------|------|---------|
+| **Template**（静态） | 编译策略模板（manifest + prompt + output_schema + evaluator） | 跨项目复用 |
+| **Instance**（运行时） | Planner 选出的具体实例（skill_instance_id + depends_on + reads_context） | 单次编译 |
+| **Artifact**（产出） | Skill Runtime 输出的 Dynamic Spec Fragment | 单次编译 |
+
+当前已落地 6 套 Monopoly Template Pack：
+```
+SkillTemplates/genre_packs/boardgame/monopoly_like/
+├── monopoly_board_topology/      （6 文件）
+├── monopoly_turn_and_dice_flow/  （6 文件）
+├── monopoly_tile_event_dispatch/ （6 文件）
+├── monopoly_property_economy/    （6 文件）
+├── monopoly_jail_and_bankruptcy/ （6 文件）
+└── monopoly_phase1_ui_flow/      （6 文件）
+```
+
+每套 Template 包含：manifest.yaml / system_prompt.md / domain_prompt.md / input_selector.yaml / output_schema.json / evaluator_prompt.md
+
+### 2.4 Genre Skill Packs（旧体系，仍保留）
+
+针对特定游戏类型的编译策略包。每个类型包包含：
+
+| 组件 | 说明 |
+|------|------|
+| `pack_manifest.yaml` | 类型包清单（激活规则、依赖、策略） |
+| Router | 类型识别和路由规则 |
+| Required Skills | 必需编译技能 |
+| Optional Skills | 可选编译技能 |
+| Review Extensions | 类型化审查扩展 |
+| Validation Extensions | 类型化验证扩展 |
+| Delta Policy | Brownfield 增量策略 |
+
+**当前类型包**：`boardgame`（棋盘游戏） + `jrpg`（回合制 JRPG）
+
+**当前状态**：Phase 7 已在 `_core` 上扩展第二个真实类型包 `jrpg`。Compiler 现在会真正消费 pack manifest、required skills、review extensions、validation extensions 与 delta policy。
+
+### 2.4 目录结构
+
+```text
+Skills/
+├── base_domains/                    # 通用编译域（Phase 7 完整化）
+│   └── README.md
+└── genre_packs/
+    ├── _core/
+    │   ├── manifest_loader.py
+    │   ├── registry.py
+    │   ├── router_base.py
+    │   └── module_loader.py
+    ├── boardgame/
+    │   ├── pack_manifest.yaml
+    └── jrpg/
+        ├── pack_manifest.yaml
+        ├── required_skills/
+        ├── review_extensions/
+        ├── validation_extensions/
+        └── delta_policy/
+```
+
+---
+
+## 3. Specs 体系
+
+### 3.1 三个子目录
+
+| 子目录 | 定位 | 阶段 |
+|--------|------|------|
+| **StaticBase/** | 静态基座定义 — 框架能力地基 | Phase 4 实装 |
+| **Contracts/** | 契约模型 — Patch / Migration / Regression | Phase 5 实装 |
+| **templates/** | Spec 模板 — 已有 scene_spec 模板 | Phase 1-2 已有 |
+
+### 3.2 Static Spec Base
+
+静态基座定义框架级能力边界，分两层：
+
+**Layer A — 通用基础（6 个）**：
+1. GameplayFrameworkStaticSpec — Runtime 表达地基
+2. UIModelStaticSpec — UI 层基础表达
+3. AudioEventStaticSpec — 音频层基础表达
+4. WorldBuildStaticSpec — 场景构建基础表达
+5. ConfigStaticSpec — 配置层基础表达
+6. ValidationStaticSpec — 验证层基础表达
+
+**Layer B — Boardgame 类型（4 个）**：
+7. BoardgameStaticSpec — 棋盘游戏核心表达
+8. BoardgameUIStaticSpec — 棋盘游戏 UI 表达
+9. BoardgameAudioStaticSpec — 棋盘游戏音频表达
+10. BoardgameValidationStaticSpec — 棋盘游戏验证表达
+
+**当前状态**：`Specs/StaticBase/` 已完成 Phase 4 最小落地，并继续作为后续扩展地基。
+
+### 3.3 Contracts
+
+约束 Brownfield 修改的契约模型：
+
+| 契约类型 | 说明 | 阶段 |
+|---------|------|------|
+| SpecPatchContract | 局部受控增量修改契约 | Phase 5 |
+| MigrationContract | 跨契约边界结构变更契约 | Phase 5 |
+| RegressionValidationContract | 回归验证契约 | Phase 5 |
+
+**当前状态**：`Specs/Contracts/` 已完成 Phase 5 最小落地，并在 Phase 6 新增 Boardgame Genre Contracts：
+
+- `TurnFlowPatchContract`
+- `DecisionUIPatchContract`
+
+### 3.4 Templates（已有）
+
+Phase 1-2 创建的 Spec 模板：
+- `scene_spec_template.yaml` — 通用场景 Spec 模板
+- `scene_spec_task14_cpp_plugin_runtime.yaml` — Task14 运行时 Spec
+- `scene_spec_task14_semantic_runtime.yaml` — Task14 语义运行时 Spec
+
+### 3.5 目录结构
+
+```
+Specs/
+├── StaticBase/                      # 静态基座（已落地）
+│   └── README.md
+├── Contracts/                       # 契约模型（已落地最小体系）
+│   └── README.md
+└── templates/                       # Spec 模板（已有）
+    ├── scene_spec_template.yaml
+    ├── scene_spec_task14_cpp_plugin_runtime.yaml
+    └── scene_spec_task14_semantic_runtime.yaml
+```
+
+---
+
+## 4. Skills 与 Specs 的依赖关系
+
+```
+Static Spec Base（地基）
+    ↓ 提供模板、Schema、约束
+Skills（编译驱动力）
+    ├── Base Skill Domains → 通用编译
+    └── Genre Skill Packs → 类型化编译
+    ↓ 生成
+Dynamic / Delta Spec Tree
+    （结构受 Static Spec 约束，内容由 AI Agent 填充）
+    ↓ 组装
+Reviewed Handoff
+```
+
+**依赖方向**：Static Spec Base → Skill Compilation → Spec Tree → Handoff
+
+**四层标准表述**：
+- **Skill** 决定生成什么 spec
+- **Static Spec** 决定 spec 长什么样
+- **Dynamic Spec** 决定这次项目实际生成了什么（结构受 Static Spec schema/contract 约束，字段值由 AI Agent 基于 GDD 上下文填充）
+- **Reviewed Handoff** 决定执行层正式消费什么
+
+详见 `Docs/Current/15_Skill_Spec_Handoff_Chain.md`
+
+**规则**：
+- Skills 必须引用 Static Base 的定义，不可自行发明长期契约
+- 当 Static Base 不完整时，Skills 应报告 capability_gaps 而非跳过
+- Genre Skill Packs 是 Static Base 扩展的重要需求来源
+- Dynamic Spec 的结构由 Static Spec 约束，但字段值由 Agent 认知能力填充——Static Spec 决定"什么字段必须存在"，Agent 决定"字段填什么值"
+
+---
+
+## 5. 演进路线
+
+| 阶段 | Skills 进展 | Specs 进展 |
+|------|------------|------------|
+| **Phase 3（已完成）** | boardgame 最小骨架 | 最小 pack manifest + 现有 templates |
+| **Phase 4（已完成）** | — | Static Base Layer A+B + 自动 Spec 生成 |
+| **Phase 5（已完成）** | — | Brownfield Baseline / Delta / Contracts 最小落地 |
+| **Phase 6（已完成）** | Genre Pack 完整化 + `_core` 机制 + boardgame playable pipeline | Boardgame Genre Contracts |
+| **Phase 7（已完成）** | 治理闭环 + Base Domains 最小真实化 + 第二个类型包 | Validation / Recovery / Snapshot / Promotion / JRPG |
+| **Phase 8（已完成）** | Skill Template Pack 三层结构 + Monopoly `monopoly_like` 模板包 | Skill-First Compiler / Reviewed Handoff v2 / Monopoly 垂直切片 |
+| **Phase 9（已完成）** | MCP Server 正式接入 | MCP 28 工具 + 文档治理收口 |
+| **Phase 10（已完成）** | MCP 认知桥接层 + Compiler Pipeline 编排 | Session + Pipeline Orchestrator + MonopolyGame 端到端 |
+| **Phase 11（已完成）** | Skill-First Design Compiler：Domain Skill 四重职责 + Design Space Discovery + Baseline Domain Skills + 三路生成策略 + Skill Graph + Run 治理 | Root Skill Contract + Clarification Gate + Cross Review v2 + Build IR v2 + Handoff v3 + 12 个 Schema + Baseline Template Pack |
+
+Phase 11 新增的框架级规范详见 `Plugins/AgentBridge/Docs/` 下：
+- `root_skill_contract_standard.md`
+- `universal_baseline_standard.md`
+- `baseline_realization_policy.md`
+- `clarification_gate_rules.md`
+- `constraint_variant_policy.md`
+- `design_space_discovery.md`
+- `skill_graph_and_domain_skill.md`
+- `run_isolation_compare_promote.md`
+- `agent_interaction_protocol.md`

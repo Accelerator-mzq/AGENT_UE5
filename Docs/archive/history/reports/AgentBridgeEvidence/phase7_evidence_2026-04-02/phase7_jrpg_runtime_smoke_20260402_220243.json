@@ -1,0 +1,511 @@
+{
+  "report_type": "phase7_jrpg_runtime_smoke",
+  "generated_at": "2026-04-02T22:02:43.903039",
+  "bridge_mode": "bridge_rc_api",
+  "mode": "greenfield_bootstrap",
+  "handoff_id": "handoff.jrpg.prototype.ad0e0cf7",
+  "approved_handoff_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Handoffs\\approved\\handoff.jrpg.prototype.ad0e0cf7.yaml",
+  "execution_report_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\execution_report_handoff.jrpg.prototype.ad0e0cf7_20260402_220152.json",
+  "current_level": "",
+  "rc_endpoint": "http://localhost:30010/remote/info",
+  "editor_boot_policy": "reuse_or_launch",
+  "rc_info_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_rc_info_20260402_220141.json",
+  "boot_log_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectState\\Reports\\2026-04-02\\phase7_jrpg_rc_boot_20260402_220141.log",
+  "rc_ready": true,
+  "visual_setup": {
+    "BattleArena": {
+      "status": "passed",
+      "actor_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CEE2CD02_1455247771",
+      "component_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CEE2CD02_1455247771.StaticMeshComponent0",
+      "mesh_path": "/Engine/BasicShapes/Plane.Plane",
+      "set_mesh_response": {
+        "ReturnValue": true
+      }
+    },
+    "HeroUnit_1": {
+      "status": "passed",
+      "actor_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CEE2CD02_1457313772",
+      "component_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CEE2CD02_1457313772.StaticMeshComponent0",
+      "mesh_path": "/Engine/BasicShapes/Sphere.Sphere",
+      "set_mesh_response": {
+        "ReturnValue": true
+      }
+    },
+    "EnemyUnit_1": {
+      "status": "passed",
+      "actor_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CEE2CD02_1459356773",
+      "component_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CEE2CD02_1459356773.StaticMeshComponent0",
+      "mesh_path": "/Engine/BasicShapes/Cone.Cone",
+      "set_mesh_response": {
+        "ReturnValue": true
+      }
+    },
+    "CommandMenuAnchor": {
+      "status": "passed",
+      "actor_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CEE2CD02_1461420774",
+      "component_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CEE2CD02_1461420774.StaticMeshComponent0",
+      "mesh_path": "/Engine/BasicShapes/Cube.Cube",
+      "set_mesh_response": {
+        "ReturnValue": true
+      }
+    }
+  },
+  "actor_presence": {
+    "BattleArena": {
+      "actor_name": "BattleArena",
+      "actor_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CEE2CD02_1455247771",
+      "listed_actor_path": "",
+      "state_response": {
+        "status": "success",
+        "summary": "Actor state fetched via Remote Control",
+        "data": {
+          "actor_name": "BattleArena",
+          "actor_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CEE2CD02_1455247771",
+          "class": "/Script/Engine.StaticMeshActor",
+          "target_level": "",
+          "transform": {
+            "location": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "relative_scale3d": [
+              6,
+              6,
+              0.2
+            ]
+          },
+          "collision": {},
+          "tags": []
+        }
+      },
+      "bounds_response": {
+        "status": "success",
+        "summary": "Actor bounds fetched via Remote Control",
+        "data": {
+          "actor_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CEE2CD02_1455247771",
+          "world_bounds_origin": [
+            0,
+            0,
+            0
+          ],
+          "world_bounds_extent": [
+            300,
+            300,
+            1.60812271295498e-15
+          ]
+        }
+      },
+      "status": "passed",
+      "actual_actor_name": "BattleArena",
+      "transform": {
+        "location": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "relative_scale3d": [
+          6,
+          6,
+          0.2
+        ]
+      },
+      "bounds_origin": [
+        0,
+        0,
+        0
+      ],
+      "bounds_extent": [
+        300,
+        300,
+        1.60812271295498e-15
+      ]
+    },
+    "HeroUnit_1": {
+      "actor_name": "HeroUnit_1",
+      "actor_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CEE2CD02_1457313772",
+      "listed_actor_path": "",
+      "state_response": {
+        "status": "success",
+        "summary": "Actor state fetched via Remote Control",
+        "data": {
+          "actor_name": "HeroUnit_1",
+          "actor_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CEE2CD02_1457313772",
+          "class": "/Script/Engine.StaticMeshActor",
+          "target_level": "",
+          "transform": {
+            "location": [
+              -180,
+              0,
+              50
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "relative_scale3d": [
+              0.8,
+              0.8,
+              1.6
+            ]
+          },
+          "collision": {},
+          "tags": []
+        }
+      },
+      "bounds_response": {
+        "status": "success",
+        "summary": "Actor bounds fetched via Remote Control",
+        "data": {
+          "actor_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CEE2CD02_1457313772",
+          "world_bounds_origin": [
+            -180,
+            3.051757815342171e-06,
+            50
+          ],
+          "world_bounds_extent": [
+            40,
+            40,
+            80
+          ]
+        }
+      },
+      "status": "passed",
+      "actual_actor_name": "HeroUnit_1",
+      "transform": {
+        "location": [
+          -180,
+          0,
+          50
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "relative_scale3d": [
+          0.8,
+          0.8,
+          1.6
+        ]
+      },
+      "bounds_origin": [
+        -180,
+        3.051757815342171e-06,
+        50
+      ],
+      "bounds_extent": [
+        40,
+        40,
+        80
+      ]
+    },
+    "EnemyUnit_1": {
+      "actor_name": "EnemyUnit_1",
+      "actor_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CEE2CD02_1459356773",
+      "listed_actor_path": "",
+      "state_response": {
+        "status": "success",
+        "summary": "Actor state fetched via Remote Control",
+        "data": {
+          "actor_name": "EnemyUnit_1",
+          "actor_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CEE2CD02_1459356773",
+          "class": "/Script/Engine.StaticMeshActor",
+          "target_level": "",
+          "transform": {
+            "location": [
+              180,
+              0,
+              50
+            ],
+            "rotation": [
+              0,
+              180,
+              0
+            ],
+            "relative_scale3d": [
+              0.9,
+              0.9,
+              1.6
+            ]
+          },
+          "collision": {},
+          "tags": []
+        }
+      },
+      "bounds_response": {
+        "status": "success",
+        "summary": "Actor bounds fetched via Remote Control",
+        "data": {
+          "actor_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CEE2CD02_1459356773",
+          "world_bounds_origin": [
+            180,
+            0,
+            49.99998779296875
+          ],
+          "world_bounds_extent": [
+            45,
+            44.999999999999986,
+            79.99998779296875
+          ]
+        }
+      },
+      "status": "passed",
+      "actual_actor_name": "EnemyUnit_1",
+      "transform": {
+        "location": [
+          180,
+          0,
+          50
+        ],
+        "rotation": [
+          0,
+          180,
+          0
+        ],
+        "relative_scale3d": [
+          0.9,
+          0.9,
+          1.6
+        ]
+      },
+      "bounds_origin": [
+        180,
+        0,
+        49.99998779296875
+      ],
+      "bounds_extent": [
+        45,
+        44.999999999999986,
+        79.99998779296875
+      ]
+    },
+    "CommandMenuAnchor": {
+      "actor_name": "CommandMenuAnchor",
+      "actor_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CEE2CD02_1461420774",
+      "listed_actor_path": "",
+      "state_response": {
+        "status": "success",
+        "summary": "Actor state fetched via Remote Control",
+        "data": {
+          "actor_name": "CommandMenuAnchor",
+          "actor_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CEE2CD02_1461420774",
+          "class": "/Script/Engine.StaticMeshActor",
+          "target_level": "",
+          "transform": {
+            "location": [
+              0,
+              -260,
+              40
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "relative_scale3d": [
+              1.2,
+              0.4,
+              0.1
+            ]
+          },
+          "collision": {},
+          "tags": []
+        }
+      },
+      "bounds_response": {
+        "status": "success",
+        "summary": "Actor bounds fetched via Remote Control",
+        "data": {
+          "actor_path": "/Temp/Untitled_1.Untitled_1:PersistentLevel.StaticMeshActor_UAID_78465C3B14CEE2CD02_1461420774",
+          "world_bounds_origin": [
+            0,
+            -260,
+            40
+          ],
+          "world_bounds_extent": [
+            60,
+            20,
+            5
+          ]
+        }
+      },
+      "status": "passed",
+      "actual_actor_name": "CommandMenuAnchor",
+      "transform": {
+        "location": [
+          0,
+          -260,
+          40
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "relative_scale3d": [
+          1.2,
+          0.4,
+          0.1
+        ]
+      },
+      "bounds_origin": [
+        0,
+        -260,
+        40
+      ],
+      "bounds_extent": [
+        60,
+        20,
+        5
+      ]
+    }
+  },
+  "layout_assertions": {
+    "checks": {
+      "arena_near_origin": {
+        "passed": true,
+        "actual_location": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "hero_on_left_side": {
+        "passed": true,
+        "actual_location": [
+          -180.0,
+          0.0,
+          50.0
+        ]
+      },
+      "enemy_on_right_side": {
+        "passed": true,
+        "actual_location": [
+          180.0,
+          0.0,
+          50.0
+        ]
+      },
+      "command_menu_below_arena": {
+        "passed": true,
+        "actual_location": [
+          0.0,
+          -260.0,
+          40.0
+        ]
+      },
+      "all_bounds_non_zero": {
+        "passed": true,
+        "details": {
+          "BattleArena": [
+            300,
+            300,
+            1.60812271295498e-15
+          ],
+          "HeroUnit_1": [
+            40,
+            40,
+            80
+          ],
+          "EnemyUnit_1": [
+            45,
+            44.999999999999986,
+            79.99998779296875
+          ],
+          "CommandMenuAnchor": [
+            60,
+            20,
+            5
+          ]
+        }
+      }
+    },
+    "overall_passed": true
+  },
+  "structure_assertions": {
+    "checks": {
+      "mode_is_greenfield_bootstrap": {
+        "passed": true,
+        "actual_mode": "greenfield_bootstrap"
+      },
+      "turn_queue_spec_present": {
+        "passed": true,
+        "queue_order": [
+          "HeroUnit_1",
+          "EnemyUnit_1"
+        ]
+      },
+      "command_menu_spec_present": {
+        "passed": true,
+        "commands": [
+          "Attack",
+          "Skill",
+          "Defend"
+        ]
+      },
+      "runtime_wiring_spec_present": {
+        "passed": true,
+        "runtime_wiring": {
+          "battle_controller_actor_class": "/Script/Engine.StaticMeshActor",
+          "command_menu_actor_name": "CommandMenuAnchor",
+          "projection_profile": "preview_static"
+        }
+      },
+      "scene_spec_declares_minimal_battle_actors": {
+        "passed": true,
+        "scene_actor_names": [
+          "BattleArena",
+          "HeroUnit_1",
+          "EnemyUnit_1",
+          "CommandMenuAnchor"
+        ]
+      },
+      "turn_queue_matches_scene": {
+        "passed": true,
+        "queue_order": [
+          "HeroUnit_1",
+          "EnemyUnit_1"
+        ]
+      },
+      "command_menu_matches_gdd": {
+        "passed": true,
+        "commands": [
+          "Attack",
+          "Skill",
+          "Defend"
+        ]
+      },
+      "runtime_wiring_points_to_command_menu_anchor": {
+        "passed": true,
+        "runtime_wiring": {
+          "battle_controller_actor_class": "/Script/Engine.StaticMeshActor",
+          "command_menu_actor_name": "CommandMenuAnchor",
+          "projection_profile": "preview_static"
+        }
+      },
+      "runtime_scene_matches_declared_actor_count": {
+        "passed": true,
+        "runtime_actor_names": [
+          "BattleArena",
+          "HeroUnit_1",
+          "EnemyUnit_1",
+          "CommandMenuAnchor"
+        ]
+      }
+    },
+    "overall_passed": true
+  },
+  "overall_status": "passed"
+}

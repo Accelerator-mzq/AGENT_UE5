@@ -18,18 +18,18 @@ AgentBridge 不只是工具接口插件，而是包含编译前端（Skill Compi
 ## 进入项目后的阅读顺序
 
 1. `AGENTS.md` — 项目级 Agent 规则
-2. `Docs/Current/00_Index.md` — 当前阶段索引
-3. `Docs/Current/14_MCP_Cognitive_Bridge_Anchor.md` — MCP 认知桥接层总口径（优先裁决依据）
-4. `Docs/Current/15_Skill_Spec_Handoff_Chain.md` — Skill/Spec/Handoff 四层主链定义
-5. `Docs/Current/16_MCP_Repositioning_Plan.md` — MCP 重定位方案（含架构图）
-6. `Docs/Current/18_Phase11_Closeout.md` — Phase 11 收尾总览
-7. `Docs/Current/01_Project_Baseline.md` — 项目基线
-8. `Docs/Current/05_Implementation_Boundary.md` — 实施边界
+2. `Docs/INDEX.md` — 当前阶段索引
+3. `Docs/design/HLD.md#4` — MCP 认知桥接层总口径（优先裁决依据）
+4. `Docs/requirements/SRS.md#4` — Skill/Spec/Handoff 四层主链定义
+5. `Docs/design/HLD.md#4` — MCP 重定位方案（含架构图）
+6. `Docs/acceptance/acceptance_report.md#1` — Phase 11 收尾总览
+7. `Docs/requirements/SRS.md#1` — 项目基线
+8. `Docs/requirements/SRS.md#6.5` — 实施边界
 9. `task.md` — 当前入口页（Phase 11 已归档时为跳转页，新阶段建立后为正式任务书）
 10. `Plugins/AgentBridge/README.md` — 插件说明
 11. `Plugins/AgentBridge/AGENTS.md` — 通用 Agent 规则
-12. `Docs/Current/17_Phase10_Closeout.md` — Phase 10 收尾总览（需要追溯时）
-13. `Docs/History/Tasks/task8_phase8.md` — Phase 8 历史任务（需要追溯时）
+12. `Docs/archive/current/17_Phase10_Closeout.md` — Phase 10 收尾总览（需要追溯时）
+13. `Docs/archive/history/Tasks/task8_phase8.md` — Phase 8 历史任务（需要追溯时）
 
 ## 绝对不要修改的文件
 
@@ -140,15 +140,31 @@ python compiler_main.py
 - YAML/JSON：中文 description
 - 文档：中文
 
+## 任务收尾流程
+
+非 trivial 改动收尾链:
+
+```
+实现 / 修复
+ → superpowers:verification-before-completion
+ → document-release  (本项目 skill, .claude/skills/document-release/SKILL.md)
+ → superpowers:verification-before-completion (对 doc 改动再 verify)
+ → superpowers:finishing-a-development-branch (merge / push)
+```
+
+强制门禁已通过 git pre-commit/pre-push hook + Claude Code PreToolUse hook 联合实现,任何 commit/push 之前必须跑过 document-release。逃生通道:`[skip-doc]` 标记 / trivial 路径白名单 / `--no-verify`。
+
+详见 AGENTS.md §3.8 与 `Docs/archive/superpowers/specs/2026-05-25-document-release-port-design.md`。
+
 ## 当前阶段
 
 Phase 11 已完成 — Skill-First Design Compiler Framework
 当前主入口：`task.md`
-当前索引：`Docs/Current/00_Index.md`
-MCP 总口径锚定：`Docs/Current/14_MCP_Cognitive_Bridge_Anchor.md`
-四层主链定义：`Docs/Current/15_Skill_Spec_Handoff_Chain.md`
-MCP 重定位方案：`Docs/Current/16_MCP_Repositioning_Plan.md`
-Phase 11 收尾总览：`Docs/Current/18_Phase11_Closeout.md`
+当前索引：`Docs/INDEX.md`
+MCP 总口径锚定：`Docs/design/HLD.md#4`
+四层主链定义：`Docs/requirements/SRS.md#4`
+MCP 重定位方案：`Docs/design/HLD.md#4`
+Phase 11 收尾总览：`Docs/acceptance/acceptance_report.md#1`
 Phase 11 最终验收：`ProjectState/Reports/2026-04-17/task15_phase11_final_acceptance.md`
 Phase 11 功能覆盖：`ProjectState/Reports/2026-04-17/phase11_feature_coverage_report.md`
-Phase 9 实施前方案归档：`Docs/History/Proposals/Phase9_MCP_Implementation_Plan.md`
+Phase 9 实施前方案归档：`Docs/archive/history/Proposals/Phase9_MCP_Implementation_Plan.md`

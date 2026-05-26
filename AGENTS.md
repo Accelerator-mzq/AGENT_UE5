@@ -70,24 +70,24 @@ Agent 在本项目中需要参考的文档：
 
 | 文档 | 路径 |
 |------|------|
-| 当前阶段索引 | `Docs/Current/00_Index.md` |
-| Phase 11 收尾总览 | `Docs/Current/18_Phase11_Closeout.md` |
-| Phase 10 收尾总览 | `Docs/Current/17_Phase10_Closeout.md` |
-| Phase 8 收尾总览 | `Docs/Current/10_Phase8_Closeout.md` |
-| 项目基线 | `Docs/Current/01_Project_Baseline.md` |
-| 当前阶段目标 | `Docs/Current/02_Current_Phase_Goals.md` |
-| 实施边界 | `Docs/Current/05_Implementation_Boundary.md` |
+| 当前阶段索引 | `Docs/INDEX.md` |
+| Phase 11 收尾总览 | `Docs/acceptance/acceptance_report.md#1` |
+| Phase 10 收尾总览 | `Docs/archive/current/17_Phase10_Closeout.md` |
+| Phase 8 收尾总览 | `Docs/archive/current/10_Phase8_Closeout.md` |
+| 项目基线 | `Docs/requirements/SRS.md#1` |
+| 当前阶段目标 | `Docs/acceptance/acceptance_report.md#1` |
+| 实施边界 | `Docs/requirements/SRS.md#6.5` |
 | 当前阶段任务 | 根目录 `task.md`（当前为归档跳转页，指向 Phase 11 历史任务与最终验收） |
-| Phase 11 历史任务 | `Docs/History/Tasks/task11_phase11.md` |
-| MCP 总口径锚定 | `Docs/Current/14_MCP_Cognitive_Bridge_Anchor.md` |
-| 四层主链定义 | `Docs/Current/15_Skill_Spec_Handoff_Chain.md` |
-| MCP 重定位方案 | `Docs/Current/16_MCP_Repositioning_Plan.md` |
-| Phase 9 MCP 实施方案归档 | `Docs/History/Proposals/Phase9_MCP_Implementation_Plan.md` |
-| Phase 8 历史任务 | `Docs/History/Tasks/task8_phase8.md` |
-| Phase 8 统一方案 | `Docs/History/Proposals/Phase8_Plan_Original.md` |
-| Phase 8 交接文档 | `Docs/History/Proposals/Phase8_M3_Handover_to_Execution_Agent.md` |
-| Phase 8 DD-1 | `Docs/History/Proposals/Phase8_DD1_Schema_and_Interface_Spec.md` |
-| Phase 8 DD-3 | `Docs/History/Proposals/Phase8_DD3_Lowering_Map_and_CPP_Design.md` |
+| Phase 11 历史任务 | `Docs/archive/history/Tasks/task11_phase11.md` |
+| MCP 总口径锚定 | `Docs/design/HLD.md#4` |
+| 四层主链定义 | `Docs/requirements/SRS.md#4` |
+| MCP 重定位方案 | `Docs/design/HLD.md#4` |
+| Phase 9 MCP 实施方案归档 | `Docs/archive/history/Proposals/Phase9_MCP_Implementation_Plan.md` |
+| Phase 8 历史任务 | `Docs/archive/history/Tasks/task8_phase8.md` |
+| Phase 8 统一方案 | `Docs/archive/history/Proposals/Phase8_Plan_Original.md` |
+| Phase 8 交接文档 | `Docs/archive/history/Proposals/Phase8_M3_Handover_to_Execution_Agent.md` |
+| Phase 8 DD-1 | `Docs/archive/history/Proposals/Phase8_DD1_Schema_and_Interface_Spec.md` |
+| Phase 8 DD-3 | `Docs/archive/history/Proposals/Phase8_DD3_Lowering_Map_and_CPP_Design.md` |
 
 **插件层文档**：
 
@@ -95,10 +95,10 @@ Agent 在本项目中需要参考的文档：
 |------|------|
 | 插件说明 | `Plugins/AgentBridge/README.md` |
 | 通用 Agent 规则 | `Plugins/AgentBridge/AGENTS.md` |
-| 总体架构 | `Plugins/AgentBridge/Docs/architecture_overview.md` |
-| 工具契约 | `Plugins/AgentBridge/Docs/tool_contract_v0_1.md` |
-| 字段规范 | `Plugins/AgentBridge/Docs/field_specification_v0_1.md` |
-| 反馈接口清单 | `Plugins/AgentBridge/Docs/feedback_interface_catalog.md` |
+| 总体架构 | `Docs/design/HLD.md#1-2` |
+| 工具契约 | `Docs/contracts/tool_contract.md` |
+| 字段规范 | `Docs/contracts/field_specification.md` |
+| 反馈接口清单 | `Docs/requirements/SRS.md#3.2` |
 | Compiler 框架（旧） | `Plugins/AgentBridge/Scripts/compiler/` |
 | Compiler 骨架（Phase 8） | `Plugins/AgentBridge/Compiler/` |
 | Skill Template Pack | `Plugins/AgentBridge/SkillTemplates/` |
@@ -107,7 +107,7 @@ Agent 在本项目中需要参考的文档：
 | Handoff Schema v2 | `Plugins/AgentBridge/Schemas/reviewed_handoff_v2.schema.json` |
 | Phase 8 新增 Schema | `Plugins/AgentBridge/Schemas/{gdd_projection,planner_output,skill_fragment,cross_review_report,build_ir}.schema.json` |
 | Run Plan Schema | `Plugins/AgentBridge/Schemas/run_plan.schema.json` |
-| Phase 11 框架规范 | `Plugins/AgentBridge/Docs/` 下 8 份新文档（详见 `Docs/Current/00_Index.md`） |
+| Phase 11 框架规范 | `Plugins/AgentBridge/Docs/` 下 8 份新文档（详见 `Docs/INDEX.md`） |
 | Phase 11 设计包归档 | `Docs/History/Phase11_Design_Pack/`（16 份原始设计文档） |
 | 系统测试用例总表 | `Plugins/AgentBridge/Tests/SystemTestCases.md` |
 | 系统测试入口 | `Plugins/AgentBridge/Tests/run_system_tests.py` |
@@ -129,20 +129,20 @@ Agent 在本项目中需要参考的文档：
 Agent 进入本项目后，按以下顺序阅读：
 
 1. `AGENTS.md`（本文件）— 规则和导航
-2. `Docs/Current/00_Index.md` — 当前阶段索引
-3. `Docs/Current/14_MCP_Cognitive_Bridge_Anchor.md` — MCP 总口径（优先裁决依据）
-4. `Docs/Current/15_Skill_Spec_Handoff_Chain.md` — 四层主链定义
-5. `Docs/Current/16_MCP_Repositioning_Plan.md` — MCP 重定位方案
-6. `Docs/Current/18_Phase11_Closeout.md` — Phase 11 收尾总览
-7. `Docs/Current/01_Project_Baseline.md` — 项目基线
-8. `Docs/Current/02_Current_Phase_Goals.md` — 阶段目标与完成状态
-9. `Docs/Current/05_Implementation_Boundary.md` — 实施边界
+2. `Docs/INDEX.md` — 当前阶段索引
+3. `Docs/design/HLD.md#4` — MCP 总口径（优先裁决依据）
+4. `Docs/requirements/SRS.md#4` — 四层主链定义
+5. `Docs/design/HLD.md#4` — MCP 重定位方案
+6. `Docs/acceptance/acceptance_report.md#1` — Phase 11 收尾总览
+7. `Docs/requirements/SRS.md#1` — 项目基线
+8. `Docs/acceptance/acceptance_report.md#1` — 阶段目标与完成状态
+9. `Docs/requirements/SRS.md#6.5` — 实施边界
 10. 根目录 `task.md` — 当前入口页；若下一阶段尚未建立，则这里是归档跳转页
 11. `Plugins/AgentBridge/README.md` — 插件定义（首次进入必读）
 12. `Plugins/AgentBridge/AGENTS.md` — 通用 Agent 规则（首次进入必读）
-13. `Docs/Current/17_Phase10_Closeout.md` — 需要追溯 Phase 10 收尾事实时阅读
-14. `Docs/History/Tasks/task8_phase8.md` — 需要追溯 Phase 8 历史任务时阅读
-15. `Docs/History/Proposals/Phase9_MCP_Implementation_Plan.md` — 需要追溯 Phase 9 实施前方案时阅读
+13. `Docs/archive/current/17_Phase10_Closeout.md` — 需要追溯 Phase 10 收尾事实时阅读
+14. `Docs/archive/history/Tasks/task8_phase8.md` — 需要追溯 Phase 8 历史任务时阅读
+15. `Docs/archive/history/Proposals/Phase9_MCP_Implementation_Plan.md` — 需要追溯 Phase 9 实施前方案时阅读
 16. 与当前任务相关的 `Docs/Current/*` 和 `Plugins/AgentBridge/Docs/*`
 
 步骤 1–10 为必读。步骤 11–12 首次进入必读，后续按需复查。步骤 13–15 仅在追溯历史任务或实施前方案时阅读。
@@ -173,7 +173,7 @@ Agent 不得：
 - 在项目根任意新增并列的“总设计文档”
 - 在未更新 `Docs/Current/` 基线前，直接把临时设计写进 `Plugins/AgentBridge/Docs/`
 - 将阶段性的计划或任务写进插件 canonical 目录
-- 把未经评审的设计直接写入 `Docs/Current/01_Project_Baseline.md`
+- 把未经评审的设计直接写入 `Docs/requirements/SRS.md#1`
 
 新增能力的文档归属：
 
@@ -186,7 +186,7 @@ Agent 不得：
 
 当 Agent 检测到以下信号时，视为发生了阶段切换：
 
-- `Docs/Current/00_Index.md` 中的阶段名称变更
+- `Docs/INDEX.md` 中的阶段名称变更
 - 当前阶段任务清单被归档并创建新清单
 - 被明确告知进入新阶段
 
@@ -196,5 +196,25 @@ Agent 不得：
 
 - `Plugins/AgentBridge/Roadmap/Archive/` 下的内容为历史开发计划，不作为当前开发依据
 - 框架级设计文档主要位于插件内部；阶段设计、交接和历史任务文档位于项目层 `Docs/History/`
-- 根目录 `MCP实现方案.md` 已归档为 `Docs/History/Proposals/Phase9_MCP_Implementation_Plan.md`
+- 根目录 `MCP实现方案.md` 已归档为 `Docs/archive/history/Proposals/Phase9_MCP_Implementation_Plan.md`
 - 根目录 `task_temp.md` 已删除，不再作为任何阶段的正式入口
+
+### 3.8 任务收尾流程
+
+非 trivial 改动(改变行为 / backlog / 当前文档 / 契约 / 测试 / 示例 / 验收证据)必须按以下链条收尾:
+
+```
+implementation / fix
+ → superpowers:verification-before-completion
+ → document-release  (Mvpv4TestCodex 本地 skill)
+ → superpowers:verification-before-completion (对 doc 改动再 verify)
+ → superpowers:finishing-a-development-branch (merge / push)
+```
+
+`document-release` 是**强制门禁**:`git commit / push / merge` 之前必须跑过它,否则 git pre-commit/pre-push hook 以及 Claude Code / OpenCode 平台 hook 会拦下来。逃生通道:
+
+- staged 文件全部落在 `Saved/` / `Intermediate/` / `DerivedDataCache/` / `Binaries/` / `Build/` / `.codex/` / `*.lock` 内 → 自动放行,不写 marker
+- commit message 首行写 `[skip-doc]` → 跳过,但记录到 `ProjectState/Reports/<today>/doc_release_skipped.log`
+- `git commit --no-verify` → git 自身跳过 hook,skipped.log 不会自动记录(用户应自觉为后续 PR 描述说明跳过原因)
+
+skill 完整规范见 `.claude/skills/document-release/SKILL.md`(canonical) 和 `.agents/skills/document-release/SKILL.md`(Codex 副本);设计依据见 `Docs/archive/superpowers/specs/2026-05-25-document-release-port-design.md`。

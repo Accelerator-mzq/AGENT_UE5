@@ -1,0 +1,5 @@
+#!/bin/sh
+# git pre-push hook
+SCRIPT_DIR="$(cd "$(dirname "$0")"/../.. && pwd)"
+python "$SCRIPT_DIR/Scripts/hooks/doc_release_gate.py" check --action push
+exit $?

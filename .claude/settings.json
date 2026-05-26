@@ -1,0 +1,79 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(git commit *)",
+            "command": "python Scripts/hooks/doc_release_gate.py check --action commit --trivial-only",
+            "timeout": 30,
+            "statusMessage": "[doc-release] 检查 commit 门禁(trivial-only, commit-msg hook 兜底)..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(git push *)",
+            "command": "python Scripts/hooks/doc_release_gate.py check --action push",
+            "timeout": 30,
+            "statusMessage": "[doc-release] 检查 push 门禁..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(git merge *)",
+            "command": "python Scripts/hooks/doc_release_gate.py check --action merge",
+            "timeout": 30,
+            "statusMessage": "[doc-release] 检查 merge 门禁..."
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Write(task.md)",
+            "command": "python Scripts/hooks/cc_notify_wrapper.py",
+            "timeout": 10,
+            "statusMessage": "[doc-release] 软提示: task.md 受控路径..."
+          },
+          {
+            "type": "command",
+            "if": "Edit(task.md)",
+            "command": "python Scripts/hooks/cc_notify_wrapper.py",
+            "timeout": 10,
+            "statusMessage": "[doc-release] 软提示: task.md 受控路径..."
+          },
+          {
+            "type": "command",
+            "if": "Write(Docs/Current/*_Closeout.md)",
+            "command": "python Scripts/hooks/cc_notify_wrapper.py",
+            "timeout": 10,
+            "statusMessage": "[doc-release] 软提示: Closeout 文档受控路径..."
+          },
+          {
+            "type": "command",
+            "if": "Edit(Docs/Current/*_Closeout.md)",
+            "command": "python Scripts/hooks/cc_notify_wrapper.py",
+            "timeout": 10,
+            "statusMessage": "[doc-release] 软提示: Closeout 文档受控路径..."
+          },
+          {
+            "type": "command",
+            "if": "Write(ProjectState/Reports/**)",
+            "command": "python Scripts/hooks/cc_notify_wrapper.py",
+            "timeout": 10,
+            "statusMessage": "[doc-release] 软提示: Reports 受控路径..."
+          },
+          {
+            "type": "command",
+            "if": "Edit(ProjectState/Reports/**)",
+            "command": "python Scripts/hooks/cc_notify_wrapper.py",
+            "timeout": 10,
+            "statusMessage": "[doc-release] 软提示: Reports 受控路径..."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -2,7 +2,7 @@
 
 > 目标引擎版本：UE5.5.4
 > 当前状态：Phase 11 已完成并归档
-> 当前正式口径：[18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/18_Phase11_Closeout.md)
+> 当前正式口径：[18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/acceptance/acceptance_report.md#1)
 
 ## 项目简介
 
@@ -19,9 +19,9 @@ GDD -> Root Skill Contract -> Clarification Gate -> Skill Graph Planning
 
 ## 当前入口
 
-- 当前阶段索引：[00_Index.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/00_Index.md)
-- Phase 11 收尾总览：[18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/18_Phase11_Closeout.md)
-- Phase 11 归档任务：[task11_phase11.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task11_phase11.md)
+- 当前阶段索引：[00_Index.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/INDEX.md)
+- Phase 11 收尾总览：[18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/acceptance/acceptance_report.md#1)
+- Phase 11 归档任务：[task11_phase11.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/archive/history/Tasks/task11_phase11.md)
 - Phase 11 最终验收：[task15_phase11_final_acceptance.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/task15_phase11_final_acceptance.md)
 - 根目录归档跳转页：[task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md)
 - 插件入口：[Plugins/AgentBridge/README.md](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/README.md)
@@ -45,13 +45,13 @@ GDD -> Root Skill Contract -> Clarification Gate -> Skill Graph Planning
 
 ## 历史阶段
 
-- Phase 6：[task4_phase6.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task4_phase6.md)
-- Phase 7 准备期：[task5_phase7_preparation.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task5_phase7_preparation.md)
-- Phase 7：[task6_phase7.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task6_phase7.md)
-- Phase 8：[task8_phase8.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task8_phase8.md)
-- Phase 9：[task9_phase9.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task9_phase9.md)
-- Phase 10：[task10_phase10.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task10_phase10.md)
-- Phase 11：[task11_phase11.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task11_phase11.md)
+- Phase 6：[task4_phase6.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/archive/history/Tasks/task4_phase6.md)
+- Phase 7 准备期：[task5_phase7_preparation.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/archive/history/Tasks/task5_phase7_preparation.md)
+- Phase 7：[task6_phase7.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/archive/history/Tasks/task6_phase7.md)
+- Phase 8：[task8_phase8.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/archive/history/Tasks/task8_phase8.md)
+- Phase 9：[task9_phase9.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/archive/history/Tasks/task9_phase9.md)
+- Phase 10：[task10_phase10.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/archive/history/Tasks/task10_phase10.md)
+- Phase 11：[task11_phase11.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/archive/history/Tasks/task11_phase11.md)
 
 ## 常用命令
 
@@ -76,5 +76,5 @@ python Plugins/AgentBridge/MCP/server.py
 
 - `Docs/Current/*` 是当前项目口径的最高优先级。
 - 根目录 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) 现在是 Phase 11 归档跳转页，不再承载完整任务定义。
-- Phase 11 的正式完成口径以 [18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/18_Phase11_Closeout.md) 和 [task11_phase11.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task11_phase11.md) 为准。
+- Phase 11 的正式完成口径以 [18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/acceptance/acceptance_report.md#1) 和 [task11_phase11.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/archive/history/Tasks/task11_phase11.md) 为准。
 - MCP 当前可见工具注册数为 `53`，其中 `49` 个为正式主工具、`4` 个为兼容 alias。

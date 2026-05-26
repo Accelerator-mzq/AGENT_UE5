@@ -1,0 +1,7 @@
+# Phase 4 链接重写清单(Phase 2.2 自动产出,0 个文件需重写)
+# 来源: Scripts/validation/link_precheck.py 2026-05-26
+# 字典源: Docs/redirects.json(108 条映射)
+# 总命中: 0 处引用 / 0 处未映射
+#
+# 每行 = 含旧路径引用的文件相对路径,Phase 4 用 redirects.json 批量重写
+#

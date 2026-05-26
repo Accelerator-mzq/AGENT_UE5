@@ -1,0 +1,1464 @@
+{
+  "report_type": "phase7_jrpg_pack_consistency",
+  "generated_at": "2026-04-02T22:09:41.987849",
+  "shared_manifest_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\jrpg\\pack_manifest.yaml",
+  "checks": {
+    "all_paths_use_same_manifest": {
+      "passed": true,
+      "actual": {
+        "greenfield": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\jrpg\\pack_manifest.yaml",
+        "brownfield": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\jrpg\\pack_manifest.yaml",
+        "smoke": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\jrpg\\pack_manifest.yaml"
+      }
+    },
+    "all_paths_use_same_pack_id": {
+      "passed": true,
+      "actual": {
+        "greenfield": "genre-jrpg",
+        "brownfield": "genre-jrpg",
+        "smoke": "genre-jrpg"
+      }
+    },
+    "all_paths_preserve_governance_domains": {
+      "passed": true,
+      "actual": {
+        "greenfield": [
+          "product_scope",
+          "runtime_gameplay",
+          "presentation_asset",
+          "qa_validation",
+          "planning_governance"
+        ],
+        "brownfield": [
+          "product_scope",
+          "runtime_gameplay",
+          "presentation_asset",
+          "qa_validation",
+          "planning_governance"
+        ],
+        "smoke": [
+          "product_scope",
+          "runtime_gameplay",
+          "presentation_asset",
+          "qa_validation",
+          "planning_governance"
+        ]
+      }
+    },
+    "router_always_hits_jrpg_pack": {
+      "passed": true,
+      "actual": {
+        "greenfield": {
+          "pack_id": "genre-jrpg",
+          "version": "0.7.0",
+          "title": "JRPG Turn-Based Genre Skill Pack",
+          "status": "phase7_governance_minimal",
+          "description": "回合制 JRPG 类型包，支持从 GDD 生成最小战斗场景、命令菜单与治理闭环。",
+          "router": {
+            "primary_router": "genre_jrpg_router",
+            "fallback_routers": []
+          },
+          "activation": {
+            "keywords": [
+              "jrpg",
+              "rpg",
+              "回合制rpg",
+              "回合制 jrpg",
+              "turn-based rpg",
+              "turn based rpg"
+            ],
+            "min_confidence": 0.7
+          },
+          "required_skills": [
+            "battle_layout",
+            "turn_queue",
+            "command_menu"
+          ],
+          "optional_skills": [],
+          "review_extensions": [
+            "jrpg_reviewer"
+          ],
+          "validation_extensions": [
+            "jrpg_validator"
+          ],
+          "delta_policy": {
+            "provider": "jrpg_delta_policy",
+            "enabled": true
+          },
+          "policy": {
+            "prefer_incremental": true,
+            "allow_mixed_mode": false,
+            "default_projection_profile": "preview_static"
+          },
+          "dependencies": {
+            "base_domains": [
+              "product_scope",
+              "runtime_gameplay",
+              "presentation_asset",
+              "qa_validation",
+              "planning_governance"
+            ],
+            "static_base": [
+              "WorldBuildStaticSpec",
+              "ValidationStaticSpec",
+              "GameplayFrameworkStaticSpec",
+              "UIModelStaticSpec"
+            ],
+            "genre_contracts": []
+          },
+          "outputs": {
+            "typical_specs": [
+              "world_build_spec",
+              "jrpg_spec",
+              "battle_layout_spec",
+              "turn_queue_spec",
+              "command_menu_spec",
+              "runtime_wiring_spec",
+              "validation_spec",
+              "scene_spec"
+            ],
+            "typical_workflows": [
+              "spawn_actor"
+            ]
+          },
+          "metadata": {
+            "author": "AgentBridge Team",
+            "created_at": "2026-04-02",
+            "last_updated": "2026-04-02",
+            "note": "Phase 7 起用于验证第二个真实类型包与治理闭环的最小组合。"
+          },
+          "manifest_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\jrpg\\pack_manifest.yaml",
+          "pack_dir": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\jrpg",
+          "pack_name": "jrpg",
+          "router_result": {
+            "matched": true,
+            "confidence": 1.0,
+            "matched_feature_tags": [
+              "jrpg",
+              "rpg",
+              "turn-based rpg"
+            ],
+            "reasons": [
+              "game_type=jrpg 与 pack_id 匹配",
+              "命中激活关键词: ['jrpg', 'rpg', 'turn-based rpg']"
+            ],
+            "activated_pack_ids": [
+              "genre-jrpg"
+            ]
+          },
+          "registry": {
+            "pack_root": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs",
+            "packs": [
+              {
+                "pack_id": "genre-boardgame",
+                "version": "0.6.0",
+                "title": "Boardgame Genre Skill Pack",
+                "status": "phase6_playable_runtime",
+                "description": "棋盘游戏类型包，支持从 GDD 自动编译完整 Spec Tree，并投影到 preview/runtime 两种路径。",
+                "router": {
+                  "primary_router": "genre_boardgame_router",
+                  "fallback_routers": []
+                },
+                "activation": {
+                  "keywords": [
+                    "boardgame",
+                    "棋盘游戏",
+                    "board game",
+                    "棋盘",
+                    "回合制",
+                    "井字棋"
+                  ],
+                  "min_confidence": 0.7
+                },
+                "required_skills": [
+                  "board_layout",
+                  "piece_movement",
+                  "turn_system"
+                ],
+                "optional_skills": [],
+                "review_extensions": [
+                  "boardgame_reviewer"
+                ],
+                "validation_extensions": [
+                  "boardgame_validator"
+                ],
+                "delta_policy": {
+                  "provider": "boardgame_delta_policy",
+                  "enabled": true
+                },
+                "policy": {
+                  "prefer_incremental": true,
+                  "allow_mixed_mode": false,
+                  "default_projection_profile": "preview_static"
+                },
+                "dependencies": {
+                  "base_domains": [
+                    "product_scope",
+                    "world_level",
+                    "presentation_asset",
+                    "qa_validation",
+                    "planning_governance"
+                  ],
+                  "static_base": [
+                    "WorldBuildStaticSpec",
+                    "ValidationStaticSpec",
+                    "BoardgameStaticSpec",
+                    "BoardgameValidationStaticSpec"
+                  ],
+                  "genre_contracts": [
+                    "TurnFlowPatchContract",
+                    "DecisionUIPatchContract"
+                  ]
+                },
+                "outputs": {
+                  "typical_specs": [
+                    "world_build_spec",
+                    "boardgame_spec",
+                    "board_layout_spec",
+                    "piece_movement_spec",
+                    "turn_flow_spec",
+                    "decision_ui_spec",
+                    "runtime_wiring_spec",
+                    "validation_spec",
+                    "scene_spec"
+                  ],
+                  "typical_workflows": [
+                    "spawn_actor"
+                  ]
+                },
+                "metadata": {
+                  "author": "AgentBridge Team",
+                  "created_at": "2026-03-30",
+                  "last_updated": "2026-04-01",
+                  "note": "Phase 6 起 boardgame pack 作为真实编译驱动力接入 Compiler。"
+                },
+                "manifest_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\boardgame\\pack_manifest.yaml",
+                "pack_dir": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\boardgame",
+                "pack_name": "boardgame"
+              },
+              {
+                "pack_id": "genre-jrpg",
+                "version": "0.7.0",
+                "title": "JRPG Turn-Based Genre Skill Pack",
+                "status": "phase7_governance_minimal",
+                "description": "回合制 JRPG 类型包，支持从 GDD 生成最小战斗场景、命令菜单与治理闭环。",
+                "router": {
+                  "primary_router": "genre_jrpg_router",
+                  "fallback_routers": []
+                },
+                "activation": {
+                  "keywords": [
+                    "jrpg",
+                    "rpg",
+                    "回合制rpg",
+                    "回合制 jrpg",
+                    "turn-based rpg",
+                    "turn based rpg"
+                  ],
+                  "min_confidence": 0.7
+                },
+                "required_skills": [
+                  "battle_layout",
+                  "turn_queue",
+                  "command_menu"
+                ],
+                "optional_skills": [],
+                "review_extensions": [
+                  "jrpg_reviewer"
+                ],
+                "validation_extensions": [
+                  "jrpg_validator"
+                ],
+                "delta_policy": {
+                  "provider": "jrpg_delta_policy",
+                  "enabled": true
+                },
+                "policy": {
+                  "prefer_incremental": true,
+                  "allow_mixed_mode": false,
+                  "default_projection_profile": "preview_static"
+                },
+                "dependencies": {
+                  "base_domains": [
+                    "product_scope",
+                    "runtime_gameplay",
+                    "presentation_asset",
+                    "qa_validation",
+                    "planning_governance"
+                  ],
+                  "static_base": [
+                    "WorldBuildStaticSpec",
+                    "ValidationStaticSpec",
+                    "GameplayFrameworkStaticSpec",
+                    "UIModelStaticSpec"
+                  ],
+                  "genre_contracts": []
+                },
+                "outputs": {
+                  "typical_specs": [
+                    "world_build_spec",
+                    "jrpg_spec",
+                    "battle_layout_spec",
+                    "turn_queue_spec",
+                    "command_menu_spec",
+                    "runtime_wiring_spec",
+                    "validation_spec",
+                    "scene_spec"
+                  ],
+                  "typical_workflows": [
+                    "spawn_actor"
+                  ]
+                },
+                "metadata": {
+                  "author": "AgentBridge Team",
+                  "created_at": "2026-04-02",
+                  "last_updated": "2026-04-02",
+                  "note": "Phase 7 起用于验证第二个真实类型包与治理闭环的最小组合。"
+                },
+                "manifest_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\jrpg\\pack_manifest.yaml",
+                "pack_dir": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\jrpg",
+                "pack_name": "jrpg"
+              }
+            ],
+            "pack_map": {
+              "genre-boardgame": {
+                "pack_id": "genre-boardgame",
+                "version": "0.6.0",
+                "title": "Boardgame Genre Skill Pack",
+                "status": "phase6_playable_runtime",
+                "description": "棋盘游戏类型包，支持从 GDD 自动编译完整 Spec Tree，并投影到 preview/runtime 两种路径。",
+                "router": {
+                  "primary_router": "genre_boardgame_router",
+                  "fallback_routers": []
+                },
+                "activation": {
+                  "keywords": [
+                    "boardgame",
+                    "棋盘游戏",
+                    "board game",
+                    "棋盘",
+                    "回合制",
+                    "井字棋"
+                  ],
+                  "min_confidence": 0.7
+                },
+                "required_skills": [
+                  "board_layout",
+                  "piece_movement",
+                  "turn_system"
+                ],
+                "optional_skills": [],
+                "review_extensions": [
+                  "boardgame_reviewer"
+                ],
+                "validation_extensions": [
+                  "boardgame_validator"
+                ],
+                "delta_policy": {
+                  "provider": "boardgame_delta_policy",
+                  "enabled": true
+                },
+                "policy": {
+                  "prefer_incremental": true,
+                  "allow_mixed_mode": false,
+                  "default_projection_profile": "preview_static"
+                },
+                "dependencies": {
+                  "base_domains": [
+                    "product_scope",
+                    "world_level",
+                    "presentation_asset",
+                    "qa_validation",
+                    "planning_governance"
+                  ],
+                  "static_base": [
+                    "WorldBuildStaticSpec",
+                    "ValidationStaticSpec",
+                    "BoardgameStaticSpec",
+                    "BoardgameValidationStaticSpec"
+                  ],
+                  "genre_contracts": [
+                    "TurnFlowPatchContract",
+                    "DecisionUIPatchContract"
+                  ]
+                },
+                "outputs": {
+                  "typical_specs": [
+                    "world_build_spec",
+                    "boardgame_spec",
+                    "board_layout_spec",
+                    "piece_movement_spec",
+                    "turn_flow_spec",
+                    "decision_ui_spec",
+                    "runtime_wiring_spec",
+                    "validation_spec",
+                    "scene_spec"
+                  ],
+                  "typical_workflows": [
+                    "spawn_actor"
+                  ]
+                },
+                "metadata": {
+                  "author": "AgentBridge Team",
+                  "created_at": "2026-03-30",
+                  "last_updated": "2026-04-01",
+                  "note": "Phase 6 起 boardgame pack 作为真实编译驱动力接入 Compiler。"
+                },
+                "manifest_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\boardgame\\pack_manifest.yaml",
+                "pack_dir": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\boardgame",
+                "pack_name": "boardgame"
+              },
+              "genre-jrpg": {
+                "pack_id": "genre-jrpg",
+                "version": "0.7.0",
+                "title": "JRPG Turn-Based Genre Skill Pack",
+                "status": "phase7_governance_minimal",
+                "description": "回合制 JRPG 类型包，支持从 GDD 生成最小战斗场景、命令菜单与治理闭环。",
+                "router": {
+                  "primary_router": "genre_jrpg_router",
+                  "fallback_routers": []
+                },
+                "activation": {
+                  "keywords": [
+                    "jrpg",
+                    "rpg",
+                    "回合制rpg",
+                    "回合制 jrpg",
+                    "turn-based rpg",
+                    "turn based rpg"
+                  ],
+                  "min_confidence": 0.7
+                },
+                "required_skills": [
+                  "battle_layout",
+                  "turn_queue",
+                  "command_menu"
+                ],
+                "optional_skills": [],
+                "review_extensions": [
+                  "jrpg_reviewer"
+                ],
+                "validation_extensions": [
+                  "jrpg_validator"
+                ],
+                "delta_policy": {
+                  "provider": "jrpg_delta_policy",
+                  "enabled": true
+                },
+                "policy": {
+                  "prefer_incremental": true,
+                  "allow_mixed_mode": false,
+                  "default_projection_profile": "preview_static"
+                },
+                "dependencies": {
+                  "base_domains": [
+                    "product_scope",
+                    "runtime_gameplay",
+                    "presentation_asset",
+                    "qa_validation",
+                    "planning_governance"
+                  ],
+                  "static_base": [
+                    "WorldBuildStaticSpec",
+                    "ValidationStaticSpec",
+                    "GameplayFrameworkStaticSpec",
+                    "UIModelStaticSpec"
+                  ],
+                  "genre_contracts": []
+                },
+                "outputs": {
+                  "typical_specs": [
+                    "world_build_spec",
+                    "jrpg_spec",
+                    "battle_layout_spec",
+                    "turn_queue_spec",
+                    "command_menu_spec",
+                    "runtime_wiring_spec",
+                    "validation_spec",
+                    "scene_spec"
+                  ],
+                  "typical_workflows": [
+                    "spawn_actor"
+                  ]
+                },
+                "metadata": {
+                  "author": "AgentBridge Team",
+                  "created_at": "2026-04-02",
+                  "last_updated": "2026-04-02",
+                  "note": "Phase 7 起用于验证第二个真实类型包与治理闭环的最小组合。"
+                },
+                "manifest_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\jrpg\\pack_manifest.yaml",
+                "pack_dir": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\jrpg",
+                "pack_name": "jrpg"
+              }
+            }
+          }
+        },
+        "brownfield": {
+          "pack_id": "genre-jrpg",
+          "version": "0.7.0",
+          "title": "JRPG Turn-Based Genre Skill Pack",
+          "status": "phase7_governance_minimal",
+          "description": "回合制 JRPG 类型包，支持从 GDD 生成最小战斗场景、命令菜单与治理闭环。",
+          "router": {
+            "primary_router": "genre_jrpg_router",
+            "fallback_routers": []
+          },
+          "activation": {
+            "keywords": [
+              "jrpg",
+              "rpg",
+              "回合制rpg",
+              "回合制 jrpg",
+              "turn-based rpg",
+              "turn based rpg"
+            ],
+            "min_confidence": 0.7
+          },
+          "required_skills": [
+            "battle_layout",
+            "turn_queue",
+            "command_menu"
+          ],
+          "optional_skills": [],
+          "review_extensions": [
+            "jrpg_reviewer"
+          ],
+          "validation_extensions": [
+            "jrpg_validator"
+          ],
+          "delta_policy": {
+            "provider": "jrpg_delta_policy",
+            "enabled": true
+          },
+          "policy": {
+            "prefer_incremental": true,
+            "allow_mixed_mode": false,
+            "default_projection_profile": "preview_static"
+          },
+          "dependencies": {
+            "base_domains": [
+              "product_scope",
+              "runtime_gameplay",
+              "presentation_asset",
+              "qa_validation",
+              "planning_governance"
+            ],
+            "static_base": [
+              "WorldBuildStaticSpec",
+              "ValidationStaticSpec",
+              "GameplayFrameworkStaticSpec",
+              "UIModelStaticSpec"
+            ],
+            "genre_contracts": []
+          },
+          "outputs": {
+            "typical_specs": [
+              "world_build_spec",
+              "jrpg_spec",
+              "battle_layout_spec",
+              "turn_queue_spec",
+              "command_menu_spec",
+              "runtime_wiring_spec",
+              "validation_spec",
+              "scene_spec"
+            ],
+            "typical_workflows": [
+              "spawn_actor"
+            ]
+          },
+          "metadata": {
+            "author": "AgentBridge Team",
+            "created_at": "2026-04-02",
+            "last_updated": "2026-04-02",
+            "note": "Phase 7 起用于验证第二个真实类型包与治理闭环的最小组合。"
+          },
+          "manifest_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\jrpg\\pack_manifest.yaml",
+          "pack_dir": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\jrpg",
+          "pack_name": "jrpg",
+          "router_result": {
+            "matched": true,
+            "confidence": 1.0,
+            "matched_feature_tags": [
+              "jrpg",
+              "rpg",
+              "turn-based rpg"
+            ],
+            "reasons": [
+              "game_type=jrpg 与 pack_id 匹配",
+              "命中激活关键词: ['jrpg', 'rpg', 'turn-based rpg']"
+            ],
+            "activated_pack_ids": [
+              "genre-jrpg"
+            ]
+          },
+          "registry": {
+            "pack_root": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs",
+            "packs": [
+              {
+                "pack_id": "genre-boardgame",
+                "version": "0.6.0",
+                "title": "Boardgame Genre Skill Pack",
+                "status": "phase6_playable_runtime",
+                "description": "棋盘游戏类型包，支持从 GDD 自动编译完整 Spec Tree，并投影到 preview/runtime 两种路径。",
+                "router": {
+                  "primary_router": "genre_boardgame_router",
+                  "fallback_routers": []
+                },
+                "activation": {
+                  "keywords": [
+                    "boardgame",
+                    "棋盘游戏",
+                    "board game",
+                    "棋盘",
+                    "回合制",
+                    "井字棋"
+                  ],
+                  "min_confidence": 0.7
+                },
+                "required_skills": [
+                  "board_layout",
+                  "piece_movement",
+                  "turn_system"
+                ],
+                "optional_skills": [],
+                "review_extensions": [
+                  "boardgame_reviewer"
+                ],
+                "validation_extensions": [
+                  "boardgame_validator"
+                ],
+                "delta_policy": {
+                  "provider": "boardgame_delta_policy",
+                  "enabled": true
+                },
+                "policy": {
+                  "prefer_incremental": true,
+                  "allow_mixed_mode": false,
+                  "default_projection_profile": "preview_static"
+                },
+                "dependencies": {
+                  "base_domains": [
+                    "product_scope",
+                    "world_level",
+                    "presentation_asset",
+                    "qa_validation",
+                    "planning_governance"
+                  ],
+                  "static_base": [
+                    "WorldBuildStaticSpec",
+                    "ValidationStaticSpec",
+                    "BoardgameStaticSpec",
+                    "BoardgameValidationStaticSpec"
+                  ],
+                  "genre_contracts": [
+                    "TurnFlowPatchContract",
+                    "DecisionUIPatchContract"
+                  ]
+                },
+                "outputs": {
+                  "typical_specs": [
+                    "world_build_spec",
+                    "boardgame_spec",
+                    "board_layout_spec",
+                    "piece_movement_spec",
+                    "turn_flow_spec",
+                    "decision_ui_spec",
+                    "runtime_wiring_spec",
+                    "validation_spec",
+                    "scene_spec"
+                  ],
+                  "typical_workflows": [
+                    "spawn_actor"
+                  ]
+                },
+                "metadata": {
+                  "author": "AgentBridge Team",
+                  "created_at": "2026-03-30",
+                  "last_updated": "2026-04-01",
+                  "note": "Phase 6 起 boardgame pack 作为真实编译驱动力接入 Compiler。"
+                },
+                "manifest_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\boardgame\\pack_manifest.yaml",
+                "pack_dir": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\boardgame",
+                "pack_name": "boardgame"
+              },
+              {
+                "pack_id": "genre-jrpg",
+                "version": "0.7.0",
+                "title": "JRPG Turn-Based Genre Skill Pack",
+                "status": "phase7_governance_minimal",
+                "description": "回合制 JRPG 类型包，支持从 GDD 生成最小战斗场景、命令菜单与治理闭环。",
+                "router": {
+                  "primary_router": "genre_jrpg_router",
+                  "fallback_routers": []
+                },
+                "activation": {
+                  "keywords": [
+                    "jrpg",
+                    "rpg",
+                    "回合制rpg",
+                    "回合制 jrpg",
+                    "turn-based rpg",
+                    "turn based rpg"
+                  ],
+                  "min_confidence": 0.7
+                },
+                "required_skills": [
+                  "battle_layout",
+                  "turn_queue",
+                  "command_menu"
+                ],
+                "optional_skills": [],
+                "review_extensions": [
+                  "jrpg_reviewer"
+                ],
+                "validation_extensions": [
+                  "jrpg_validator"
+                ],
+                "delta_policy": {
+                  "provider": "jrpg_delta_policy",
+                  "enabled": true
+                },
+                "policy": {
+                  "prefer_incremental": true,
+                  "allow_mixed_mode": false,
+                  "default_projection_profile": "preview_static"
+                },
+                "dependencies": {
+                  "base_domains": [
+                    "product_scope",
+                    "runtime_gameplay",
+                    "presentation_asset",
+                    "qa_validation",
+                    "planning_governance"
+                  ],
+                  "static_base": [
+                    "WorldBuildStaticSpec",
+                    "ValidationStaticSpec",
+                    "GameplayFrameworkStaticSpec",
+                    "UIModelStaticSpec"
+                  ],
+                  "genre_contracts": []
+                },
+                "outputs": {
+                  "typical_specs": [
+                    "world_build_spec",
+                    "jrpg_spec",
+                    "battle_layout_spec",
+                    "turn_queue_spec",
+                    "command_menu_spec",
+                    "runtime_wiring_spec",
+                    "validation_spec",
+                    "scene_spec"
+                  ],
+                  "typical_workflows": [
+                    "spawn_actor"
+                  ]
+                },
+                "metadata": {
+                  "author": "AgentBridge Team",
+                  "created_at": "2026-04-02",
+                  "last_updated": "2026-04-02",
+                  "note": "Phase 7 起用于验证第二个真实类型包与治理闭环的最小组合。"
+                },
+                "manifest_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\jrpg\\pack_manifest.yaml",
+                "pack_dir": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\jrpg",
+                "pack_name": "jrpg"
+              }
+            ],
+            "pack_map": {
+              "genre-boardgame": {
+                "pack_id": "genre-boardgame",
+                "version": "0.6.0",
+                "title": "Boardgame Genre Skill Pack",
+                "status": "phase6_playable_runtime",
+                "description": "棋盘游戏类型包，支持从 GDD 自动编译完整 Spec Tree，并投影到 preview/runtime 两种路径。",
+                "router": {
+                  "primary_router": "genre_boardgame_router",
+                  "fallback_routers": []
+                },
+                "activation": {
+                  "keywords": [
+                    "boardgame",
+                    "棋盘游戏",
+                    "board game",
+                    "棋盘",
+                    "回合制",
+                    "井字棋"
+                  ],
+                  "min_confidence": 0.7
+                },
+                "required_skills": [
+                  "board_layout",
+                  "piece_movement",
+                  "turn_system"
+                ],
+                "optional_skills": [],
+                "review_extensions": [
+                  "boardgame_reviewer"
+                ],
+                "validation_extensions": [
+                  "boardgame_validator"
+                ],
+                "delta_policy": {
+                  "provider": "boardgame_delta_policy",
+                  "enabled": true
+                },
+                "policy": {
+                  "prefer_incremental": true,
+                  "allow_mixed_mode": false,
+                  "default_projection_profile": "preview_static"
+                },
+                "dependencies": {
+                  "base_domains": [
+                    "product_scope",
+                    "world_level",
+                    "presentation_asset",
+                    "qa_validation",
+                    "planning_governance"
+                  ],
+                  "static_base": [
+                    "WorldBuildStaticSpec",
+                    "ValidationStaticSpec",
+                    "BoardgameStaticSpec",
+                    "BoardgameValidationStaticSpec"
+                  ],
+                  "genre_contracts": [
+                    "TurnFlowPatchContract",
+                    "DecisionUIPatchContract"
+                  ]
+                },
+                "outputs": {
+                  "typical_specs": [
+                    "world_build_spec",
+                    "boardgame_spec",
+                    "board_layout_spec",
+                    "piece_movement_spec",
+                    "turn_flow_spec",
+                    "decision_ui_spec",
+                    "runtime_wiring_spec",
+                    "validation_spec",
+                    "scene_spec"
+                  ],
+                  "typical_workflows": [
+                    "spawn_actor"
+                  ]
+                },
+                "metadata": {
+                  "author": "AgentBridge Team",
+                  "created_at": "2026-03-30",
+                  "last_updated": "2026-04-01",
+                  "note": "Phase 6 起 boardgame pack 作为真实编译驱动力接入 Compiler。"
+                },
+                "manifest_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\boardgame\\pack_manifest.yaml",
+                "pack_dir": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\boardgame",
+                "pack_name": "boardgame"
+              },
+              "genre-jrpg": {
+                "pack_id": "genre-jrpg",
+                "version": "0.7.0",
+                "title": "JRPG Turn-Based Genre Skill Pack",
+                "status": "phase7_governance_minimal",
+                "description": "回合制 JRPG 类型包，支持从 GDD 生成最小战斗场景、命令菜单与治理闭环。",
+                "router": {
+                  "primary_router": "genre_jrpg_router",
+                  "fallback_routers": []
+                },
+                "activation": {
+                  "keywords": [
+                    "jrpg",
+                    "rpg",
+                    "回合制rpg",
+                    "回合制 jrpg",
+                    "turn-based rpg",
+                    "turn based rpg"
+                  ],
+                  "min_confidence": 0.7
+                },
+                "required_skills": [
+                  "battle_layout",
+                  "turn_queue",
+                  "command_menu"
+                ],
+                "optional_skills": [],
+                "review_extensions": [
+                  "jrpg_reviewer"
+                ],
+                "validation_extensions": [
+                  "jrpg_validator"
+                ],
+                "delta_policy": {
+                  "provider": "jrpg_delta_policy",
+                  "enabled": true
+                },
+                "policy": {
+                  "prefer_incremental": true,
+                  "allow_mixed_mode": false,
+                  "default_projection_profile": "preview_static"
+                },
+                "dependencies": {
+                  "base_domains": [
+                    "product_scope",
+                    "runtime_gameplay",
+                    "presentation_asset",
+                    "qa_validation",
+                    "planning_governance"
+                  ],
+                  "static_base": [
+                    "WorldBuildStaticSpec",
+                    "ValidationStaticSpec",
+                    "GameplayFrameworkStaticSpec",
+                    "UIModelStaticSpec"
+                  ],
+                  "genre_contracts": []
+                },
+                "outputs": {
+                  "typical_specs": [
+                    "world_build_spec",
+                    "jrpg_spec",
+                    "battle_layout_spec",
+                    "turn_queue_spec",
+                    "command_menu_spec",
+                    "runtime_wiring_spec",
+                    "validation_spec",
+                    "scene_spec"
+                  ],
+                  "typical_workflows": [
+                    "spawn_actor"
+                  ]
+                },
+                "metadata": {
+                  "author": "AgentBridge Team",
+                  "created_at": "2026-04-02",
+                  "last_updated": "2026-04-02",
+                  "note": "Phase 7 起用于验证第二个真实类型包与治理闭环的最小组合。"
+                },
+                "manifest_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\jrpg\\pack_manifest.yaml",
+                "pack_dir": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\jrpg",
+                "pack_name": "jrpg"
+              }
+            }
+          }
+        },
+        "smoke": {
+          "pack_id": "genre-jrpg",
+          "version": "0.7.0",
+          "title": "JRPG Turn-Based Genre Skill Pack",
+          "status": "phase7_governance_minimal",
+          "description": "回合制 JRPG 类型包，支持从 GDD 生成最小战斗场景、命令菜单与治理闭环。",
+          "router": {
+            "primary_router": "genre_jrpg_router",
+            "fallback_routers": []
+          },
+          "activation": {
+            "keywords": [
+              "jrpg",
+              "rpg",
+              "回合制rpg",
+              "回合制 jrpg",
+              "turn-based rpg",
+              "turn based rpg"
+            ],
+            "min_confidence": 0.7
+          },
+          "required_skills": [
+            "battle_layout",
+            "turn_queue",
+            "command_menu"
+          ],
+          "optional_skills": [],
+          "review_extensions": [
+            "jrpg_reviewer"
+          ],
+          "validation_extensions": [
+            "jrpg_validator"
+          ],
+          "delta_policy": {
+            "provider": "jrpg_delta_policy",
+            "enabled": true
+          },
+          "policy": {
+            "prefer_incremental": true,
+            "allow_mixed_mode": false,
+            "default_projection_profile": "preview_static"
+          },
+          "dependencies": {
+            "base_domains": [
+              "product_scope",
+              "runtime_gameplay",
+              "presentation_asset",
+              "qa_validation",
+              "planning_governance"
+            ],
+            "static_base": [
+              "WorldBuildStaticSpec",
+              "ValidationStaticSpec",
+              "GameplayFrameworkStaticSpec",
+              "UIModelStaticSpec"
+            ],
+            "genre_contracts": []
+          },
+          "outputs": {
+            "typical_specs": [
+              "world_build_spec",
+              "jrpg_spec",
+              "battle_layout_spec",
+              "turn_queue_spec",
+              "command_menu_spec",
+              "runtime_wiring_spec",
+              "validation_spec",
+              "scene_spec"
+            ],
+            "typical_workflows": [
+              "spawn_actor"
+            ]
+          },
+          "metadata": {
+            "author": "AgentBridge Team",
+            "created_at": "2026-04-02",
+            "last_updated": "2026-04-02",
+            "note": "Phase 7 起用于验证第二个真实类型包与治理闭环的最小组合。"
+          },
+          "manifest_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\jrpg\\pack_manifest.yaml",
+          "pack_dir": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\jrpg",
+          "pack_name": "jrpg",
+          "router_result": {
+            "matched": true,
+            "confidence": 1.0,
+            "matched_feature_tags": [
+              "jrpg",
+              "rpg",
+              "turn-based rpg"
+            ],
+            "reasons": [
+              "game_type=jrpg 与 pack_id 匹配",
+              "命中激活关键词: ['jrpg', 'rpg', 'turn-based rpg']"
+            ],
+            "activated_pack_ids": [
+              "genre-jrpg"
+            ]
+          },
+          "registry": {
+            "pack_root": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs",
+            "packs": [
+              {
+                "pack_id": "genre-boardgame",
+                "version": "0.6.0",
+                "title": "Boardgame Genre Skill Pack",
+                "status": "phase6_playable_runtime",
+                "description": "棋盘游戏类型包，支持从 GDD 自动编译完整 Spec Tree，并投影到 preview/runtime 两种路径。",
+                "router": {
+                  "primary_router": "genre_boardgame_router",
+                  "fallback_routers": []
+                },
+                "activation": {
+                  "keywords": [
+                    "boardgame",
+                    "棋盘游戏",
+                    "board game",
+                    "棋盘",
+                    "回合制",
+                    "井字棋"
+                  ],
+                  "min_confidence": 0.7
+                },
+                "required_skills": [
+                  "board_layout",
+                  "piece_movement",
+                  "turn_system"
+                ],
+                "optional_skills": [],
+                "review_extensions": [
+                  "boardgame_reviewer"
+                ],
+                "validation_extensions": [
+                  "boardgame_validator"
+                ],
+                "delta_policy": {
+                  "provider": "boardgame_delta_policy",
+                  "enabled": true
+                },
+                "policy": {
+                  "prefer_incremental": true,
+                  "allow_mixed_mode": false,
+                  "default_projection_profile": "preview_static"
+                },
+                "dependencies": {
+                  "base_domains": [
+                    "product_scope",
+                    "world_level",
+                    "presentation_asset",
+                    "qa_validation",
+                    "planning_governance"
+                  ],
+                  "static_base": [
+                    "WorldBuildStaticSpec",
+                    "ValidationStaticSpec",
+                    "BoardgameStaticSpec",
+                    "BoardgameValidationStaticSpec"
+                  ],
+                  "genre_contracts": [
+                    "TurnFlowPatchContract",
+                    "DecisionUIPatchContract"
+                  ]
+                },
+                "outputs": {
+                  "typical_specs": [
+                    "world_build_spec",
+                    "boardgame_spec",
+                    "board_layout_spec",
+                    "piece_movement_spec",
+                    "turn_flow_spec",
+                    "decision_ui_spec",
+                    "runtime_wiring_spec",
+                    "validation_spec",
+                    "scene_spec"
+                  ],
+                  "typical_workflows": [
+                    "spawn_actor"
+                  ]
+                },
+                "metadata": {
+                  "author": "AgentBridge Team",
+                  "created_at": "2026-03-30",
+                  "last_updated": "2026-04-01",
+                  "note": "Phase 6 起 boardgame pack 作为真实编译驱动力接入 Compiler。"
+                },
+                "manifest_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\boardgame\\pack_manifest.yaml",
+                "pack_dir": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\boardgame",
+                "pack_name": "boardgame"
+              },
+              {
+                "pack_id": "genre-jrpg",
+                "version": "0.7.0",
+                "title": "JRPG Turn-Based Genre Skill Pack",
+                "status": "phase7_governance_minimal",
+                "description": "回合制 JRPG 类型包，支持从 GDD 生成最小战斗场景、命令菜单与治理闭环。",
+                "router": {
+                  "primary_router": "genre_jrpg_router",
+                  "fallback_routers": []
+                },
+                "activation": {
+                  "keywords": [
+                    "jrpg",
+                    "rpg",
+                    "回合制rpg",
+                    "回合制 jrpg",
+                    "turn-based rpg",
+                    "turn based rpg"
+                  ],
+                  "min_confidence": 0.7
+                },
+                "required_skills": [
+                  "battle_layout",
+                  "turn_queue",
+                  "command_menu"
+                ],
+                "optional_skills": [],
+                "review_extensions": [
+                  "jrpg_reviewer"
+                ],
+                "validation_extensions": [
+                  "jrpg_validator"
+                ],
+                "delta_policy": {
+                  "provider": "jrpg_delta_policy",
+                  "enabled": true
+                },
+                "policy": {
+                  "prefer_incremental": true,
+                  "allow_mixed_mode": false,
+                  "default_projection_profile": "preview_static"
+                },
+                "dependencies": {
+                  "base_domains": [
+                    "product_scope",
+                    "runtime_gameplay",
+                    "presentation_asset",
+                    "qa_validation",
+                    "planning_governance"
+                  ],
+                  "static_base": [
+                    "WorldBuildStaticSpec",
+                    "ValidationStaticSpec",
+                    "GameplayFrameworkStaticSpec",
+                    "UIModelStaticSpec"
+                  ],
+                  "genre_contracts": []
+                },
+                "outputs": {
+                  "typical_specs": [
+                    "world_build_spec",
+                    "jrpg_spec",
+                    "battle_layout_spec",
+                    "turn_queue_spec",
+                    "command_menu_spec",
+                    "runtime_wiring_spec",
+                    "validation_spec",
+                    "scene_spec"
+                  ],
+                  "typical_workflows": [
+                    "spawn_actor"
+                  ]
+                },
+                "metadata": {
+                  "author": "AgentBridge Team",
+                  "created_at": "2026-04-02",
+                  "last_updated": "2026-04-02",
+                  "note": "Phase 7 起用于验证第二个真实类型包与治理闭环的最小组合。"
+                },
+                "manifest_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\jrpg\\pack_manifest.yaml",
+                "pack_dir": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\jrpg",
+                "pack_name": "jrpg"
+              }
+            ],
+            "pack_map": {
+              "genre-boardgame": {
+                "pack_id": "genre-boardgame",
+                "version": "0.6.0",
+                "title": "Boardgame Genre Skill Pack",
+                "status": "phase6_playable_runtime",
+                "description": "棋盘游戏类型包，支持从 GDD 自动编译完整 Spec Tree，并投影到 preview/runtime 两种路径。",
+                "router": {
+                  "primary_router": "genre_boardgame_router",
+                  "fallback_routers": []
+                },
+                "activation": {
+                  "keywords": [
+                    "boardgame",
+                    "棋盘游戏",
+                    "board game",
+                    "棋盘",
+                    "回合制",
+                    "井字棋"
+                  ],
+                  "min_confidence": 0.7
+                },
+                "required_skills": [
+                  "board_layout",
+                  "piece_movement",
+                  "turn_system"
+                ],
+                "optional_skills": [],
+                "review_extensions": [
+                  "boardgame_reviewer"
+                ],
+                "validation_extensions": [
+                  "boardgame_validator"
+                ],
+                "delta_policy": {
+                  "provider": "boardgame_delta_policy",
+                  "enabled": true
+                },
+                "policy": {
+                  "prefer_incremental": true,
+                  "allow_mixed_mode": false,
+                  "default_projection_profile": "preview_static"
+                },
+                "dependencies": {
+                  "base_domains": [
+                    "product_scope",
+                    "world_level",
+                    "presentation_asset",
+                    "qa_validation",
+                    "planning_governance"
+                  ],
+                  "static_base": [
+                    "WorldBuildStaticSpec",
+                    "ValidationStaticSpec",
+                    "BoardgameStaticSpec",
+                    "BoardgameValidationStaticSpec"
+                  ],
+                  "genre_contracts": [
+                    "TurnFlowPatchContract",
+                    "DecisionUIPatchContract"
+                  ]
+                },
+                "outputs": {
+                  "typical_specs": [
+                    "world_build_spec",
+                    "boardgame_spec",
+                    "board_layout_spec",
+                    "piece_movement_spec",
+                    "turn_flow_spec",
+                    "decision_ui_spec",
+                    "runtime_wiring_spec",
+                    "validation_spec",
+                    "scene_spec"
+                  ],
+                  "typical_workflows": [
+                    "spawn_actor"
+                  ]
+                },
+                "metadata": {
+                  "author": "AgentBridge Team",
+                  "created_at": "2026-03-30",
+                  "last_updated": "2026-04-01",
+                  "note": "Phase 6 起 boardgame pack 作为真实编译驱动力接入 Compiler。"
+                },
+                "manifest_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\boardgame\\pack_manifest.yaml",
+                "pack_dir": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\boardgame",
+                "pack_name": "boardgame"
+              },
+              "genre-jrpg": {
+                "pack_id": "genre-jrpg",
+                "version": "0.7.0",
+                "title": "JRPG Turn-Based Genre Skill Pack",
+                "status": "phase7_governance_minimal",
+                "description": "回合制 JRPG 类型包，支持从 GDD 生成最小战斗场景、命令菜单与治理闭环。",
+                "router": {
+                  "primary_router": "genre_jrpg_router",
+                  "fallback_routers": []
+                },
+                "activation": {
+                  "keywords": [
+                    "jrpg",
+                    "rpg",
+                    "回合制rpg",
+                    "回合制 jrpg",
+                    "turn-based rpg",
+                    "turn based rpg"
+                  ],
+                  "min_confidence": 0.7
+                },
+                "required_skills": [
+                  "battle_layout",
+                  "turn_queue",
+                  "command_menu"
+                ],
+                "optional_skills": [],
+                "review_extensions": [
+                  "jrpg_reviewer"
+                ],
+                "validation_extensions": [
+                  "jrpg_validator"
+                ],
+                "delta_policy": {
+                  "provider": "jrpg_delta_policy",
+                  "enabled": true
+                },
+                "policy": {
+                  "prefer_incremental": true,
+                  "allow_mixed_mode": false,
+                  "default_projection_profile": "preview_static"
+                },
+                "dependencies": {
+                  "base_domains": [
+                    "product_scope",
+                    "runtime_gameplay",
+                    "presentation_asset",
+                    "qa_validation",
+                    "planning_governance"
+                  ],
+                  "static_base": [
+                    "WorldBuildStaticSpec",
+                    "ValidationStaticSpec",
+                    "GameplayFrameworkStaticSpec",
+                    "UIModelStaticSpec"
+                  ],
+                  "genre_contracts": []
+                },
+                "outputs": {
+                  "typical_specs": [
+                    "world_build_spec",
+                    "jrpg_spec",
+                    "battle_layout_spec",
+                    "turn_queue_spec",
+                    "command_menu_spec",
+                    "runtime_wiring_spec",
+                    "validation_spec",
+                    "scene_spec"
+                  ],
+                  "typical_workflows": [
+                    "spawn_actor"
+                  ]
+                },
+                "metadata": {
+                  "author": "AgentBridge Team",
+                  "created_at": "2026-04-02",
+                  "last_updated": "2026-04-02",
+                  "note": "Phase 7 起用于验证第二个真实类型包与治理闭环的最小组合。"
+                },
+                "manifest_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\jrpg\\pack_manifest.yaml",
+                "pack_dir": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Skills\\genre_packs\\jrpg",
+                "pack_name": "jrpg"
+              }
+            }
+          }
+        }
+      }
+    },
+    "required_skills_modules_are_complete": {
+      "passed": true,
+      "actual": [
+        "battle_layout",
+        "turn_queue",
+        "command_menu"
+      ]
+    },
+    "review_validation_delta_modules_are_complete": {
+      "passed": true,
+      "actual": {
+        "review_extensions": [
+          "jrpg_reviewer"
+        ],
+        "validation_extensions": [
+          "jrpg_validator"
+        ],
+        "delta_policies": [
+          "jrpg_delta_policy"
+        ]
+      }
+    },
+    "greenfield_and_smoke_share_greenfield_mode": {
+      "passed": true,
+      "actual": {
+        "greenfield_mode": "greenfield_bootstrap",
+        "smoke_mode": "greenfield_bootstrap"
+      }
+    },
+    "brownfield_keeps_delta_intent": {
+      "passed": true,
+      "actual": {
+        "delta_intent": "append_actor",
+        "affected_domains": [
+          "world",
+          "validation",
+          "governance",
+          "runtime",
+          "ui"
+        ],
+        "affected_specs": [
+          "command_menu_spec",
+          "decision_ui_spec",
+          "jrpg_spec",
+          "runtime_wiring_spec",
+          "scene_spec",
+          "turn_flow_spec",
+          "turn_queue_spec",
+          "validation_spec"
+        ],
+        "required_regression_checks": [
+          "existing_actor_presence",
+          "jrpg-battle-loop-smoke-check",
+          "jrpg-command-menu-smoke-check",
+          "map_check_clean",
+          "new_actor_presence"
+        ],
+        "delta_scope": {
+          "baseline_actor_count": 2,
+          "target_actor_count": 4,
+          "append_count": 2,
+          "patch_count": 0,
+          "replace_count": 0
+        },
+        "contract_refs": [
+          "RegressionValidationContractModel",
+          "SpecPatchContractModel"
+        ],
+        "unsupported_items": []
+      }
+    }
+  },
+  "overall_status": "passed"
+}

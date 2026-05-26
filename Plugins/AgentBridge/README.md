@@ -51,7 +51,7 @@
 
 关键证据：
 
-- [18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/18_Phase11_Closeout.md)
+- [18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/acceptance/acceptance_report.md#1)
 - [task15_phase11_final_acceptance.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/task15_phase11_final_acceptance.md)
 - [phase11_feature_coverage_report.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/phase11_feature_coverage_report.md)
 
@@ -82,9 +82,9 @@ AgentBridge/
 ## 4. 推荐阅读顺序
 
 1. 本文件
-2. [architecture_overview.md](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Docs/architecture_overview.md)
+2. [architecture_overview.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/design/HLD.md#1-2)
 3. [AGENTS.md](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/AGENTS.md)
-4. [tool_contract_v0_1.md](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Docs/tool_contract_v0_1.md)
+4. [tool_contract_v0_1.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/contracts/tool_contract.md)
 5. [SystemTestCases.md](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Tests/SystemTestCases.md)
 
 ## 5. 常用命令

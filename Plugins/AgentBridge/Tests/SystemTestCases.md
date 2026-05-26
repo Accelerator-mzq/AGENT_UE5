@@ -1,6 +1,6 @@
 # AgentBridge 系统测试用例总表
 
-> 来源：`Docs/History/Phase1_MVP/task.md` + `Docs/History/Tasks/task1_phase3.md` + `Docs/History/Tasks/task2_phase4.md` + `Docs/History/Tasks/task3_phase5.md` + `Docs/History/Tasks/task4_phase6.md` + `Docs/History/Tasks/task6_phase7.md` + [task10_phase10.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task10_phase10.md) + [17_Phase10_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/17_Phase10_Closeout.md) + [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) + [18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/18_Phase11_Closeout.md) 中的验收标准与验证步骤
+> 来源：`Docs/archive/history/Phase1_MVP/task.md` + `Docs/archive/history/Tasks/task1_phase3.md` + `Docs/archive/history/Tasks/task2_phase4.md` + `Docs/archive/history/Tasks/task3_phase5.md` + `Docs/archive/history/Tasks/task4_phase6.md` + `Docs/archive/history/Tasks/task6_phase7.md` + [task10_phase10.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/archive/history/Tasks/task10_phase10.md) + [17_Phase10_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/archive/current/17_Phase10_Closeout.md) + [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) + [18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/acceptance/acceptance_report.md#1) 中的验收标准与验证步骤
 > 最后更新：2026-04-17
 > 维护者：msc
 
@@ -358,7 +358,7 @@
 
 ## 11. Compiler Plane（CP）
 
-> 来源：`Docs/History/Tasks/task1_phase3.md` TASK 04 + `Docs/History/Tasks/task2_phase4.md` TASK 06~10 + `Docs/History/Tasks/task3_phase5.md` TASK 03~08 + `Docs/History/Tasks/task4_phase6.md` TASK 04~08
+> 来源：`Docs/archive/history/Tasks/task1_phase3.md` TASK 04 + `Docs/archive/history/Tasks/task2_phase4.md` TASK 06~10 + `Docs/archive/history/Tasks/task3_phase5.md` TASK 03~08 + `Docs/archive/history/Tasks/task4_phase6.md` TASK 04~08
 > 自动化方式：pytest / `python compiler_main.py`
 > 环境要求：Python 3.x + pyyaml + jsonschema
 
@@ -415,7 +415,7 @@
 
 ## 12. Skills & Specs（SS）
 
-> 来源：`Docs/History/Tasks/task1_phase3.md` TASK 05 + `Docs/History/Tasks/task2_phase4.md` TASK 03~05 + `Docs/History/Tasks/task4_phase6.md` TASK 02~05 + `Docs/History/Tasks/task6_phase7.md` TASK 06~08
+> 来源：`Docs/archive/history/Tasks/task1_phase3.md` TASK 05 + `Docs/archive/history/Tasks/task2_phase4.md` TASK 03~05 + `Docs/archive/history/Tasks/task4_phase6.md` TASK 02~05 + `Docs/archive/history/Tasks/task6_phase7.md` TASK 06~08
 > 自动化方式：pytest / `yaml.safe_load`
 > 环境要求：Python 3.x + pyyaml
 
@@ -466,7 +466,7 @@
 
 ## 14. 端到端集成（E2E）
 
-> 来源：TASK 15, TASK 19 + `Docs/History/Tasks/task4_phase6.md` TASK 06~08 + `Docs/History/Tasks/task6_phase7.md` TASK 08
+> 来源：TASK 15, TASK 19 + `Docs/archive/history/Tasks/task4_phase6.md` TASK 06~08 + `Docs/archive/history/Tasks/task6_phase7.md` TASK 08
 > 自动化方式：多步流水线，每步独立可执行
 
 ### L3 Functional Test (TASK 15)
@@ -494,7 +494,7 @@
 
 > 证据：`Docs/History/reports/AgentBridgeEvidence/task19_evidence_2026-03-27/` 含 step1~step7 全部日志 + JSON
 
-### Greenfield 管线验证（`Docs/History/Tasks/task1_phase3.md` TASK 07, 09, 10 + `Docs/History/Tasks/task2_phase4.md` TASK 09, 10）
+### Greenfield 管线验证（`Docs/archive/history/Tasks/task1_phase3.md` TASK 07, 09, 10 + `Docs/archive/history/Tasks/task2_phase4.md` TASK 09, 10）
 
 | 编号 | 用例名称 | 验证步骤 | 自动化命令 | 预期结果 |
 |------|---------|---------|-----------|---------|
@@ -509,7 +509,7 @@
 
 > 证据：`ProjectState/Reports/` 下执行报告 + `ProjectState/Handoffs/` 下 Handoff 文件
 
-### Brownfield 管线验证（`Docs/History/Tasks/task3_phase5.md` TASK 03~08）
+### Brownfield 管线验证（`Docs/archive/history/Tasks/task3_phase5.md` TASK 03~08）
 
 | 编号 | 用例名称 | 验证步骤 | 自动化命令 | 预期结果 |
 |------|---------|---------|-----------|---------|
@@ -518,7 +518,7 @@
 
 > 证据：`ProjectState/Reports/task_phase5_brownfield_rc_smoke_2026-04-01.md` + `Docs/History/reports/AgentBridgeEvidence/phase5_evidence_2026-04-01/`
 
-### Phase 6 Playable Runtime 验证（`Docs/History/Tasks/task4_phase6.md` TASK 06~08）
+### Phase 6 Playable Runtime 验证（`Docs/archive/history/Tasks/task4_phase6.md` TASK 06~08）
 
 | 编号 | 用例名称 | 验证步骤 | 自动化命令 | 预期结果 |
 |------|---------|---------|-----------|---------|
@@ -540,7 +540,7 @@
 
 > 证据：`ProjectState/Reports/task_phase6_doc_gap_and_entry_backfill_2026-04-02.md` + `ProjectState/Reports/phase6_runtime_acceptance_20260402_025815.json` + `Docs/History/reports/AgentBridgeEvidence/phase6_evidence_2026-04-02/`
 
-### Phase 10 MonopolyGame 全链路（`Docs/History/Tasks/task10_phase10.md` TASK 06~09）
+### Phase 10 MonopolyGame 全链路（`Docs/archive/history/Tasks/task10_phase10.md` TASK 06~09）
 
 | 编号 | 用例名称 | 验证步骤 | 自动化命令 | 预期结果 |
 |------|---------|---------|-----------|---------|
@@ -555,7 +555,7 @@
 
 ## 15. MCP Server 集成（MCP）
 
-> 来源：[task10_phase10.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/History/Tasks/task10_phase10.md) `TASK 03/TASK 05/TASK 08/TASK 09` + [live_smoke_get_current_project_state_2026-04-11.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-11/live_smoke_get_current_project_state_2026-04-11.md) + [task08_runtime_evidence_judgment_validation.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-11/task08_runtime_evidence_judgment_validation.md) + [task09_final_acceptance_validation.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-11/task09_final_acceptance_validation.md)
+> 来源：[task10_phase10.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/archive/history/Tasks/task10_phase10.md) `TASK 03/TASK 05/TASK 08/TASK 09` + [live_smoke_get_current_project_state_2026-04-11.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-11/live_smoke_get_current_project_state_2026-04-11.md) + [task08_runtime_evidence_judgment_validation.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-11/task08_runtime_evidence_judgment_validation.md) + [task09_final_acceptance_validation.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-11/task09_final_acceptance_validation.md)
 > 自动化方式：Python 静态校验 + `mcp.client.stdio` 协议调用 + Phase 10 证据校验
 > 环境要求：Python 3.x + `mcp==1.26.0`
 
@@ -578,7 +578,7 @@
 
 ## 16. Phase 11 设计编译器框架（P11）
 
-> 来源：[task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) `TASK 02 ~ TASK 15` + [18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/18_Phase11_Closeout.md) + [task15_phase11_final_acceptance.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/task15_phase11_final_acceptance.md)
+> 来源：[task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) `TASK 02 ~ TASK 15` + [18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/acceptance/acceptance_report.md#1) + [task15_phase11_final_acceptance.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/task15_phase11_final_acceptance.md)
 > 自动化方式：Python 静态校验 + Phase 11 证据报告读回 + 局部 live inventory / schema 检查
 > 环境要求：Python 3.x；若仅做证据对账，不要求 UE5 Editor 常驻
 
