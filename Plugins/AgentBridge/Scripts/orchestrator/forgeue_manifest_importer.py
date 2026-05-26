@@ -464,9 +464,9 @@ def _importer_path_mesh(
             source_uri_abs=source_uri,
         )
 
-    # 按 source_format 选 Factory
+    # 按 source_format 选 Factory + options(三元组返回 — FBX 需要 options 实例塞 task.options)
     fmt = import_options.get("source_format", "fbx").lower()
-    factory, factory_class_name = _build_mesh_factory(fmt, import_options)
+    factory, options, factory_class_name = _build_mesh_factory(fmt, import_options)
     if factory is None:
         return _evidence_failure(
             asset, bridge_mode,
@@ -483,6 +483,10 @@ def _importer_path_mesh(
     task.automated = True
     task.save = True
     task.factory = factory
+    # FBX 等需要 options 的 factory:UE 5.5 标准模式塞 AssetImportTask.options
+    # (实测 FbxFactory 没有 import_options editor property,只能走 task.options)
+    if options is not None:
+        task.options = options
 
     # 执行导入(同步) — wrap UE API 异常,spec §3.5
     asset_tools = unreal.AssetToolsHelpers.get_asset_tools()
@@ -514,7 +518,7 @@ def _importer_path_mesh(
     )
 
 
-def _build_mesh_factory(fmt: str, import_options: dict[str, Any]) -> tuple[Any, str]:
+def _build_mesh_factory(fmt: str, import_options: dict[str, Any]) -> tuple[Any, Any, str]:
     """按 source_format 选 FBX/GLTF/OBJ Factory。
 
     Args:
@@ -522,7 +526,10 @@ def _build_mesh_factory(fmt: str, import_options: dict[str, Any]) -> tuple[Any, 
         import_options: manifest entry 的 import_options dict
 
     Returns:
-        (factory_instance, factory_class_name) 元组
+        (factory_instance, options_instance, factory_class_name) 三元组
+        - factory_instance:塞 AssetImportTask.factory;None 表示不支持的 fmt
+        - options_instance:塞 AssetImportTask.options(UE 5.5 FBX 模式);None 表示无 options
+        - factory_class_name:string,evidence factory_class 字段用
         - fmt 不支持时 factory_instance 为 None,caller 应返 evidence_failure
         - GLTF/OBJ 路径在 UE 5.5 可能无显式 Factory 类,本 milestone 留 follow-up
 
@@ -533,27 +540,28 @@ def _build_mesh_factory(fmt: str, import_options: dict[str, Any]) -> tuple[Any, 
 
     if fmt == "fbx":
         factory = unreal.FbxFactory()
-        # FBX import 选项 — 避免导入材质/合并 mesh 等不需要的副作用
+        # FBX import 选项:塞 AssetImportTask.options(UE 5.5 标准模式,不能塞 Factory 自身)
+        # 实测:FbxFactory 没有 import_options editor property,UE 5.5 用 task.options
+        # 默认全 False — 避免导入材质/合并 mesh 等不需要的副作用
         fbx_import_data = unreal.FbxImportUI()
         fbx_import_data.import_materials = import_options.get("import_materials", False)
         fbx_import_data.import_textures = import_options.get("import_textures", False)
         fbx_import_data.static_mesh_import_data.combine_meshes = import_options.get("combine_meshes", False)
-        factory.set_editor_property("import_options", fbx_import_data)
-        return factory, "unreal.FbxFactory"
+        return factory, fbx_import_data, "unreal.FbxFactory"
 
     if fmt in ("gltf", "glb"):
         # UE 5.5 GLTF importer 通常通过 AssetTools.import_assets_automated 自动 dispatch,
         # 无独立 Python Factory 类。本 milestone fixture 不含 GLTF,留 follow-up。
-        return None, f"unreal.GLTFImporter (auto-selected by UE; not implemented)"
+        return None, None, "unreal.GLTFImporter (auto-selected by UE; not implemented)"
 
     if fmt == "obj":
         # UE 5.5 ObjFactory 类名待实测;本 milestone fixture 不含 OBJ,留 follow-up
         factory_class = getattr(unreal, "ObjFactory", None)
         if factory_class is None:
-            return None, "unreal.ObjFactory (not found in this UE build; not implemented)"
-        return factory_class(), "unreal.ObjFactory"
+            return None, None, "unreal.ObjFactory (not found in this UE build; not implemented)"
+        return factory_class(), None, "unreal.ObjFactory"
 
-    return None, f"unknown source_format: {fmt}"
+    return None, None, f"unknown source_format: {fmt}"
 
 
 def _creator_path_material(
