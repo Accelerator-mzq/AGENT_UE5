@@ -49,6 +49,16 @@ def _ue_editor_alive() -> bool:
         return False
 
 
+def _describe_object(object_path: str) -> dict:
+    """封装 /remote/object/describe 的 RC 调用。
+
+    `remote_control_client` 没有 describe 的 public API(它在 CLAUDE.md 禁止修改清单内),
+    本地包装 rc._http_request 把私有调用集中到一处,日后 rc 模块签名变化只需改这里。
+    """
+    import remote_control_client as rc
+    return rc._http_request("/remote/object/describe", {"objectPath": object_path})
+
+
 # 整文件级 skipif:离线时全部 skip,不需要单 case 加装饰器
 pytestmark = pytest.mark.skipif(
     not _ue_editor_alive(),
@@ -59,9 +69,7 @@ pytestmark = pytest.mark.skipif(
 @pytest.mark.real_ue
 def test_rc_endpoint_describes_import_assets_from_manifest():
     """RC 通路验证:/remote/object/describe 必须含 import_assets_from_manifest 函数。"""
-    import remote_control_client as rc
-
-    info = rc._http_request("/remote/object/describe", {"objectPath": _RC_OBJECT_PATH})
+    info = _describe_object(_RC_OBJECT_PATH)
     fn_names = [fn["Name"] for fn in info.get("Functions", [])]
     assert _RC_FUNCTION_NAME in fn_names, \
         f"endpoint 未注册 {_RC_FUNCTION_NAME}:实际函数 {fn_names}"
