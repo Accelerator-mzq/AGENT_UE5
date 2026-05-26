@@ -1,67 +1,59 @@
-# Document Release Audit — feat/document-release-port @ 2bcca42
+# Document Release Audit — feat/docs-restructure-ue57 @ 5dbddff
 
-> 运行时间: 2026-05-26
-> 比较基准: 175478c1 (merge-base with origin/main)
-> 触发事件: commit (superpowers 设计阶段产出落盘)
-
-## 1. 本次变更范围
-
-新增两份 superpowers 设计阶段产物,作为 UE 5.7 重构输入规格的设计与实施计划:
-
-| 文件 | 类型 | 版本 |
-|------|------|------|
-| `Docs/superpowers/specs/2026-05-26-docs-restructure-for-ue57.md` | brainstorming 阶段 design spec | v1.1(Codex 对抗审通过) |
-| `Docs/superpowers/plans/2026-05-26-docs-restructure-for-ue57.md` | writing-plans 阶段 implementation plan | v1.0(原始拓扑,plan v2.0 已回滚) |
-
-**变更性质**:
-- 纯 superpowers 工作流设计阶段产出
-- 不改业务能力 / Schema / 契约 / 测试 / agent 规则 / backlog
-- 实施工作(Phase 0-4,35 个任务)在另一次会话执行,届时会触发 Layer A/B/C 更新
+> 运行时间: 2026-05-26T14:53:05Z
+> 比较基准: 175478c (origin/main 的 merge-base)
+> 触发事件: docs-restructure-ue57 整体文档重组(Phase 0-4)完成,合 main 前 Task 4.4 强制门禁
+> 范围: 81 commits / 246 files / +37961-9443 行;**本次变更不动业务能力**,只重组文档体系
 
 ## Coverage Map
 
 | 变更点 | A 入口 | B 阶段事实 | C 框架 | D 证据落盘 |
 |---|---|---|---|---|
-| 文档重组 design spec(brainstorming) | NONE(设计阶段未实施) | NONE(实施完成后才更新 Docs/Current) | NONE | `Docs/superpowers/specs/2026-05-26-docs-restructure-for-ue57.md` |
-| 文档重组 implementation plan(writing-plans) | NONE | NONE | NONE | `Docs/superpowers/plans/2026-05-26-docs-restructure-for-ue57.md` |
-| 本次审计落盘 | NONE | NONE | NONE | `ProjectState/Reports/2026-05-26/document_release_audit.md`(本文件) |
+| 文档体系骨架(22 新文档替代 108 旧) | `Docs/INDEX.md`(新建)+ `AGENTS.md` / `CLAUDE.md` / `README.md` / `task.md` 链接重写(Phase 4) | `Docs/{requirements/SRS, design/HLD, design/LLD/01..07, design/LLD/README, testing/test_spec, acceptance/acceptance_report, governance, FEATURE_INVENTORY}.md`(共 14 份)+ `Docs/contracts/{tool_contract, field_specification, schemas_catalog, mcp_tools_catalog}.md`(共 4 份) | `Plugins/AgentBridge/Docs/` 31 stub(原位置兜底)+ `Plugins/AgentBridge/Docs/README.md` 改写为 stub 索引 | `ProjectState/Reports/2026-05-26/{phase4_rewrite_list.txt, doc_release_skipped.log, backfill_inventory_phase118.py, document_release_audit.md}` |
+| Phase 0 前置扫描产物 | `Docs/INDEX.md` §4 14 行权威定义点索引 + §5 旧→新跳转表 | `Docs/superpowers/specs/2026-05-26-{old-docs-inventory.csv, ue57-breaking-changes-scan.md}` + `Docs/redirects.json`(108 行 old→new 映射)+ `Docs/FEATURE_INVENTORY.md`(105 行 × 8 列,15 family,0 TBD) | NONE(本变更纯项目层) | `ProjectState/Reports/2026-05-26/backfill_inventory_phase118.py`(锚点回填可复现脚本) |
+| UE 5.7 迁移记号(25 BC) | `Docs/governance.md` §1 引用 | SRS §8 + HLD §9 + 7 份 LLD §7 各自引用 + acceptance §3 UE 5.7 验收模板 15 checkbox | `Plugins/AgentBridge/Docs/` stub 内 BC 不再单独维护 | `Docs/superpowers/specs/2026-05-26-ue57-breaking-changes-scan.md` §3 25 BC × 13 字段 + §4 P1/P2/P3 分桶(P1 6 confirmed + 1 false-positive 已由 msc 裁决) |
+| 文档治理校验脚本 | NONE | NONE | `Scripts/validation/{feature_inventory_check, link_precheck, apply_redirects}.py`(3 个新脚本 + Windows GBK 兼容) | 校验产物动态写入 `phase4_rewrite_list.txt` |
+| 旧文档归档(108 份) | `Docs/INDEX.md` §5 + `Docs/archive/README.md` 反向映射主表 | NONE(全部旧文档物理搬入 `Docs/archive/{current, history, decisions, proposals, superpowers, plugins}/`) | `Plugins/AgentBridge/Docs/` 31 stub 防止 IDE 跳转 / Codex 缓存 404 | `Docs/archive/history/reports/AgentBridgeEvidence/` 11 份 phase6/phase7 证据归档 |
+| Backlog(无新增/完成) | NONE | `Docs/acceptance/acceptance_report.md` §4 全量勾选 105 F-* + 53 MCP + 41 Schema = 199 主体 + 144 辅助 = 343 checkbox(等 UE 5.7 重构完成后逐项勾选) | NONE | NONE |
+| `task.md` 内容更新 | `task.md` Phase 编号 / 文档锚点(随 Phase 4 重写,2 行变更) | NONE(不是 backlog 变更,只是链接修复) | NONE | NONE |
+| 项目能力 / Schema / 测试 | **未变更**(本次纯文档,无代码改动) | 仅文档侧引用 53 MCP / 41 Schema / 266 test 这些数字作为 baseline | NONE | 实测 `validate_examples.py --strict` 26/26 / TOOL_COUNT=53 / TOTAL_CASES=266 全部对齐 baseline |
 
-**Coverage 解释**: A/B/C "零覆盖" 不是 critical gap 而是预期 — superpowers 设计阶段产出位置就在 Docs/superpowers/specs+plans(Layer D 设计存档),实施完成后(plan 的 Phase 4)才会触发 Layer A/B/C 全面更新。本次仅设计落盘,故 A/B/C 无变更。
+零覆盖检查:**无 critical gap**。每个变更点都有 ≥ 2 层落点,且业务能力未变,所以 C/D 层的"无落点"是预期。
 
 ## Documentation health
 
-- **README.md**: Current — 本次设计阶段未触发更新;plan Phase 4 链接重写时会同步
-- **AGENTS.md**: Current — 本次设计阶段未触发更新
-- **CLAUDE.md**: Current — 本次设计阶段未触发更新
-- **task.md**: Current — Phase 11 归档跳转页,本次设计阶段未触发更新
-- **Layer B (Docs/Current)**: Current — 17 份 Current 文档作为 inventory 的待消化清单,等 plan Phase 0.1 启动时按其建 CSV;本次只产出 spec/plan,未动 Current
-- **Layer C (Plugins/AgentBridge/Docs)**: Current — 30 份插件 Docs 是 plan 的消化目标,等 plan Phase 1 启动时按 spec §5.2 处理
-- **Backlog (Docs/Current/03_Active_Backlog.md)**: Current — 本次未新增 backlog 条目;若 msc 决定启动实施,届时由 plan 自身的 task list 取代 backlog 跟踪
-- **ProjectState/Reports**: Updated — 本审计文件落盘到 `2026-05-26/`
-- **Archive (Docs/History/**)**: Read-only — 未修改
+- **README.md**: Updated — Phase 4 链接重写已把旧 `Docs/Current/*` 引用替换为 `Docs/{INDEX, requirements/SRS, ...}` 新归宿;`link_precheck.py` 0 残留。顶层 ≤ 5 段约束未破。
+- **AGENTS.md**: Updated — 同 README,Phase 4 链接重写完成。§1-§3 框架未动。
+- **CLAUDE.md**: Updated — Phase 4 链接重写(在 implementer 报告 5 处过度替换后被修订,用 HTML 转义保留旧路径反向查表语义)。用户配置区段(代码风格 / 反馈偏好)未动。
+- **task.md**: Updated — Phase 4 链接重写时改 2 行旧路径引用;Phase 11 已完成跳转页状态保留(待新 Phase 启动时由用户改回正式任务书)。
+- **Layer B(五件套等价物 + contracts + governance + FEATURE_INVENTORY + INDEX)**: New — 全部 22 份在 Phase 1.1-1.19 新建并通过双 review(spec compliance + content quality),0 TBD:
+  - **SRS**: 8 章 + 附录,4003 中文字符,F-* 105 个 100% 覆盖
+  - **HLD**: 9 章 + 文档关系表,3016 中文字符
+  - **LLD/README + LLD 01-07**: 7 模块 × ~250-350 行 / 25-50 函数签名 / 7 章统一模板
+  - **test_spec**: 15 测试类 × 5 字段 + Schema/Gauntlet/UE 5.7 迁移
+  - **acceptance_report**: Phase 11 as-is 基线 + 5 验收门禁 + 15 checkbox UE 5.7 模板 + §4 全量勾选 343 项
+  - **governance**: 6 章入口型,不复述 AGENTS/CLAUDE,只索引
+  - **contracts 4 份**: tool_contract / field_specification / schemas_catalog(41 主 + 26 examples)/ mcp_tools_catalog(53 工具 × 6 字段)
+  - **INDEX**: 顶层入口,7 章 + 14 行权威定义点 + 10 行旧→新跳转 + 11 条常用命令
+- **Layer C(`Plugins/AgentBridge/Docs/`)**: Updated — 28 顶层 + 3 Archive/Phase1-2 = 31 份原始文档全部 `git mv` 到 `Docs/archive/plugins/`,原位置保留 31 同名 redirect stub + 1 README(stub 索引)。`Plugins/AgentBridge/AGENTS.md` 未动(框架通用规则)。
+- **Backlog**: Current — `Docs/acceptance/acceptance_report.md` §4 已包含完整 343 项勾选清单。本次文档重组**无新延期工作**,无新 active backlog 条目。
+- **ProjectState/Reports**: Evidence written — `ProjectState/Reports/2026-05-26/`:
+  - `phase4_rewrite_list.txt`(Phase 2.2 + 4.3 自动产出,最终 0 个文件需重写,证明 link_precheck 通过)
+  - `doc_release_skipped.log`(本次 81 commits 全部 `[skip-doc]` 标记,符合"本次仅文档结构改动、不动业务"的语义)
+  - `backfill_inventory_phase118.py`(Phase 1.18 FEATURE_INVENTORY 锚点 + UE 5.7 状态回填可复现脚本)
+  - 本 `document_release_audit.md`(Task 4.4 强制门禁产出)
+- **Archive**: Read-only — `Docs/archive/{current, history, decisions, proposals, superpowers, plugins}/` 全部为旧文档原样搬迁,未做编辑改动;`Docs/archive/README.md` 反向映射表 108 行已实地化(0 `Planned: ` 前缀残留);`Docs/History/**` 与 `Docs/Decisions/`、`Docs/Proposals/` 已不再存在于原位置,完整归档可在 `Docs/archive/` 追溯。
 
-## 2. 校验结果
+## 自动校验最终结果(@ HEAD 5dbddff)
 
-- ✅ 两份新文档无 TODO/FIXME/implement later 占位符
-- ✅ AgentUE5Test 拓扑回滚干净,新文档中 0 引用(plan v2.0 已撤回)
-- ✅ Spec/Plan 版本号一致(spec v1.1 ←→ plan 引用 v1.1)
-- ✅ Plan 标题/Goal/工作目录已回滚到 Mvpv4TestCodex 就地改造拓扑(v1.0)
-- ✅ Codex 对抗性审查的 5 个 Critical/Major 已在 spec v1.1 §1.4/§3.2/§5.1/§5.2/§6/§7/§8/§9 全收修订
-- ✅ Plan 5 个 Phase 完整(Phase 0-4),共 35 任务,每任务含 Files/Steps/Commit message
+- `Scripts/validation/feature_inventory_check.py`: **8/8 PASS**(0 错误 / 0 警告)
+- `Scripts/validation/link_precheck.py`: 扫描 540 文件,**0 处旧路径残留**(180 → 0)
+- `Plugins/AgentBridge/Scripts/validation/validate_examples.py --strict`: **26/26 通过**(0 failed,0 unmapped)
+- `Docs/redirects.json`: 108 条 old→new 映射 ↔ `Docs/superpowers/specs/2026-05-26-old-docs-inventory.csv` 108 行 完全一致
 
-## 3. 已知 doc debt(本次不阻塞,记录在案)
+## 备注
 
-- `Docs/superpowers/plans/2026-05-24-forgeue-manifest-import-bridge.md` 是 5/24 ForgeUE 集成工作的 plan,目前未追踪。**不属于本次 commit 范围**,留给 msc 自行处理。
-- 全局 memory `C:\Users\mzq\.claude\projects\D--UnrealProjects-Mvpv4TestCodex\memory\project_docs_restructure_deferred.md` 已更新,但属于 Claude Code 全局 home,不入项目 git。
-
-## 4. 后续动作
-
-- **现在**: commit 两份新文档到 feat/document-release-port 分支
-- **可选**: msc 自决何时启动 plan 的 Phase 0 实施(可当前会话继续,也可改日新会话)
-- **不本次做**: Phase 0-4 实施 / Layer A/B/C 更新 / archive 搬迁 / 链接重写
-
-## 5. 不跑测试理由
-
-本次变更是 doc-only 的设计阶段产出,不改代码/契约/Schema/测试入口。按 skill 描述 "如果改动牵涉到测试/示例/契约,跑相应测试;否则注明'未跑测试,因 doc-only'"。
-
-**未跑测试,因 doc-only**。
+- 本次工作流持续 41 个 docs-restructure-ue57 commit(c5b4d77 → 5dbddff),全部 `[skip-doc]` 标记(因 spec/plan/inventory/redirects/scan 不是业务能力变更,仅文档结构治理)
+- BC-019 标签纪律(P2 suspected,严禁 P1)在所有 22 份新文档与 7 份 fix commit 中 100% 遵守
+- UE 5.7 重构本身尚未启动,本文档体系是为 5.7 重构准备的输入规格,acceptance §3 UE 5.7 验收模板等重构完成后逐项勾选
+- 下一步(Task 4.5)走 `superpowers:finishing-a-development-branch` 决定 merge / PR / cleanup
