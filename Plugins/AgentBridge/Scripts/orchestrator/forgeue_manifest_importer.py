@@ -282,7 +282,7 @@ _COMPRESSION_MAP: dict[str, str] = {
 }
 
 
-def _build_texture_factory(import_options: dict[str, Any]):
+def _build_texture_factory(import_options: dict[str, Any]) -> Any:
     """构造 TextureFactory 并按 import_options 设置属性。
 
     Args:
@@ -343,9 +343,16 @@ def _importer_path_texture(
     task.save = True
     task.factory = factory
 
-    # 执行导入(同步)
+    # 执行导入(同步) — wrap UE API 异常,任何失败都不能让整批中断(spec §3.5)
     asset_tools = unreal.AssetToolsHelpers.get_asset_tools()
-    asset_tools.import_asset_tasks([task])
+    try:
+        asset_tools.import_asset_tasks([task])
+    except Exception as exc:  # noqa: BLE001  # UE API 异常类型不可枚举,catch-all 必须
+        return _evidence_failure(
+            asset, bridge_mode,
+            f"import_asset_tasks raised: {type(exc).__name__}: {exc}",
+            source_uri_abs=source_uri,
+        )
 
     # 校验:imported_object_paths 应有 1 个新对象
     if not task.imported_object_paths:
