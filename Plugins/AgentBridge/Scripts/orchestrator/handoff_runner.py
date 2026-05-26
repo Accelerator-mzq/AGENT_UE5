@@ -36,7 +36,13 @@ if str(project_root) not in sys.path:
 
 from Plugins.AgentBridge.Skills.base_domains import load_base_domain_modules
 from compiler.analysis import write_snapshot_manifest
-from .run_plan_builder import build_run_plan_from_handoff
+# 与上方 bridge.project_config 同样的兼容策略:
+# - 以包模块方式加载(orchestrator.handoff_runner)时,relative import 生效
+# - 以裸模块 (import handoff_runner) 加载时,fallback 到平铺路径
+try:
+    from .run_plan_builder import build_run_plan_from_handoff
+except ImportError:
+    from run_plan_builder import build_run_plan_from_handoff
 
 _DEFAULT_LEVEL_PATH = "/Game/Maps/TestMap"
 _AGENT_BRIDGE_SUBSYSTEM_PATH = "/Script/AgentBridge.Default__AgentBridgeSubsystem"
@@ -138,6 +144,15 @@ def execute_run_plan(run_plan: Dict[str, Any], bridge_mode: str = "simulated") -
                     result["post_spawn_actions"] = action_results
         elif workflow_type == "set_actor_transform":
             result = execute_set_actor_transform(params, bridge_mode)
+        elif workflow_type == "import_assets":
+            # 接 ForgeUE_codex P4 manifest_only 输出
+            # params 约定: manifest_path / plan_path(可选) / bridge_mode(可选,默认沿用外层)
+            from forgeue_manifest_importer import import_from_manifest
+            result = import_from_manifest(
+                manifest_path=params["manifest_path"],
+                plan_path=params.get("plan_path"),
+                bridge_mode=params.get("bridge_mode", bridge_mode),
+            )
         else:
             result = {"status": "skipped", "reason": f"未实现的 workflow_type: {workflow_type}"}
 
