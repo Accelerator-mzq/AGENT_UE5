@@ -2,7 +2,8 @@
 
 > 版本: v1 (2026-05-26)
 > 范围: AgentBridge Plugin C++ 核心层 6 个类
-> 上游: `Docs/HLD.md` §模块拓扑 + `Docs/requirements/SRS.md` §3.1 + `Docs/FEATURE_INVENTORY.md` F-CPP-01..06
+> 上游: `Docs/design/HLD.md` §模块拓扑 + `Docs/requirements/SRS.md` §3.1 + `Docs/FEATURE_INVENTORY.md` F-CPP-01..06
+> 契约: `Docs/contracts/tool_contract.md` §2-§4(L1/L2/L3 协议) + `Docs/contracts/field_specification.md`(USTRUCT 字段规范)
 > UE 版本: 当前 5.5.4 → 目标 5.7
 
 ## 1. 模块概述
@@ -275,4 +276,4 @@ UAgentBridgeSubsystem::BuildProject(Platform, Config, bDryRun)
 
 ---
 
-**关联文件**: `Docs/HLD.md` §模块拓扑 / `Docs/requirements/SRS.md` §3.1 / `Docs/FEATURE_INVENTORY.md` F-CPP-01..06 / `Docs/superpowers/specs/2026-05-26-ue57-breaking-changes-scan.md` §3-§4
+**关联文件**: `Docs/design/HLD.md` §1-§4 / `Docs/requirements/SRS.md` §3.1 / `Docs/FEATURE_INVENTORY.md` F-CPP-01..06 / `Docs/contracts/tool_contract.md` §2-§4(L1/L2/L3 协议) / `Docs/contracts/field_specification.md`(USTRUCT 字段) / `Docs/superpowers/specs/2026-05-26-ue57-breaking-changes-scan.md` §3-§4
