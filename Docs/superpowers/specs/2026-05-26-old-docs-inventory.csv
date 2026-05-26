@@ -2,7 +2,7 @@ old_path,content_topic,status,planned_new_anchor,cross_refs_count,notes
 Docs/Current/00_Index.md,当前阶段索引,already-consumed,Planned: INDEX.md (全替换),16,cross_refs_count 用 basename 在全部 md 内扫描得出 (排除自身与本任务 spec/plan)
 Docs/Current/01_Project_Baseline.md,Phase 11 项目基线,already-consumed,requirements/SRS.md#1 + acceptance/acceptance_report.md#1,12,
 Docs/Current/02_Current_Phase_Goals.md,阶段目标完成状态,already-consumed,acceptance/acceptance_report.md#1,12,
-Docs/Current/03_Active_Backlog.md,活动 backlog,archive-only,Planned: acceptance/acceptance_report.md#1-附,9,
+Docs/Current/03_Active_Backlog.md,活动 backlog,archive-only,acceptance/acceptance_report.md#1-附,9,
 Docs/Current/04_Open_Risks.md,风险记录,archive-only,Planned: archive/current/04_Open_Risks.md,10,
 Docs/Current/05_Implementation_Boundary.md,实施边界,already-consumed,requirements/SRS.md#6.5 + governance.md#6,11,
 Docs/Current/06_Current_Task_List.md,当前任务入口,already-consumed,Planned: INDEX.md#3,3,

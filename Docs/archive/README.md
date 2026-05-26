@@ -11,7 +11,7 @@
 | `Docs/Current/00_Index.md` | 当前阶段索引 | Planned: INDEX.md (全替换) | already-consumed |
 | `Docs/Current/01_Project_Baseline.md` | Phase 11 项目基线 | requirements/SRS.md#1 + acceptance/acceptance_report.md#1 | already-consumed |
 | `Docs/Current/02_Current_Phase_Goals.md` | 阶段目标完成状态 | acceptance/acceptance_report.md#1 | already-consumed |
-| `Docs/Current/03_Active_Backlog.md` | 活动 backlog | Planned: acceptance/acceptance_report.md#1-附 | archive-only |
+| `Docs/Current/03_Active_Backlog.md` | 活动 backlog | acceptance/acceptance_report.md#1-附 | archive-only |
 | `Docs/Current/04_Open_Risks.md` | 风险记录 | Planned: archive/current/04_Open_Risks.md | archive-only |
 | `Docs/Current/05_Implementation_Boundary.md` | 实施边界 | requirements/SRS.md#6.5 + governance.md#6 | already-consumed |
 | `Docs/Current/06_Current_Task_List.md` | 当前任务入口 | Planned: INDEX.md#3 | already-consumed |
