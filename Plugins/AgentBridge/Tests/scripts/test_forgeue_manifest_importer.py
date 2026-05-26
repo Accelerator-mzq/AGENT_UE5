@@ -115,6 +115,26 @@ def test_import_from_manifest_rejects_unknown_bridge_mode():
         )
 
 
+def test_import_from_manifest_bridge_python_raises_runtime_error_outside_ue():
+    """bridge_python 在非 UE Editor Python 环境必须 raise RuntimeError(不是 NotImplementedError)。"""
+    with pytest.raises(RuntimeError, match="UE Editor Python"):
+        importer.import_from_manifest(
+            manifest_path=str(_MANIFEST_PATH),
+            plan_path=str(_PLAN_PATH),
+            bridge_mode="bridge_python",
+        )
+
+
+def test_import_from_manifest_bridge_rc_api_raises_not_implemented_for_external():
+    """bridge_rc_api 不能从外部 importer 直接调,必须通过 RC endpoint。"""
+    with pytest.raises(NotImplementedError, match="RC endpoint"):
+        importer.import_from_manifest(
+            manifest_path=str(_MANIFEST_PATH),
+            plan_path=str(_PLAN_PATH),
+            bridge_mode="bridge_rc_api",
+        )
+
+
 def test_handoff_runner_dispatches_import_assets_to_forgeue_importer():
     """end-to-end: handoff_runner.execute_run_plan 收到 import_assets step
     时,应 dispatch 到 forgeue_manifest_importer 而不是 fall through 到
@@ -152,19 +172,6 @@ def test_handoff_runner_dispatches_import_assets_to_forgeue_importer():
     assert len(inner["asset_results"]) == 6
 
 
-@pytest.mark.parametrize("mode", ["bridge_python", "bridge_rc_api"])
-def test_import_from_manifest_unimplemented_bridge_modes_raise_with_clear_message(mode):
-    """bridge_python / bridge_rc_api 当前未实现, 必须 raise NotImplementedError
-    且消息里点名 mode + 指向后续工作, 不能 silent return 假成功。
-    """
-    with pytest.raises(NotImplementedError) as exc:
-        importer.import_from_manifest(
-            manifest_path=str(_MANIFEST_PATH),
-            plan_path=str(_PLAN_PATH),
-            bridge_mode=mode,
-        )
-    assert mode in str(exc.value)
-
 
 def test_cli_main_simulated_prints_json_and_returns_zero(capsys):
     """CLI: --manifest + --plan + --bridge-mode simulated 应输出 JSON 到 stdout 并 return 0."""
@@ -183,8 +190,8 @@ def test_cli_main_simulated_prints_json_and_returns_zero(capsys):
     assert len(payload["asset_results"]) == 6
 
 
-def test_cli_main_unimplemented_mode_returns_nonzero(capsys):
-    """CLI: 未实现 mode 应 return 非 0 并把错误打到 stderr,不抛 traceback 出去。"""
+def test_cli_main_bridge_python_outside_ue_returns_nonzero(capsys):
+    """CLI:bridge_python 在非 UE 环境 return 非 0 并把 RuntimeError 打到 stderr。"""
     rc = importer.main([
         "--manifest", str(_MANIFEST_PATH),
         "--bridge-mode", "bridge_python",
@@ -192,7 +199,7 @@ def test_cli_main_unimplemented_mode_returns_nonzero(capsys):
     captured = capsys.readouterr()
 
     assert rc != 0
-    assert "bridge_python" in captured.err
+    assert "UE Editor Python" in captured.err
 
 
 # ============================================================

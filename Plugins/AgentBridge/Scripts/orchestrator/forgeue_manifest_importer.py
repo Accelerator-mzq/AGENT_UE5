@@ -1,59 +1,45 @@
 """ForgeUE_codex UEAssetManifest 导入桥接。
 
-读取 ForgeUE_codex P4 流水线产出的 `manifest.json` + `import_plan.json`，
+读取 ForgeUE_codex P4 流水线产出的 `manifest.json` + `import_plan.json`,
 按 bridge_mode 分发到 simulated / bridge_python / bridge_rc_api 三种执行通路。
 
 输入契约固定为 ForgeUE_codex `framework.core.ue.UEAssetManifest`
-（schema_version 1.0.0），asset_kind 枚举：
-    texture / sound_wave / static_mesh / material / file_media_source
+(schema_version 1.0.0),asset_kind 枚举:
+    texture / sprite_sheet / sound_wave / static_mesh / material / file_media_source
 
 设计原则:
 - 只负责"读 manifest → 翻译成 AgentBridge 可执行单元"
-- 不做任何 UE Editor 内部副作用（那是 bridge_mode 各自下游的事）
-- simulated 模式必须能完全离线跑通，作为契约不漂移的看护
-"""
+- 不做任何 UE Editor 内部副作用(那是 bridge_mode 各自下游的事)
+- simulated 模式必须能完全离线跑通,作为契约不漂移的看护
 
-# ------------------------------------------------------------
-# 未实现部分(后续 milestone 接入)
-# ------------------------------------------------------------
-# bridge_python:
-#   在 UE Editor 进程内通过 unreal Python API 调 AssetTools.ImportAssets,
-#   对每条 op 写 evidence(沿用 ForgeUE_codex 的 evidence.json 契约)。
-#   只能在 UE Editor 内执行,不能离线跑;触发条件:UE Editor 启动 +
-#   AgentBridge subsystem 已 ready。
-#
-# bridge_rc_api:
-#   通过 Remote Control API(端口 30010)远程触发同样的导入。
-#   依赖 bridge.remote_control_client; 触发条件: UE Editor + Remote Control
-#   plugin enabled。
-# ------------------------------------------------------------
+bridge_python / bridge_rc_api 通过共享内核 `_import_asset_by_kind` 实现:
+- bridge_python: 直接调内核(只能在 UE Editor Python 环境)
+- bridge_rc_api: RC HTTP → forgeue_rc_endpoint.py → 同一内核
+"""
 
 from __future__ import annotations
 
+import datetime as _dt
 import json
 from pathlib import Path
 from typing import Any
 
 
+# ============================================================
+# manifest / plan 解析(原有,不动)
+# ============================================================
+
 def parse_manifest(manifest_path: str) -> dict[str, Any]:
-    """读 ForgeUE_codex manifest.json 并做基本校验。
-
-    返回的 dict 至少包含 ``schema_version`` / ``run_id`` / ``assets``。
-    上游 schema 若往 2.x 演进且不向后兼容，本函数会通过断言早期失败。
-    """
+    """读 ForgeUE_codex manifest.json 并做基本校验。"""
     raw = json.loads(Path(manifest_path).read_text(encoding="utf-8"))
-
-    # 只允许已对齐的契约版本；上游升级时这里会显式断版本号。
     schema_version = raw.get("schema_version")
     if schema_version != "1.0.0":
         raise ValueError(
             f"unsupported manifest schema_version: {schema_version!r} "
             f"(this bridge only supports '1.0.0')"
         )
-
     if not isinstance(raw.get("assets"), list):
         raise ValueError("manifest.assets must be a list")
-
     return raw
 
 
@@ -72,18 +58,17 @@ def parse_import_plan(plan_path: str) -> dict[str, Any]:
     return raw
 
 
+# ============================================================
+# 主入口
+# ============================================================
+
 def import_from_manifest(
     *,
     manifest_path: str,
     plan_path: str | None = None,
     bridge_mode: str = "simulated",
 ) -> dict[str, Any]:
-    """主入口:按 bridge_mode dispatch,返回结构化执行结果。
-
-    - simulated: 离线模拟,不副作用,用于契约校验 + handoff_runner 单元测试
-    - bridge_python: 调 UE Python Editor API(本计划留 NotImplementedError stub)
-    - bridge_rc_api: 调 Remote Control API(本计划留 NotImplementedError stub)
-    """
+    """主入口:按 bridge_mode dispatch,返回结构化执行结果。"""
     if bridge_mode not in _SUPPORTED_BRIDGE_MODES:
         raise ValueError(
             f"unsupported bridge_mode: {bridge_mode!r} "
@@ -92,23 +77,40 @@ def import_from_manifest(
 
     manifest = parse_manifest(manifest_path)
     plan = parse_import_plan(plan_path) if plan_path else None
+    manifest_root = Path(manifest_path).resolve().parent
 
     if bridge_mode == "simulated":
         asset_results = [_simulate_asset(asset) for asset in manifest["assets"]]
-        return {
-            "status": "success",
-            "bridge_mode": bridge_mode,
-            "run_id": manifest["run_id"],
-            "manifest_id": manifest.get("manifest_id"),
-            "plan_id": plan.get("plan_id") if plan else None,
-            "asset_results": asset_results,
-        }
+    elif bridge_mode == "bridge_python":
+        # 真机通路:每条 asset 进入共享内核
+        overwrite = manifest.get("import_rules", {}).get("overwrite_existing", False)
+        asset_results = [
+            _import_asset_by_kind(asset, manifest_root, overwrite, bridge_mode="bridge_python")
+            for asset in manifest["assets"]
+        ]
+    elif bridge_mode == "bridge_rc_api":
+        # RC HTTP 通路:外部不应直接走这里,由 forgeue_rc_endpoint 触发后等价于 bridge_python
+        raise NotImplementedError(
+            "bridge_rc_api 必须由 RC endpoint 触发,不能直接从外部 importer 调;"
+            "外部驱动请用 Scripts/run_forgeue_real_smoke.py(--bridge-mode bridge_rc_api)"
+        )
+    else:
+        # _SUPPORTED_BRIDGE_MODES 已守门,此分支理论不可达
+        raise AssertionError(f"unreachable: bridge_mode={bridge_mode!r}")
 
-    # bridge_python / bridge_rc_api 由 Task 4 填充 NotImplementedError stub
-    raise NotImplementedError(
-        f"bridge_mode={bridge_mode!r} not implemented in this milestone"
-    )
+    return {
+        "status": "success" if all(r.get("status") == "success" for r in asset_results) else "partial",
+        "bridge_mode": bridge_mode,
+        "run_id": manifest["run_id"],
+        "manifest_id": manifest.get("manifest_id"),
+        "plan_id": plan.get("plan_id") if plan else None,
+        "asset_results": asset_results,
+    }
 
+
+# ============================================================
+# simulated 路径(原有,不动)
+# ============================================================
 
 def _simulate_asset(asset: dict[str, Any]) -> dict[str, Any]:
     """单 asset 的模拟执行结果——不做任何 UE 副作用。"""
@@ -123,16 +125,145 @@ def _simulate_asset(asset: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-# ------------------------------------------------------------
-# CLI 入口
-# ------------------------------------------------------------
+# ============================================================
+# 真机内核 _import_asset_by_kind(只能在 UE Editor Python 环境调)
+# ============================================================
+
+def _import_asset_by_kind(
+    asset: dict[str, Any],
+    manifest_root: Path,
+    overwrite_existing: bool,
+    *,
+    bridge_mode: str,
+) -> dict[str, Any]:
+    """单 asset 真机执行;只能在 UE Editor Python 环境跑。
+
+    返回 forgeue_import_evidence.schema.json 兼容的 dict。
+    """
+    try:
+        import unreal  # 失败 → 不在 Editor Python 环境
+    except ImportError as exc:
+        raise RuntimeError(
+            "_import_asset_by_kind 必须在 UE Editor Python 环境运行(import unreal 失败);"
+            "外部驱动请用 simulated 模式或 bridge_rc_api 通路"
+        ) from exc
+
+    kind = asset["asset_kind"]
+    source_uri = (manifest_root / asset["source_uri"]).resolve()
+    if not source_uri.exists():
+        return _evidence_failure(asset, bridge_mode, f"payload missing: {source_uri}")
+
+    target_pkg = asset["target_package_path"]
+    import_options = asset.get("import_options", {})
+
+    if kind in ("texture", "sprite_sheet"):
+        return _importer_path_texture(asset, source_uri, target_pkg, overwrite_existing,
+                                      import_options, bridge_mode)
+    if kind == "sound_wave":
+        return _importer_path_sound(asset, source_uri, target_pkg, overwrite_existing,
+                                    import_options, bridge_mode)
+    if kind == "static_mesh":
+        return _importer_path_mesh(asset, source_uri, target_pkg, overwrite_existing,
+                                   import_options, bridge_mode)
+    if kind == "material":
+        return _creator_path_material(asset, source_uri, target_pkg, overwrite_existing,
+                                      bridge_mode)
+    if kind == "file_media_source":
+        return _creator_path_media(asset, source_uri, target_pkg, overwrite_existing,
+                                   bridge_mode)
+
+    return _evidence_failure(asset, bridge_mode, f"unsupported asset_kind: {kind}")
+
+
+# ============================================================
+# helper:evidence 构造
+# ============================================================
+
+def _evidence_failure(asset: dict, bridge_mode: str, message: str,
+                       *, errors: list[str] | None = None) -> dict:
+    """构造 failed 状态的 evidence dict(符合 forgeue_import_evidence.schema.json)。"""
+    return {
+        "asset_entry_id": asset.get("asset_entry_id", ""),
+        "op_id": f"op_failed_{asset.get('asset_entry_id', 'unknown')}",
+        "asset_kind": asset.get("asset_kind", ""),
+        "bridge_mode": bridge_mode,
+        "status": "failed",
+        "timestamp": _dt.datetime.utcnow().isoformat(timespec="milliseconds") + "Z",
+        "source_uri_abs": str(asset.get("source_uri", "")),
+        "errors": errors or [message],
+    }
+
+
+def _evidence_skipped(asset: dict, bridge_mode: str, reason: str) -> dict:
+    """构造 skipped 状态的 evidence dict。"""
+    return {
+        "asset_entry_id": asset.get("asset_entry_id", ""),
+        "op_id": f"op_skipped_{asset.get('asset_entry_id', 'unknown')}",
+        "asset_kind": asset.get("asset_kind", ""),
+        "bridge_mode": bridge_mode,
+        "status": "skipped",
+        "timestamp": _dt.datetime.utcnow().isoformat(timespec="milliseconds") + "Z",
+        "source_uri_abs": str(asset.get("source_uri", "")),
+        "skipped_reason": reason,
+    }
+
+
+def _evidence_success(asset: dict, bridge_mode: str, source_uri_abs: Path,
+                      uasset_object_path: str, factory_class: str,
+                      duration_ms: int, import_log_excerpt: str = "") -> dict:
+    """构造 success 状态的 evidence dict。"""
+    return {
+        "asset_entry_id": asset.get("asset_entry_id", ""),
+        "op_id": f"op_import_{asset.get('asset_entry_id', 'unknown')}",
+        "asset_kind": asset.get("asset_kind", ""),
+        "bridge_mode": bridge_mode,
+        "status": "success",
+        "timestamp": _dt.datetime.utcnow().isoformat(timespec="milliseconds") + "Z",
+        "source_uri_abs": str(source_uri_abs),
+        "uasset_object_path": uasset_object_path,
+        "uasset_package_path": uasset_object_path.split(".")[0] if "." in uasset_object_path else uasset_object_path,
+        "factory_class": factory_class,
+        "duration_ms": duration_ms,
+        "import_log_excerpt": import_log_excerpt,
+        "errors": [],
+    }
+
+
+# ============================================================
+# 5+1 种 asset_kind 实现(Task 6-10 逐一填充;此 task 全 raise NotImplementedError 占位)
+# ============================================================
+
+def _importer_path_texture(asset, source_uri, target_pkg, overwrite, import_options, bridge_mode):
+    """texture / sprite_sheet 真机导入(待 Task 6 填充)。"""
+    raise NotImplementedError("texture/sprite_sheet importer pending Task 6")
+
+
+def _importer_path_sound(asset, source_uri, target_pkg, overwrite, import_options, bridge_mode):
+    """sound_wave 真机导入(待 Task 7 填充)。"""
+    raise NotImplementedError("sound_wave importer pending Task 7")
+
+
+def _importer_path_mesh(asset, source_uri, target_pkg, overwrite, import_options, bridge_mode):
+    """static_mesh 真机导入(待 Task 8 填充)。"""
+    raise NotImplementedError("static_mesh importer pending Task 8")
+
+
+def _creator_path_material(asset, source_uri, target_pkg, overwrite, bridge_mode):
+    """material 真机创建(待 Task 9 填充)。"""
+    raise NotImplementedError("material creator pending Task 9")
+
+
+def _creator_path_media(asset, source_uri, target_pkg, overwrite, bridge_mode):
+    """file_media_source 真机创建(待 Task 10 填充)。"""
+    raise NotImplementedError("file_media_source creator pending Task 10")
+
+
+# ============================================================
+# CLI 入口(原有,只在 except 子句多收一个 RuntimeError)
+# ============================================================
 
 def main(argv: list[str] | None = None) -> int:
-    """命令行入口:`python -m ... --manifest <path> [--plan <path>] [--bridge-mode simulated]`。
-
-    成功:把 import_from_manifest 结果 JSON 打到 stdout, return 0
-    失败:把错误消息打到 stderr, return 非 0(不抛 traceback)
-    """
+    """命令行入口:`python -m ... --manifest <path> [--plan <path>] [--bridge-mode simulated]`。"""
     import argparse
     import sys as _sys
 
@@ -155,7 +286,7 @@ def main(argv: list[str] | None = None) -> int:
             plan_path=args.plan,
             bridge_mode=args.bridge_mode,
         )
-    except (ValueError, NotImplementedError, FileNotFoundError) as exc:
+    except (ValueError, NotImplementedError, FileNotFoundError, RuntimeError) as exc:
         print(f"[forgeue_manifest_importer] {exc}", file=_sys.stderr)
         return 2
 
