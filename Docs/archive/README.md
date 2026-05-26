@@ -113,7 +113,7 @@
 | `Plugins/AgentBridge/Docs/run_isolation_compare_promote.md` | Run 隔离/对比/提升 | Planned: design/LLD/03_orchestrator.md + governance.md#3 | already-consumed |
 | `Plugins/AgentBridge/Docs/skill_graph_and_domain_skill.md` | Skill Graph 与 Domain Skill | Planned: design/LLD/06_skills_and_templates.md | already-consumed |
 | `Plugins/AgentBridge/Docs/skills_and_specs_overview.md` | Skills 与 Specs 总览 | Planned: requirements/SRS.md#4 + design/LLD/06_skills_and_templates.md | already-consumed |
-| `Plugins/AgentBridge/Docs/tool_contract_v0_1.md` | Tool Contract v0.1 | Planned: contracts/tool_contract.md | already-consumed |
+| `Plugins/AgentBridge/Docs/tool_contract_v0_1.md` | Tool Contract v0.1 | contracts/tool_contract.md | already-consumed |
 | `Plugins/AgentBridge/Docs/ue5_capability_map.md` | UE5 能力映射 | Planned: design/LLD/02_bridge.md + design/HLD.md#3 | already-consumed |
 | `Plugins/AgentBridge/Docs/universal_baseline_standard.md` | Universal Baseline 标准 | Planned: requirements/SRS.md#3 + design/LLD/06_skills_and_templates.md | already-consumed |
 
