@@ -560,8 +560,121 @@ def _creator_path_material(
     asset: dict[str, Any], source_uri: Path, target_pkg: str,
     overwrite: bool, bridge_mode: str,
 ) -> dict[str, Any]:
-    """material 真机创建(待 Task 9 填充);creator path 不走文件 importer,故省略 import_options。"""
-    raise NotImplementedError("material creator pending Task 9")
+    """material 真机创建:读 material.json → MaterialFactoryNew → MaterialEditingLibrary 设节点。
+
+    spec §3.4 Option α 最简 PBR 五字段:
+        base_color_rgba / metallic / roughness / normal_texture_ref / emissive_color_rgba
+
+    与 texture/sound/mesh 不同,material 不是"导入文件",而是"读 JSON 配置 → 创建 Material asset
+    + 加 expression 节点 + 连到 output + 编译 + 保存"。
+    """
+    import time
+    import unreal
+    start = time.monotonic()
+
+    # 目标 package 已存在 + 不允许覆盖 → skipped(不阻塞其他 asset)
+    if not overwrite and unreal.EditorAssetLibrary.does_asset_exist(target_pkg):
+        return _evidence_skipped(
+            asset, bridge_mode,
+            f"target asset exists and overwrite_existing=false: {target_pkg}",
+            source_uri_abs=source_uri,
+        )
+
+    # 读 material.definition JSON(Option α 五字段)
+    try:
+        material_def = json.loads(source_uri.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as exc:
+        return _evidence_failure(
+            asset, bridge_mode,
+            f"cannot read material_simple.json: {type(exc).__name__}: {exc}",
+            source_uri_abs=source_uri,
+        )
+
+    # 1. AssetTools.create_asset(name, package_path, Material, MaterialFactoryNew) — wrap try/except
+    asset_tools = unreal.AssetToolsHelpers.get_asset_tools()
+    asset_name = target_pkg.rsplit("/", 1)[-1]
+    asset_path = target_pkg.rsplit("/", 1)[0]
+
+    try:
+        material_asset = asset_tools.create_asset(
+            asset_name=asset_name,
+            package_path=asset_path,
+            asset_class=unreal.Material,
+            factory=unreal.MaterialFactoryNew(),
+        )
+    except Exception as exc:  # noqa: BLE001  # UE API 异常类型不可枚举
+        return _evidence_failure(
+            asset, bridge_mode,
+            f"MaterialFactoryNew.create_asset raised: {type(exc).__name__}: {exc}",
+            source_uri_abs=source_uri,
+        )
+
+    if material_asset is None:
+        return _evidence_failure(
+            asset, bridge_mode,
+            f"MaterialFactoryNew.create_asset returned None for {target_pkg}",
+            source_uri_abs=source_uri,
+        )
+
+    # 2-4. MaterialEditingLibrary 加 4 个 expression + 连到 Material output + 编译 + 保存(整段 wrap)
+    try:
+        lib = unreal.MaterialEditingLibrary
+
+        # 2.1 BaseColor:Constant4Vector
+        base_color = material_def.get("base_color_rgba", [0.5, 0.5, 0.5, 1.0])
+        base_color_expr = lib.create_material_expression(
+            material_asset, unreal.MaterialExpressionConstant4Vector,
+        )
+        base_color_expr.set_editor_property("constant", unreal.LinearColor(*base_color))
+        lib.connect_material_property(base_color_expr, "", unreal.MaterialProperty.MP_BASE_COLOR)
+
+        # 2.2 Metallic:Constant
+        metallic_expr = lib.create_material_expression(
+            material_asset, unreal.MaterialExpressionConstant,
+        )
+        metallic_expr.set_editor_property("r", float(material_def.get("metallic", 0.0)))
+        lib.connect_material_property(metallic_expr, "", unreal.MaterialProperty.MP_METALLIC)
+
+        # 2.3 Roughness:Constant
+        roughness_expr = lib.create_material_expression(
+            material_asset, unreal.MaterialExpressionConstant,
+        )
+        roughness_expr.set_editor_property("r", float(material_def.get("roughness", 0.7)))
+        lib.connect_material_property(roughness_expr, "", unreal.MaterialProperty.MP_ROUGHNESS)
+
+        # 2.4 Normal:可选,只在 normal_texture_ref 非 None 时连
+        # 本 milestone 不解析 normal_texture_ref(需要二次资产 lookup),留 follow-up
+        # normal_ref = material_def.get("normal_texture_ref")
+
+        # 2.5 Emissive:Constant4Vector
+        emissive = material_def.get("emissive_color_rgba", [0.0, 0.0, 0.0, 1.0])
+        emissive_expr = lib.create_material_expression(
+            material_asset, unreal.MaterialExpressionConstant4Vector,
+        )
+        emissive_expr.set_editor_property("constant", unreal.LinearColor(*emissive))
+        lib.connect_material_property(emissive_expr, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
+
+        # 3. 编译 material(让 expressions 生效)
+        lib.recompile_material(material_asset)
+
+        # 4. 保存 asset 落盘
+        unreal.EditorAssetLibrary.save_asset(target_pkg)
+    except Exception as exc:  # noqa: BLE001  # UE Material API 异常类型不可枚举
+        return _evidence_failure(
+            asset, bridge_mode,
+            f"MaterialEditingLibrary chain raised: {type(exc).__name__}: {exc}",
+            source_uri_abs=source_uri,
+        )
+
+    duration_ms = int((time.monotonic() - start) * 1000)
+    return _evidence_success(
+        asset, bridge_mode,
+        source_uri_abs=source_uri,
+        uasset_object_path=f"{target_pkg}.{asset_name}",
+        factory_class="unreal.MaterialFactoryNew + unreal.MaterialEditingLibrary",
+        duration_ms=duration_ms,
+        import_log_excerpt=f"created material with 4 expressions (PBR Option α 五字段,normal_texture_ref pending)",
+    )
 
 
 def _creator_path_media(
