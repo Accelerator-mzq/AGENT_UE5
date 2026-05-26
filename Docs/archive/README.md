@@ -101,7 +101,7 @@
 | `Plugins/AgentBridge/Docs/editor_screenshot_evidence_workflow.md` | Editor 截图证据流 | Planned: testing/test_spec.md + governance.md#1 | already-consumed |
 | `Plugins/AgentBridge/Docs/feedback_interface_catalog.md` | Feedback 接口目录 | Planned: requirements/SRS.md#3.2 + contracts/mcp_tools_catalog.md | already-consumed |
 | `Plugins/AgentBridge/Docs/feedback_write_mapping.md` | Feedback Write 映射 | Planned: requirements/SRS.md#3.2 + contracts/mcp_tools_catalog.md | already-consumed |
-| `Plugins/AgentBridge/Docs/field_specification_v0_1.md` | Field Specification v0.1 | Planned: contracts/field_specification.md | already-consumed |
+| `Plugins/AgentBridge/Docs/field_specification_v0_1.md` | Field Specification v0.1 | contracts/field_specification.md | already-consumed |
 | `Plugins/AgentBridge/Docs/forgeue_manifest_integration.md` | ForgeUE Manifest 集成 | Planned: design/LLD/02_bridge.md + design/LLD/03_orchestrator.md | already-consumed |
 | `Plugins/AgentBridge/Docs/genre_pack_core_design.md` | Genre Pack 核心设计 | Planned: design/LLD/06_skills_and_templates.md | already-consumed |
 | `Plugins/AgentBridge/Docs/governance_loop_minimal_design.md` | 治理闭环最小设计 | Planned: governance.md#3 | already-consumed |
