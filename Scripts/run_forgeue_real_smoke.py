@@ -42,18 +42,24 @@ FIXTURE_DIR = PROJECT_ROOT / "Plugins" / "AgentBridge" / "Tests" / "fixtures" / 
 MANIFEST_PATH = FIXTURE_DIR / "manifest.json"
 PLAN_PATH = FIXTURE_DIR / "import_plan.json"
 
-# Plan T5 实测真实 endpoint 路径(snake_case,非 spec v1.0 CamelCase 占位)
+# Plan T5 实测真实 endpoint 路径(snake_case,非 spec v1.0 中的 CamelCase 占位)
+# CDO(Class Default Object)路径形式:`/<MountPoint>/<Subdir>/<ModuleFile>.Default__<ClassName>`
 RC_OBJECT_PATH = "/AgentBridge/Python/forgeue_rc_endpoint_PY.Default__AgentBridgeForgeUEEndpoint"
+# RC 函数名:UE 保留 Python 原名,故 snake_case(非 CamelCase BlueprintCallable)
 RC_FUNCTION_NAME = "import_assets_from_manifest"
 
-# UE 内置 EditorAssetLibrary(CamelCase BlueprintCallable)
+# UE 内置 EditorAssetLibrary(CamelCase BlueprintCallable,UE 内置 API 命名风格)
 EDITOR_ASSET_LIB = "/Script/EditorScriptingUtilities.Default__EditorAssetLibrary"
 
 
 def _make_run_id() -> str:
-    """生成 evidence_manifest.schema.json 兼容的 run_id(yyyy-mm-dd_xxxxxxxx)。"""
+    """生成 evidence_manifest.schema.json 兼容的 run_id(yyyy-mm-dd_xxxxxxxx)。
+
+    sha1 仅用作随机 UUID bytes 的短 hex 摘要(8 字符),不涉及密码学场景,
+    显式传 usedforsecurity=False 以兼容 FIPS 模式(Python 3.9+ 支持)。
+    """
     today = _dt.date.today().isoformat()
-    short = hashlib.sha1(uuid.uuid4().bytes).hexdigest()[:8]
+    short = hashlib.sha1(uuid.uuid4().bytes, usedforsecurity=False).hexdigest()[:8]
     return f"{today}_{short}"
 
 
@@ -94,7 +100,13 @@ def _trigger_via_rc_api() -> dict:
     return_value = result_json.get("ReturnValue", "")
     if not return_value:
         raise RuntimeError(f"RC ReturnValue 空:{result_json}")
-    return json.loads(return_value)
+    # ReturnValue 是 endpoint 返回的 JSON 字符串,wrap 解析失败时附带 raw context 便于排障
+    try:
+        return json.loads(return_value)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(
+            f"ReturnValue JSON 解析失败:{exc}\nraw={return_value!r}"
+        ) from exc
 
 
 def _verify_uassets_exist(expected_packages: list[str]) -> dict[str, bool]:
@@ -239,10 +251,18 @@ def main() -> int:
     print(f"[L3 smoke] payload status={payload.get('status')}")
     print(f"[L3 smoke] assertions: passed={passed} / total={total}")
     print(
-        f"[L3 smoke] evidence_manifest.status={'pass' if all(assertions.values()) else 'fail'}"
+        f"[L3 smoke] evidence_manifest.status={'pass' if assertions and all(assertions.values()) else 'fail'}"
     )
 
     # --- Step 5: exit code ---
+    # 守门:assertions 为空时(asset_results 可能为空列表)直接 fail,避免 all({}.values())==True 误报 pass
+    if not assertions:
+        print(
+            "[L3 smoke] ERROR: assertions 为空,asset_results 可能为空列表",
+            file=sys.stderr,
+        )
+        return 1
+
     # assertions 全过 + payload 整体 success/partial 才算 0
     if all(assertions.values()) and payload.get("status") in ("success", "partial"):
         return 0
