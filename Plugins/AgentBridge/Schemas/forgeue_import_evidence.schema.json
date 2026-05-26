@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ForgeUE Import Evidence (per-op)",
+  "description": "ForgeUE manifest 真机导入每条 asset 的逐条证据,由 bridge_python/bridge_rc_api 写盘(spec §7.1)。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["asset_entry_id", "op_id", "asset_kind", "bridge_mode", "status", "timestamp", "source_uri_abs"],
+  "properties": {
+    "asset_entry_id":      {"type": "string", "minLength": 1},
+    "op_id":               {"type": "string", "minLength": 1},
+    "asset_kind":          {"enum": ["texture", "sprite_sheet", "sound_wave", "static_mesh", "material", "file_media_source"]},
+    "bridge_mode":         {"enum": ["bridge_python", "bridge_rc_api", "simulated"]},
+    "status":              {"enum": ["success", "failed", "skipped"]},
+    "timestamp":           {"type": "string", "format": "date-time"},
+    "source_uri_abs":      {"type": "string"},
+    "uasset_object_path":  {"type": "string"},
+    "uasset_package_path": {"type": "string"},
+    "factory_class":       {"type": "string"},
+    "duration_ms":         {"type": "integer", "minimum": 0},
+    "import_log_excerpt":  {"type": "string"},
+    "errors":              {"type": "array", "items": {"type": "string"}},
+    "skipped_reason":      {"type": "string"}
+  }
+}

@@ -116,6 +116,10 @@ EXAMPLE_TO_SCHEMA: Dict[str, str] = {
         "run_comparison.schema.json",
     "phase11_batch_manifest.example.json":
         "batch_manifest.schema.json",
+
+    # === ForgeUE Real-UE Bridge (Task 2) ===
+    "forgeue_import_evidence_example.json":
+        "forgeue_import_evidence.schema.json",
 }
 
 # 这些 example 默认跳过自动 schema 校验，仅作为参考样例。
