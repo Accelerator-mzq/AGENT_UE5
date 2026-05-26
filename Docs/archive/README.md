@@ -98,7 +98,7 @@
 | `Plugins/AgentBridge/Docs/compiler_design.md` | Compiler 设计 | design/LLD/04_compiler.md | already-consumed |
 | `Plugins/AgentBridge/Docs/constraint_variant_policy.md` | 约束与变体策略 | design/HLD.md#2 + design/LLD/06_skills_and_templates.md | already-consumed |
 | `Plugins/AgentBridge/Docs/design_space_discovery.md` | 设计空间发现 | design/HLD.md#2.2 + design/LLD/04_compiler.md | already-consumed |
-| `Plugins/AgentBridge/Docs/editor_screenshot_evidence_workflow.md` | Editor 截图证据流 | Planned: testing/test_spec.md + governance.md#1 | already-consumed |
+| `Plugins/AgentBridge/Docs/editor_screenshot_evidence_workflow.md` | Editor 截图证据流 | testing/test_spec.md + Planned: governance.md#1 | already-consumed |
 | `Plugins/AgentBridge/Docs/feedback_interface_catalog.md` | Feedback 接口目录 | requirements/SRS.md#3.2 + contracts/mcp_tools_catalog.md | already-consumed |
 | `Plugins/AgentBridge/Docs/feedback_write_mapping.md` | Feedback Write 映射 | requirements/SRS.md#3.2 + contracts/mcp_tools_catalog.md | already-consumed |
 | `Plugins/AgentBridge/Docs/field_specification_v0_1.md` | Field Specification v0.1 | contracts/field_specification.md | already-consumed |
