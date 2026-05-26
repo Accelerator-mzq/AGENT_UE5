@@ -4,21 +4,93 @@
   "description": "ForgeUE manifest 真机导入每条 asset 的逐条证据,由 bridge_python/bridge_rc_api 写盘(spec §7.1)。",
   "type": "object",
   "additionalProperties": false,
-  "required": ["asset_entry_id", "op_id", "asset_kind", "bridge_mode", "status", "timestamp", "source_uri_abs"],
+  "required": [
+    "asset_entry_id",
+    "op_id",
+    "asset_kind",
+    "bridge_mode",
+    "status",
+    "timestamp",
+    "source_uri_abs"
+  ],
   "properties": {
-    "asset_entry_id":      {"type": "string", "minLength": 1},
-    "op_id":               {"type": "string", "minLength": 1},
-    "asset_kind":          {"enum": ["texture", "sprite_sheet", "sound_wave", "static_mesh", "material", "file_media_source"]},
-    "bridge_mode":         {"enum": ["bridge_python", "bridge_rc_api", "simulated"]},
-    "status":              {"enum": ["success", "failed", "skipped"]},
-    "timestamp":           {"type": "string", "format": "date-time"},
-    "source_uri_abs":      {"type": "string"},
-    "uasset_object_path":  {"type": "string"},
-    "uasset_package_path": {"type": "string"},
-    "factory_class":       {"type": "string"},
-    "duration_ms":         {"type": "integer", "minimum": 0},
-    "import_log_excerpt":  {"type": "string"},
-    "errors":              {"type": "array", "items": {"type": "string"}},
-    "skipped_reason":      {"type": "string"}
+    "asset_entry_id": {
+      "type": "string",
+      "description": "manifest 中该 asset entry 的唯一 ID",
+      "minLength": 1
+    },
+    "op_id": {
+      "type": "string",
+      "description": "本次导入 op 的逻辑 ID,与 import_plan operations 对应",
+      "minLength": 1
+    },
+    "asset_kind": {
+      "description": "资产类型枚举,与 ForgeUE _KIND_MAP 对齐",
+      "enum": [
+        "texture",
+        "sprite_sheet",
+        "sound_wave",
+        "static_mesh",
+        "material",
+        "file_media_source"
+      ]
+    },
+    "bridge_mode": {
+      "description": "触发本次导入的桥接通路",
+      "enum": [
+        "bridge_python",
+        "bridge_rc_api",
+        "simulated"
+      ]
+    },
+    "status": {
+      "description": "单条 op 执行结果",
+      "enum": [
+        "success",
+        "failed",
+        "skipped"
+      ]
+    },
+    "timestamp": {
+      "type": "string",
+      "description": "op 完成或失败的 UTC 时间戳,ISO 8601 含毫秒",
+      "format": "date-time"
+    },
+    "source_uri_abs": {
+      "type": "string",
+      "description": "payload 文件的绝对路径(用于追溯文件实际位置)"
+    },
+    "uasset_object_path": {
+      "type": "string",
+      "description": "UE Content Browser 中该 uasset 的对象路径(/Game/...)"
+    },
+    "uasset_package_path": {
+      "type": "string",
+      "description": "UE Content Browser 中该 uasset 的 package 路径,通常等于 object_path 去 .类名 后缀"
+    },
+    "factory_class": {
+      "type": "string",
+      "description": "实际使用的 unreal Factory 类全名(便于 debug)"
+    },
+    "duration_ms": {
+      "type": "integer",
+      "description": "单条 op 执行耗时,毫秒",
+      "minimum": 0
+    },
+    "import_log_excerpt": {
+      "type": "string",
+      "description": "unreal.log 中本次 import 的相关行切片(可选)"
+    },
+    "errors": {
+      "type": "array",
+      "description": "failed 状态时的错误消息列表",
+      "items": {
+        "type": "string"
+      }
+    },
+    "skipped_reason": {
+      "type": "string",
+      "description": "skipped 状态时的跳过原因"
+    }
   }
 }
