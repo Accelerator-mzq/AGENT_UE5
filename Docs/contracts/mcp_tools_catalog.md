@@ -86,6 +86,7 @@
 1. **51 vs 53 口径差异**:`tool_definitions.py` line 530 注释写"51",但 `COMPILER_FRONTEND_TOOLS` 字典实际有 **14** 个 key(含 `compiler_stage4_node_prepare/save` 与 `compiler_intake_prepare/save` / `compiler_plan_prepare/save` 两组 alias),源码注释漏算 stage4 节点对。`python -c "from tool_definitions import ALL_TOOLS; print(len(ALL_TOOLS))"` 实测 **53**,与 spec v1.1 §3.2 数字一致。**以 `len(ALL_TOOLS)` 实测为准;line 530 注释建议下次重构修订。**
 2. **输入 Schema 列 `n/a`**:大多数工具参数为基本类型(string / boolean / array),无独立 JSON Schema 文件;`compiler_*_save` 类的 `filled_data` 才对应主链 Stage Schema。L1/L2/L3 写操作的统一反馈 Schema 已落 `Schemas/write_feedback/write_operation_feedback.response.schema.json`。
 3. **错误码列**:每行 ≥ 1 错误码字符串,部分工具源码已显式列 `error_codes` 字段(`spawn_actor` / `set_actor_transform` / `build_project` / `create_level`),其余按 `tool_contract_v0_1.md §3` 通用错误码族推断。
+   - **错误码权威源**:以 `tool_definitions.py` 模块 docstring (line 13-15) 的 9 项为权威源(`INVALID_ARGS / ACTOR_NOT_FOUND / ASSET_NOT_FOUND / EDITOR_NOT_READY / TOOL_EXECUTION_FAILED / CHANNEL_UNAVAILABLE / PERMISSION_DENIED / TIMEOUT / UNKNOWN_ERROR`),Compiler 前端 / Evidence 后端 特有码(`SESSION_NOT_FOUND` / `STAGE_LOCKED` / `RUN_NOT_FOUND` / `MANIFEST_INVALID` / `PROMOTE_DENIED`)按类别推断。与 `Docs/contracts/tool_contract.md §6.3` 错误码族存在历史口径差,Phase 2 spec 收口时统一。
 
 ## 关联文档
 
@@ -93,4 +94,4 @@
 - `Docs/contracts/schemas_catalog.md` — Schemas 目录与主链 Stage 映射
 - `Docs/contracts/field_specification.md` — 字段级签名规范
 - `Plugins/AgentBridge/MCP/tool_definitions.py` — 权威工具定义源码
-- `Plugins/AgentBridge/Schemas/` — 51 工具的输入/输出 Schema 实体
+- `Plugins/AgentBridge/Schemas/` — 53 工具的输入/输出 Schema 实体
