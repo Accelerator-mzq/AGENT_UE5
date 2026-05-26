@@ -681,8 +681,74 @@ def _creator_path_media(
     asset: dict[str, Any], source_uri: Path, target_pkg: str,
     overwrite: bool, bridge_mode: str,
 ) -> dict[str, Any]:
-    """file_media_source 真机创建(待 Task 10 填充);creator path 不走文件 importer,故省略 import_options。"""
-    raise NotImplementedError("file_media_source creator pending Task 10")
+    """file_media_source 真机创建:AssetTools.create_asset + FileMediaSourceFactoryNew + 设 file_path。
+
+    与 material 同 creator path 范式,但更简单:不需要 expression / recompile,
+    只需创建 FileMediaSource 资产 + 设 FilePath 字段指向源 mp4 + save_asset。
+
+    本 milestone fixture 是 < 500 KB H.264 mp4(`payload/video_clip.mp4`),
+    UE 5.5 FileMediaSource 资产可指向任意外部文件路径,真机 import 后该资产可被 MediaPlayer 播放。
+    """
+    import time
+    import unreal
+    start = time.monotonic()
+
+    # 目标 package 已存在 + 不允许覆盖 → skipped(不阻塞其他 asset)
+    if not overwrite and unreal.EditorAssetLibrary.does_asset_exist(target_pkg):
+        return _evidence_skipped(
+            asset, bridge_mode,
+            f"target asset exists and overwrite_existing=false: {target_pkg}",
+            source_uri_abs=source_uri,
+        )
+
+    # 1. AssetTools.create_asset(name, package_path, FileMediaSource, FileMediaSourceFactoryNew) — wrap try/except
+    asset_tools = unreal.AssetToolsHelpers.get_asset_tools()
+    asset_name = target_pkg.rsplit("/", 1)[-1]
+    asset_path = target_pkg.rsplit("/", 1)[0]
+
+    try:
+        media_asset = asset_tools.create_asset(
+            asset_name=asset_name,
+            package_path=asset_path,
+            asset_class=unreal.FileMediaSource,
+            factory=unreal.FileMediaSourceFactoryNew(),
+        )
+    except Exception as exc:  # noqa: BLE001  # UE API 异常类型不可枚举
+        return _evidence_failure(
+            asset, bridge_mode,
+            f"FileMediaSourceFactoryNew.create_asset raised: {type(exc).__name__}: {exc}",
+            source_uri_abs=source_uri,
+        )
+
+    if media_asset is None:
+        return _evidence_failure(
+            asset, bridge_mode,
+            f"FileMediaSourceFactoryNew.create_asset returned None for {target_pkg}",
+            source_uri_abs=source_uri,
+        )
+
+    # 2. 设 file_path 指向 source_uri 绝对路径 + 保存 asset(整段 wrap)
+    try:
+        # UE FileMediaSource 期望绝对路径(或相对项目根的相对路径)
+        # 本 milestone 用绝对路径,避免 manifest project_root 与 UE 项目根不一致的歧义
+        media_asset.set_editor_property("file_path", str(source_uri))
+        unreal.EditorAssetLibrary.save_asset(target_pkg)
+    except Exception as exc:  # noqa: BLE001  # UE API 异常类型不可枚举
+        return _evidence_failure(
+            asset, bridge_mode,
+            f"FileMediaSource set_editor_property/save_asset raised: {type(exc).__name__}: {exc}",
+            source_uri_abs=source_uri,
+        )
+
+    duration_ms = int((time.monotonic() - start) * 1000)
+    return _evidence_success(
+        asset, bridge_mode,
+        source_uri_abs=source_uri,
+        uasset_object_path=f"{target_pkg}.{asset_name}",
+        factory_class="unreal.FileMediaSourceFactoryNew",
+        duration_ms=duration_ms,
+        import_log_excerpt=f"created file_media_source pointing to {source_uri.name}",
+    )
 
 
 # ============================================================
