@@ -57,6 +57,7 @@ EXCLUDE_PATH_PREFIXES = (
     'Docs/superpowers/',  # 本次重组 + 上次重组的 spec/plan/inventory(均自有历史引用,Phase 3 后搬 archive)
     'Docs/History/',  # 历史文档,本身在 Phase 3 被搬到 archive/history/,历史引用是快照
     'ProjectState/',
+    'Plugins/AgentBridge/Docs/',  # Phase 3.5 redirect stub,stub 内引用 old_path + archive 路径是设计意图
 )
 
 EXCLUDE_PATH_PARTS = (

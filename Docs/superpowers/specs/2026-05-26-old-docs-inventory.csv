@@ -3,82 +3,82 @@ Docs/Current/00_Index.md,当前阶段索引,already-consumed,INDEX.md (全替换
 Docs/Current/01_Project_Baseline.md,Phase 11 项目基线,already-consumed,requirements/SRS.md#1 + acceptance/acceptance_report.md#1,12,
 Docs/Current/02_Current_Phase_Goals.md,阶段目标完成状态,already-consumed,acceptance/acceptance_report.md#1,12,
 Docs/Current/03_Active_Backlog.md,活动 backlog,archive-only,acceptance/acceptance_report.md#1-附,9,
-Docs/Current/04_Open_Risks.md,风险记录,archive-only,Planned: archive/current/04_Open_Risks.md,10,
+Docs/Current/04_Open_Risks.md,风险记录,archive-only,archive/current/04_Open_Risks.md,10,
 Docs/Current/05_Implementation_Boundary.md,实施边界,already-consumed,requirements/SRS.md#6.5 + governance.md#6,11,
 Docs/Current/06_Current_Task_List.md,当前任务入口,already-consumed,INDEX.md#3,3,
 Docs/Current/07_Evidence_And_Artifacts.md,Evidence 落盘规则,already-consumed,requirements/SRS.md#6.3 + governance.md#1,8,
-Docs/Current/08_Phase8_Retrospective_And_Phase9_Checklist.md,Phase 8 复盘,archive-only,Planned: archive/current/08_Phase8_Retrospective_And_Phase9_Checklist.md,4,
-Docs/Current/10_Phase8_Closeout.md,Phase 8 收尾,archive-only,Planned: archive/current/10_Phase8_Closeout.md,1,
-Docs/Current/11_Phase9_Closeout.md,Phase 9 收尾,archive-only,Planned: archive/current/11_Phase9_Closeout.md,3,
-Docs/Current/12_MCP_Repositioning.md,MCP 重定位背景,archive-only,Planned: archive/current/12_MCP_Repositioning.md,2,
+Docs/Current/08_Phase8_Retrospective_And_Phase9_Checklist.md,Phase 8 复盘,archive-only,archive/current/08_Phase8_Retrospective_And_Phase9_Checklist.md,4,
+Docs/Current/10_Phase8_Closeout.md,Phase 8 收尾,archive-only,archive/current/10_Phase8_Closeout.md,1,
+Docs/Current/11_Phase9_Closeout.md,Phase 9 收尾,archive-only,archive/current/11_Phase9_Closeout.md,3,
+Docs/Current/12_MCP_Repositioning.md,MCP 重定位背景,archive-only,archive/current/12_MCP_Repositioning.md,2,
 Docs/Current/14_MCP_Cognitive_Bridge_Anchor.md,MCP 总口径,already-consumed,design/HLD.md#4 + requirements/SRS.md#3.5,6,
 Docs/Current/15_Skill_Spec_Handoff_Chain.md,4 层主链,already-consumed,requirements/SRS.md#4 + design/HLD.md#2,6,
 Docs/Current/16_MCP_Repositioning_Plan.md,MCP 重定位方案 v3,already-consumed,design/HLD.md#4 + archive/current/16_MCP_Repositioning_Plan.md,4,
 Docs/Current/17_Phase10_Closeout.md,Phase 10 收尾,archive-only,archive/current/17_Phase10_Closeout.md,2,
 Docs/Current/18_Phase11_Closeout.md,Phase 11 收尾,already-consumed,acceptance/acceptance_report.md#1,5,
-Docs/Decisions/ADR-001-Doc-Governance.md,ADR-001 文档治理,archive-only,Planned: archive/decisions/ADR-001-Doc-Governance.md,2,关键 ADR 内容已被吸收到 governance.md
-Docs/Decisions/ADR-002-Task-And-Evidence-Archiving.md,ADR-002 任务与证据归档,archive-only,Planned: archive/decisions/ADR-002-Task-And-Evidence-Archiving.md,1,
-Docs/Handoff_Phase10_Execution.md,Phase 10 执行交接文档,archive-only,Planned: archive/Handoff_Phase10_Execution.md,1,Phase 10 准备阶段的 Claude→Codex 交接;归档保留追溯
-Docs/History/08_Playable_Runtime_Acceptance_Phase6.md,Phase 6 可玩 Runtime 验收,archive-only,Planned: archive/history/08_Playable_Runtime_Acceptance_Phase6.md,1,
-Docs/History/Phase11_Design_Pack/00_Phase11_Document_Index.md,Phase11 设计包: 00_Phase11_Document_Index,archive-only,Planned: archive/history/Phase11_Design_Pack/00_Phase11_Document_Index.md,2,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
-Docs/History/Phase11_Design_Pack/01_Phase11_Unified_Architecture.md,Phase11 设计包: 01_Phase11_Unified_Architecture,archive-only,Planned: archive/history/Phase11_Design_Pack/01_Phase11_Unified_Architecture.md,4,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
-Docs/History/Phase11_Design_Pack/02_Root_Skill_Contract_Standard.md,Phase11 设计包: 02_Root_Skill_Contract_Standard,archive-only,Planned: archive/history/Phase11_Design_Pack/02_Root_Skill_Contract_Standard.md,4,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
-Docs/History/Phase11_Design_Pack/03_Universal_Baseline_Standard.md,Phase11 设计包: 03_Universal_Baseline_Standard,archive-only,Planned: archive/history/Phase11_Design_Pack/03_Universal_Baseline_Standard.md,4,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
-Docs/History/Phase11_Design_Pack/04_Baseline_Realization_Policy.md,Phase11 设计包: 04_Baseline_Realization_Policy,archive-only,Planned: archive/history/Phase11_Design_Pack/04_Baseline_Realization_Policy.md,6,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
-Docs/History/Phase11_Design_Pack/05_Clarification_Gate_Rules.md,Phase11 设计包: 05_Clarification_Gate_Rules,archive-only,Planned: archive/history/Phase11_Design_Pack/05_Clarification_Gate_Rules.md,4,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
-Docs/History/Phase11_Design_Pack/06_Constraint_vs_Variant_Policy.md,Phase11 设计包: 06_Constraint_vs_Variant_Policy,archive-only,Planned: archive/history/Phase11_Design_Pack/06_Constraint_vs_Variant_Policy.md,6,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
-Docs/History/Phase11_Design_Pack/07_Design_Space_Discovery_and_Realization.md,Phase11 设计包: 07_Design_Space_Discovery_and_Realization,archive-only,Planned: archive/history/Phase11_Design_Pack/07_Design_Space_Discovery_and_Realization.md,8,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
-Docs/History/Phase11_Design_Pack/08_Skill_Graph_and_Domain_Skill.md,Phase11 设计包: 08_Skill_Graph_and_Domain_Skill,archive-only,Planned: archive/history/Phase11_Design_Pack/08_Skill_Graph_and_Domain_Skill.md,6,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
-Docs/History/Phase11_Design_Pack/09_Run_Isolation_Compare_Promote.md,Phase11 设计包: 09_Run_Isolation_Compare_Promote,archive-only,Planned: archive/history/Phase11_Design_Pack/09_Run_Isolation_Compare_Promote.md,6,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
-Docs/History/Phase11_Design_Pack/10_Naming_and_Path_Convention.md,Phase11 设计包: 10_Naming_and_Path_Convention,archive-only,Planned: archive/history/Phase11_Design_Pack/10_Naming_and_Path_Convention.md,3,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
-Docs/History/Phase11_Design_Pack/11_Schema_and_Artifact_Reference.md,Phase11 设计包: 11_Schema_and_Artifact_Reference,archive-only,Planned: archive/history/Phase11_Design_Pack/11_Schema_and_Artifact_Reference.md,4,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
-Docs/History/Phase11_Design_Pack/12_Implementation_Taskbook.md,Phase11 设计包: 12_Implementation_Taskbook,archive-only,Planned: archive/history/Phase11_Design_Pack/12_Implementation_Taskbook.md,6,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
-Docs/History/Phase11_Design_Pack/13_Claude_Handoff_and_Reading_Order.md,Phase11 设计包: 13_Claude_Handoff_and_Reading_Order,archive-only,Planned: archive/history/Phase11_Design_Pack/13_Claude_Handoff_and_Reading_Order.md,2,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
-Docs/History/Phase11_Design_Pack/14_Agent_Interaction_Protocol.md,Phase11 设计包: 14_Agent_Interaction_Protocol,archive-only,Planned: archive/history/Phase11_Design_Pack/14_Agent_Interaction_Protocol.md,10,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
-Docs/History/Phase11_Design_Pack/15_Claude_Code_Handoff_to_Codex.md,Phase11 设计包: 15_Claude_Code_Handoff_to_Codex,archive-only,Planned: archive/history/Phase11_Design_Pack/15_Claude_Code_Handoff_to_Codex.md,2,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
-Docs/History/Phase1_MVP/Phase_Summary.md,Phase1 MVP 历史: Phase_Summary,archive-only,Planned: archive/history/Phase1_MVP/Phase_Summary.md,0,
-Docs/History/Phase1_MVP/task.md,Phase1 MVP 历史: task,archive-only,Planned: archive/history/Phase1_MVP/task.md,32,
-Docs/History/Proposals/Phase10_MCP_Repositioning_Plan.md,历史方案: Phase10_MCP_Repositioning_Plan,archive-only,Planned: archive/history/Proposals/Phase10_MCP_Repositioning_Plan.md,0,
-Docs/History/Proposals/Phase3_Implementation_Plan.md,历史方案: Phase3_Implementation_Plan,archive-only,Planned: archive/history/Proposals/Phase3_Implementation_Plan.md,1,
-Docs/History/Proposals/Phase8_DD1_Schema_and_Interface_Spec.md,历史方案: Phase8_DD1_Schema_and_Interface_Spec,archive-only,Planned: archive/history/Proposals/Phase8_DD1_Schema_and_Interface_Spec.md,2,
-Docs/History/Proposals/Phase8_DD3_Lowering_Map_and_CPP_Design.md,历史方案: Phase8_DD3_Lowering_Map_and_CPP_Design,archive-only,Planned: archive/history/Proposals/Phase8_DD3_Lowering_Map_and_CPP_Design.md,3,
-Docs/History/Proposals/Phase8_M3_Handover_to_Execution_Agent.md,历史方案: Phase8_M3_Handover_to_Execution_Agent,archive-only,Planned: archive/history/Proposals/Phase8_M3_Handover_to_Execution_Agent.md,3,
-Docs/History/Proposals/Phase8_Plan_Original.md,历史方案: Phase8_Plan_Original,archive-only,Planned: archive/history/Proposals/Phase8_Plan_Original.md,2,
-Docs/History/Proposals/Phase8_Task_Redesign_Draft.md,历史方案: Phase8_Task_Redesign_Draft,archive-only,Planned: archive/history/Proposals/Phase8_Task_Redesign_Draft.md,1,
-Docs/History/Proposals/Phase9_MCP_Implementation_Plan.md,历史方案: Phase9_MCP_Implementation_Plan,archive-only,Planned: archive/history/Proposals/Phase9_MCP_Implementation_Plan.md,3,
-Docs/History/Tasks/00_Task_Index.md,任务历史: 00_Task_Index,archive-only,Planned: archive/history/Tasks/00_Task_Index.md,1,
-Docs/History/Tasks/task10_phase10.md,任务历史: task10_phase10,archive-only,Planned: archive/history/Tasks/task10_phase10.md,4,
-Docs/History/Tasks/task11_phase11.md,任务历史: task11_phase11,archive-only,Planned: archive/history/Tasks/task11_phase11.md,4,
-Docs/History/Tasks/task1_phase3.md,任务历史: task1_phase3,archive-only,Planned: archive/history/Tasks/task1_phase3.md,1,
-Docs/History/Tasks/task2_phase4.md,任务历史: task2_phase4,archive-only,Planned: archive/history/Tasks/task2_phase4.md,3,
-Docs/History/Tasks/task3_phase5.md,任务历史: task3_phase5,archive-only,Planned: archive/history/Tasks/task3_phase5.md,2,
-Docs/History/Tasks/task4_phase6.md,任务历史: task4_phase6,archive-only,Planned: archive/history/Tasks/task4_phase6.md,3,
-Docs/History/Tasks/task5_phase7_preparation.md,任务历史: task5_phase7_preparation,archive-only,Planned: archive/history/Tasks/task5_phase7_preparation.md,3,
-Docs/History/Tasks/task6_phase7.md,任务历史: task6_phase7,archive-only,Planned: archive/history/Tasks/task6_phase7.md,4,
-Docs/History/Tasks/task6_phase7_publish_2026-04-02.md,任务历史: task6_phase7_publish_2026-04-02,archive-only,Planned: archive/history/Tasks/task6_phase7_publish_2026-04-02.md,0,
-Docs/History/Tasks/task8_phase8.md,任务历史: task8_phase8,archive-only,Planned: archive/history/Tasks/task8_phase8.md,4,
-Docs/History/Tasks/task9_phase9.md,任务历史: task9_phase9,archive-only,Planned: archive/history/Tasks/task9_phase9.md,3,
-Docs/History/reports/AgentBridgeEvidence/phase6_evidence_2026-04-02/notes/phase6_task_phase6_boardgame_playable_demo_runtime_playable_evidence.md,Evidence: phase6_task_phase6_boardgame_playable_demo_runtime_playable_evidence,archive-only,Planned: archive/history/reports/AgentBridgeEvidence/phase6_evidence_2026-04-02/notes/phase6_task_phase6_boardgame_playable_demo_runtime_playable_evidence.md,0,
-Docs/History/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/github_pr_phase7_archive_2026-04-02.md,Evidence: github_pr_phase7_archive_2026-04-02,archive-only,Planned: archive/history/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/github_pr_phase7_archive_2026-04-02.md,0,
-Docs/History/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/notes/phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_evidence.md,Evidence: phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_evidence,archive-only,Planned: archive/history/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/notes/phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_evidence.md,1,
-Docs/History/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_archive_preflight_checklist_2026-04-02.md,Evidence: phase7_archive_preflight_checklist_2026-04-02,archive-only,Planned: archive/history/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_archive_preflight_checklist_2026-04-02.md,1,
-Docs/History/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_bootstrap_implementation_2026-04-02.md,Evidence: phase7_bootstrap_implementation_2026-04-02,archive-only,Planned: archive/history/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_bootstrap_implementation_2026-04-02.md,1,
-Docs/History/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_e2e35_e2e36_validation_2026-04-02.md,Evidence: phase7_e2e35_e2e36_validation_2026-04-02,archive-only,Planned: archive/history/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_e2e35_e2e36_validation_2026-04-02.md,1,
-Docs/History/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_jrpg_pack_consistency_2026-04-02.md,Evidence: phase7_jrpg_pack_consistency_2026-04-02,archive-only,Planned: archive/history/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_jrpg_pack_consistency_2026-04-02.md,2,
-Docs/History/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_p1_round1_governance_audit.md,Evidence: phase7_p1_round1_governance_audit,archive-only,Planned: archive/history/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_p1_round1_governance_audit.md,1,
-Docs/History/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_p1_round2_governance_audit.md,Evidence: phase7_p1_round2_governance_audit,archive-only,Planned: archive/history/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_p1_round2_governance_audit.md,1,
-Docs/History/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_p1_round3_governance_audit.md,Evidence: phase7_p1_round3_governance_audit,archive-only,Planned: archive/history/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_p1_round3_governance_audit.md,2,
-Docs/History/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_p1_stability_summary_2026-04-02.md,Evidence: phase7_p1_stability_summary_2026-04-02,archive-only,Planned: archive/history/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_p1_stability_summary_2026-04-02.md,1,
-Docs/Proposals/Phase10_Compiler_Capability_Bus_v3.md,Phase10 Compiler Capability Bus v3,archive-only,Planned: archive/proposals/Phase10_Compiler_Capability_Bus_v3.md,2,
-Docs/Proposals/Phase10_Execution_MCP_Adapter_v3.md,Phase10 Execution MCP Adapter v3,archive-only,Planned: archive/proposals/Phase10_Execution_MCP_Adapter_v3.md,1,
-Docs/Proposals/Phase10_MCP_Testing_Toolset_v2.md,Phase10 MCP Testing Toolset v2,archive-only,Planned: archive/proposals/Phase10_MCP_Testing_Toolset_v2.md,2,
-Docs/Proposals/Phase10_Validation_Testing_Plane_v3.md,Phase10 Validation Testing Plane v3,archive-only,Planned: archive/proposals/Phase10_Validation_Testing_Plane_v3.md,2,
-Docs/superpowers/plans/2026-05-24-forgeue-manifest-import-bridge.md,forgeue manifest import bridge plan,archive-only,Planned: archive/superpowers/plans/2026-05-24-forgeue-manifest-import-bridge.md,0,
-Docs/superpowers/plans/2026-05-25-document-release-port-implementation.md,document-release 实现 plan,archive-only,Planned: archive/superpowers/plans/2026-05-25-document-release-port-implementation.md,0,
-Docs/superpowers/specs/2026-05-25-document-release-port-design.md,document-release skill 端口设计 spec,archive-only,Planned: archive/superpowers/specs/2026-05-25-document-release-port-design.md,1,
-Plugins/AgentBridge/Docs/Archive/Phase1-2/bridge_implementation_plan.md,Phase1-2 Bridge 实施计划,archive-only,Planned: archive/plugins/Archive/Phase1-2/bridge_implementation_plan.md,4,MVP 时代历史归档;新文档结构再归档一次
-Plugins/AgentBridge/Docs/Archive/Phase1-2/mvp_scope.md,Phase1-2 MVP 范围,archive-only,Planned: archive/plugins/Archive/Phase1-2/mvp_scope.md,1,MVP 时代历史归档;新文档结构再归档一次
-Plugins/AgentBridge/Docs/Archive/Phase1-2/mvp_smoke_test_plan.md,Phase1-2 MVP 冒烟测试计划,archive-only,Planned: archive/plugins/Archive/Phase1-2/mvp_smoke_test_plan.md,3,MVP 时代历史归档;新文档结构再归档一次
+Docs/Decisions/ADR-001-Doc-Governance.md,ADR-001 文档治理,archive-only,archive/decisions/ADR-001-Doc-Governance.md,2,关键 ADR 内容已被吸收到 governance.md
+Docs/Decisions/ADR-002-Task-And-Evidence-Archiving.md,ADR-002 任务与证据归档,archive-only,archive/decisions/ADR-002-Task-And-Evidence-Archiving.md,1,
+Docs/Handoff_Phase10_Execution.md,Phase 10 执行交接文档,archive-only,archive/Handoff_Phase10_Execution.md,1,Phase 10 准备阶段的 Claude→Codex 交接;归档保留追溯
+Docs/History/08_Playable_Runtime_Acceptance_Phase6.md,Phase 6 可玩 Runtime 验收,archive-only,archive/history/08_Playable_Runtime_Acceptance_Phase6.md,1,
+Docs/History/Phase11_Design_Pack/00_Phase11_Document_Index.md,Phase11 设计包: 00_Phase11_Document_Index,archive-only,archive/history/Phase11_Design_Pack/00_Phase11_Document_Index.md,2,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
+Docs/History/Phase11_Design_Pack/01_Phase11_Unified_Architecture.md,Phase11 设计包: 01_Phase11_Unified_Architecture,archive-only,archive/history/Phase11_Design_Pack/01_Phase11_Unified_Architecture.md,4,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
+Docs/History/Phase11_Design_Pack/02_Root_Skill_Contract_Standard.md,Phase11 设计包: 02_Root_Skill_Contract_Standard,archive-only,archive/history/Phase11_Design_Pack/02_Root_Skill_Contract_Standard.md,4,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
+Docs/History/Phase11_Design_Pack/03_Universal_Baseline_Standard.md,Phase11 设计包: 03_Universal_Baseline_Standard,archive-only,archive/history/Phase11_Design_Pack/03_Universal_Baseline_Standard.md,4,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
+Docs/History/Phase11_Design_Pack/04_Baseline_Realization_Policy.md,Phase11 设计包: 04_Baseline_Realization_Policy,archive-only,archive/history/Phase11_Design_Pack/04_Baseline_Realization_Policy.md,6,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
+Docs/History/Phase11_Design_Pack/05_Clarification_Gate_Rules.md,Phase11 设计包: 05_Clarification_Gate_Rules,archive-only,archive/history/Phase11_Design_Pack/05_Clarification_Gate_Rules.md,4,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
+Docs/History/Phase11_Design_Pack/06_Constraint_vs_Variant_Policy.md,Phase11 设计包: 06_Constraint_vs_Variant_Policy,archive-only,archive/history/Phase11_Design_Pack/06_Constraint_vs_Variant_Policy.md,6,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
+Docs/History/Phase11_Design_Pack/07_Design_Space_Discovery_and_Realization.md,Phase11 设计包: 07_Design_Space_Discovery_and_Realization,archive-only,archive/history/Phase11_Design_Pack/07_Design_Space_Discovery_and_Realization.md,8,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
+Docs/History/Phase11_Design_Pack/08_Skill_Graph_and_Domain_Skill.md,Phase11 设计包: 08_Skill_Graph_and_Domain_Skill,archive-only,archive/history/Phase11_Design_Pack/08_Skill_Graph_and_Domain_Skill.md,6,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
+Docs/History/Phase11_Design_Pack/09_Run_Isolation_Compare_Promote.md,Phase11 设计包: 09_Run_Isolation_Compare_Promote,archive-only,archive/history/Phase11_Design_Pack/09_Run_Isolation_Compare_Promote.md,6,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
+Docs/History/Phase11_Design_Pack/10_Naming_and_Path_Convention.md,Phase11 设计包: 10_Naming_and_Path_Convention,archive-only,archive/history/Phase11_Design_Pack/10_Naming_and_Path_Convention.md,3,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
+Docs/History/Phase11_Design_Pack/11_Schema_and_Artifact_Reference.md,Phase11 设计包: 11_Schema_and_Artifact_Reference,archive-only,archive/history/Phase11_Design_Pack/11_Schema_and_Artifact_Reference.md,4,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
+Docs/History/Phase11_Design_Pack/12_Implementation_Taskbook.md,Phase11 设计包: 12_Implementation_Taskbook,archive-only,archive/history/Phase11_Design_Pack/12_Implementation_Taskbook.md,6,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
+Docs/History/Phase11_Design_Pack/13_Claude_Handoff_and_Reading_Order.md,Phase11 设计包: 13_Claude_Handoff_and_Reading_Order,archive-only,archive/history/Phase11_Design_Pack/13_Claude_Handoff_and_Reading_Order.md,2,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
+Docs/History/Phase11_Design_Pack/14_Agent_Interaction_Protocol.md,Phase11 设计包: 14_Agent_Interaction_Protocol,archive-only,archive/history/Phase11_Design_Pack/14_Agent_Interaction_Protocol.md,10,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
+Docs/History/Phase11_Design_Pack/15_Claude_Code_Handoff_to_Codex.md,Phase11 设计包: 15_Claude_Code_Handoff_to_Codex,archive-only,archive/history/Phase11_Design_Pack/15_Claude_Code_Handoff_to_Codex.md,2,16 份原始设计文档已被吸收到 Plugins/AgentBridge/Docs 8 份框架级规范; 保留追溯
+Docs/History/Phase1_MVP/Phase_Summary.md,Phase1 MVP 历史: Phase_Summary,archive-only,archive/history/Phase1_MVP/Phase_Summary.md,0,
+Docs/History/Phase1_MVP/task.md,Phase1 MVP 历史: task,archive-only,archive/history/Phase1_MVP/task.md,32,
+Docs/History/Proposals/Phase10_MCP_Repositioning_Plan.md,历史方案: Phase10_MCP_Repositioning_Plan,archive-only,archive/history/Proposals/Phase10_MCP_Repositioning_Plan.md,0,
+Docs/History/Proposals/Phase3_Implementation_Plan.md,历史方案: Phase3_Implementation_Plan,archive-only,archive/history/Proposals/Phase3_Implementation_Plan.md,1,
+Docs/History/Proposals/Phase8_DD1_Schema_and_Interface_Spec.md,历史方案: Phase8_DD1_Schema_and_Interface_Spec,archive-only,archive/history/Proposals/Phase8_DD1_Schema_and_Interface_Spec.md,2,
+Docs/History/Proposals/Phase8_DD3_Lowering_Map_and_CPP_Design.md,历史方案: Phase8_DD3_Lowering_Map_and_CPP_Design,archive-only,archive/history/Proposals/Phase8_DD3_Lowering_Map_and_CPP_Design.md,3,
+Docs/History/Proposals/Phase8_M3_Handover_to_Execution_Agent.md,历史方案: Phase8_M3_Handover_to_Execution_Agent,archive-only,archive/history/Proposals/Phase8_M3_Handover_to_Execution_Agent.md,3,
+Docs/History/Proposals/Phase8_Plan_Original.md,历史方案: Phase8_Plan_Original,archive-only,archive/history/Proposals/Phase8_Plan_Original.md,2,
+Docs/History/Proposals/Phase8_Task_Redesign_Draft.md,历史方案: Phase8_Task_Redesign_Draft,archive-only,archive/history/Proposals/Phase8_Task_Redesign_Draft.md,1,
+Docs/History/Proposals/Phase9_MCP_Implementation_Plan.md,历史方案: Phase9_MCP_Implementation_Plan,archive-only,archive/history/Proposals/Phase9_MCP_Implementation_Plan.md,3,
+Docs/History/Tasks/00_Task_Index.md,任务历史: 00_Task_Index,archive-only,archive/history/Tasks/00_Task_Index.md,1,
+Docs/History/Tasks/task10_phase10.md,任务历史: task10_phase10,archive-only,archive/history/Tasks/task10_phase10.md,4,
+Docs/History/Tasks/task11_phase11.md,任务历史: task11_phase11,archive-only,archive/history/Tasks/task11_phase11.md,4,
+Docs/History/Tasks/task1_phase3.md,任务历史: task1_phase3,archive-only,archive/history/Tasks/task1_phase3.md,1,
+Docs/History/Tasks/task2_phase4.md,任务历史: task2_phase4,archive-only,archive/history/Tasks/task2_phase4.md,3,
+Docs/History/Tasks/task3_phase5.md,任务历史: task3_phase5,archive-only,archive/history/Tasks/task3_phase5.md,2,
+Docs/History/Tasks/task4_phase6.md,任务历史: task4_phase6,archive-only,archive/history/Tasks/task4_phase6.md,3,
+Docs/History/Tasks/task5_phase7_preparation.md,任务历史: task5_phase7_preparation,archive-only,archive/history/Tasks/task5_phase7_preparation.md,3,
+Docs/History/Tasks/task6_phase7.md,任务历史: task6_phase7,archive-only,archive/history/Tasks/task6_phase7.md,4,
+Docs/History/Tasks/task6_phase7_publish_2026-04-02.md,任务历史: task6_phase7_publish_2026-04-02,archive-only,archive/history/Tasks/task6_phase7_publish_2026-04-02.md,0,
+Docs/History/Tasks/task8_phase8.md,任务历史: task8_phase8,archive-only,archive/history/Tasks/task8_phase8.md,4,
+Docs/History/Tasks/task9_phase9.md,任务历史: task9_phase9,archive-only,archive/history/Tasks/task9_phase9.md,3,
+Docs/History/reports/AgentBridgeEvidence/phase6_evidence_2026-04-02/notes/phase6_task_phase6_boardgame_playable_demo_runtime_playable_evidence.md,Evidence: phase6_task_phase6_boardgame_playable_demo_runtime_playable_evidence,archive-only,archive/history/reports/AgentBridgeEvidence/phase6_evidence_2026-04-02/notes/phase6_task_phase6_boardgame_playable_demo_runtime_playable_evidence.md,0,
+Docs/History/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/github_pr_phase7_archive_2026-04-02.md,Evidence: github_pr_phase7_archive_2026-04-02,archive-only,archive/history/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/github_pr_phase7_archive_2026-04-02.md,0,
+Docs/History/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/notes/phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_evidence.md,Evidence: phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_evidence,archive-only,archive/history/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/notes/phase7_task_phase7_jrpg_turn_based_demo_bridge_rc_api_smoke_evidence.md,1,
+Docs/History/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_archive_preflight_checklist_2026-04-02.md,Evidence: phase7_archive_preflight_checklist_2026-04-02,archive-only,archive/history/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_archive_preflight_checklist_2026-04-02.md,1,
+Docs/History/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_bootstrap_implementation_2026-04-02.md,Evidence: phase7_bootstrap_implementation_2026-04-02,archive-only,archive/history/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_bootstrap_implementation_2026-04-02.md,1,
+Docs/History/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_e2e35_e2e36_validation_2026-04-02.md,Evidence: phase7_e2e35_e2e36_validation_2026-04-02,archive-only,archive/history/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_e2e35_e2e36_validation_2026-04-02.md,1,
+Docs/History/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_jrpg_pack_consistency_2026-04-02.md,Evidence: phase7_jrpg_pack_consistency_2026-04-02,archive-only,archive/history/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_jrpg_pack_consistency_2026-04-02.md,2,
+Docs/History/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_p1_round1_governance_audit.md,Evidence: phase7_p1_round1_governance_audit,archive-only,archive/history/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_p1_round1_governance_audit.md,1,
+Docs/History/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_p1_round2_governance_audit.md,Evidence: phase7_p1_round2_governance_audit,archive-only,archive/history/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_p1_round2_governance_audit.md,1,
+Docs/History/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_p1_round3_governance_audit.md,Evidence: phase7_p1_round3_governance_audit,archive-only,archive/history/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_p1_round3_governance_audit.md,2,
+Docs/History/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_p1_stability_summary_2026-04-02.md,Evidence: phase7_p1_stability_summary_2026-04-02,archive-only,archive/history/reports/AgentBridgeEvidence/phase7_evidence_2026-04-02/phase7_p1_stability_summary_2026-04-02.md,1,
+Docs/Proposals/Phase10_Compiler_Capability_Bus_v3.md,Phase10 Compiler Capability Bus v3,archive-only,archive/proposals/Phase10_Compiler_Capability_Bus_v3.md,2,
+Docs/Proposals/Phase10_Execution_MCP_Adapter_v3.md,Phase10 Execution MCP Adapter v3,archive-only,archive/proposals/Phase10_Execution_MCP_Adapter_v3.md,1,
+Docs/Proposals/Phase10_MCP_Testing_Toolset_v2.md,Phase10 MCP Testing Toolset v2,archive-only,archive/proposals/Phase10_MCP_Testing_Toolset_v2.md,2,
+Docs/Proposals/Phase10_Validation_Testing_Plane_v3.md,Phase10 Validation Testing Plane v3,archive-only,archive/proposals/Phase10_Validation_Testing_Plane_v3.md,2,
+Docs/superpowers/plans/2026-05-24-forgeue-manifest-import-bridge.md,forgeue manifest import bridge plan,archive-only,archive/superpowers/plans/2026-05-24-forgeue-manifest-import-bridge.md,0,
+Docs/superpowers/plans/2026-05-25-document-release-port-implementation.md,document-release 实现 plan,archive-only,archive/superpowers/plans/2026-05-25-document-release-port-implementation.md,0,
+Docs/superpowers/specs/2026-05-25-document-release-port-design.md,document-release skill 端口设计 spec,archive-only,archive/superpowers/specs/2026-05-25-document-release-port-design.md,1,
+Plugins/AgentBridge/Docs/Archive/Phase1-2/bridge_implementation_plan.md,Phase1-2 Bridge 实施计划,archive-only,archive/plugins/Archive/Phase1-2/bridge_implementation_plan.md,4,MVP 时代历史归档;新文档结构再归档一次
+Plugins/AgentBridge/Docs/Archive/Phase1-2/mvp_scope.md,Phase1-2 MVP 范围,archive-only,archive/plugins/Archive/Phase1-2/mvp_scope.md,1,MVP 时代历史归档;新文档结构再归档一次
+Plugins/AgentBridge/Docs/Archive/Phase1-2/mvp_smoke_test_plan.md,Phase1-2 MVP 冒烟测试计划,archive-only,archive/plugins/Archive/Phase1-2/mvp_smoke_test_plan.md,3,MVP 时代历史归档;新文档结构再归档一次
 Plugins/AgentBridge/Docs/agent_interaction_protocol.md,Agent 交互协议,already-consumed,design/HLD.md#2 + governance.md#4,4,
 Plugins/AgentBridge/Docs/architecture_overview.md,AgentBridge 架构总览,already-consumed,design/HLD.md#1-2 + requirements/SRS.md#2,19,
 Plugins/AgentBridge/Docs/base_skill_domains_design.md,Base Skill Domains 设计,already-consumed,design/LLD/06_skills_and_templates.md,2,

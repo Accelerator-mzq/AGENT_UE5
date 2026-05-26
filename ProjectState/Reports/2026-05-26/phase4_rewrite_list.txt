@@ -1,7 +1,7 @@
-# Phase 4 链接重写清单(Phase 2.2 自动产出,40 个文件需重写)
+# Phase 4 链接重写清单(Phase 2.2 自动产出,17 个文件需重写)
 # 来源: Scripts/validation/link_precheck.py 2026-05-26
 # 字典源: Docs/redirects.json(108 条映射)
-# 总命中: 272 处引用 / 0 处未映射
+# 总命中: 180 处引用 / 0 处未映射
 #
 # 每行 = 含旧路径引用的文件相对路径,Phase 4 用 redirects.json 批量重写
 #
@@ -9,17 +9,6 @@
 .claude/skills/document-release/SKILL.md
 AGENTS.md
 CLAUDE.md
-Docs/Current/00_Index.md
-Docs/Current/01_Project_Baseline.md
-Docs/Current/02_Current_Phase_Goals.md
-Docs/Current/04_Open_Risks.md
-Docs/Current/05_Implementation_Boundary.md
-Docs/Current/06_Current_Task_List.md
-Docs/Current/08_Phase8_Retrospective_And_Phase9_Checklist.md
-Docs/Current/10_Phase8_Closeout.md
-Docs/Current/11_Phase9_Closeout.md
-Docs/Current/17_Phase10_Closeout.md
-Docs/Current/18_Phase11_Closeout.md
 Docs/Handoff_Phase10_Execution.md
 Docs/INDEX.md
 Docs/acceptance/acceptance_report.md
@@ -29,18 +18,6 @@ Docs/design/HLD.md
 Docs/governance.md
 Docs/requirements/SRS.md
 Plugins/AgentBridge/AGENTS.md
-Plugins/AgentBridge/Docs/agent_interaction_protocol.md
-Plugins/AgentBridge/Docs/architecture_overview.md
-Plugins/AgentBridge/Docs/baseline_realization_policy.md
-Plugins/AgentBridge/Docs/clarification_gate_rules.md
-Plugins/AgentBridge/Docs/constraint_variant_policy.md
-Plugins/AgentBridge/Docs/design_space_discovery.md
-Plugins/AgentBridge/Docs/editor_screenshot_evidence_workflow.md
-Plugins/AgentBridge/Docs/root_skill_contract_standard.md
-Plugins/AgentBridge/Docs/run_isolation_compare_promote.md
-Plugins/AgentBridge/Docs/skill_graph_and_domain_skill.md
-Plugins/AgentBridge/Docs/skills_and_specs_overview.md
-Plugins/AgentBridge/Docs/universal_baseline_standard.md
 Plugins/AgentBridge/README.md
 Plugins/AgentBridge/Tests/SystemTestCases.md
 README.md
