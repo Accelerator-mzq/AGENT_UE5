@@ -5,11 +5,17 @@
 
 外部通过 remote_control_client.call_function(
     object_path=<probe log 输出的真实 default object path>,
-    function_name="ImportAssetsFromManifest",
-    parameters={"ManifestPath": "...", "PlanPath": "...", "OverwriteExisting": false}
+    function_name="import_assets_from_manifest",       # snake_case,UE 保留 Python 原名
+    parameters={"manifest_path": "...", "plan_path": "...", "overwrite_existing": False}
 ) 触发。
 
 实际 object_path 在 Editor 启动后由 [AgentBridge probe] log 给出。
+实测真实值(commit a075ec4 验证):
+    object_path  = "/AgentBridge/Python/forgeue_rc_endpoint_PY.Default__AgentBridgeForgeUEEndpoint"
+    function_name = "import_assets_from_manifest"
+    parameters keys = manifest_path / plan_path / overwrite_existing(全 snake_case)
+spec/plan v1.0 的 /Script/PythonGeneratedClass.* + CamelCase 假设是错的,详见
+ProjectState/Reports/2026-05-27/forgeue_rc_endpoint_verification.md "关键发现" 区段。
 
 设计原则:
 - endpoint 在 Editor 内,等价于 bridge_python 触发器
