@@ -9,22 +9,22 @@
 | 旧路径 | 内容主题 | 新归宿 | 状态 |
 |--------|----------|--------|------|
 | `Docs/Current/00_Index.md` | 当前阶段索引 | Planned: INDEX.md (全替换) | already-consumed |
-| `Docs/Current/01_Project_Baseline.md` | Phase 11 项目基线 | Planned: requirements/SRS.md#1 + acceptance/acceptance_report.md#1 | already-consumed |
-| `Docs/Current/02_Current_Phase_Goals.md` | 阶段目标完成状态 | Planned: acceptance/acceptance_report.md#1 | already-consumed |
+| `Docs/Current/01_Project_Baseline.md` | Phase 11 项目基线 | requirements/SRS.md#1 + acceptance/acceptance_report.md#1 | already-consumed |
+| `Docs/Current/02_Current_Phase_Goals.md` | 阶段目标完成状态 | acceptance/acceptance_report.md#1 | already-consumed |
 | `Docs/Current/03_Active_Backlog.md` | 活动 backlog | Planned: acceptance/acceptance_report.md#1-附 | archive-only |
 | `Docs/Current/04_Open_Risks.md` | 风险记录 | Planned: archive/current/04_Open_Risks.md | archive-only |
-| `Docs/Current/05_Implementation_Boundary.md` | 实施边界 | Planned: requirements/SRS.md#6.5 + governance.md#6 | already-consumed |
+| `Docs/Current/05_Implementation_Boundary.md` | 实施边界 | requirements/SRS.md#6.5 + governance.md#6 | already-consumed |
 | `Docs/Current/06_Current_Task_List.md` | 当前任务入口 | Planned: INDEX.md#3 | already-consumed |
-| `Docs/Current/07_Evidence_And_Artifacts.md` | Evidence 落盘规则 | Planned: requirements/SRS.md#6.3 + governance.md#1 | already-consumed |
+| `Docs/Current/07_Evidence_And_Artifacts.md` | Evidence 落盘规则 | requirements/SRS.md#6.3 + governance.md#1 | already-consumed |
 | `Docs/Current/08_Phase8_Retrospective_And_Phase9_Checklist.md` | Phase 8 复盘 | Planned: archive/current/08_Phase8_Retrospective_And_Phase9_Checklist.md | archive-only |
 | `Docs/Current/10_Phase8_Closeout.md` | Phase 8 收尾 | Planned: archive/current/10_Phase8_Closeout.md | archive-only |
 | `Docs/Current/11_Phase9_Closeout.md` | Phase 9 收尾 | Planned: archive/current/11_Phase9_Closeout.md | archive-only |
 | `Docs/Current/12_MCP_Repositioning.md` | MCP 重定位背景 | Planned: archive/current/12_MCP_Repositioning.md | archive-only |
-| `Docs/Current/14_MCP_Cognitive_Bridge_Anchor.md` | MCP 总口径 | Planned: design/HLD.md#4 + requirements/SRS.md#3.5 | already-consumed |
-| `Docs/Current/15_Skill_Spec_Handoff_Chain.md` | 4 层主链 | Planned: requirements/SRS.md#4 + design/HLD.md#2 | already-consumed |
+| `Docs/Current/14_MCP_Cognitive_Bridge_Anchor.md` | MCP 总口径 | design/HLD.md#4 + requirements/SRS.md#3.5 | already-consumed |
+| `Docs/Current/15_Skill_Spec_Handoff_Chain.md` | 4 层主链 | requirements/SRS.md#4 + design/HLD.md#2 | already-consumed |
 | `Docs/Current/16_MCP_Repositioning_Plan.md` | MCP 重定位方案 v3 | Planned: design/HLD.md#4 + archive/current/16_MCP_Repositioning_Plan.md | already-consumed |
 | `Docs/Current/17_Phase10_Closeout.md` | Phase 10 收尾 | Planned: archive/current/17_Phase10_Closeout.md | archive-only |
-| `Docs/Current/18_Phase11_Closeout.md` | Phase 11 收尾 | Planned: acceptance/acceptance_report.md#1 | already-consumed |
+| `Docs/Current/18_Phase11_Closeout.md` | Phase 11 收尾 | acceptance/acceptance_report.md#1 | already-consumed |
 | `Docs/Decisions/ADR-001-Doc-Governance.md` | ADR-001 文档治理 | Planned: archive/decisions/ADR-001-Doc-Governance.md | archive-only |
 | `Docs/Decisions/ADR-002-Task-And-Evidence-Archiving.md` | ADR-002 任务与证据归档 | Planned: archive/decisions/ADR-002-Task-And-Evidence-Archiving.md | archive-only |
 | `Docs/Handoff_Phase10_Execution.md` | Phase 10 执行交接文档 | Planned: archive/Handoff_Phase10_Execution.md | archive-only |
@@ -89,7 +89,7 @@
 | `Plugins/AgentBridge/Docs/Archive/Phase1-2/mvp_scope.md` | Phase1-2 MVP 范围 | Planned: archive/plugins/Archive/Phase1-2/mvp_scope.md | archive-only |
 | `Plugins/AgentBridge/Docs/Archive/Phase1-2/mvp_smoke_test_plan.md` | Phase1-2 MVP 冒烟测试计划 | Planned: archive/plugins/Archive/Phase1-2/mvp_smoke_test_plan.md | archive-only |
 | `Plugins/AgentBridge/Docs/agent_interaction_protocol.md` | Agent 交互协议 | Planned: governance.md#4 | already-consumed |
-| `Plugins/AgentBridge/Docs/architecture_overview.md` | AgentBridge 架构总览 | Planned: design/HLD.md#1-2 | already-consumed |
+| `Plugins/AgentBridge/Docs/architecture_overview.md` | AgentBridge 架构总览 | design/HLD.md#1-2 + requirements/SRS.md#2 | already-consumed |
 | `Plugins/AgentBridge/Docs/base_skill_domains_design.md` | Base Skill Domains 设计 | Planned: design/LLD/06_skills_and_templates.md | already-consumed |
 | `Plugins/AgentBridge/Docs/baseline_realization_policy.md` | Baseline 实例化策略 | Planned: design/LLD/06_skills_and_templates.md | already-consumed |
 | `Plugins/AgentBridge/Docs/boardgame_playable_pipeline.md` | Boardgame Playable 流水线 | Planned: design/LLD/03_orchestrator.md | already-consumed |
@@ -112,9 +112,9 @@
 | `Plugins/AgentBridge/Docs/root_skill_contract_standard.md` | Root Skill Contract 标准 | Planned: requirements/SRS.md#3 + design/LLD/06_skills_and_templates.md | already-consumed |
 | `Plugins/AgentBridge/Docs/run_isolation_compare_promote.md` | Run 隔离/对比/提升 | Planned: design/LLD/03_orchestrator.md + governance.md#3 | already-consumed |
 | `Plugins/AgentBridge/Docs/skill_graph_and_domain_skill.md` | Skill Graph 与 Domain Skill | Planned: design/LLD/06_skills_and_templates.md | already-consumed |
-| `Plugins/AgentBridge/Docs/skills_and_specs_overview.md` | Skills 与 Specs 总览 | Planned: requirements/SRS.md#4 + design/LLD/06_skills_and_templates.md | already-consumed |
+| `Plugins/AgentBridge/Docs/skills_and_specs_overview.md` | Skills 与 Specs 总览 | requirements/SRS.md#4 + design/LLD/06_skills_and_templates.md | already-consumed |
 | `Plugins/AgentBridge/Docs/tool_contract_v0_1.md` | Tool Contract v0.1 | contracts/tool_contract.md | already-consumed |
-| `Plugins/AgentBridge/Docs/ue5_capability_map.md` | UE5 能力映射 | Planned: design/LLD/02_bridge.md + design/HLD.md#3 | already-consumed |
+| `Plugins/AgentBridge/Docs/ue5_capability_map.md` | UE5 能力映射 | design/LLD/02_bridge.md + design/HLD.md#3 + requirements/SRS.md#3.2 | already-consumed |
 | `Plugins/AgentBridge/Docs/universal_baseline_standard.md` | Universal Baseline 标准 | Planned: requirements/SRS.md#3 + design/LLD/06_skills_and_templates.md | already-consumed |
 
 ---
