@@ -34,16 +34,20 @@ _PLAN_PATH = _FIXTURE_DIR / "import_plan.json"
 
 
 def test_parse_manifest_reads_schema_version_and_assets():
-    """ForgeUE_codex manifest.json 必读字段:schema_version / run_id / assets[]."""
+    """ForgeUE_codex manifest.json 必读字段:schema_version / run_id / assets[]。"""
     parsed = importer.parse_manifest(str(_MANIFEST_PATH))
 
     assert parsed["schema_version"] == "1.0.0"
     assert parsed["run_id"] == "run_p4_full"
-    assert len(parsed["assets"]) == 1
-    asset = parsed["assets"][0]
-    assert asset["asset_kind"] == "texture"
-    assert asset["ue_naming"]["ue_name"] == "T_run_p4_full_step_image_cand_e0726e0a_0"
-    assert asset["source_uri"].endswith(".png")
+    assert len(parsed["assets"]) == 6, "fixture 扩到 6 种 asset_kind"
+
+    kinds = {a["asset_kind"] for a in parsed["assets"]}
+    assert kinds == {"texture", "sprite_sheet", "sound_wave", "static_mesh", "material", "file_media_source"}
+
+    # texture entry 字段健康检查(回归保护)
+    tex = next(a for a in parsed["assets"] if a["asset_kind"] == "texture")
+    assert tex["ue_naming"]["ue_name"].startswith("T_")
+    assert tex["source_uri"].endswith(".png")
 
 
 def test_parse_manifest_rejects_unsupported_schema_version(tmp_path):
@@ -64,8 +68,8 @@ def test_parse_manifest_rejects_non_list_assets(tmp_path):
         importer.parse_manifest(str(bad))
 
 
-def test_import_from_manifest_simulated_returns_one_op_per_asset():
-    """simulated mode: 每个 asset entry → 一条 op 模拟结果, 状态 success."""
+def test_import_from_manifest_simulated_returns_six_ops_one_per_asset():
+    """simulated mode:6 种 asset 各产出一条 op 模拟结果,全 success。"""
     result = importer.import_from_manifest(
         manifest_path=str(_MANIFEST_PATH),
         plan_path=str(_PLAN_PATH),
@@ -77,17 +81,20 @@ def test_import_from_manifest_simulated_returns_one_op_per_asset():
     assert result["run_id"] == "run_p4_full"
     assert result["manifest_id"] == "m_run_p4_full"
     assert result["plan_id"] == "p_run_p4_full"
-    assert len(result["asset_results"]) == 1
+    assert len(result["asset_results"]) == 6
 
-    asset_result = result["asset_results"][0]
-    assert asset_result["status"] == "success"
-    assert asset_result["asset_kind"] == "texture"
-    assert asset_result["target_object_path"].startswith("/Game/Generated/Tavern/run_p4_full/T_")
-    assert asset_result["simulated"] is True
+    # 6 种 kind 全覆盖
+    kinds_in_results = {r["asset_kind"] for r in result["asset_results"]}
+    assert kinds_in_results == {"texture", "sprite_sheet", "sound_wave", "static_mesh", "material", "file_media_source"}
+
+    # 全 simulated 标记
+    for r in result["asset_results"]:
+        assert r["status"] == "success"
+        assert r["simulated"] is True
 
 
 def test_import_from_manifest_simulated_without_plan_path_still_works():
-    """plan_path 可选: 只有 manifest 时,生成 asset_results 但不带 plan_id。"""
+    """plan_path 可选:只有 manifest 时,6 条 asset_results 但 plan_id=None。"""
     result = importer.import_from_manifest(
         manifest_path=str(_MANIFEST_PATH),
         plan_path=None,
@@ -96,7 +103,7 @@ def test_import_from_manifest_simulated_without_plan_path_still_works():
 
     assert result["status"] == "success"
     assert result["plan_id"] is None
-    assert len(result["asset_results"]) == 1
+    assert len(result["asset_results"]) == 6
 
 
 def test_import_from_manifest_rejects_unknown_bridge_mode():
@@ -142,7 +149,7 @@ def test_handoff_runner_dispatches_import_assets_to_forgeue_importer():
     inner = step_results[0]["result"]
     assert inner["status"] == "success"
     assert inner["bridge_mode"] == "simulated"
-    assert len(inner["asset_results"]) == 1
+    assert len(inner["asset_results"]) == 6
 
 
 @pytest.mark.parametrize("mode", ["bridge_python", "bridge_rc_api"])
@@ -173,7 +180,7 @@ def test_cli_main_simulated_prints_json_and_returns_zero(capsys):
     payload = _json.loads(captured.out)
     assert payload["status"] == "success"
     assert payload["bridge_mode"] == "simulated"
-    assert len(payload["asset_results"]) == 1
+    assert len(payload["asset_results"]) == 6
 
 
 def test_cli_main_unimplemented_mode_returns_nonzero(capsys):
@@ -186,3 +193,33 @@ def test_cli_main_unimplemented_mode_returns_nonzero(capsys):
 
     assert rc != 0
     assert "bridge_python" in captured.err
+
+
+# ============================================================
+# Task 3.2 新增:每种 asset_kind 的 simulated 字段健康检查
+# ============================================================
+
+@pytest.mark.parametrize("kind,prefix", [
+    ("texture",            "T_"),
+    ("sprite_sheet",       "T_"),
+    ("sound_wave",         "S_"),
+    ("static_mesh",        "SM_"),
+    ("material",           "M_"),
+    ("file_media_source",  "MS_"),
+])
+def test_simulated_per_kind_target_object_path_uses_correct_prefix(kind, prefix):
+    """每种 asset_kind 的 target_object_path 必须用对应 prefix(回归保护命名策略)。"""
+    result = importer.import_from_manifest(
+        manifest_path=str(_MANIFEST_PATH),
+        plan_path=str(_PLAN_PATH),
+        bridge_mode="simulated",
+    )
+
+    matching = [r for r in result["asset_results"] if r["asset_kind"] == kind]
+    assert len(matching) >= 1, f"fixture 必须含至少 1 个 {kind} entry"
+
+    for r in matching:
+        # target_object_path 形如 /Game/.../<PREFIX>name
+        leaf_name = r["target_object_path"].rsplit("/", 1)[-1]
+        assert leaf_name.startswith(prefix), \
+            f"{kind} target {leaf_name!r} 应以 {prefix!r} 开头"
