@@ -140,6 +140,7 @@ def _import_asset_by_kind(
 
     返回 forgeue_import_evidence.schema.json 兼容的 dict。
     """
+    # 守门:必须在 UE Editor Python 环境(import unreal 可用),否则早期 raise
     try:
         import unreal  # 失败 → 不在 Editor Python 环境
     except ImportError as exc:
@@ -148,14 +149,17 @@ def _import_asset_by_kind(
             "外部驱动请用 simulated 模式或 bridge_rc_api 通路"
         ) from exc
 
+    # 拼 source_uri 绝对路径(manifest 中是相对 manifest 目录的相对路径)
     kind = asset["asset_kind"]
     source_uri = (manifest_root / asset["source_uri"]).resolve()
     if not source_uri.exists():
-        return _evidence_failure(asset, bridge_mode, f"payload missing: {source_uri}")
+        return _evidence_failure(asset, bridge_mode, f"payload missing: {source_uri}",
+                                  source_uri_abs=source_uri)
 
     target_pkg = asset["target_package_path"]
     import_options = asset.get("import_options", {})
 
+    # 按 asset_kind 6 路 dispatch:texture/sprite_sheet 共享 importer,material/media 走 creator
     if kind in ("texture", "sprite_sheet"):
         return _importer_path_texture(asset, source_uri, target_pkg, overwrite_existing,
                                       import_options, bridge_mode)
@@ -172,15 +176,24 @@ def _import_asset_by_kind(
         return _creator_path_media(asset, source_uri, target_pkg, overwrite_existing,
                                    bridge_mode)
 
-    return _evidence_failure(asset, bridge_mode, f"unsupported asset_kind: {kind}")
+    return _evidence_failure(asset, bridge_mode, f"unsupported asset_kind: {kind}",
+                              source_uri_abs=source_uri)
 
 
 # ============================================================
 # helper:evidence 构造
 # ============================================================
 
+def _now_iso_utc() -> str:
+    """返回当前 UTC 时间 ISO 8601 含毫秒 + Z 后缀(避开 utcnow deprecation)。"""
+    # Python 3.13 起 datetime.utcnow() 已 deprecated,改用 timezone-aware now(UTC)
+    # 再 replace "+00:00" → "Z" 保持与 schema example 兼容的紧凑表示
+    return _dt.datetime.now(_dt.UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+
 def _evidence_failure(asset: dict, bridge_mode: str, message: str,
-                       *, errors: list[str] | None = None) -> dict:
+                       *, source_uri_abs: str | Path | None = None,
+                       errors: list[str] | None = None) -> dict:
     """构造 failed 状态的 evidence dict(符合 forgeue_import_evidence.schema.json)。"""
     return {
         "asset_entry_id": asset.get("asset_entry_id", ""),
@@ -188,13 +201,17 @@ def _evidence_failure(asset: dict, bridge_mode: str, message: str,
         "asset_kind": asset.get("asset_kind", ""),
         "bridge_mode": bridge_mode,
         "status": "failed",
-        "timestamp": _dt.datetime.utcnow().isoformat(timespec="milliseconds") + "Z",
-        "source_uri_abs": str(asset.get("source_uri", "")),
+        "timestamp": _now_iso_utc(),
+        # source_uri_abs 优先用 caller 提供的绝对路径;若 None 则 fallback 到 asset 中的相对路径
+        # (但应避免 None 场景 — caller 应总是传入)
+        "source_uri_abs": str(source_uri_abs) if source_uri_abs is not None
+                          else str(asset.get("source_uri", "")),
         "errors": errors or [message],
     }
 
 
-def _evidence_skipped(asset: dict, bridge_mode: str, reason: str) -> dict:
+def _evidence_skipped(asset: dict, bridge_mode: str, reason: str,
+                      *, source_uri_abs: str | Path | None = None) -> dict:
     """构造 skipped 状态的 evidence dict。"""
     return {
         "asset_entry_id": asset.get("asset_entry_id", ""),
@@ -202,8 +219,11 @@ def _evidence_skipped(asset: dict, bridge_mode: str, reason: str) -> dict:
         "asset_kind": asset.get("asset_kind", ""),
         "bridge_mode": bridge_mode,
         "status": "skipped",
-        "timestamp": _dt.datetime.utcnow().isoformat(timespec="milliseconds") + "Z",
-        "source_uri_abs": str(asset.get("source_uri", "")),
+        "timestamp": _now_iso_utc(),
+        # source_uri_abs 优先用 caller 提供的绝对路径;若 None 则 fallback 到 asset 中的相对路径
+        # (但应避免 None 场景 — caller 应总是传入)
+        "source_uri_abs": str(source_uri_abs) if source_uri_abs is not None
+                          else str(asset.get("source_uri", "")),
         "skipped_reason": reason,
     }
 
@@ -211,14 +231,24 @@ def _evidence_skipped(asset: dict, bridge_mode: str, reason: str) -> dict:
 def _evidence_success(asset: dict, bridge_mode: str, source_uri_abs: Path,
                       uasset_object_path: str, factory_class: str,
                       duration_ms: int, import_log_excerpt: str = "") -> dict:
-    """构造 success 状态的 evidence dict。"""
+    """构造 success 状态的 evidence dict(符合 forgeue_import_evidence.schema.json)。
+
+    Args:
+        asset: manifest 中的 asset entry dict
+        bridge_mode: 触发的桥接通路(bridge_python / bridge_rc_api)
+        source_uri_abs: payload 文件的绝对路径(已 resolve)
+        uasset_object_path: UE Content Browser 中 uasset 的对象路径(/Game/...形式)
+        factory_class: 实际使用的 unreal Factory 类全名(便于 debug)
+        duration_ms: 单条 op 执行耗时(毫秒)
+        import_log_excerpt: unreal.log 相关切片(可选)
+    """
     return {
         "asset_entry_id": asset.get("asset_entry_id", ""),
         "op_id": f"op_import_{asset.get('asset_entry_id', 'unknown')}",
         "asset_kind": asset.get("asset_kind", ""),
         "bridge_mode": bridge_mode,
         "status": "success",
-        "timestamp": _dt.datetime.utcnow().isoformat(timespec="milliseconds") + "Z",
+        "timestamp": _now_iso_utc(),
         "source_uri_abs": str(source_uri_abs),
         "uasset_object_path": uasset_object_path,
         "uasset_package_path": uasset_object_path.split(".")[0] if "." in uasset_object_path else uasset_object_path,
@@ -233,28 +263,43 @@ def _evidence_success(asset: dict, bridge_mode: str, source_uri_abs: Path,
 # 5+1 种 asset_kind 实现(Task 6-10 逐一填充;此 task 全 raise NotImplementedError 占位)
 # ============================================================
 
-def _importer_path_texture(asset, source_uri, target_pkg, overwrite, import_options, bridge_mode):
+def _importer_path_texture(
+    asset: dict[str, Any], source_uri: Path, target_pkg: str,
+    overwrite: bool, import_options: dict[str, Any], bridge_mode: str,
+) -> dict[str, Any]:
     """texture / sprite_sheet 真机导入(待 Task 6 填充)。"""
     raise NotImplementedError("texture/sprite_sheet importer pending Task 6")
 
 
-def _importer_path_sound(asset, source_uri, target_pkg, overwrite, import_options, bridge_mode):
+def _importer_path_sound(
+    asset: dict[str, Any], source_uri: Path, target_pkg: str,
+    overwrite: bool, import_options: dict[str, Any], bridge_mode: str,
+) -> dict[str, Any]:
     """sound_wave 真机导入(待 Task 7 填充)。"""
     raise NotImplementedError("sound_wave importer pending Task 7")
 
 
-def _importer_path_mesh(asset, source_uri, target_pkg, overwrite, import_options, bridge_mode):
+def _importer_path_mesh(
+    asset: dict[str, Any], source_uri: Path, target_pkg: str,
+    overwrite: bool, import_options: dict[str, Any], bridge_mode: str,
+) -> dict[str, Any]:
     """static_mesh 真机导入(待 Task 8 填充)。"""
     raise NotImplementedError("static_mesh importer pending Task 8")
 
 
-def _creator_path_material(asset, source_uri, target_pkg, overwrite, bridge_mode):
-    """material 真机创建(待 Task 9 填充)。"""
+def _creator_path_material(
+    asset: dict[str, Any], source_uri: Path, target_pkg: str,
+    overwrite: bool, bridge_mode: str,
+) -> dict[str, Any]:
+    """material 真机创建(待 Task 9 填充);creator path 不走文件 importer,故省略 import_options。"""
     raise NotImplementedError("material creator pending Task 9")
 
 
-def _creator_path_media(asset, source_uri, target_pkg, overwrite, bridge_mode):
-    """file_media_source 真机创建(待 Task 10 填充)。"""
+def _creator_path_media(
+    asset: dict[str, Any], source_uri: Path, target_pkg: str,
+    overwrite: bool, bridge_mode: str,
+) -> dict[str, Any]:
+    """file_media_source 真机创建(待 Task 10 填充);creator path 不走文件 importer,故省略 import_options。"""
     raise NotImplementedError("file_media_source creator pending Task 10")
 
 
