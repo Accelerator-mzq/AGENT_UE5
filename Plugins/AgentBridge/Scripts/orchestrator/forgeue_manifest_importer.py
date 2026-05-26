@@ -536,7 +536,7 @@ def _build_mesh_factory(fmt: str, import_options: dict[str, Any]) -> tuple[Any, 
         # FBX import 选项 — 避免导入材质/合并 mesh 等不需要的副作用
         fbx_import_data = unreal.FbxImportUI()
         fbx_import_data.import_materials = import_options.get("import_materials", False)
-        fbx_import_data.import_textures = import_options.get("import_materials", False)
+        fbx_import_data.import_textures = import_options.get("import_textures", False)
         fbx_import_data.static_mesh_import_data.combine_meshes = import_options.get("combine_meshes", False)
         factory.set_editor_property("import_options", fbx_import_data)
         return factory, "unreal.FbxFactory"
