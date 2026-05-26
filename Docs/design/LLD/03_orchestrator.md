@@ -151,7 +151,7 @@ CLI/MCP → orchestrator.run(spec_path, channel=CPP_PLUGIN)
 ### 4.2 Handoff 主链(Brownfield/Greenfield 通用,F-ORC-07)
 
 ```
-handoff_runner.run_from_handoff(handoff_path, bridge_mode="bridge_rc_api")
+handoff_runner.run_from_handoff(handoff_path, bridge_mode="bridge_rc_api")  # 示例传 bridge_rc_api;函数默认 "simulated"(见 handoff_runner.py:55)
   └─load_handoff (yaml/json)
   └─run_plan_builder.build_run_plan_from_handoff
        ├─build_workflow_sequence(actors)  # 线性依赖:第 i 步 depends_on=[第 0 步]
@@ -171,6 +171,9 @@ handoff_runner.run_from_handoff(handoff_path, bridge_mode="bridge_rc_api")
 ```
 
 ### 4.3 Handoff 执行状态机(F-ORC-07)
+
+> **注**:下图状态命名(`Pending` / `Loaded` / `Planned` / `Running` / `Succeeded` / `Failed` / `Reported`)是 LLD 抽象,**源码中不存在对应 enum**。代码层仅有两个字段承载:`run_plan.status: "planned" | "failed"`(规划阶段)+ execution 结果 `status: "succeeded" | "failed"`(执行阶段)。LLD 状态名用于读者理解整体流程,grep 源码不会命中。
+
 
 ```
    ┌──────────┐  load_handoff  ┌──────────┐  build_run_plan  ┌────────┐
