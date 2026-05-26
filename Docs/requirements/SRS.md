@@ -210,6 +210,8 @@ L1 = 项目当前权威 Current/* + 插件层 Docs/* + 本 SRS 与新结构 cont
 
 #### 3.7.5 可运行 demo [F-DEMO-*]
 
+> 注:F-DEMO-01 已并入 F-CHN-MODE-01/02(见 §4.4 模式路由),本子节只列剩余 2 行 F-DEMO-02/03。
+
   - F-DEMO-02 可运行游戏 demo 族 — Boardgame Playable + JRPG Turn-Based + Phase 7 P1 收敛三份脚本。
   - F-DEMO-03 资产生成 / Skills 同步辅助族 — Monopoly 资产批量生成脚本 + Skills 同步辅助。
 
@@ -309,7 +311,7 @@ GDD-First 命名 + UE5 标准路径。关卡路径 `/Game/Maps/<Name>.<Name>:Per
 
 ### 6.4 文档治理
 
-`task.md` 是当前阶段唯一开发驱动入口;Phase 收尾时切换为跳转页;文档释放门禁(F-HOOK-01)在 commit/push 前强制执行,逃生通道为 `[skip-doc]` 标记 / trivial 白名单 / `--no-verify`(后者仅在用户明确要求时使用)。详见 `governance.md`(待 Task 1.14 落地)。
+`task.md` 是当前阶段唯一开发驱动入口;Phase 收尾时切换为跳转页;文档释放门禁(F-HOOK-01)在 commit/push 前强制执行,逃生通道为 `[skip-doc]` 标记 / trivial 白名单 / `--no-verify`(后者仅在用户明确要求时使用)。详见 `governance.md`(待 Task 1.17 落地)。
 
 ### 6.5 安全 / 边界
 
