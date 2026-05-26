@@ -389,8 +389,62 @@ def _importer_path_sound(
     asset: dict[str, Any], source_uri: Path, target_pkg: str,
     overwrite: bool, import_options: dict[str, Any], bridge_mode: str,
 ) -> dict[str, Any]:
-    """sound_wave 真机导入(待 Task 7 填充)。"""
-    raise NotImplementedError("sound_wave importer pending Task 7")
+    """sound_wave 真机导入:走 AssetTools.import_asset_tasks + SoundFactory(默认设置)。
+
+    UE 5.5 SoundFactory 默认对 WAV/OGG 行为正确,无需在 Factory 上设属性。
+    本 milestone fixture 是 mono 16k 短音频,默认导入足够;后续如需 sample_rate /
+    compression_quality / streaming 等需在 imported SoundWave 实例上 set_editor_property。
+    """
+    import time
+    import unreal
+    start = time.monotonic()
+
+    # 目标 package 已存在 + 不允许覆盖 → skipped(不阻塞其他 asset)
+    if not overwrite and unreal.EditorAssetLibrary.does_asset_exist(target_pkg):
+        return _evidence_skipped(
+            asset, bridge_mode,
+            f"target asset exists and overwrite_existing=false: {target_pkg}",
+            source_uri_abs=source_uri,
+        )
+
+    # 构造 AssetImportTask(SoundFactory 用默认,不在 Factory 上设属性)
+    factory = unreal.SoundFactory()
+    task = unreal.AssetImportTask()
+    task.filename = str(source_uri)
+    task.destination_path = target_pkg.rsplit("/", 1)[0]   # 目录部分
+    task.destination_name = target_pkg.rsplit("/", 1)[-1]  # 资产名:S_*
+    task.replace_existing = overwrite
+    task.automated = True
+    task.save = True
+    task.factory = factory
+
+    # 执行导入(同步) — wrap UE API 异常,spec §3.5
+    asset_tools = unreal.AssetToolsHelpers.get_asset_tools()
+    try:
+        asset_tools.import_asset_tasks([task])
+    except Exception as exc:  # noqa: BLE001  # UE API 异常类型不可枚举,catch-all 必须
+        return _evidence_failure(
+            asset, bridge_mode,
+            f"import_asset_tasks raised: {type(exc).__name__}: {exc}",
+            source_uri_abs=source_uri,
+        )
+
+    if not task.imported_object_paths:
+        return _evidence_failure(
+            asset, bridge_mode,
+            f"sound_wave import returned no objects (filename={source_uri})",
+            source_uri_abs=source_uri,
+        )
+
+    duration_ms = int((time.monotonic() - start) * 1000)
+    return _evidence_success(
+        asset, bridge_mode,
+        source_uri_abs=source_uri,
+        uasset_object_path=task.imported_object_paths[0],
+        factory_class="unreal.SoundFactory",
+        duration_ms=duration_ms,
+        import_log_excerpt=f"imported sound_wave from {source_uri.name}",
+    )
 
 
 def _importer_path_mesh(
