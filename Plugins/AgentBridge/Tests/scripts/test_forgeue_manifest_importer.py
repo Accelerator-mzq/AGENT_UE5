@@ -199,6 +199,16 @@ def test_cli_main_unimplemented_mode_returns_nonzero(capsys):
 # Task 3.2 新增:每种 asset_kind 的 simulated 字段健康检查
 # ============================================================
 
+@pytest.fixture(scope="module")
+def _simulated_six_kinds_result():
+    """模块级缓存:6 种 asset 的 simulated 导入结果,parametrize 测试共享。"""
+    return importer.import_from_manifest(
+        manifest_path=str(_MANIFEST_PATH),
+        plan_path=str(_PLAN_PATH),
+        bridge_mode="simulated",
+    )
+
+
 @pytest.mark.parametrize("kind,prefix", [
     ("texture",            "T_"),
     ("sprite_sheet",       "T_"),
@@ -207,15 +217,12 @@ def test_cli_main_unimplemented_mode_returns_nonzero(capsys):
     ("material",           "M_"),
     ("file_media_source",  "MS_"),
 ])
-def test_simulated_per_kind_target_object_path_uses_correct_prefix(kind, prefix):
+def test_simulated_per_kind_target_object_path_uses_correct_prefix(
+    _simulated_six_kinds_result, kind, prefix,
+):
     """每种 asset_kind 的 target_object_path 必须用对应 prefix(回归保护命名策略)。"""
-    result = importer.import_from_manifest(
-        manifest_path=str(_MANIFEST_PATH),
-        plan_path=str(_PLAN_PATH),
-        bridge_mode="simulated",
-    )
-
-    matching = [r for r in result["asset_results"] if r["asset_kind"] == kind]
+    matching = [r for r in _simulated_six_kinds_result["asset_results"]
+                if r["asset_kind"] == kind]
     assert len(matching) >= 1, f"fixture 必须含至少 1 个 {kind} entry"
 
     for r in matching:
