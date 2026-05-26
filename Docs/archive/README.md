@@ -90,7 +90,7 @@
 | `Plugins/AgentBridge/Docs/Archive/Phase1-2/mvp_smoke_test_plan.md` | Phase1-2 MVP 冒烟测试计划 | Planned: archive/plugins/Archive/Phase1-2/mvp_smoke_test_plan.md | archive-only |
 | `Plugins/AgentBridge/Docs/agent_interaction_protocol.md` | Agent 交互协议 | design/HLD.md#2 + governance.md#4 | already-consumed |
 | `Plugins/AgentBridge/Docs/architecture_overview.md` | AgentBridge 架构总览 | design/HLD.md#1-2 + requirements/SRS.md#2 | already-consumed |
-| `Plugins/AgentBridge/Docs/base_skill_domains_design.md` | Base Skill Domains 设计 | Planned: design/LLD/06_skills_and_templates.md | already-consumed |
+| `Plugins/AgentBridge/Docs/base_skill_domains_design.md` | Base Skill Domains 设计 | design/LLD/06_skills_and_templates.md | already-consumed |
 | `Plugins/AgentBridge/Docs/baseline_realization_policy.md` | Baseline 实例化策略 | design/HLD.md#2 + design/LLD/06_skills_and_templates.md | already-consumed |
 | `Plugins/AgentBridge/Docs/boardgame_playable_pipeline.md` | Boardgame Playable 流水线 | design/LLD/03_orchestrator.md | already-consumed |
 | `Plugins/AgentBridge/Docs/bridge_verification_and_error_handling.md` | Bridge 校验与错误处理 | design/LLD/02_bridge.md | already-consumed |
@@ -103,10 +103,10 @@
 | `Plugins/AgentBridge/Docs/feedback_write_mapping.md` | Feedback Write 映射 | requirements/SRS.md#3.2 + contracts/mcp_tools_catalog.md | already-consumed |
 | `Plugins/AgentBridge/Docs/field_specification_v0_1.md` | Field Specification v0.1 | contracts/field_specification.md | already-consumed |
 | `Plugins/AgentBridge/Docs/forgeue_manifest_integration.md` | ForgeUE Manifest 集成 | design/LLD/02_bridge.md + design/LLD/03_orchestrator.md | already-consumed |
-| `Plugins/AgentBridge/Docs/genre_pack_core_design.md` | Genre Pack 核心设计 | Planned: design/LLD/06_skills_and_templates.md | already-consumed |
+| `Plugins/AgentBridge/Docs/genre_pack_core_design.md` | Genre Pack 核心设计 | design/LLD/06_skills_and_templates.md | already-consumed |
 | `Plugins/AgentBridge/Docs/governance_loop_minimal_design.md` | 治理闭环最小设计 | Planned: governance.md#3 | already-consumed |
 | `Plugins/AgentBridge/Docs/greenfield_pipeline.md` | Greenfield 流水线 | design/LLD/03_orchestrator.md | already-consumed |
-| `Plugins/AgentBridge/Docs/jrpg_genre_pack_design.md` | JRPG Genre Pack 设计 | Planned: design/LLD/06_skills_and_templates.md + testing/test_spec.md | already-consumed |
+| `Plugins/AgentBridge/Docs/jrpg_genre_pack_design.md` | JRPG Genre Pack 设计 | design/LLD/06_skills_and_templates.md + testing/test_spec.md | already-consumed |
 | `Plugins/AgentBridge/Docs/orchestrator_design.md` | Orchestrator 设计 | design/LLD/03_orchestrator.md | already-consumed |
 | `Plugins/AgentBridge/Docs/reviewed_handoff_design.md` | Reviewed Handoff 设计 | Planned: design/LLD/04_compiler.md + contracts/handoff_contract.md | already-consumed |
 | `Plugins/AgentBridge/Docs/root_skill_contract_standard.md` | Root Skill Contract 标准 | design/HLD.md#2.1 + requirements/SRS.md#3 + design/LLD/06_skills_and_templates.md | already-consumed |
