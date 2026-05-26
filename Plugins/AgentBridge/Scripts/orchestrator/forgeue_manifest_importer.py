@@ -282,44 +282,42 @@ _COMPRESSION_MAP: dict[str, str] = {
 }
 
 
-def _build_texture_factory(import_options: dict[str, Any]) -> Any:
-    """构造 TextureFactory 并按 import_options 设置属性。
+def _apply_texture_properties(texture_asset: Any, import_options: dict[str, Any]) -> None:
+    """import 完成后对 Texture2D 实例应用 import_options 属性。
 
-    Args:
-        import_options: manifest entry 的 import_options dict,
-            支持字段:color_space("sRGB"/"Linear") / compression_settings(9 种枚举,见 _COMPRESSION_MAP) / tileable(bool)
-
-    Returns:
-        unreal.TextureFactory 实例;由调用方塞进 AssetImportTask.factory
+    sRGB / compression_settings / mip_gen_settings 是 UTexture/UTexture2D 属性,
+    不是 TextureFactory 属性(UE 5.5 实测验证)。
+    必须 import 完成后在资产实例上设置。
     """
     import unreal
-    factory = unreal.TextureFactory()
-    # sRGB 色彩空间:sRGB → True;Linear → False
-    factory.set_editor_property(
+
+    # color_space sRGB → True;Linear → False
+    texture_asset.set_editor_property(
         "srgb",
         import_options.get("color_space", "sRGB") == "sRGB",
     )
+
     # compression_settings:按 _COMPRESSION_MAP 翻译到 unreal 枚举
     cs_name = import_options.get("compression_settings", "default")
     cs_enum_name = _COMPRESSION_MAP.get(cs_name, "TC_DEFAULT")
-    factory.set_editor_property(
+    texture_asset.set_editor_property(
         "compression_settings",
         getattr(unreal.TextureCompressionSettings, cs_enum_name),
     )
-    # tileable=false 时禁 mip(UI/atlas/sprite_sheet 等常用,避免 mip 压平细节)
+
+    # tileable=false 时禁 mip(UI/sprite_sheet 等;避免 mip 压平细节)
     if not import_options.get("tileable", False):
-        factory.set_editor_property(
+        texture_asset.set_editor_property(
             "mip_gen_settings",
             unreal.TextureMipGenSettings.TMGS_NO_MIPMAPS,
         )
-    return factory
 
 
 def _importer_path_texture(
     asset: dict[str, Any], source_uri: Path, target_pkg: str,
     overwrite: bool, import_options: dict[str, Any], bridge_mode: str,
 ) -> dict[str, Any]:
-    """texture / sprite_sheet 真机导入:走 AssetTools.import_asset_tasks + TextureFactory。"""
+    """texture / sprite_sheet 真机导入:走 AssetTools.import_asset_tasks + TextureFactory,import 后再对 Texture2D 实例应用属性。"""
     import time
     import unreal
     start = time.monotonic()
@@ -332,8 +330,8 @@ def _importer_path_texture(
             source_uri_abs=source_uri,
         )
 
-    # 构造 AssetImportTask
-    factory = _build_texture_factory(import_options)
+    # 构造 AssetImportTask(Factory 用默认,不在 Factory 上设属性)
+    factory = unreal.TextureFactory()
     task = unreal.AssetImportTask()
     task.filename = str(source_uri)
     task.destination_path = target_pkg.rsplit("/", 1)[0]   # 目录部分:/Game/.../run_p4_full
@@ -362,14 +360,28 @@ def _importer_path_texture(
             source_uri_abs=source_uri,
         )
 
+    # import 完成后对 Texture2D 实例应用 import_options 属性(sRGB/压缩/mip)
+    # 这些属性在 UTexture/UTexture2D 上,不在 TextureFactory 上(UE 5.5 实测)
+    imported_object_path = task.imported_object_paths[0]
+    try:
+        texture_asset = unreal.EditorAssetLibrary.load_asset(imported_object_path)
+        _apply_texture_properties(texture_asset, import_options)
+        unreal.EditorAssetLibrary.save_asset(target_pkg)
+    except Exception as exc:  # noqa: BLE001
+        return _evidence_failure(
+            asset, bridge_mode,
+            f"apply_texture_properties raised: {type(exc).__name__}: {exc}",
+            source_uri_abs=source_uri,
+        )
+
     duration_ms = int((time.monotonic() - start) * 1000)
     return _evidence_success(
         asset, bridge_mode,
         source_uri_abs=source_uri,
-        uasset_object_path=task.imported_object_paths[0],
+        uasset_object_path=imported_object_path,
         factory_class="unreal.TextureFactory",
         duration_ms=duration_ms,
-        import_log_excerpt=f"imported {asset['asset_kind']} from {source_uri.name}",
+        import_log_excerpt=f"imported {asset['asset_kind']} from {source_uri.name} + applied {len(import_options)} options",
     )
 
 
