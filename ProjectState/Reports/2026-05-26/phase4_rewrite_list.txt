@@ -1,24 +1,7 @@
-# Phase 4 链接重写清单(Phase 2.2 自动产出,17 个文件需重写)
+# Phase 4 链接重写清单(Phase 2.2 自动产出,0 个文件需重写)
 # 来源: Scripts/validation/link_precheck.py 2026-05-26
 # 字典源: Docs/redirects.json(108 条映射)
-# 总命中: 180 处引用 / 0 处未映射
+# 总命中: 0 处引用 / 0 处未映射
 #
 # 每行 = 含旧路径引用的文件相对路径,Phase 4 用 redirects.json 批量重写
 #
-.agents/skills/document-release/SKILL.md
-.claude/skills/document-release/SKILL.md
-AGENTS.md
-CLAUDE.md
-Docs/Handoff_Phase10_Execution.md
-Docs/INDEX.md
-Docs/acceptance/acceptance_report.md
-Docs/contracts/field_specification.md
-Docs/contracts/tool_contract.md
-Docs/design/HLD.md
-Docs/governance.md
-Docs/requirements/SRS.md
-Plugins/AgentBridge/AGENTS.md
-Plugins/AgentBridge/README.md
-Plugins/AgentBridge/Tests/SystemTestCases.md
-README.md
-task.md

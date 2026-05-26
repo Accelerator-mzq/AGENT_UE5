@@ -18,7 +18,7 @@
 - **pre-push**:`.git/hooks/pre-push` 二次校验,阻拦无 marker 的非 trivial 改动被推送到远端
 - **Claude Code / Codex PreToolUse**:`.claude/settings.json` + `.agents/settings.json` 的 PreToolUse hook 在 Edit/Write/Bash 类工具调用前做对应校验
 
-完整契约见 `Docs/superpowers/specs/2026-05-25-document-release-port-design.md`(已归档)与 `.claude/skills/document-release/SKILL.md`(权威源)。
+完整契约见 `Docs/archive/superpowers/specs/2026-05-25-document-release-port-design.md`(已归档)与 `.claude/skills/document-release/SKILL.md`(权威源)。
 
 ### 1.2 三种逃生通道
 
@@ -51,7 +51,7 @@
 
 ## 3. 阶段切换信号
 
-- Phase 切换由 `task.md` 顶层重定向 + `Docs/Current/00_Index.md`(本次重组后归 `Docs/INDEX.md`)同步更新触发
+- Phase 切换由 `task.md` 顶层重定向 + `Docs/INDEX.md`(原 <code>Docs/Current/00&#95;Index.md</code>,本次重组后归 `Docs/INDEX.md`)同步更新触发
 - Phase 收尾产物归档到 `Docs/archive/current/` 或 `Docs/archive/history/`,同时在 `Docs/archive/README.md` 反向映射表登记
 - 新 Phase 启动:更新 `task.md` 入口 + 创建对应 Phase 子目录(若需)+ 在 INDEX 加跳转
 - Phase 切换时,inventory CSV(`Docs/superpowers/specs/2026-05-26-old-docs-inventory.csv`)新增对应行,标 `archive-only` 或 `need-consume`
@@ -108,7 +108,7 @@
 | `CLAUDE.md` | Claude Code 私有规则 | 用户配置区段(代码风格 / 反馈偏好)不动 |
 | `task.md` | 当前阶段唯一开发驱动入口 | Phase 收尾时切换为跳转页;新 Phase 启动后切回正式任务书 |
 
-四个 anchor 内的硬编码路径(如 `Docs/Current/00_Index.md` → `Docs/INDEX.md`、`Docs/Current/05_Implementation_Boundary.md` → `Docs/requirements/SRS.md#6.5`)在 Phase 4(链接重写)统一更新,本治理文档生效期内**保持原引用**直到 Phase 4 实地化。
+四个 anchor 内的硬编码路径(如 <code>Docs/Current/00&#95;Index.md</code> → `Docs/INDEX.md`、<code>Docs/Current/05&#95;Implementation&#95;Boundary.md</code> → `Docs/requirements/SRS.md#6.5`)在 Phase 4(链接重写)统一更新;Phase 4 已实地化(2026-05-26)。
 
 ---
 

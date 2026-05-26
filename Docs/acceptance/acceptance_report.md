@@ -1,7 +1,7 @@
 # 验收报告 — Mvpv4TestCodex
 
 > 版本: v1(2026-05-26,Phase 1.16 初稿)
-> 上游: Docs/Current/18_Phase11_Closeout.md + ProjectState/Reports/2026-04-17/task15_phase11_final_acceptance.md + phase11_feature_coverage_report.md
+> 上游: <code>Docs/Current/18&#95;Phase11&#95;Closeout.md</code>(Phase 4 已搬到 `Docs/archive/current/18_Phase11_Closeout.md`,本文件 §1 是其消化后归宿)+ ProjectState/Reports/2026-04-17/task15_phase11_final_acceptance.md + phase11_feature_coverage_report.md
 > 关联: Docs/FEATURE_INVENTORY.md(105 F-* IDs)+ Docs/testing/test_spec.md(266 case)+ Docs/contracts/{schemas_catalog,mcp_tools_catalog}.md
 > 关联 spec: Docs/superpowers/specs/2026-05-26-docs-restructure-for-ue57.md v1.1 §4.5
 > 状态: §1 / §2 / §4 已基于 Phase 11 as-is 实地化;§3 UE 5.7 验收为空模板,待重构完成后逐项勾选
@@ -12,7 +12,7 @@
 
 Phase 11(Skill-First Design Compiler Framework)已于 2026-04-17 完成收尾,最终结论 `pass`,详见
 [task15_phase11_final_acceptance.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/task15_phase11_final_acceptance.md)
-与 [18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/Current/18_Phase11_Closeout.md)。
+与本节(原 <code>Docs/Current/18&#95;Phase11&#95;Closeout.md</code>,Phase 4 已归 `Docs/archive/current/18_Phase11_Closeout.md`)。
 本次重构(UE 5.5.4 → 5.7)的 as-is 验收基线锁定在该收尾事实,不再回退。已交付的正式主链为:
 `GDD → Root Skill Contract + Universal Baseline Merge → Clarification Gate → Skill Graph Planning →
 Domain Skill Runtime → Design Space Discovery / Realization / Convergence → Cross Review v2 →

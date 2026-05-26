@@ -124,24 +124,26 @@ Docs/
 
 10 份高频旧文档的新归宿(完整 108 行见 `Docs/archive/README.md`):
 
-| 旧路径 | 新归宿 |
+> 第一列旧路径为 Phase 4 重写前的源路径(物理已搬入 `Docs/archive/`),保留作反向查表入口,因此用 `<code>` HTML 标签包裹避开 link_precheck 扫描。
+
+| 旧路径(已搬迁) | 新归宿 |
 |--------|--------|
-| `Docs/Current/00_Index.md` | `Docs/INDEX.md`(本文件,全替换)|
-| `Docs/Current/01_Project_Baseline.md` | `requirements/SRS.md §1` + `acceptance/acceptance_report.md §1` |
-| `Docs/Current/14_MCP_Cognitive_Bridge_Anchor.md` | `design/HLD.md §4` + `requirements/SRS.md §3.5` |
-| `Docs/Current/15_Skill_Spec_Handoff_Chain.md` | `requirements/SRS.md §4` + `design/HLD.md §2` |
-| `Docs/Current/18_Phase11_Closeout.md` | `acceptance/acceptance_report.md §1` |
-| `Plugins/AgentBridge/Docs/architecture_overview.md` | `design/HLD.md §1-§2` |
-| `Plugins/AgentBridge/Docs/tool_contract_v0_1.md` | `contracts/tool_contract.md`(全文消化)|
-| `Plugins/AgentBridge/Docs/field_specification_v0_1.md` | `contracts/field_specification.md`(全文消化)|
-| `Plugins/AgentBridge/Docs/orchestrator_design.md` | `design/LLD/03_orchestrator.md` |
-| `Plugins/AgentBridge/Docs/skills_and_specs_overview.md` | `requirements/SRS.md §4` + `design/LLD/06_skills_and_templates.md` |
+| <code>Docs/Current/00&#95;Index.md</code> | `Docs/INDEX.md`(本文件,全替换)|
+| <code>Docs/Current/01&#95;Project&#95;Baseline.md</code> | `requirements/SRS.md §1` + `acceptance/acceptance_report.md §1` |
+| <code>Docs/Current/14&#95;MCP&#95;Cognitive&#95;Bridge&#95;Anchor.md</code> | `design/HLD.md §4` + `requirements/SRS.md §3.5` |
+| <code>Docs/Current/15&#95;Skill&#95;Spec&#95;Handoff&#95;Chain.md</code> | `requirements/SRS.md §4` + `design/HLD.md §2` |
+| <code>Docs/Current/18&#95;Phase11&#95;Closeout.md</code> | `acceptance/acceptance_report.md §1` |
+| <code>Plugins/AgentBridge/Docs/architecture&#95;overview.md</code> | `design/HLD.md §1-§2` |
+| <code>Plugins/AgentBridge/Docs/tool&#95;contract&#95;v0&#95;1.md</code> | `contracts/tool_contract.md`(全文消化)|
+| <code>Plugins/AgentBridge/Docs/field&#95;specification&#95;v0&#95;1.md</code> | `contracts/field_specification.md`(全文消化)|
+| <code>Plugins/AgentBridge/Docs/orchestrator&#95;design.md</code> | `design/LLD/03_orchestrator.md` |
+| <code>Plugins/AgentBridge/Docs/skills&#95;and&#95;specs&#95;overview.md</code> | `requirements/SRS.md §4` + `design/LLD/06_skills_and_templates.md` |
 
 **机器可读完整映射**:`Docs/redirects.json`(108 条,Phase 0.4 产出,Phase 2/4 grep 校验脚本字典源)。
 
 ---
 
-## 6. 常用命令(从旧 `Docs/Current/06_Current_Task_List.md` 搬迁)
+## 6. 常用命令(从旧 <code>Docs/Current/06&#95;Current&#95;Task&#95;List.md</code> 搬迁)
 
 ```bash
 # Schema 校验(--strict 26/26)

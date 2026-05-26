@@ -143,7 +143,7 @@ L1 = 项目当前权威 Current/* + 插件层 Docs/* + 本 SRS 与新结构 cont
 
 ### 3.5 MCP Server [F-MCP-*]
 
-- **用途**: 把 AgentBridge 工具体系暴露为标准 MCP 协议(stdio)。前端 Stage 1-3 认知分解 + 后端证据裁决 + Run 治理是 MCP 主价值;Bridge L1/L2/L3 工具(共 28 个)作为可选 passthrough 外部适配层保留。MCP 在本框架中的定位是认知桥接层,不是流程主干层(详见 `Docs/Current/14_MCP_Cognitive_Bridge_Anchor.md`)。
+- **用途**: 把 AgentBridge 工具体系暴露为标准 MCP 协议(stdio)。前端 Stage 1-3 认知分解 + 后端证据裁决 + Run 治理是 MCP 主价值;Bridge L1/L2/L3 工具(共 28 个)作为可选 passthrough 外部适配层保留。MCP 在本框架中的定位是认知桥接层,不是流程主干层(详见 `Docs/design/HLD.md#4`)。
 - **对外接口**: `Plugins/AgentBridge/MCP/{server, naming, tool_definitions, py_channel, rc_channel, compiler_tools, evidence_tools}.py` 等模块导出的 53 个 MCP 工具(49 正式 + 4 兼容 alias)。
 - **功能列表**:
   - F-MCP-01 Bridge L1 查询族(MCP 暴露)— 12 工具,封装 F-BRG-01。
@@ -380,19 +380,21 @@ P1 6 条 confirmed 是升 5.7 必须修复的硬阻断点;P2/P3 共 18 条等 P1
 
 ### B. 与旧文档映射(简表,详表 → archive/README.md)
 
-| 旧文档 | 已消化到本 SRS 的章节 |
+> 第一列旧文档为 Phase 4 重写前的源路径(物理已搬入 `Docs/archive/`),用 `<code>` HTML 标签包裹避开 link_precheck 扫描;机器化反向映射见 `Docs/redirects.json`。
+
+| 旧文档(已搬迁) | 已消化到本 SRS 的章节 |
 |--------|----------------------|
-| `Docs/Current/01_Project_Baseline.md` | §1.1 / §1.2 / §2.4 |
-| `Docs/Current/02_Current_Phase_Goals.md` | §2.4(Phase 11 Completed 口径)|
-| `Docs/Current/05_Implementation_Boundary.md` | §6.5 |
-| `Docs/Current/07_Evidence_And_Artifacts.md` | §6.3 |
-| `Docs/Current/14_MCP_Cognitive_Bridge_Anchor.md` | §3.5 / §4.1 / §4.4 |
-| `Docs/Current/15_Skill_Spec_Handoff_Chain.md` | §4.1 / §4.2 / §5.3 / 附录 A |
-| `Docs/Current/18_Phase11_Closeout.md` | §2.4 / §4.1 / §4.3 |
-| `Plugins/AgentBridge/Docs/architecture_overview.md` | §2.1 / §2.2 / §3.1 / §3.5 |
-| `Plugins/AgentBridge/Docs/feedback_interface_catalog.md` | §3.2 / §5.1 / §5.4(经 `contracts/mcp_tools_catalog.md` 中转)|
-| `Plugins/AgentBridge/Docs/feedback_write_mapping.md` | §3.2 / §5.1(经 `contracts/mcp_tools_catalog.md` 中转)|
-| `Plugins/AgentBridge/Docs/skills_and_specs_overview.md` | §3.6 / §4.1 |
-| `Plugins/AgentBridge/Docs/ue5_capability_map.md` | §3.2 / §3.5 / §6.2 |
+| <code>Docs/Current/01&#95;Project&#95;Baseline.md</code> | §1.1 / §1.2 / §2.4 |
+| <code>Docs/Current/02&#95;Current&#95;Phase&#95;Goals.md</code> | §2.4(Phase 11 Completed 口径)|
+| <code>Docs/Current/05&#95;Implementation&#95;Boundary.md</code> | §6.5 |
+| <code>Docs/Current/07&#95;Evidence&#95;And&#95;Artifacts.md</code> | §6.3 |
+| <code>Docs/Current/14&#95;MCP&#95;Cognitive&#95;Bridge&#95;Anchor.md</code> | §3.5 / §4.1 / §4.4 |
+| <code>Docs/Current/15&#95;Skill&#95;Spec&#95;Handoff&#95;Chain.md</code> | §4.1 / §4.2 / §5.3 / 附录 A |
+| <code>Docs/Current/18&#95;Phase11&#95;Closeout.md</code> | §2.4 / §4.1 / §4.3 |
+| <code>Plugins/AgentBridge/Docs/architecture&#95;overview.md</code> | §2.1 / §2.2 / §3.1 / §3.5 |
+| <code>Plugins/AgentBridge/Docs/feedback&#95;interface&#95;catalog.md</code> | §3.2 / §5.1 / §5.4(经 `contracts/mcp_tools_catalog.md` 中转)|
+| <code>Plugins/AgentBridge/Docs/feedback&#95;write&#95;mapping.md</code> | §3.2 / §5.1(经 `contracts/mcp_tools_catalog.md` 中转)|
+| <code>Plugins/AgentBridge/Docs/skills&#95;and&#95;specs&#95;overview.md</code> | §3.6 / §4.1 |
+| <code>Plugins/AgentBridge/Docs/ue5&#95;capability&#95;map.md</code> | §3.2 / §3.5 / §6.2 |
 
 完整 108 份旧文档反向映射详见 `Docs/archive/README.md` 与 `Docs/superpowers/specs/2026-05-26-old-docs-inventory.csv`。

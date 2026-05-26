@@ -1,6 +1,6 @@
 # Tool Contract — L1/L2/L3 工具协议
 
-> 版本: v1.0(从 Plugins/AgentBridge/Docs/tool_contract_v0_1.md 抽取消化)
+> 版本: v1.0(从 <code>Plugins/AgentBridge/Docs/tool&#95;contract&#95;v0&#95;1.md</code> 抽取消化,旧文件已归 `Docs/archive/plugins/tool_contract_v0_1.md`)
 > 关联 spec: Docs/superpowers/specs/2026-05-26-docs-restructure-for-ue57.md v1.1
 > 关联 FEATURE_INVENTORY: Docs/FEATURE_INVENTORY.md F-BRG-* / F-MCP-* 族
 

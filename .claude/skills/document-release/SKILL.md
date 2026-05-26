@@ -1,11 +1,11 @@
 ---
 name: document-release
-description: Use when Mvpv4TestCodex documentation must be synchronized as the mandatory release gate before git commit/push, including AGENTS, CLAUDE, README, task.md, Docs/Current 五件套等价物、Plugins/AgentBridge/Docs 框架文档、Schemas 契约、Docs/Current/03_Active_Backlog.md backlog、ProjectState/Reports 证据落盘和 Docs/History 归档引用。
+description: Use when Mvpv4TestCodex documentation must be synchronized as the mandatory release gate before git commit/push, including AGENTS, CLAUDE, README, task.md, Docs/Current 五件套等价物、Plugins/AgentBridge/Docs 框架文档、Schemas 契约、Docs/acceptance/acceptance_report.md#1-附 backlog、ProjectState/Reports 证据落盘和 Docs/History 归档引用。
 license: MIT
 compatibility: claude-code, opencode, codex
 metadata:
   source: gstack(MIT) → ForgeUE/document-release → Mvpv4TestCodex
-  spec: Docs/superpowers/specs/2026-05-25-document-release-port-design.md
+  spec: Docs/archive/superpowers/specs/2026-05-25-document-release-port-design.md
 ---
 
 # Document Release (Mvpv4TestCodex)
@@ -51,18 +51,18 @@ metadata:
 | Codex/OpenCode 规则 | `AGENTS.md` | 项目级 Agent 规则 |
 | Claude 规则 | `CLAUDE.md` | Claude Code 项目规则 |
 | 当前阶段入口 | `task.md` | 阶段任务书或归档跳转页 |
-| 当前阶段索引 | `Docs/Current/00_Index.md` | 阶段文档总索引 |
+| 当前阶段索引 | `Docs/INDEX.md` | 阶段文档总索引 |
 
 ### Layer B — 当前阶段事实
 | 概念 | 本项目落点 |
 |---|---|
-| 需求基线 | `Docs/Current/01_Project_Baseline.md` + `02_Current_Phase_Goals.md` |
+| 需求基线 | `Docs/requirements/SRS.md#1` + `02_Current_Phase_Goals.md` |
 | 设计 | `Plugins/AgentBridge/Docs/*.md`(全部框架文档,随阶段递增) |
 | 测试 | `Plugins/AgentBridge/Tests/SystemTestCases.md` |
 | 验收 | `ProjectState/Reports/<date>/*acceptance*.md` |
 | 增量(CHANGELOG 替代) | `Docs/Current/0X_Closeout.md` |
-| Backlog active + archived | `Docs/Current/03_Active_Backlog.md` + `04_Open_Risks.md`;归档进 `Docs/History/Tasks/`、`0X_Closeout.md` |
-| 实施边界 | `Docs/Current/05_Implementation_Boundary.md` |
+| Backlog active + archived | `Docs/acceptance/acceptance_report.md#1-附` + `04_Open_Risks.md`;归档进 `Docs/History/Tasks/`、`0X_Closeout.md` |
+| 实施边界 | `Docs/requirements/SRS.md#6.5` |
 | 架构 / MCP 锚定 | `Docs/Current/12_*` / `14_*` / `15_*` / `16_*` 与历代 `0X_Closeout.md`(随阶段演进,以 `00_Index.md` 为准) |
 
 ### Layer C — 插件层框架(行为变更时必审)
@@ -121,7 +121,7 @@ git log <base>..HEAD --oneline
 - Ask first: 架构理由、移除区块、移动 backlog、产品语言含糊处
 
 ### Step 4: Backlog rules
-- 新的延期工作 → 加到 `Docs/Current/03_Active_Backlog.md`
+- 新的延期工作 → 加到 `Docs/acceptance/acceptance_report.md#1-附`
 - 完成或被取代的条目 → 询问用户后移到 `Docs/History/Tasks/` 或写入 `0X_Closeout.md`
 - 不静默删除 active 条目;不从 `Docs/History/` 重建 backlog
 
@@ -178,7 +178,7 @@ python Scripts/hooks/doc_release_gate.py write-marker `
 |---|---|
 | 只改 README,忘了 Layer B 五件套等价物 | 按 Layer A→B→C→D 顺序审 |
 | 把 `Docs/History/**` 当作 current truth | History 是证据,改 current docs 而不是改 history |
-| 忘 backlog | 检查 `Docs/Current/03_Active_Backlog.md` + `04_Open_Risks.md` |
+| 忘 backlog | 检查 `Docs/acceptance/acceptance_report.md#1-附` + `04_Open_Risks.md` |
 | 编造或硬编码测试计数 | 跑命令实时取数 |
 | 用删除命令清理 | 不删除,改由用户明示 |
 | 改 `Plugins/AgentBridge/AGENTS.md` | 它是框架通用规则,不动 |

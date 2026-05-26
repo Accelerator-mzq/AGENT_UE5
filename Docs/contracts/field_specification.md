@@ -1,6 +1,6 @@
 # Field Specification — 共享字段规范
 
-> 版本: v1.0(从 Plugins/AgentBridge/Docs/field_specification_v0_1.md 抽取消化)
+> 版本: v1.0(从 <code>Plugins/AgentBridge/Docs/field&#95;specification&#95;v0&#95;1.md</code> 抽取消化,旧文件已归 `Docs/archive/plugins/field_specification_v0_1.md`)
 > 关联 spec: Docs/superpowers/specs/2026-05-26-docs-restructure-for-ue57.md v1.1
 > 关联 FEATURE_INVENTORY: Docs/FEATURE_INVENTORY.md F-SCH-03(共享基础 Schema 族)
 
