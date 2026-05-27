@@ -3,58 +3,82 @@
   "schema_version": "1.0.0",
   "run_id": "run_p4_full",
   "project_target": {
-    "project_name": "FakeForgeProject",
-    "project_root": "D:\\ClaudeProject\\ForgeUE_claude\\demo_artifacts\\p4_demo\\test_p4_full_pipeline_writes_m0\\FakeForgeProject",
+    "project_name": "FixtureBundle",
+    "project_root": "Plugins/AgentBridge/Tests/fixtures/forgeue_manifest",
     "asset_root": "/Game/Generated/Tavern",
     "run_asset_folder": "/Game/Generated/Tavern/run_p4_full",
     "import_mode": "manifest_only"
   },
   "assets": [
     {
-      "asset_entry_id": "ae_run_p4_full_step_image_cand_e0726e0a_0",
-      "artifact_id": "run_p4_full_step_image_cand_e0726e0a_0",
+      "asset_entry_id": "ae_run_p4_full_texture_albedo",
+      "artifact_id": "run_p4_full_tex_albedo",
       "asset_kind": "texture",
-      "source_uri": "Content/Generated/run_p4_full/run_p4_full_step_image_cand_e0726e0a_0.png",
-      "target_object_path": "/Game/Generated/Tavern/run_p4_full/T_run_p4_full_step_image_cand_e0726e0a_0",
-      "target_package_path": "/Game/Generated/Tavern/run_p4_full/T_run_p4_full_step_image_cand_e0726e0a_0",
-      "ue_naming": {
-        "policy": "house_rules",
-        "prefix": "T_",
-        "base_name": "run_p4_full_step_image_cand_e0726e0a_0",
-        "ue_name": "T_run_p4_full_step_image_cand_e0726e0a_0"
-      },
-      "import_options": {
-        "compression_settings": "default",
-        "color_space": "sRGB",
-        "has_alpha": false,
-        "tileable": false,
-        "usage_hint": "albedo",
-        "source_format": "png"
-      },
-      "metadata_overrides": {
-        "width": 64,
-        "height": 64,
-        "color_space": "sRGB",
-        "transparent_background": false,
-        "intended_use": "tavern_door_concept"
-      }
+      "source_uri": "payload/tex_albedo.png",
+      "target_object_path": "/Game/Generated/Tavern/run_p4_full/T_run_p4_full_tex_albedo",
+      "target_package_path": "/Game/Generated/Tavern/run_p4_full/T_run_p4_full_tex_albedo",
+      "ue_naming": {"policy": "house_rules", "prefix": "T_", "base_name": "run_p4_full_tex_albedo", "ue_name": "T_run_p4_full_tex_albedo"},
+      "import_options": {"compression_settings": "default", "color_space": "sRGB", "has_alpha": false, "tileable": false, "usage_hint": "albedo", "source_format": "png"}
+    },
+    {
+      "asset_entry_id": "ae_run_p4_full_sprite_sheet",
+      "artifact_id": "run_p4_full_tex_sprite",
+      "asset_kind": "sprite_sheet",
+      "source_uri": "payload/tex_sprite_sheet.png",
+      "target_object_path": "/Game/Generated/Tavern/run_p4_full/T_run_p4_full_tex_sprite",
+      "target_package_path": "/Game/Generated/Tavern/run_p4_full/T_run_p4_full_tex_sprite",
+      "ue_naming": {"policy": "house_rules", "prefix": "T_", "base_name": "run_p4_full_tex_sprite", "ue_name": "T_run_p4_full_tex_sprite"},
+      "import_options": {"compression_settings": "default", "color_space": "sRGB", "has_alpha": false, "tileable": true, "usage_hint": "ui_atlas", "source_format": "png"}
+    },
+    {
+      "asset_entry_id": "ae_run_p4_full_sound_click",
+      "artifact_id": "run_p4_full_sfx_click",
+      "asset_kind": "sound_wave",
+      "source_uri": "payload/sfx_click.wav",
+      "target_object_path": "/Game/Generated/Tavern/run_p4_full/S_run_p4_full_sfx_click",
+      "target_package_path": "/Game/Generated/Tavern/run_p4_full/S_run_p4_full_sfx_click",
+      "ue_naming": {"policy": "house_rules", "prefix": "S_", "base_name": "run_p4_full_sfx_click", "ue_name": "S_run_p4_full_sfx_click"},
+      "import_options": {"source_format": "wav"}
+    },
+    {
+      "asset_entry_id": "ae_run_p4_full_mesh_cube",
+      "artifact_id": "run_p4_full_mesh_cube",
+      "asset_kind": "static_mesh",
+      "source_uri": "payload/mesh_cube.fbx",
+      "target_object_path": "/Game/Generated/Tavern/run_p4_full/SM_run_p4_full_mesh_cube",
+      "target_package_path": "/Game/Generated/Tavern/run_p4_full/SM_run_p4_full_mesh_cube",
+      "ue_naming": {"policy": "house_rules", "prefix": "SM_", "base_name": "run_p4_full_mesh_cube", "ue_name": "SM_run_p4_full_mesh_cube"},
+      "import_options": {"source_format": "fbx", "import_materials": false, "combine_meshes": false}
+    },
+    {
+      "asset_entry_id": "ae_run_p4_full_material_simple",
+      "artifact_id": "run_p4_full_material_simple",
+      "asset_kind": "material",
+      "source_uri": "payload/material_simple.json",
+      "target_object_path": "/Game/Generated/Tavern/run_p4_full/M_run_p4_full_material_simple",
+      "target_package_path": "/Game/Generated/Tavern/run_p4_full/M_run_p4_full_material_simple",
+      "ue_naming": {"policy": "house_rules", "prefix": "M_", "base_name": "run_p4_full_material_simple", "ue_name": "M_run_p4_full_material_simple"},
+      "import_options": {"source_format": "json"}
+    },
+    {
+      "asset_entry_id": "ae_run_p4_full_video_clip",
+      "artifact_id": "run_p4_full_video_clip",
+      "asset_kind": "file_media_source",
+      "source_uri": "payload/video_clip.mp4",
+      "target_object_path": "/Game/Generated/Tavern/run_p4_full/MS_run_p4_full_video_clip",
+      "target_package_path": "/Game/Generated/Tavern/run_p4_full/MS_run_p4_full_video_clip",
+      "ue_naming": {"policy": "house_rules", "prefix": "MS_", "base_name": "run_p4_full_video_clip", "ue_name": "MS_run_p4_full_video_clip"},
+      "import_options": {"source_format": "mp4"}
     }
   ],
   "import_rules": {
     "dry_run": false,
-    "overwrite_existing": false,
-    "reviewer_selected": [
-      "run_p4_full_step_image_cand_e0726e0a_0"
-    ]
+    "overwrite_existing": true,
+    "reviewer_selected": ["run_p4_full_tex_albedo", "run_p4_full_tex_sprite", "run_p4_full_sfx_click", "run_p4_full_mesh_cube", "run_p4_full_material_simple", "run_p4_full_video_clip"]
   },
   "naming_policy": {
     "policy": "house_rules",
-    "prefix_table": {
-      "texture": "T_",
-      "sound_wave": "S_",
-      "static_mesh": "SM_",
-      "material": "M_"
-    }
+    "prefix_table": {"texture": "T_", "sprite_sheet": "T_", "sound_wave": "S_", "static_mesh": "SM_", "material": "M_", "file_media_source": "MS_"}
   },
   "path_policy": {
     "run_asset_folder": "/Game/Generated/Tavern/run_p4_full",

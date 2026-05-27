@@ -103,12 +103,12 @@ Docs/
 | 硬事实 | 权威文档 | 数字 / 内容 |
 |--------|----------|-------------|
 | MCP 工具数 | `Docs/contracts/mcp_tools_catalog.md` 主表 | **53**(Bridge 28 + 前端 14 + 后端 11)|
-| Schema 数 | `Docs/contracts/schemas_catalog.md` 主表 + 附录 A | **41 主 + 26 examples = 67** |
+| Schema 数 | `Docs/contracts/schemas_catalog.md` 主表 + 附录 A | **42 主 + 27 examples = 69**(2026-05-27 ForgeUE real-ue milestone 新增 `forgeue_import_evidence` schema + 1 example)|
 | 系统测试用例数 | `Docs/testing/test_spec.md` §3 + `Plugins/AgentBridge/Tests/run_system_tests.py:191 TOTAL_CASES` | **266**(15 测试类)|
 | C++ Automation 测试数 | `Docs/testing/test_spec.md` §1 + `Plugins/AgentBridge/AgentBridgeTests/` | **~26**(独立计数,不计入 266)|
 | 7 阶段主链 | `Docs/requirements/SRS.md §4.1` + `Docs/design/HLD.md §2.1` | Stage 1-7(Root Skill Contract → Reviewed Handoff v3)|
 | Run 治理 | `Docs/requirements/SRS.md §4.3` + `Docs/design/HLD.md §3` | F-GOV-01..04(run_id / fast_mode / generator_provider / compare-promote)|
-| Schema --strict 26/26 | `Docs/testing/test_spec.md §5` + `Docs/acceptance/acceptance_report.md §2.1` | `validate_examples.py --strict` |
+| Schema --strict 27/27 | `Docs/testing/test_spec.md §5` + `Docs/acceptance/acceptance_report.md §2.1` | `validate_examples.py --strict`(2026-05-27 26→27,加 `forgeue_import_evidence_example.json`)|
 | UE 引擎目标版本 | `Docs/requirements/SRS.md §1.2` | **UE 5.5.4 → 5.7** |
 | 项目层 + 插件层分层 | `Docs/design/HLD.md §1.1` | 双层架构 + 进程拓扑 |
 | 4 通道(契约) | `Docs/contracts/tool_contract.md §5.2` | Channel A/B/C/D;代码实际 BridgeChannel 4 值,channel_map 暴露 3 档 |

@@ -1,0 +1,57 @@
+{
+  "run_id": "2026-05-27_b2de9d2a",
+  "created_at": "2026-05-26T20:05:34.432Z",
+  "test_type": "smoke_test",
+  "test_scope": "ForgeUE Manifest Real-UE Import Bridge (bridge_rc_api)",
+  "evidence_items": [
+    {
+      "type": "report",
+      "path": "op_evidence/ae_run_p4_full_texture_albedo.json",
+      "description": "texture import op evidence",
+      "timestamp": "2026-05-26T20:05:14.183Z"
+    },
+    {
+      "type": "report",
+      "path": "op_evidence/ae_run_p4_full_sprite_sheet.json",
+      "description": "sprite_sheet import op evidence",
+      "timestamp": "2026-05-26T20:05:14.233Z"
+    },
+    {
+      "type": "report",
+      "path": "op_evidence/ae_run_p4_full_sound_click.json",
+      "description": "sound_wave import op evidence",
+      "timestamp": "2026-05-26T20:05:14.291Z"
+    },
+    {
+      "type": "report",
+      "path": "op_evidence/ae_run_p4_full_mesh_cube.json",
+      "description": "static_mesh import op evidence",
+      "timestamp": "2026-05-26T20:05:14.686Z"
+    },
+    {
+      "type": "report",
+      "path": "op_evidence/ae_run_p4_full_material_simple.json",
+      "description": "material import op evidence",
+      "timestamp": "2026-05-26T20:05:20.354Z"
+    },
+    {
+      "type": "report",
+      "path": "op_evidence/ae_run_p4_full_video_clip.json",
+      "description": "file_media_source import op evidence",
+      "timestamp": "2026-05-26T20:05:20.417Z"
+    },
+    {
+      "type": "assertion_result",
+      "path": "assertions.json",
+      "description": "EditorAssetLibrary.DoesAssetExist 6/6 校验结果",
+      "timestamp": "2026-05-26T20:05:34.432Z"
+    }
+  ],
+  "summary": {
+    "total_checks": 6,
+    "passed": 6,
+    "failed": 0,
+    "warnings": 0
+  },
+  "status": "pass"
+}

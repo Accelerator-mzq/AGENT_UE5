@@ -1,0 +1,15 @@
+{
+  "asset_entry_id": "ae_run_p4_full_material_simple",
+  "op_id": "op_import_ae_run_p4_full_material_simple",
+  "asset_kind": "material",
+  "bridge_mode": "bridge_python",
+  "status": "success",
+  "timestamp": "2026-05-26T20:05:20.354Z",
+  "source_uri_abs": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Tests\\fixtures\\forgeue_manifest\\payload\\material_simple.json",
+  "uasset_object_path": "/Game/Generated/Tavern/run_p4_full/M_run_p4_full_material_simple.M_run_p4_full_material_simple",
+  "uasset_package_path": "/Game/Generated/Tavern/run_p4_full/M_run_p4_full_material_simple",
+  "factory_class": "unreal.MaterialFactoryNew + unreal.MaterialEditingLibrary",
+  "duration_ms": 5672,
+  "import_log_excerpt": "created material with 4 expressions (PBR Option α 五字段,normal_texture_ref pending)",
+  "errors": []
+}

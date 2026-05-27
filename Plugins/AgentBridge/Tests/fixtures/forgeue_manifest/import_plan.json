@@ -2,19 +2,12 @@
   "plan_id": "p_run_p4_full",
   "manifest_id": "m_run_p4_full",
   "operations": [
-    {
-      "op_id": "op_create_folder_root",
-      "kind": "create_folder",
-      "asset_entry_id": "<root>",
-      "depends_on": []
-    },
-    {
-      "op_id": "op_import_texture_ae_run_p4_full_step_image_cand_e0726e0a_0",
-      "kind": "import_texture",
-      "asset_entry_id": "ae_run_p4_full_step_image_cand_e0726e0a_0",
-      "depends_on": [
-        "op_create_folder_root"
-      ]
-    }
+    {"op_id": "op_create_folder_root", "kind": "create_folder", "asset_entry_id": "<root>", "depends_on": []},
+    {"op_id": "op_import_texture", "kind": "import_texture", "asset_entry_id": "ae_run_p4_full_texture_albedo", "depends_on": ["op_create_folder_root"]},
+    {"op_id": "op_import_sprite_sheet", "kind": "import_texture", "asset_entry_id": "ae_run_p4_full_sprite_sheet", "depends_on": ["op_create_folder_root"]},
+    {"op_id": "op_import_sound_wave", "kind": "import_sound_wave", "asset_entry_id": "ae_run_p4_full_sound_click", "depends_on": ["op_create_folder_root"]},
+    {"op_id": "op_import_static_mesh", "kind": "import_static_mesh", "asset_entry_id": "ae_run_p4_full_mesh_cube", "depends_on": ["op_create_folder_root"]},
+    {"op_id": "op_create_material", "kind": "create_material", "asset_entry_id": "ae_run_p4_full_material_simple", "depends_on": ["op_create_folder_root"]},
+    {"op_id": "op_create_media_source", "kind": "create_file_media_source", "asset_entry_id": "ae_run_p4_full_video_clip", "depends_on": ["op_create_folder_root"]}
   ]
 }
