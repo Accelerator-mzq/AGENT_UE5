@@ -1,5 +1,8 @@
 # llm_config.example.yaml — LLM Internal 路径配置模板
 # 复制为 llm_config.yaml 并填入真实 API key 后使用
+# Phase 12 LLM Internal Reopen 后新增 5 个字段：concurrency / retry / prompt_cache / auto_compact / budget
+
+# === 必填字段（原 task09a 已有）===
 
 # provider 类型：anthropic / openai / openai_compatible
 provider: "anthropic"
@@ -7,8 +10,11 @@ provider: "anthropic"
 # API key（必填；openai_compatible 可使用占位值 "not-needed"）
 api_key: "YOUR_API_KEY_HERE"
 
-# 模型名（按 provider 填写对应模型 ID）
-model: "claude-sonnet-4-20250514"
+# 模型名（按 provider 填写对应模型 ID，**必须带 litellm provider 前缀**：
+#   anthropic/<model_name> | openai/<model_name> | openai_compatible/<model_name>
+# 不带前缀 litellm 会直接抛 BadRequestError(LLM Provider NOT provided)。
+# Phase 12 T18 真 LLM 验收期 implementer 实测踩坑,2026-05-27 修)
+model: "anthropic/claude-sonnet-4-20250514"
 
 # 可选：自定义 API base URL（中转站 / 兼容接口常用；anthropic 也支持）
 # base_url: "http://localhost:11434/v1"
@@ -19,22 +25,53 @@ temperature: 0.7
 # Anthropic 路径建议显式配置超时，避免 Stage 4 长链路卡太久
 timeout_sec: 60
 
-# 其他 provider 示例：
+# === Phase 12 新增字段（可选，有默认值）===
+
+# Stage 4 Candidates 分批并发控制
+concurrency:
+  candidates_batch: 3           # 7 dimension 并发上限，默认 3
+  jitter_ms: [100, 500]         # 启动 jitter 范围
+
+# 单 dimension retry 策略
+retry:
+  max_attempts: 3               # 单 dimension 最多 3 次
+  backoff_mode: exponential     # exponential | fixed
+  backoff_base_s: 2.0           # 指数 backoff 基数
+  retry_on:                     # 白名单
+    - timeout
+    - transient_network
+    - schema_fail
+
+# Anthropic family prompt-cache（litellm 自动注入 cache_control）
+prompt_cache:
+  enabled: true
+
+# 超长 prompt 自动压缩
+auto_compact:
+  enabled: false                # 默认关
+  max_tokens: 8000              # 压缩阈值
+
+# Per-Run cost 累计（observe-only 模式）
+budget:
+  observe_only: true            # 本期 observe-only，只落盘不阻断
+  cost_cap_usd: null            # observe_only=true 时此字段被忽略
+
+# 其他 provider 示例(注意 model 必须带 litellm provider 前缀):
 #
 # Anthropic（Claude 系列）
 # provider: "anthropic"
 # api_key: "sk-ant-api03-real-key"
-# model: "claude-sonnet-4-20250514"
+# model: "anthropic/claude-sonnet-4-20250514"
 # base_url: "https://api.minimaxi.com/anthropic"
 # timeout_sec: 60
 #
 # OpenAI（GPT 系列）
 # provider: "openai"
 # api_key: "sk-real-key"
-# model: "gpt-4o"
+# model: "openai/gpt-4o"
 #
 # OpenAI 兼容接口（本地模型、第三方代理等）
 # provider: "openai_compatible"
 # api_key: "not-needed"
-# model: "llama3"
+# model: "openai_compatible/llama3"
 # base_url: "http://localhost:11434/v1"

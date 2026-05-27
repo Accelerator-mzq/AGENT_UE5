@@ -186,11 +186,19 @@ STAGES = {
         'requires_editor': False,
         'requires_build': False,
     },
+    12: {
+        'name': 'Phase 12 LLM Internal Reopen（LIR）',
+        'cases': 'LIR-01 ~ LIR-04',
+        'case_ids': make_case_ids('LIR', 1, 4),
+        'count': 4,
+        'requires_editor': False,
+        'requires_build': False,
+    },
 }
 
-TOTAL_CASES = sum(s['count'] for s in STAGES.values())  # 266
+TOTAL_CASES = sum(s['count'] for s in STAGES.values())  # 270 (P12 LIR-01~04 加 4)
 CASE_ID_PATTERN = re.compile(
-    r'^\|\s*((?:SV|BL|Q|W|CL|UI|CMD|PY|ORC|CP|SS|GA|E2E|MCP|P11)-\d{2})\s*\|',
+    r'^\|\s*((?:SV|BL|Q|W|CL|UI|CMD|PY|ORC|CP|SS|GA|E2E|MCP|P11|LIR)-\d{2})\s*\|',
     re.MULTILINE,
 )
 PHASE7_STAGE7_CASE_IDS = make_case_ids('CP', 32, 40) + make_case_ids('SS', 14, 20)
@@ -2698,6 +2706,138 @@ def run_stage_11(result, engine_root, completed_results=None):
         )
 
 
+def run_stage_12(result, engine_root, completed_results=None):
+    """Stage 12：Phase 12 LLM Internal Reopen — LIR-01~04 用例。
+
+    LIR-01: L2-A providers/observability/runtime 单元测试
+    LIR-02: L2-B candidates batch + LLMProvider 接缝集成测试
+    LIR-03: Schema 校验(新 provider_call/retry_policy + design_space_report 扩字段)
+    LIR-04: L2-C 系统集成 e2e(本期 4 case SKIPPED,T18 补 fixture 后转 PASS)
+    """
+    check_map = {}
+    runtime_dir = os.path.join(PROJECT_ROOT, 'ProjectState', 'Temp', 'run_system_tests_stage12')
+    os.makedirs(runtime_dir, exist_ok=True)
+    result.log_path = runtime_dir
+
+    def record_case(case_id, ok, note):
+        """登记单条 Phase 12 LIR 用例结果。"""
+        check_map[case_id] = (ok, note)
+
+    def _run_pytest_subset(test_files, case_id):
+        """跑给定 pytest 文件集合,返 (all_pass, note) — 标准化 LIR 用例的 pytest 解析。
+
+        说明:
+          - 复用现有 run_pytest_selection(返 exit_code/stdout/stderr)
+          - 解析 stdout 里的 "N passed" / "N failed" / "N skipped"
+          - all_pass 判据:exit_code == 0 且 failed == 0(skipped 不算 fail)
+          - 每条 LIR case 单独跑,日志单独落盘,方便事后追溯
+        """
+        exit_code, stdout, stderr = run_pytest_selection(test_files, timeout=900)
+        passed_match = re.search(r'(\d+)\s+passed', stdout)
+        failed_match = re.search(r'(\d+)\s+failed', stdout)
+        skipped_match = re.search(r'(\d+)\s+skipped', stdout)
+        n_pass = int(passed_match.group(1)) if passed_match else 0
+        n_fail = int(failed_match.group(1)) if failed_match else 0
+        n_skip = int(skipped_match.group(1)) if skipped_match else 0
+        # 单独落盘 pytest 输出
+        log_path = os.path.join(runtime_dir, f'{case_id}_pytest.log')
+        try:
+            with open(log_path, 'w', encoding='utf-8') as fp:
+                fp.write(f'cmd_exit={exit_code}\n--- stdout ---\n{stdout}\n--- stderr ---\n{stderr}\n')
+        except Exception:
+            pass
+        ok = (exit_code == 0) and (n_fail == 0)
+        note = f'pytest passed={n_pass} failed={n_fail} skipped={n_skip} exit={exit_code}'
+        return ok, note
+
+    # LIR-01: L2-A providers/observability/runtime 单元测试整合
+    lir_01_ok, lir_01_note = _run_pytest_subset(
+        [
+            os.path.join(TESTS_SCRIPTS_DIR, 'test_providers_unit.py'),
+            os.path.join(TESTS_SCRIPTS_DIR, 'test_observability_unit.py'),
+            os.path.join(TESTS_SCRIPTS_DIR, 'test_runtime_unit.py'),
+        ],
+        'LIR-01',
+    )
+    record_case('LIR-01', lir_01_ok, lir_01_note)
+
+    # LIR-02: L2-B candidates batch + LLMProvider 接缝集成
+    lir_02_ok, lir_02_note = _run_pytest_subset(
+        [
+            os.path.join(TESTS_SCRIPTS_DIR, 'test_candidates_batch_orchestrator.py'),
+            os.path.join(TESTS_SCRIPTS_DIR, 'test_llm_provider_integration.py'),
+            os.path.join(TESTS_SCRIPTS_DIR, 'test_pipeline_orchestrator_llm_wiring.py'),
+        ],
+        'LIR-02',
+    )
+    record_case('LIR-02', lir_02_ok, lir_02_note)
+
+    # LIR-03: Schema 校验(provider_call / retry_policy + design_space_report 扩字段)
+    lir_03_ok, lir_03_note = _run_pytest_subset(
+        [
+            os.path.join(TESTS_SCRIPTS_DIR, 'test_new_schemas_validate.py'),
+            os.path.join(TESTS_SCRIPTS_DIR, 'test_design_space_report_per_dim_metadata.py'),
+        ],
+        'LIR-03',
+    )
+    record_case('LIR-03', lir_03_ok, lir_03_note)
+
+    # LIR-04: L2-C 系统集成 e2e(占位 SKIPPED,T18 阶段补 fixture)
+    lir_04_ok, lir_04_note = _run_pytest_subset(
+        [
+            os.path.join(TESTS_SCRIPTS_DIR, 'test_llm_internal_system_integration.py'),
+        ],
+        'LIR-04',
+    )
+    record_case('LIR-04', lir_04_ok, lir_04_note)
+
+    # 写汇总 JSON
+    summary_path = os.path.join(runtime_dir, 'phase12_case_checks.json')
+    with open(summary_path, 'w', encoding='utf-8') as file:
+        json.dump(
+            {
+                'generated_at': datetime.datetime.now().isoformat(),
+                'cases': {
+                    case_id: {'ok': ok, 'note': note}
+                    for case_id, (ok, note) in check_map.items()
+                },
+            },
+            file,
+            ensure_ascii=False,
+            indent=2,
+        )
+
+    missing_case_ids = [case_id for case_id in STAGES[12]['case_ids'] if case_id not in check_map]
+    if missing_case_ids:
+        result.status = 'failed'
+        result.exit_code = 1
+        result.message = f'Stage 12 用例注册不完整，缺失: {", ".join(missing_case_ids)}'
+        return
+
+    checks = [
+        (case_id, check_map[case_id][0], check_map[case_id][1])
+        for case_id in STAGES[12]['case_ids']
+    ]
+    passed = sum(1 for _, ok, _ in checks if ok)
+    total = len(checks)
+    failed_cases = [case_id for case_id, ok, _ in checks if not ok]
+
+    for case_id, ok, note in checks:
+        print(f'  [{case_id}] {"PASS" if ok else "FAIL"} - {note}')
+
+    if passed == total:
+        result.status = 'passed'
+        result.exit_code = 0
+        result.message = f'Phase 12 LLM Internal Reopen 全部通过 ({passed}/{total})'
+    else:
+        result.status = 'failed'
+        result.exit_code = 1
+        result.message = (
+            f'Phase 12 LLM Internal Reopen 未全部通过 ({passed}/{total})，'
+            f'失败项: {", ".join(failed_cases)}'
+        )
+
+
 # Stage ID -> 执行函数映射
 STAGE_RUNNERS = {
     1: run_stage_1,
@@ -2711,6 +2851,7 @@ STAGE_RUNNERS = {
     9: run_stage_9,
     10: run_stage_10,
     11: run_stage_11,
+    12: run_stage_12,
 }
 
 

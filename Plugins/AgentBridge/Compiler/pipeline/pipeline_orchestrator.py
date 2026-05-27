@@ -26,6 +26,7 @@ from ..stages import cross_review_v2 as cross_review_v2_stage
 from ..stages import domain_skill_runtime as domain_skill_runtime_stage
 from ..stages import handoff_v3 as handoff_v3_stage
 from ..stages.llm_client import load_llm_client_from_config
+from ..providers.model_registry import build_default_router
 from ..stages import lowering_v2 as lowering_v2_stage
 from ..stages import root_skill_contract as root_skill_contract_stage
 from ..stages import skill_graph_planning as skill_graph_planning_stage
@@ -741,15 +742,32 @@ def _prepare_stage_v2(session: CompilerSession, stage_num: int) -> Dict[str, Any
         skill_graph = _load_stage_artifact(session, 3) or {}
         # allow_heuristic_fallback: 当前默认允许（无 LLM client 时退化为确定性引擎）
         # 正式 run 应配置 LLM client，heuristic fallback 产出的 run 自动 promotable=False
-        template = domain_skill_runtime_stage.run_domain_skill_runtime(
-            skill_graph=skill_graph,
-            root_skill_contract=root_skill_contract,
-            clarification_gate_report=clarification_gate_report,
-            phase_scope=session.target_phase,
-            fast_mode=session.fast_mode,
-            allow_heuristic_fallback=True,
-            llm_client=load_llm_client_from_config(),
-        )
+        # Phase 12: 优先用 router(新路径,支持 candidates 分批);否则 fallback 老 llm_client
+        router_with_policy = build_default_router()
+        if router_with_policy is not None:
+            router, policy = router_with_policy
+            template = domain_skill_runtime_stage.run_domain_skill_runtime(
+                skill_graph=skill_graph,
+                root_skill_contract=root_skill_contract,
+                clarification_gate_report=clarification_gate_report,
+                phase_scope=session.target_phase,
+                fast_mode=session.fast_mode,
+                allow_heuristic_fallback=True,
+                llm_client=None,
+                router=router,
+                policy=policy,
+                batch_concurrency=3,
+            )
+        else:
+            template = domain_skill_runtime_stage.run_domain_skill_runtime(
+                skill_graph=skill_graph,
+                root_skill_contract=root_skill_contract,
+                clarification_gate_report=clarification_gate_report,
+                phase_scope=session.target_phase,
+                fast_mode=session.fast_mode,
+                allow_heuristic_fallback=True,
+                llm_client=load_llm_client_from_config(),
+            )
         if template.get("status") in {"refused", "validation_failed"}:
             return {
                 "status": "stage_generation_failed",

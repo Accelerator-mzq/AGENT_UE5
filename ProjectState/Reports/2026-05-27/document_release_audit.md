@@ -1,103 +1,85 @@
-# Document Release Audit — feat/forgeue-real-ue-bridge @ f89c5a6
+# Document Release Audit — feat/llm-internal-reopen @ 4829293
 
-> 运行时间: 2026-05-27T04:30:00Z
-> 比较基准: `6498df26` (origin/main PR #36 merge)
-> 触发事件: manual / milestone 收尾(ForgeUE Manifest Import Bridge real-ue 真机功能完成)
-> 范围: 29 commits / 34 files / +4889 / -145(commit chain `7e7b4b9` → `f89c5a6`)
+> 运行时间: 2026-05-27T20:18:19+08:00
+> 比较基准: merge-base 0e1fe36(PR #40 Phase 0 merge 到 main)
+> 触发事件: T20 收尾流程 — document-release skill 调用,准备 finishing-a-development-branch
+> 主题: Phase 12 LLM Internal Reopen 完整实现(T08-T19 + T18 follow-up,共 15 commits)
+> 范围: 15 commits / 35 files / +3075 / -448(commit chain `e059296` → `4829293`)
 
 ## 背景
 
-本次 audit 是 ForgeUE Manifest Import Bridge 真机功能 milestone 收尾的强制文档同步门禁。Phase 11 已归档(commit `6498df2` PR #36),本 milestone 不构成新 Phase,而是对既有 F-ORC-08 `forgeue_manifest_importer.py` 的真机通路实现(填充 Plan T4 内核 + Plan T6-T10 5+1 种 asset_kind helper + Plan T11/T12 真机测试与 smoke)。
+Phase 12 LLM Internal Reopen 是 Phase 11 收尾时暂缓的「LLM Internal 高负载验收」重开门禁。Phase 11 (PR #36 2026-05-26) 已归档,Phase 11 主路径仍是 MCP Agent + heuristic_fallback。本次 Phase 12 把 generator_provider="llm" 路径重开为 promotable 候选,作为 UE 5.7 重构的前置门禁。
 
 最终交付物:
-- `bridge_python` + `bridge_rc_api` 两条真机通路全实现(5+1 种 asset_kind 真机 import 落盘 PASS)
-- L3 真机 smoke 6/6 evidence 落盘:`ProjectState/Reports/2026-05-27/forgeue_real_smoke/`
-- 0 触 CLAUDE.md 禁止修改文件红线(全 Python + UE Python API + uplugin 配置)
-- 新增 BC-NEW-A / BC-NEW-B 候选登记到 UE 5.7 BC 扫描
+- 新 `Compiler/providers/`(8 模块)+ `Compiler/observability/`(2 模块)+ `Compiler/runtime/`(1 模块)+ `Compiler/stages/candidates_batch_orchestrator.py` 整套 LLM 框架移植到位
+- LLMProvider 委托 LLMBatchExecutor,Stage 4 Candidates 按 dimension 分批(7 dim × concurrency=3)
+- 2 新 Schema(provider_call / retry_policy)+ design_space_report 扩 per_dimension_batch_metadata 字段
+- 105 passed + 4 skipped 测试套件 + Stage 12 LIR-01~04 接入系统测试
+- 真 LLM 7/7 验收 PASS(promotable=True / 6008 tokens / 50-60s wallclock)
+- 0 触 CLAUDE.md 禁止修改文件红线(C++ / Bridge / Orchestrator / AgentBridgeTests 全 0 改动)
 
 ## Coverage Map
 
 | 变更点 | A 入口 | B 阶段事实 | C 框架 | D 证据落盘 |
-|--------|--------|-----------|--------|-----------|
-| ForgeUE 真机 bridge(bridge_python + bridge_rc_api 通路) | (Current — anchor 无需变更,本 milestone 不切阶段) | `Docs/INDEX.md` §4 权威定义点(已更新 Schema 42 / examples 27)/ `Docs/acceptance/acceptance_report.md ## 附 2`(已新增 6 条 follow-up) | `Docs/design/LLD/03_orchestrator.md §3.8 + §4.5`(已更新 NotImplementedError 现状 → 已实现)/ `Plugins/AgentBridge/Scripts/orchestrator/forgeue_manifest_importer.py`(实施主体,5+1 helper 实现)/ `Plugins/AgentBridge/Content/Python/forgeue_rc_endpoint.py`(新增 PythonScripted UCLASS)/ `Plugins/AgentBridge/Content/Python/init_unreal.py`(新增 startup hook)/ `Plugins/AgentBridge/Schemas/forgeue_import_evidence.schema.json`(新增 L1 op 证据契约) | `ProjectState/Reports/2026-05-27/forgeue_rc_endpoint_verification.md`(Task 5 验证清单 4/4) / `task6_texture_real_smoke_evidence.md`(Task 6 texture 真机 PASS) / `task12_l3_smoke_summary.md`(L3 6/6 PASS) / `forgeue_real_smoke/`(L4 wrapper + 6 op evidence + assertions) |
-| AgentBridge.uplugin CanContainContent: true | (无 anchor 影响) | (无阶段事实变更) | `Plugins/AgentBridge/AgentBridge.uplugin`(已改) | (Task 5 verification 已记录此 prerequisite fix) |
-| forgeue_import_evidence schema 新增 | (无 anchor) | `Docs/INDEX.md` §4(已更:42 主 / 27 examples) | `Docs/contracts/schemas_catalog.md` 主表 + 附录 A + 行数自检(已更新) | `Plugins/AgentBridge/Schemas/examples/forgeue_import_evidence_example.json`(passing example) |
-| validate_examples.py 字典加 mapping | (无 anchor) | (无阶段事实变更) | `Plugins/AgentBridge/Scripts/validation/validate_examples.py`(EXAMPLE_TO_SCHEMA 加 1 行) | `validate_examples.py --strict` 实测 27/27 PASS |
-| L2 pytest real_ue marker + L3 smoke 脚本 | `pytest.ini`(加 real_ue marker) | (无阶段事实变更) | `Plugins/AgentBridge/Tests/scripts/test_forgeue_real_ue_smoke.py`(新增 3 case) / `Scripts/run_forgeue_real_smoke.py`(新增 L3 driver) | `task12_l3_smoke_summary.md` + L2 pytest 1/3 PASS 记录(2/3 timeout 是 transient,已记 FU-FORGEUE-02 backlog) |
-| UE 5.7 BC 新增 surface | (无 anchor) | `Docs/INDEX.md` §4(BC 25 → 27 候选)(未改,留 5.7 实测阶段升级) | `Docs/superpowers/specs/2026-05-26-ue57-breaking-changes-scan.md` §4 新增 NEW 区段 BC-NEW-A/B 候选 | (5.7 实测阶段产出) |
+|---|---|---|---|---|
+| Phase 12 LLM Internal Reopen 完整实现(provider framework + Stage 4 分批 + 真 LLM 7/7 验收) | README.md(本次同步 line 4-5)+ task.md(T19 已同步)+ Docs/INDEX.md(本次同步 §1)+ AGENTS.md(无需改,通用规则不涉及)+ CLAUDE.md(无需改,通用规则不涉及) | Docs/design/HLD.md §2.2(T19 已更)+ Docs/design/LLD/04_compiler.md §2.1 + §2.1.1(T19 已更)+ Docs/acceptance/acceptance_report.md §残留(T19 已更,§1 F-CMP-15 主表勾选留 msc 手动)+ Docs/requirements/SRS.md §1 F-CMP-15(本次同步)+ Docs/FEATURE_INVENTORY.md F-CMP-15 行(本次同步,Last_changed 翻面 Phase 12) | Plugins/AgentBridge/Docs/(框架级文档无 F-ID 索引,Phase 12 改 Compiler 子树不需要触动框架级 README/architecture_overview;后续 UE 5.7 阶段引入新框架级范式再补)+ Plugins/AgentBridge/Tests/SystemTestCases.md(T16 已更 Stage 12 LIR-01~04)+ Schema 契约 Plugins/AgentBridge/Schemas/{provider_call,retry_policy}.schema.json(T08 新增)+ design_space_report.schema.json(T09 扩字段)+ Plugins/AgentBridge/Config/llm_config.example.yaml(T13 扩 5 字段 + T18 follow-up 加 litellm 前缀) | ProjectState/Reports/2026-05-27/llm_internal_reopen_acceptance.{md,json}(T18 落)+ ProjectState/Reports/2026-05-27/llm_internal_reopen_acceptance.smoke.{md,json}(T17 落)+ ProjectState/runs/run-20260527-200354-328da1/(T18 真跑 evidence 完整 8 文件:design_space_report.json + llm_usage.json + stage4_agent_traces/llm_internal/{dim_1..7.json,aggregation.json}) |
+
+零覆盖:无。三层全覆盖,Layer A 在本次 audit 期间补齐 README + INDEX(原 T19 仅同步 task.md)。
 
 ## Documentation health
 
-- **README.md**: Current — 本 milestone 不切阶段(Phase 11 仍是 anchor 的当前阶段),不在 README 登记 ForgeUE 真机 bridge 增量功能;后续若进入 UE 5.7 重构阶段需要同步更新。
-- **AGENTS.md**: Current — 同 README。项目级 Agent 规则不涉及具体 milestone,本次 ForgeUE bridge 实施过程中遵守了既有规则(0 触 C++ 红线 / commit 用 `[skip-doc]` 标记 / 中文注释 / 不 git push)。
-- **CLAUDE.md**: Current — 同 AGENTS.md。本次 milestone 全程遵守 CLAUDE.md 禁止修改清单(C++ 核心 / Bridge 客户端 / Orchestrator 核心 / 已稳定 Schema / 测试体系)。
-- **task.md**: Current — Phase 11 归档跳转页保留,本次 milestone 不构成新 Phase。
-- **Docs/INDEX.md**: Updated — §4 权威定义点更新 Schema 数(41 → 42)+ examples 数(26 → 27)+ Schema --strict 26/26 → 27/27,均带 2026-05-27 ForgeUE milestone 来源标注。
+- **README.md**: Updated — 顶部"当前状态"从"Phase 11 已完成并归档"翻面为"Phase 12 LLM Internal Reopen 已完成(2026-05-27),Phase 11 已归档";"当前正式口径"链接补 Phase 12 acceptance evidence 锚点。
+- **AGENTS.md**: Current — Phase 12 仅扩 Compiler 子树,未触 Agent 通用规则,无需更新。
+- **CLAUDE.md**: Current — Phase 12 改动均落在 CLAUDE.md "可以修改" 范围内(Compiler/providers/observability/runtime + stages/agent_protocol.py + pipeline_orchestrator.py + Schemas + Tests + Docs),"绝对不要修改" 清单未触,无需更新。
+- **task.md**: Updated(T19) — 顶部跳转块加 Phase 12 三链接(acceptance / plan / spec),Phase 11 五链接保留作归档。
+- **Docs/INDEX.md**: Updated — §1 项目状态从单一 Phase 11 翻面为"Phase 12 已完成 + Phase 11 已归档",补 Phase 12 完成事实 + 真 LLM 验收 evidence 链接。
 - **Layer B (阶段事实)**:
-  - `Docs/requirements/SRS.md`: Current — F-ORC-08 既有定义已涵盖 forgeue_manifest_importer;本次 milestone 是 F-ORC-08 的真机通路实现,无需新增 F-* family。
-  - `Docs/design/HLD.md`: Current — 架构层不变(Path C 共享内核设计在 spec §2 / LLD §3.8 表达,HLD 顶层抽象不动)。
-  - `Docs/acceptance/acceptance_report.md`: Updated — 新增 `## 附 2` ForgeUE milestone follow-up,含 6 条 FU-FORGEUE-* 条目(P2-P3 优先级)。
+  - **Docs/design/HLD.md §2.2**: Updated(T19)— LLM Internal bullet 末尾追加 Phase 12 LLM 调用栈架构 + LLMBatchExecutor 分批策略 + 7/7 真 LLM 验收 evidence 链接;旧 llm_client.py 标 deprecate。
+  - **Docs/design/LLD/04_compiler.md §2.1**: Updated(T19)— F-CMP-15 行从"Stage 通用 LLM Client"改名为"Stage 通用 LLM Provider Framework",文件路径扩为 8 个 Compiler 模块完整清单;表格后新增 §2.1.1 子目录职责详解 + 4 子目录映射 + spec/plan/acceptance 三链接。
+  - **Docs/acceptance/acceptance_report.md §残留**: Updated(T19)— 第一条 bullet"LLM Internal 高负载验收暂缓"翻面为"已于 Phase 12 重开(2026-05-27)"+ UE 5.7 前置门禁定位标注 + 3 文档链接(spec/plan/acceptance)。§1 主表 F-CMP-15 勾选状态故意保留未勾,留 msc 手动确认(避免 Claude 自动批量勾选造成假阳性,符合 acceptance_report 现有约定)。
+  - **Docs/requirements/SRS.md §1 F-CMP-15**: Updated — line 129 从"Stage 通用 LLM Client — provider 抽象(OpenAI / Claude / 等)"翻面为"Stage 通用 LLM Provider Framework — LiteLLM + Instructor 统一接入(Compiler/providers/)+ capability 路由 + observe-only budget + Stage 4 Candidates 分批,Phase 12 重开(2026-05-27),旧 llm_client.py 已 deprecate"。
+  - **Docs/FEATURE_INVENTORY.md F-CMP-15 行**: Updated — 名称、用途、文件路径、测试覆盖、Last_changed 5 列全部同步;Last_changed 从"unchanged"翻面为"Phase 12(2026-05-27)",文件路径扩展为 11 个 Compiler 模块清单。
+  - **Docs/governance.md** / **Docs/redirects.json** / **Docs/contracts/** / **Docs/testing/test_spec.md**: Current — Phase 12 不引入新 F-ID、不改命名规则、不重定向旧路径、不新增 schema 范畴(新 schema 已被 schemas_catalog.md 通用规则覆盖),无需个别更新。后续 docs-restructure 阶段可统一刷新。
 - **Layer C (框架)**:
-  - `Plugins/AgentBridge/AGENTS.md`: Read-only(框架通用规则,本 skill 不动)
-  - `Plugins/AgentBridge/README.md`: Current — 插件入口不需要变更,本次新增的 Content/Python/ 是 UE 5.4+ 标准 hook,功能由 Docs/design/LLD/ 与 Schemas/ 描述
-  - `Plugins/AgentBridge/Docs/`:
-    - 已有 archive 版本 `Docs/archive/plugins/forgeue_manifest_integration.md`,新文档体系下被 `Docs/design/LLD/03_orchestrator.md §3.8 + §4.5` 替代,本次 milestone 已更新 LLD 文档(NotImplementedError stub → 全实现)
-  - `Plugins/AgentBridge/Schemas/`:
-    - 主表新增 `forgeue_import_evidence.schema.json`(42 主)
-    - examples 附录新增 `forgeue_import_evidence_example.json`(27 examples)
-    - `Plugins/AgentBridge/Scripts/validation/validate_examples.py` 字典同步加 1 条 mapping
-  - `Plugins/AgentBridge/Tests/SystemTestCases.md`: Current — 本次 L2 pytest 3 case + L3 smoke 脚本是辅助测试体系,主回归 266 case / 15 stage 不变;FU-FORGEUE-02 backlog 已记录 L2 timeout follow-up
-  - `Docs/contracts/schemas_catalog.md`: Updated — 主表加 forgeue_import_evidence(行 43 位置,按字母 'f' 排序),附录 A 加 example,附录 B 行数自检全更新
-  - `Docs/contracts/tool_contract.md` / `field_specification.md` / `mcp_tools_catalog.md`: Current — 本 milestone 不涉及 L1/L2/L3 工具协议、字段命名、MCP 工具数变更(53 工具不变)
-  - `Docs/design/LLD/03_orchestrator.md`: Updated — §3.8 forgeue_manifest_importer.py 真机 helper 列表 + §4.5 dispatch 表 NotImplementedError → 全 5+1 实现,加新 milestone 状态段
-- **Backlog**: Updated — `Docs/acceptance/acceptance_report.md ## 附 2` 新增 6 条 FU-FORGEUE-* follow-up(material duration anomaly / L2 timeout / normal_texture_ref / GLTF-OBJ / UE 5.7 BC-NEW / Content/Generated gitignore);Phase 11 残留 `## 附` 不动
-- **ProjectState/Reports**: Updated — `2026-05-27/forgeue_rc_endpoint_verification.md`(Task 5 验证 4/4)+ `task6_texture_real_smoke_evidence.md`(Task 6 真机)+ `task12_l3_smoke_summary.md`(L3 6/6)+ `forgeue_real_smoke/`(L4 wrapper + 6 op evidence + assertions)4 套证据完整
-- **Archive**: Read-only — `Docs/archive/plugins/forgeue_manifest_integration.md` v0(stub 指向新 LLD/03)未动,符合本 skill"history 是证据"原则
-- **Spec / Plan**: 不在 anchor 列,但作为本次 milestone 的 superpowers 产物已 commit(`7e7b4b9` spec v1.0 / `df1ba30` plan v1.0)
+  - **Plugins/AgentBridge/README.md**: Current — 插件入口介绍 AgentBridge 整体,Phase 12 是子树扩展,未改插件对外 surface,无需更新。
+  - **Plugins/AgentBridge/AGENTS.md**: Read-only(框架通用规则,本 skill 边界不动)。
+  - **Plugins/AgentBridge/Docs/\*.md**: Current — 框架级架构文档(compiler_design / architecture_overview 等)不绑 F-ID,Phase 12 改动属于 F-CMP-15 具体实现,Layer B(LLD/04 §2.1.1)已经覆盖。后续 UE 5.7 阶段若引入新框架级范式再补。
+  - **Plugins/AgentBridge/Schemas/\*.json**: Updated(T08 + T09)— 新增 provider_call.schema.json / retry_policy.schema.json;design_space_report.schema.json 扩 per_dimension_batch_metadata 字段;26 → 27 example 校验全 PASS。
+  - **Plugins/AgentBridge/Tests/SystemTestCases.md**: Updated(T16)— 加第 17 节 LIR 表格(4 条)+ 附录 B LIR 行 + 合计 266 → 270 + 附录 C `--stage=12` 入口命令。
+- **Backlog**:
+  - **新延期工作**:暂无新加 backlog 条目(Phase 12 完整完成 7/7 真 LLM 验收 PASS,无 partial 项遗留)。
+  - **完成或被取代条目**:`acceptance_report.md §残留` 首条"LLM Internal 高负载验收暂缓"已在 T19 翻面为"已于 Phase 12 重开"(本质等同 retire 旧 backlog 条目)。
+  - **已知 follow-up**(Plan 实施期评审产出,非阻塞 Phase 12 收口,可挂 Phase 13 evaluate):
+    - LLMProvider 未暴露 retry_policy 注入口 → 中期可在 LLMProvider 构造器加 `retry_policy: RetryPolicySpec | None = None` 形参,Phase 12 默认值已满足真 LLM 7/7 验收
+    - model_registry.py 不自动拼接 provider+model 前缀 → T18 follow-up commit 在 example.yaml 加前缀解燃眉,production 代码透传 model 字符串符合 LiteLLM 官方约定,不属于 bug
+    - candidates_batch_orchestrator.py 中 `_classify unknown` 分支 + `exhausted` safety net 是 dead code → 保留作防御性编程,Phase 13 评估可清理
+- **ProjectState/Reports**:
+  - **2026-05-27/llm_internal_reopen_acceptance.{md,json}**: Updated(T18 真跑)— promotable=True / 7/7 success / 6008 tokens / 50-60s wallclock。
+  - **2026-05-27/llm_internal_reopen_acceptance.smoke.{md,json}**: Updated(T17 干跑)— acceptance machinery smoke 通过证据,留作回归基线。
+  - **2026-05-27/document_release_audit.md**: 本次写入(覆盖了同日 ForgeUE milestone 的 audit,该 audit 通过 git 历史仍可追溯到 commit ccd9308 之前)。
+  - **runs/run-20260527-200354-328da1/**: T18 落 8 文件完整 evidence(design_space_report.json / llm_usage.json / stage4_agent_traces/llm_internal/dim_{1..7}.json + aggregation.json),不进 git(evidence-only,完整保留供 audit)。
+- **Archive**: Read-only — Phase 12 不触 Docs/History/** 或 Docs/archive/**;Phase 12 自身 spec / plan 静态 anchored 在 `Docs/superpowers/specs/2026-05-27-llm-internal-reopen-design.md` 和 `Docs/superpowers/plans/2026-05-27-llm-internal-reopen.md`,符合"实施期产物"约定。
 
-## 校验跑过
+## Hard Boundaries 自检
 
-- `python Plugins/AgentBridge/Scripts/validation/validate_examples.py --strict` → **27/27 PASS**(Schema --strict)
-- `python -m pytest Plugins/AgentBridge/Tests/scripts/test_forgeue_manifest_importer.py` → **17/17 PASS**(L1 simulated)
-- `python -m pytest Plugins/AgentBridge/Tests/scripts/test_forgeue_real_ue_smoke.py -v -m real_ue` → **1/3 PASS, 2/3 timeout**(L2 transient,见 FU-FORGEUE-02 backlog;L3 smoke 已 PASS 是 milestone gate)
-- `python Scripts/run_forgeue_real_smoke.py --bridge-mode bridge_rc_api` → **6/6 PASS + uasset 真机落盘**(L3 smoke,evidence pack 落 `ProjectState/Reports/2026-05-27/forgeue_real_smoke/`)
-- `python Scripts/run_forgeue_real_smoke.py --bridge-mode simulated` → **6/6 PASS**(L3 离线 sanity)
+- 0 改动 `Source/*` C++ 核心 ✓
+- 0 改动 `Scripts/bridge/*` ✓
+- 0 改动 `Scripts/orchestrator/*` ✓
+- 0 改动 `AgentBridgeTests/` ✓
+- 0 改动 `Plugins/AgentBridge/Schemas/{common,feedback,write_feedback}/`(稳定 Schema)✓
+- 0 改动 `Plugins/AgentBridge/AGENTS.md` ✓
+- 0 改动 `Docs/History/**` 或历史日期 `ProjectState/Reports/<past_date>/` ✓
+- 跑测试: `pytest 10 文件` → **105 passed, 4 skipped / 32.01s** ✓
+- 跑 Schema: `validate_examples.py --strict` → **27/27 PASS** ✓
+- 跑 Stage 12: `run_system_tests.py --stage 12` → **4/4 PASS** (T16/T20 实测)✓
+- T18 真 LLM 验收: **promotable=True / 7/7 success** ✓
 
-## 主要发现
+## 本次 audit 期间补齐的 doc gap
 
-### 正面 — 文档面同步充分
+T19 仅同步了 HLD/LLD/acceptance/task.md 4 个文档,本次 audit 扫描 Layer A/B 全表后补齐 4 处遗漏:
+1. `README.md` 顶部"当前状态" → 翻面为 Phase 12
+2. `Docs/INDEX.md §1 项目状态(一句话)` → 翻面为 Phase 12
+3. `Docs/requirements/SRS.md §1 F-CMP-15` 描述 → 翻面为 LLM Provider Framework
+4. `Docs/FEATURE_INVENTORY.md F-CMP-15` 行 5 列(名称/用途/路径/测试/Last_changed) → 全部同步 Phase 12
 
-1. **真机通路新文件全部反映到 Layer C 框架文档**:`Content/Python/forgeue_rc_endpoint.py` + `init_unreal.py` 在 LLD/03 §3.8 + §4.5 已登记,docstring 同步引用 Plan T5 实测真值(snake_case 路径)
-2. **新 schema + example 全 4 处同步**(主表 + 附录 A + 行数自检 + INDEX 权威定义点)
-3. **L3 真机 evidence 完整**:`ProjectState/Reports/2026-05-27/forgeue_real_smoke/` 含 L4 wrapper(evidence_manifest.json)+ L1 逐条(op_evidence/*.json)+ assertions.json
-4. **3 个 UE API bug 修复链条完整**:febc42f(TextureFactory sRGB)/ 5df5790(import_textures typo)/ 78d29a2(FbxFactory import_options)全部 commit + Task 12 summary 记录
-5. **BC scan 同步新增 surface 候选**(BC-NEW-A P2 PythonScripted UCLASS / BC-NEW-B P1 candidate MaterialEditingLibrary),5.7 升级时一并裁决
-
-### 中性 — backlog follow-up 已显式记录
-
-6. material duration_ms anomaly(L3 evidence 有,FU-FORGEUE-01)
-7. L2 pytest 30s timeout(FU-FORGEUE-02)
-8. normal_texture_ref 延后实现(FU-FORGEUE-03)
-9. GLTF/OBJ factory 延后(FU-FORGEUE-04)
-10. UE 5.7 BC-NEW-A/B 实测(FU-FORGEUE-05)
-11. Content/Generated/ gitignore(FU-FORGEUE-06,项目治理项)
-
-### 已知约束
-
-- 5+1 种 asset_kind 实现是在 F-ORC-08(forgeue_manifest_importer)既有 family 内的真机通路落实,**不创建新 F-FORGEUE-RT family**(避免 FEATURE_INVENTORY.md 105 行多源矩阵大改),记录在 commit history + LLD/03 § milestone 状态段
-- 真机 evidence 中 material entry duration_ms / timestamp 有 anomaly,但功能验证(uasset 真机落盘 + DoesAssetExist=true + status=success)有效
-
-## 结论
-
-ForgeUE Manifest Import Bridge 真机功能 milestone 文档同步**充分**:
-- Layer A: anchor 4 文件均 Current(本 milestone 不切阶段,无需变更)
-- Layer B: INDEX.md / acceptance_report.md 均 Updated;SRS / HLD / 其他 contracts 均 Current(无字段级变更)
-- Layer C: LLD/03 + schemas_catalog 均 Updated;Schemas/ 新增 1 主 + 1 example + validate 字典同步;Tests/SystemTestCases.md Current(主回归不变);Plugins/AgentBridge/AGENTS.md / README.md Current
-- Layer D: ProjectState/Reports/2026-05-27/ 4 套证据完整(Task 5 / Task 6 / Task 12 / L3 smoke evidence pack)
-- Backlog: 6 条 FU-FORGEUE-* 条目显式记录,无静默丢失
-
-**判定**:不存在 critical doc debt,本 milestone 可与 29 commit 一起进入 push/merge(本 audit 后 write-marker 解锁 hook)。
-
-## Source Note
-
-本 audit 由 document-release skill 触发(`.claude/skills/document-release/SKILL.md` v1.0,Mvpv4TestCodex 本地化),作为整个 feat/forgeue-real-ue-bridge 分支(29 commit / 4889 insertions)合入 main 前的最后一次文档面证据归档。
+这 4 处补齐 + T19 既有 4 处 = 共 8 处 Layer A/B 文档完整覆盖 Phase 12 变更,无遗漏。

@@ -8,7 +8,7 @@
 
 ## 1. 项目状态(一句话)
 
-**Phase 11 已完成,UE 5.5.4 → 5.7 重构准备中**:Phase 11 (Skill-First Design Compiler Framework) 验收已 closeout(`Docs/acceptance/acceptance_report.md` §1);本次文档重组(Phase 0-4)产出本 INDEX 等 22 份新文档,作为 UE 5.7 重构开发者的输入规格,旧文档全量归档到 `Docs/archive/` 反向映射可追溯。
+**Phase 12 LLM Internal Reopen 已完成(2026-05-27),Phase 11 已归档,UE 5.5.4 → 5.7 重构准备中**:Phase 11 (Skill-First Design Compiler Framework) 验收已 closeout(`Docs/acceptance/acceptance_report.md` §1);Phase 12 重开 LLM Internal 路径(`Compiler/providers/` + `observability/` + `runtime/` + `stages/candidates_batch_orchestrator.py`),通过 7/7 真 LLM 验收(`ProjectState/Reports/2026-05-27/llm_internal_reopen_acceptance.md`)作为 UE 5.7 重构前置门禁。本次文档重组(Phase 0-4)产出本 INDEX 等 22 份新文档,作为 UE 5.7 重构开发者的输入规格,旧文档全量归档到 `Docs/archive/` 反向映射可追溯。
 
 ---
 

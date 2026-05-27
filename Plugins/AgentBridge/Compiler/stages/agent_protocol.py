@@ -570,13 +570,28 @@ class LLMProvider(GeneratorProvider):
     代码不硬编码任何维度、候选或收敛逻辑。
     """
 
-    def __init__(self, llm_client: Any = None):
+    def __init__(
+        self,
+        llm_client: Any = None,
+        *,
+        router: Any = None,                  # CapabilityRouter | None — 用 Any 避免 import 循环
+        policy: Any = None,                  # ProviderPolicy | None
+        batch_concurrency: int = 3,
+    ) -> None:
         """
         参数:
-          llm_client: LLM 调用客户端。需实现 call(messages) -> str 接口。
-                      为 None 时 generate() 将 raise ProviderNotAvailable。
+          llm_client:  老路径 LLM 客户端(deprecated,Phase 12 后由 router 替代),保留以维持向后兼容。
+          router:      新路径 CapabilityRouter(Phase 12 Stage 4 candidates 必走)。
+          policy:      新路径 ProviderPolicy。
+          batch_concurrency:  candidates 分批并发上限,默认 3。
+
+        至少要传 llm_client 或 router 其一,否则 generate() 会 raise ProviderNotAvailable
+        (与旧行为一致)。
         """
         self._client = llm_client
+        self._router = router
+        self._policy = policy
+        self._batch_concurrency = batch_concurrency
 
     @property
     def provider_type(self) -> str:
@@ -590,6 +605,14 @@ class LLMProvider(GeneratorProvider):
         node: Dict[str, Any],
         **kwargs: Any,
     ) -> Dict[str, Any]:
+        # Phase 12:candidates 阶段且 router 已配 → 走新分批路径
+        if phase == "candidates" and self._router is not None and self._policy is not None:
+            return self._generate_candidates_via_batch(
+                context_bundle=context_bundle,
+                template_prompts=template_prompts,
+                node=node,
+            )
+
         if self._client is None:
             raise ProviderNotAvailable(
                 "LLM client 未配置。Stage 4 要求 LLM 驱动 Generator。"
@@ -634,6 +657,99 @@ class LLMProvider(GeneratorProvider):
             parsed["metadata"]["generated_at"] = _now_iso()
             parsed["metadata"]["promotable"] = True
         return parsed
+
+    def _generate_candidates_via_batch(
+        self,
+        *,
+        context_bundle: Dict[str, Any],
+        template_prompts: Dict[str, str],
+        node: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Phase 12 新路径:把 candidates 阶段委托给 LLMBatchExecutor 按 dimension 分批。
+
+        Context 来源:context_bundle["design_space_report"] 必含 discovery_dimensions
+        (上一阶段 Stage 3 Discovery 的产物)。本方法把 dimensions 转成 batch 输入。
+
+        返回 payload(供 normalize_phase_output 后落 design_space_report):
+          - candidates: list[dict]               — 每 dim 的 parsed_payload
+          - per_dimension_batch_metadata: list   — 服务 T09 schema 扩字段
+          - metadata.promotable: True iff 全 7 dim status="success"
+        """
+        import asyncio
+        from pydantic import BaseModel
+
+        from .candidates_batch_orchestrator import LLMBatchExecutor, RetryPolicySpec
+
+        class CandidatesDimSchema(BaseModel):
+            """单 dim 的 candidates 输出 schema(Stage 4 当前最小契约)。
+            实际生产 prompt 会要求更细的字段;本类作为最小可解析骨架。"""
+            dimension_id: str
+            candidates: list
+
+        # 从 context_bundle 提 dimensions(优先 design_space_report.discovery_dimensions)
+        dsr = context_bundle.get("design_space_report", {})
+        discovery_dims = dsr.get("discovery_dimensions") or context_bundle.get("dimensions", [])
+        # 兼容 context_bundle 顶层就传 dimensions(测试常用)
+        system_prompt_text = self._build_strict_system_prompt(
+            template_prompts.get("system_prompt", ""),
+            "candidates",
+        )
+        phase_instruction = self._phase_instruction("candidates", {})
+
+        # 为每个 dim 装 prompt_messages:system + per-dim user
+        batch_input = []
+        for dim in discovery_dims:
+            dim_id = dim.get("dimension_id") if isinstance(dim, dict) else None
+            if not dim_id:
+                continue
+            user_content = (
+                f"{phase_instruction}\n\n"
+                f"目标维度:{dim_id} ({dim.get('name', '')})\n"
+                f"描述:{dim.get('description', '')}\n"
+                f"约束:{json.dumps(dim.get('variant_bounds', {}), ensure_ascii=False)}\n"
+                f"请按 schema 给出该维度的候选 list,只返回 JSON。"
+            )
+            batch_input.append({
+                "dimension_id": dim_id,
+                "prompt_messages": [
+                    {"role": "system", "content": system_prompt_text},
+                    {"role": "user", "content": user_content},
+                ],
+            })
+
+        executor = LLMBatchExecutor()
+        report = asyncio.run(executor.run_candidates_batch(
+            dimensions=batch_input,
+            router=self._router,
+            policy=self._policy,
+            schema=CandidatesDimSchema,
+            retry_policy=RetryPolicySpec(),
+            concurrency=self._batch_concurrency,
+        ))
+
+        return {
+            "candidates": [
+                b.parsed_payload for b in report.per_dimension if b.parsed_payload
+            ],
+            "per_dimension_batch_metadata": [
+                {
+                    "dimension_id": b.dimension_id,
+                    "model": b.model or "unknown",
+                    "attempt_count": b.attempt_count,
+                    "duration_ms": b.duration_ms,
+                    "usage": b.usage or {},
+                    "status": b.status,
+                    "error_class": b.error_class,
+                    "raw_response_id": b.raw_response_id,
+                }
+                for b in report.per_dimension
+            ],
+            "metadata": {
+                "generator_type": "llm",
+                "generated_at": _now_iso(),
+                "promotable": report.promotable,
+            },
+        }
 
     def _build_strict_system_prompt(self, system_prompt: str, phase: str) -> str:
         """把 JSON-only 约束注入 system prompt。"""
@@ -939,15 +1055,24 @@ class HeuristicFallbackProvider(GeneratorProvider):
 def resolve_provider(
     allow_heuristic_fallback: bool = False,
     llm_client: Any = None,
+    *,
+    router: Any = None,
+    policy: Any = None,
+    batch_concurrency: int = 3,
 ) -> GeneratorProvider:
     """
     解析 Generator provider。
 
-    规则：
-      1. 有 llm_client → LLMProvider
-      2. 无 llm_client 且 allow_heuristic_fallback=True → HeuristicFallbackProvider
-      3. 无 llm_client 且 allow_heuristic_fallback=False → raise ProviderNotAvailable
+    规则(优先级从高到低):
+      1. 有 router + policy → LLMProvider(router, policy, batch_concurrency) — Phase 12 新路径
+      2. 有 llm_client → LLMProvider(llm_client=...) — 老路径
+      3. allow_heuristic_fallback=True → HeuristicFallbackProvider
+      4. 否则 raise ProviderNotAvailable
     """
+    # Phase 12 新路径优先:有 router + policy 直接走 LLMProvider 新分批入口
+    if router is not None and policy is not None:
+        return LLMProvider(router=router, policy=policy, batch_concurrency=batch_concurrency)
+
     if llm_client is not None:
         return LLMProvider(llm_client=llm_client)
 

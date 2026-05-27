@@ -887,12 +887,17 @@ def run_domain_skill_runtime(
     fast_mode: bool = False,
     allow_heuristic_fallback: bool = True,
     llm_client: Any = None,
+    *,
+    router: Any = None,                  # Phase 12 新路径:CapabilityRouter
+    policy: Any = None,                  # ProviderPolicy
+    batch_concurrency: int = 3,
 ) -> Dict[str, Any]:
     """
     执行 Stage 4 Domain Skill Runtime。
 
     Generator 驱动策略（方案 B: Prompt-First）：
-      - 有 llm_client → LLMProvider（SkillTemplate prompt 驱动）
+      - 有 router + policy → LLMProvider(router, policy, batch_concurrency) — Phase 12 新路径
+      - 有 llm_client → LLMProvider（SkillTemplate prompt 驱动）— 老路径
       - 无 llm_client 且 allow_heuristic_fallback=True → HeuristicFallbackProvider
       - 无 llm_client 且 allow_heuristic_fallback=False → 拒绝执行
     """
@@ -901,6 +906,9 @@ def run_domain_skill_runtime(
         provider = agent_protocol.resolve_provider(
             allow_heuristic_fallback=allow_heuristic_fallback,
             llm_client=llm_client,
+            router=router,
+            policy=policy,
+            batch_concurrency=batch_concurrency,
         )
     except agent_protocol.ProviderNotAvailable as exc:
         return {

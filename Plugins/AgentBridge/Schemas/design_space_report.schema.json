@@ -67,6 +67,35 @@
         "generated_at": {"type": "string"},
         "generator": {"type": "string"}
       }
+    },
+    "per_dimension_batch_metadata": {
+      "type": "array",
+      "description": "Stage 4 Candidates LLM 分批生成的 per-dimension 元数据(spec 2026-05-27-llm-internal-reopen-design.md §1.7)。仅 generator_provider=llm 时填,其他 provider 留空数组。",
+      "items": {
+        "type": "object",
+        "required": ["dimension_id", "model", "attempt_count", "status"],
+        "additionalProperties": false,
+        "properties": {
+          "dimension_id": {"type": "string"},
+          "model": {"type": "string"},
+          "attempt_count": {"type": "integer", "minimum": 1, "maximum": 10},
+          "duration_ms": {"type": ["integer", "null"], "minimum": 0},
+          "usage": {
+            "type": "object",
+            "properties": {
+              "prompt": {"type": "integer", "minimum": 0},
+              "completion": {"type": "integer", "minimum": 0},
+              "total": {"type": "integer", "minimum": 0}
+            }
+          },
+          "status": {"type": "string", "enum": ["success", "failed"]},
+          "error_class": {"type": ["string", "null"], "enum": [
+            null, "timeout", "schema_fail", "unsupported_response",
+            "provider_error", "rate_limit", "transient_network"
+          ]},
+          "raw_response_id": {"type": ["string", "null"]}
+        }
+      }
     }
   }
 }

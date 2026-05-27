@@ -449,8 +449,7 @@ python -c "from Plugins.AgentBridge.MCP.tool_definitions import ALL_TOOLS; print
 
 ## 附:Phase 11 残留与重构注意事项
 
-- `LLM Internal` 高负载验收暂缓,等 `llm_client` 框架升级后重开,不阻塞 UE 5.7 重构。
-  Phase 11 正式主路径仍是 `MCP Agent` 驱动的 Stage 4 创造性生成,`heuristic_fallback` 是显式后备。
+- `LLM Internal` 已于 Phase 12 重开(2026-05-27)。Phase 12 落地了 `Compiler/providers/` `Compiler/observability/` `Compiler/runtime/` 三子目录 + `Compiler/stages/candidates_batch_orchestrator.py`,通过 7/7 真 LLM 验收(见 [llm_internal_reopen_acceptance.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-05-27/llm_internal_reopen_acceptance.md))。Spec / Plan / Acceptance:[Docs/superpowers/specs/2026-05-27-llm-internal-reopen-design.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/specs/2026-05-27-llm-internal-reopen-design.md) / [Docs/superpowers/plans/2026-05-27-llm-internal-reopen.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/plans/2026-05-27-llm-internal-reopen.md)。**LLM Internal 是 UE 5.7 重构前置门禁,promotable 候选。**Phase 11 正式主路径仍是 `MCP Agent`,`heuristic_fallback` 仍是显式后备(固化 promotable=False)。
 - `raw DebugGame + .uproject` 非标准路径不作为官方验收链;若要恢复,作为独立构建链问题治理。
 - Phase 11 v2 完整 run 产物落盘于 [run-20260417-051425-aad0](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/runs/run-20260417-051425-aad0),
   作为 UE 5.7 下 E2E 验证对照基线。后续 UE 5.7 下做对比验证时,新 run 的 `promotable`
