@@ -87,7 +87,7 @@ def _run_sync(coro: Awaitable[T]) -> T:
         coro.close()
     raise RuntimeError(
         "Sync ProviderAdapter shim called from inside a running event loop. "
-        "Use the async method (acompletion/astructured) directly."
+        "Use the async method (acompletion/astructured/astructured_with_usage) directly."
     )
 
 

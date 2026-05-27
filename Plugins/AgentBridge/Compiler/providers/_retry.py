@@ -83,6 +83,10 @@ def is_rate_limited(exc: BaseException) -> bool:
     用于 candidates_batch_orchestrator 在 retry 时区分:
       - 普通 transient 抖动 → 用常规 backoff
       - rate limit → 用更长退避(避免连续撞墙)
+
+    注意:`429` 同时命中 `is_transient_network_message`(双命中,因为 ForgeUE 原版
+    _TRANSIENT_HTTP_STATUS_MARKERS 也含 ` 429:` ` 429 `)。调用方应**先判 `is_rate_limited`**,
+    再 fall through 到 transient,以确保 rate-limit 走更长退避而不被普通 transient 退避吃掉。
     """
     msg = str(exc).lower()
     return any(m in msg for m in _RATE_LIMIT_MARKERS)
