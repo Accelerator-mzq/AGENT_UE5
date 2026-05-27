@@ -460,3 +460,14 @@ python -c "from Plugins.AgentBridge.MCP.tool_definitions import ALL_TOOLS; print
  (49 主工具 + 4 兼容 alias),Phase 11 收尾已同步纠偏到 Current 文档与 Schema 参考文档。
 - UE 5.7 重构未达成前,本报告 §3 模板项保留 `[ ]` 未勾选状态;勾选动作只在 UE 5.7
   实测产出对应证据后由 msc 手动完成,Claude/Codex 不得自动批量勾选以避免假阳性。
+
+## 附 2:ForgeUE Manifest Import Bridge 真机 milestone follow-up(2026-05-27 新增)
+
+由 `Docs/superpowers/specs/2026-05-27-forgeue-real-ue-bridge-design.md` v1.0 + L3 真机 smoke 实测(`ProjectState/Reports/2026-05-27/task12_l3_smoke_summary.md`)产出,作为本次 ForgeUE 真机 milestone 完成后的 backlog 增量:
+
+- **FU-FORGEUE-01(P3)**:material entry `duration_ms` ~4h10min 数据 anomaly + timestamp 与其他 asset 差 4 小时。L3 真机实际 < 1 分钟,猜测 `recompile_material()` GIL release 期间 `time.monotonic()` clock skew 或 UE 异步编译队列影响。仅影响 evidence timing 字段,不影响功能。**Follow-up**:UE 5.7 升级时观察 `MaterialEditingLibrary.recompile_material` 是否改异步模式;若仍有可考虑改用 `time.perf_counter()` 或加 `unreal.SystemLibrary` 时间锁。
+- **FU-FORGEUE-02(P3)**:L2 pytest `-m real_ue` 后续 call 触发 30s timeout(L3 跑过后 Editor compile 队列阻塞)。`remote_control_client.py` 在 CLAUDE.md 禁止修改清单内,无法调 timeout。**Follow-up**:L2 测试不可强依赖 RC 30s timeout,真机回归用 L3 smoke 作为 milestone gate;或考虑 L2 case 在调用前先 sleep N 秒等编译队列空。
+- **FU-FORGEUE-03(P2)**:`_creator_path_material` 的 `normal_texture_ref` 字段当前留 follow-up,只解析不实现 texture lookup(需要二次资产查找)。**Follow-up**:material.json 含非 None `normal_texture_ref` 时,在 import 后 lookup 对应 texture asset + 连接到 Normal output。
+- **FU-FORGEUE-04(P3)**:`_build_mesh_factory` GLTF / GLB / OBJ 路径返 (None, None, "...not implemented")。本 milestone fixture 只含 FBX cube。**Follow-up**:fixture 扩展含 GLTF/OBJ 后,实测 UE 5.5 `AssetTools.import_assets_automated` 是否能自动 dispatch GLTFImporter;OBJ 类似。
+- **FU-FORGEUE-05(P2)**:UE 5.7 升级时实测 BC-NEW-A(PythonScripted UCLASS RC 可见性)+ BC-NEW-B(MaterialEditingLibrary 与 BC-008 联动)— 见 `Docs/superpowers/specs/2026-05-26-ue57-breaking-changes-scan.md` §4 "NEW" 区段。
+- **FU-FORGEUE-06(P3 项目治理)**:本次 milestone 真机 import 在 `Content/Generated/Tavern/run_p4_full/` 产生 6 个 .uasset 文件,未进 git。`.gitignore` 是否覆盖 `Content/Generated/` 需治理决定(L3 smoke 多次跑会重复生成)。**Follow-up**:msc 决定是否加 `Content/Generated/` 到 `.gitignore`。

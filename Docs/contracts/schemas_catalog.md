@@ -1,16 +1,16 @@
-# Schemas Catalog — 41 主 Schema 字段级索引(+ 26 examples 附录)
+# Schemas Catalog — 42 主 Schema 字段级索引(+ 27 examples 附录)
 
-> 版本: v1.0
+> 版本: v1.1(2026-05-27 ForgeUE real-ue milestone 增 `forgeue_import_evidence` schema + 1 example)
 > 关联 spec: Docs/superpowers/specs/2026-05-26-docs-restructure-for-ue57.md v1.1
 > 关联 FEATURE_INVENTORY: Docs/FEATURE_INVENTORY.md F-SCH-* 族
 > 验收门禁: 每行 5 字段完整(文件/用途/版本/引用方/关键字段清单)
-> 数字注脚: spec v1.1 §3.2 写"64 Schema",实测主 catalog 41 + examples 26 = 67;实测为准。
+> 数字注脚: spec v1.1 §3.2 写"64 Schema",2026-05-26 实测 67(41+26),2026-05-27 ForgeUE milestone 后实测 69(42+27);实测为准。
 
 > 路径基准: 所有 `文件` 列条目均相对 `Plugins/AgentBridge/Schemas/`。
 > 引用方采集方法: 在 `Plugins/AgentBridge/{Scripts,Compiler,MCP,SkillTemplates,Tests,AgentBridgeTests}` 与根 `Scripts/` 下,对每个 schema basename 做内容搜索(`.py` + `.json`),排除 schema 自身与 examples 数据。每行给出 ≤3 个代表性引用,完整命中数见行尾括号。
 > 关键字段清单: 取顶层 `properties` 的前 8 个 key;若顶层只有 `$defs`(common 库)则标注 "$defs 库:..." 列出 def 名;若是 manifest 则取 manifest 顶层 key。
 
-## 主表(41 主 Schema)
+## 主表(42 主 Schema)
 
 | 文件 | 用途 | 版本 | 引用方 | 关键字段清单 |
 |------|------|------|--------|--------------|
@@ -40,6 +40,7 @@
 | feedback/level/list_level_actors.response.schema.json | 关卡 Actor 列表查询反馈 | v1 | Scripts/validation/validate_examples.py; Schemas/versions/v0.1_manifest.json (2) | status, summary, data, warnings, errors |
 | feedback/project/get_current_project_state.response.schema.json | 当前项目与编辑器上下文查询反馈 | v1 | Scripts/validation/validate_examples.py; Schemas/versions/v0.1_manifest.json (2) | status, summary, data, warnings, errors |
 | feedback/validation/run_map_check.response.schema.json | 地图检查结果反馈(MapCheck) | v1 | Scripts/validation/validate_examples.py; Schemas/versions/v0.1_manifest.json (2) | status, summary, data, warnings, errors |
+| forgeue_import_evidence.schema.json | ForgeUE manifest 真机导入每条 asset 的逐条证据(bridge_python / bridge_rc_api 写盘) | v1 | Scripts/validation/validate_examples.py; Scripts/orchestrator/forgeue_manifest_importer.py; Scripts/run_forgeue_real_smoke.py (3) | asset_entry_id, op_id, asset_kind, bridge_mode, status, timestamp, source_uri_abs, uasset_object_path... |
 | gdd_projection.schema.json | Design Intake 从 GDD 提取的结构化投影 | v1 | Compiler/intake/design_intake.py; Compiler/intake/__init__.py; Compiler/pipeline/pipeline_orchestrator.py (3) | projection_version, projection_id, source_gdd, game_identity, phase_scope, design_domains, implementation_hints, ambiguities... |
 | naming_resolution_log.schema.json | Build IR v2 命名审计 sidecar | v1 | Scripts/validation/validate_examples.py; Compiler/pipeline/pipeline_orchestrator.py; Tests/scripts/task11_phase11_mcp_e2e.py (4) | log_version, source_ir_id, entries, summary, metadata |
 | planner_output.schema.json | Planner / Routing Agent 结构化输出 | v1 | Compiler/pipeline/pipeline_orchestrator.py; Compiler/planner/planner.py; Compiler/planner/__init__.py (3) | planner_meta, project_intent, routing_decision, selected_skill_instances, dynamic_spec_targets, execution_strategy, capability_gaps, review_focuses... |
@@ -56,9 +57,9 @@
 | versions/v0.1_manifest.json | v0.1 Schema 清单 manifest(列出 common/stable/experimental/examples 分组) | v0.1 | (暂无外部引用 — manifest 类自描述文件,Phase 2 验证脚本索引中纳入) | version, engine_version, description, common_schemas, stable_schemas, experimental_schemas, examples |
 | write_feedback/write_operation_feedback.response.schema.json | 通用写操作反馈结构(spawn/transform/import 等) | v1 | Scripts/bridge/write_tools.py; Scripts/validation/validate_examples.py; Schemas/versions/v0.1_manifest.json (3) | status, summary, data, warnings, errors |
 
-## 附录 A: examples/ 示例数据(26 份)
+## 附录 A: examples/ 示例数据(27 份)
 
-`Plugins/AgentBridge/Schemas/examples/` 下是用于 Schema 验证 + 单元测试的 fixture 数据,**非契约本体**,不进主表。完整 26 份按文件名与对应 Schema 映射如下:
+`Plugins/AgentBridge/Schemas/examples/` 下是用于 Schema 验证 + 单元测试的 fixture 数据,**非契约本体**,不进主表。完整 27 份按文件名与对应 Schema 映射如下:
 
 | example 文件 | 对应主 Schema |
 |---|---|
@@ -68,6 +69,7 @@
 | get_component_state.example.json | feedback/actor/get_component_state.response.schema.json |
 | get_current_project_state.example.json | feedback/project/get_current_project_state.response.schema.json |
 | get_dirty_assets.example.json | feedback/asset/get_dirty_assets.response.schema.json |
+| forgeue_import_evidence_example.json | forgeue_import_evidence.schema.json |
 | get_material_assignment.example.json | feedback/actor/get_material_assignment.response.schema.json |
 | list_level_actors.example.json | feedback/level/list_level_actors.response.schema.json |
 | phase11_batch_manifest.example.json | batch_manifest.schema.json |
@@ -91,11 +93,11 @@
 
 ## 附录 B: 行数自检
 
-- 主 catalog 数据行数实测: **41**(已在主表逐行列出,与 `find ... -not -path "*/examples/*"` 一致)
-- examples 附录数据行数实测: **26**(已在附录 A 逐行列出)
-- 合计 **67**(spec v1.1 §3.2 写 64,实测 +3,以实测为准)
+- 主 catalog 数据行数实测: **42**(已在主表逐行列出,2026-05-26 41 + 2026-05-27 ForgeUE +1 = 42)
+- examples 附录数据行数实测: **27**(已在附录 A 逐行列出,2026-05-26 26 + 2026-05-27 ForgeUE +1 = 27)
+- 合计 **69**(spec v1.1 §3.2 写 64,实测 +5,以实测为准)
 - 自检命令(Windows PowerShell 等价 / Git-Bash):
-  - `find Plugins/AgentBridge/Schemas -name "*.json" -not -path "*/examples/*" | wc -l` → 41
-  - `find Plugins/AgentBridge/Schemas/examples -name "*.json" | wc -l` → 26
+  - `find Plugins/AgentBridge/Schemas -name "*.json" -not -path "*/examples/*" | wc -l` → 42
+  - `find Plugins/AgentBridge/Schemas/examples -name "*.json" | wc -l` → 27
 - 引用方采集方法: 在 `Plugins/AgentBridge/{Scripts,Compiler,MCP,SkillTemplates,Tests,AgentBridgeTests}` 与根 `Scripts/` 下扫描 `*.py` + `*.json`(共 176 个候选文件),逐 schema basename 做字面包含搜索,排除 schema 自身和 examples 数据
 - Schema 字段读取方法: 直接读取每个 `.schema.json` 顶层 `properties` 取前 8 个 key;若顶层只有 `$defs`(common 库)则列出 def 名;manifest 文件取其顶层 key

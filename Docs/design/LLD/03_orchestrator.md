@@ -122,7 +122,11 @@ def insert_validation_checkpoints(workflow_sequence, handoff) -> list[dict[str, 
 _SUPPORTED_BRIDGE_MODES = ("simulated","bridge_python","bridge_rc_api")  # 三通道枚举(独立于 Spec 主链 BridgeChannel)
 def parse_manifest(manifest_path: str) -> dict[str, Any]  # schema_version=="1.0.0" 强制校验
 def parse_import_plan(plan_path: str) -> dict[str, Any]  # operations[] 结构校验
-def import_from_manifest(*, manifest_path, plan_path=None, bridge_mode="simulated") -> dict[str, Any]  # 主入口;bridge_python/bridge_rc_api 当前 NotImplementedError
+def import_from_manifest(*, manifest_path, plan_path=None, bridge_mode="simulated") -> dict[str, Any]  # 主入口;simulated/bridge_python 全通,bridge_rc_api 外部入口 raise NotImplementedError(必须由 RC endpoint 触发)
+# 5+1 种 asset_kind 内核 helper(2026-05-27 实现):
+def _import_asset_by_kind(asset, manifest_root, overwrite_existing, *, bridge_mode) -> dict[str, Any]  # 真机 dispatch 内核(只在 UE Editor Python 环境调)
+def _importer_path_texture / _importer_path_sound / _importer_path_mesh  # importer kinds: AssetTools.import_asset_tasks + Factory
+def _creator_path_material / _creator_path_media  # creator kinds: AssetTools.create_asset + FactoryNew + 资产实例 set_editor_property
 def main(argv: list[str] | None = None) -> int  # 独立 CLI:--manifest --plan --bridge-mode
 ```
 
@@ -216,9 +220,16 @@ forgeue_manifest_importer.import_from_manifest(manifest_path, plan_path, bridge_
   ├─parse_import_plan(可选,operations 必须是 list)
   └─bridge_mode dispatch:
       ├─simulated → 逐 asset _simulate_asset(无副作用,仅回 entry/artifact/kind/path)
-      ├─bridge_python → NotImplementedError(等 milestone 接 UE Python AssetTools.ImportAssets)
-      └─bridge_rc_api → NotImplementedError(等 milestone 接 RC HTTP)
+      ├─bridge_python → 逐 asset _import_asset_by_kind 内核(UE Editor Python 环境内调 unreal.AssetTools)
+      │     ├─texture/sprite_sheet → _importer_path_texture(import_asset_tasks + 后置 _apply_texture_properties on Texture2D 实例)
+      │     ├─sound_wave → _importer_path_sound(SoundFactory 默认行为)
+      │     ├─static_mesh → _importer_path_mesh(FBX/GLTF/OBJ dispatch;FbxImportUI 塞 AssetImportTask.options)
+      │     ├─material → _creator_path_material(MaterialFactoryNew + MaterialEditingLibrary 4 expression PBR 五字段)
+      │     └─file_media_source → _creator_path_media(FileMediaSourceFactoryNew + set file_path)
+      └─bridge_rc_api → 外部入口 NotImplementedError("必须由 RC endpoint 触发");Editor 内 Content/Python/forgeue_rc_endpoint.py 的 PythonScripted UCLASS AgentBridgeForgeUEEndpoint 通过 RC HTTP 触发后调 bridge_python 通路
 ```
+
+**真机 bridge 实现状态(2026-05-27 milestone)**:5+1 种 asset_kind helper 全部实现真机功能,bridge_python 直接在 UE Editor Python Console 触发;bridge_rc_api 通过 `Plugins/AgentBridge/Content/Python/forgeue_rc_endpoint.py` 注册 PythonScripted UCLASS `AgentBridgeForgeUEEndpoint`(`@unreal.uclass()` + `@unreal.ufunction(meta=dict(BlueprintCallable=""))`)+ `Content/Python/init_unreal.py` 自动加载 hook 实现 RC HTTP 远程触发。RC 调用真实路径 `/AgentBridge/Python/forgeue_rc_endpoint_PY.Default__AgentBridgeForgeUEEndpoint` + `import_assets_from_manifest`(snake_case)。L3 真机 smoke 6/6 PASS,evidence:`ProjectState/Reports/2026-05-27/forgeue_real_smoke/`。
 
 被 `handoff_runner.execute_run_plan` 内 `workflow_type=="import_assets"` 分支直接 import 调用,这是 F-ORC-08 与 F-ORC-07 的唯一耦合点。
 

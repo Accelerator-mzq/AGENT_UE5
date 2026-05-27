@@ -116,3 +116,14 @@ P2/P3 条目默认 `false_positive_status: suspected`,reviewer:pending-msc,留 5
 | UE57-BC-024 | AgentBridgeTests.uplugin FunctionalTesting Optional | FunctionalTesting 模块稳定 |
 
 **裁决建议给 msc**: P1 7 条先实测(打开 UE 5.7 Editor 看 deprecation warning + 编译看 missing module);P2 12 条等 P1 跑通后看连带影响;P3 6 条仅在 P1/P2 都过完后再回扫。
+
+### NEW(2026-05-27 ForgeUE real-ue milestone 新增 surface)— 2 条候选
+
+由 `Docs/superpowers/specs/2026-05-27-forgeue-real-ue-bridge-design.md` §5.B 引入,作为 ForgeUE 真机 bridge 实施的副产物,需在 UE 5.7 升级实测时一并裁决:
+
+| id | api_or_key | 优先级 | 1-line 上下文 | 实测命令 |
+|----|------------|--------|----------------|----------|
+| UE57-BC-NEW-A | PythonScripted UCLASS via RC HTTP | **P2 suspected** | `@unreal.uclass()` + `@unreal.ufunction(meta=dict(BlueprintCallable=""))` 注册的 PythonScripted UCLASS,Plan T5 实测真实路径 `/AgentBridge/Python/forgeue_rc_endpoint_PY.Default__AgentBridgeForgeUEEndpoint` 可被 RC HTTP `/remote/object/call` 调用;UE 5.7 PythonScriptPlugin 行为未公开,可能 API 微调或路径形态变化;Fallback EUB(Editor Utility Blueprint)已设计,见 spec §4.5 | UE 5.7 启 Editor 后 `curl /remote/object/describe?objectPath=...` 看 endpoint 是否仍可见 |
+| UE57-BC-NEW-B | unreal.MaterialEditingLibrary | **P1 candidate** | Plan T9 `_creator_path_material` 用 `MaterialEditingLibrary.create_material_expression` + `connect_material_property` + `recompile_material` 实现 PBR 五字段 material,该 API 与 BC-008 EditorScriptingUtilities deprecation 联动;UE 5.7 可能需迁移到 `unreal.MaterialEditorOnlyData` 或新 API | UE 5.7 跑 L3 smoke `python Scripts/run_forgeue_real_smoke.py --bridge-mode bridge_rc_api`,观察 material 是否 status=success;若失败查 unreal.log MaterialEditingLibrary 相关 deprecation warning |
+
+**裁决路径**:5.7 实测阶段拿 spec / plan / verification.md 真实 evidence 对比,先 BC-NEW-B(P1 candidate,直接影响 milestone 真机 PASS)再 BC-NEW-A(Fallback EUB 已备)。
