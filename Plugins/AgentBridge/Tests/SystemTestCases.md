@@ -607,6 +607,23 @@
 
 ---
 
+## 17. Phase 12 LLM Internal Reopen（LIR）
+
+> 来源：[Docs/superpowers/specs/2026-05-27-llm-internal-reopen-design.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/specs/2026-05-27-llm-internal-reopen-design.md) §6 验收口径
+> 自动化方式：pytest 子集（L2-A 单元 / L2-B 集成 / L2-C 系统集成占位 / Schema 校验）
+> 环境要求：Python 3.x；不要求 UE5 Editor
+
+| 编号 | 用例名称 | 测试方式 | 预期结果 |
+|------|---------|---------|---------|
+| LIR-01 | L2-A providers / observability / runtime 单元测试 | `pytest test_providers_unit.py + test_observability_unit.py + test_runtime_unit.py` | 三个文件全 PASS（≥38 case），失败 0 |
+| LIR-02 | L2-B candidates batch + LLMProvider 接缝集成 | `pytest test_candidates_batch_orchestrator.py + test_llm_provider_integration.py + test_pipeline_orchestrator_llm_wiring.py` | 三个文件全 PASS，FakeAdapter 7 dim 调度 / Provider 接缝 / orchestrator 装配链路均通过 |
+| LIR-03 | Schema 校验（provider_call / retry_policy / design_space_report 扩字段） | `pytest test_new_schemas_validate.py + test_design_space_report_per_dim_metadata.py` | 新增 Schema 与 example 均通过 jsonschema 严格校验 |
+| LIR-04 | L2-C 系统集成 e2e（占位） | `pytest test_llm_internal_system_integration.py` | 4 个 e2e case 当前 SKIPPED（T18 真 LLM 验收阶段补 fixture 后转 PASS），pytest exit=0 |
+
+> 证据：`ProjectState/Temp/run_system_tests_stage12/phase12_case_checks.json` + 各 case 的 `LIR-XX_pytest.log`
+
+---
+
 ## 附录 A：UE5 Automation Test ID 速查表
 
 | Test ID | 全名 | 类型 | 所属分类 |
@@ -656,7 +673,8 @@
 | E2E 端到端 | 40 | 🟢 全部 |
 | MCP MCP 集成 | 10 | 🟢 自动+证据 |
 | P11 Phase 11 设计编译器框架 | 18 | 🟢 自动+证据 |
-| **合计** | **266** | **🟢 266 条已登记** |
+| LIR Phase 12 LLM Internal Reopen | 4 | 🟢 pytest 子集（含 1 占位 SKIPPED） |
+| **合计** | **270** | **🟢 270 条已登记（含 4 条 LIR-04 占位 SKIPPED）** |
 
 ---
 
@@ -688,3 +706,4 @@
 | `python Plugins/AgentBridge/Tests/scripts/task14a_phase11_ue_runtime_validation.py` | UE 运行时日志回读，可玩性与 Baseline Domain 证据重建 | P11-17 |
 | `python Plugins/AgentBridge/Tests/scripts/task14a_phase11_standalone_smoke.py` | cooked/staged standalone smoke 自动化 | P11-17 |
 | `python Plugins/AgentBridge/Tests/run_system_tests.py --stage=11` | Phase 11 归档前系统测试对账入口 | P11-01 ~ P11-18 |
+| `python Plugins/AgentBridge/Tests/run_system_tests.py --stage=12` | Phase 12 LLM Internal Reopen 系统测试入口（pytest 子集） | LIR-01 ~ LIR-04 |
