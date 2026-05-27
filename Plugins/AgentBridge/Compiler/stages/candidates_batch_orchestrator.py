@@ -210,11 +210,9 @@ class LLMBatchExecutor:
                         return batch
                     # 还有重试 budget,sleep backoff 然后 continue 下一轮
                     await self._sleep_backoff(retry_policy, attempt, exc)
-            # safety net,理论上 unreachable(loop 内必然 return)
-            batch.status = "failed"
-            batch.error_class = "exhausted"
-            batch.duration_ms = int((time.monotonic() - start) * 1000)
-            return batch
+            # NOTE(F3 cleanup 2026-05-27):for-loop 内所有路径都 return,
+            # last attempt 时 is_last_attempt=True 必然走 failed return,
+            # 这里旧的 "exhausted" safety net 是 dead code,清理。
 
     def _classify(self, exc: Exception) -> str:
         """把异常映射到 retry_policy.retry_on 用的 error_class 字符串。
@@ -228,15 +226,15 @@ class LLMBatchExecutor:
             return "timeout"
         if isinstance(exc, SchemaValidationError):
             return "schema_fail"
-        if isinstance(exc, ProviderError):
-            # rate_limit 必须先判:它跟 transient_network 在 marker 上有重叠(429),
-            # 但 rate_limit 要走更长退避,不能被 transient 退避吃掉
-            if is_rate_limited(exc):
-                return "rate_limit"
-            if is_transient_network_message(str(exc)):
-                return "transient_network"
-            return "provider_error"
-        return "unknown"
+        # ProviderError 兜底分支:_run_one 的 except 子句保证只有 ProviderError 子类能进来,
+        # 所以这里不需要再判 isinstance(exc, ProviderError) — F3 cleanup 2026-05-27 删 unknown 分支
+        # rate_limit 必须先判:它跟 transient_network 在 marker 上有重叠(429),
+        # 但 rate_limit 要走更长退避,不能被 transient 退避吃掉
+        if is_rate_limited(exc):
+            return "rate_limit"
+        if is_transient_network_message(str(exc)):
+            return "transient_network"
+        return "provider_error"
 
     async def _sleep_backoff(
         self,
