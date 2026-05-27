@@ -39,7 +39,7 @@ def test_parse_manifest_reads_schema_version_and_assets():
 
     assert parsed["schema_version"] == "1.0.0"
     assert parsed["run_id"] == "run_p4_full"
-    assert len(parsed["assets"]) == 7, "fixture 扩到 7 个 asset entry(texture×2 + sprite_sheet + sound_wave + static_mesh + material + file_media_source)"
+    assert len(parsed["assets"]) == 8, "fixture 扩到 8 个 asset entry(texture×2 + sprite_sheet + sound_wave + static_mesh×2(FBX+OBJ) + material + file_media_source)"
 
     kinds = {a["asset_kind"] for a in parsed["assets"]}
     # FU-03 加 normal texture entry → kinds 集合不变(texture 已有,新增第二个 texture entry)
@@ -69,11 +69,12 @@ def test_parse_manifest_rejects_non_list_assets(tmp_path):
         importer.parse_manifest(str(bad))
 
 
-def test_import_from_manifest_simulated_returns_seven_ops_one_per_asset():
-    """simulated mode:7 个 asset entry 各产出一条 op 模拟结果,全 success。
+def test_import_from_manifest_simulated_returns_eight_ops_one_per_asset():
+    """simulated mode:8 个 asset entry 各产出一条 op 模拟结果,全 success。
 
     FU-03 新增 ae_run_p4_full_texture_normal entry → asset_results 从 6 → 7。
-    kinds 集合不变(texture 已有,新增第二个 texture entry)。
+    FU-04 新增 ae_run_p4_full_mesh_cube_obj entry → asset_results 从 7 → 8。
+    kinds 集合不变(static_mesh 已有,新增第二个 static_mesh OBJ entry;集合去重仍 6 种)。
     """
     result = importer.import_from_manifest(
         manifest_path=str(_MANIFEST_PATH),
@@ -86,9 +87,9 @@ def test_import_from_manifest_simulated_returns_seven_ops_one_per_asset():
     assert result["run_id"] == "run_p4_full"
     assert result["manifest_id"] == "m_run_p4_full"
     assert result["plan_id"] == "p_run_p4_full"
-    assert len(result["asset_results"]) == 7  # FU-03: 6 → 7
+    assert len(result["asset_results"]) == 8  # FU-04: 7 → 8
 
-    # kinds 集合仍为 6 种(texture 有两条 entry,集合去重后仍 6 种)
+    # kinds 集合仍为 6 种(static_mesh 有两条 entry,集合去重后仍 6 种)
     kinds_in_results = {r["asset_kind"] for r in result["asset_results"]}
     assert kinds_in_results == {"texture", "sprite_sheet", "sound_wave", "static_mesh", "material", "file_media_source"}
 
@@ -99,9 +100,9 @@ def test_import_from_manifest_simulated_returns_seven_ops_one_per_asset():
 
 
 def test_import_from_manifest_simulated_without_plan_path_still_works():
-    """plan_path 可选:只有 manifest 时,7 条 asset_results 但 plan_id=None。
+    """plan_path 可选:只有 manifest 时,8 条 asset_results 但 plan_id=None。
 
-    FU-03: asset_results 从 6 → 7。
+    FU-03: asset_results 从 6 → 7。FU-04: 7 → 8。
     """
     result = importer.import_from_manifest(
         manifest_path=str(_MANIFEST_PATH),
@@ -111,7 +112,7 @@ def test_import_from_manifest_simulated_without_plan_path_still_works():
 
     assert result["status"] == "success"
     assert result["plan_id"] is None
-    assert len(result["asset_results"]) == 7  # FU-03: 6 → 7
+    assert len(result["asset_results"]) == 8  # FU-04: 7 → 8
 
 
 def test_import_from_manifest_rejects_unknown_bridge_mode():
@@ -177,7 +178,7 @@ def test_handoff_runner_dispatches_import_assets_to_forgeue_importer():
     inner = step_results[0]["result"]
     assert inner["status"] == "success"
     assert inner["bridge_mode"] == "simulated"
-    assert len(inner["asset_results"]) == 7  # FU-03: 6 → 7
+    assert len(inner["asset_results"]) == 8  # FU-04: 7 → 8
 
 
 
@@ -195,7 +196,7 @@ def test_cli_main_simulated_prints_json_and_returns_zero(capsys):
     payload = _json.loads(captured.out)
     assert payload["status"] == "success"
     assert payload["bridge_mode"] == "simulated"
-    assert len(payload["asset_results"]) == 7  # FU-03: 6 → 7
+    assert len(payload["asset_results"]) == 8  # FU-04: 7 → 8
 
 
 def test_cli_main_bridge_python_outside_ue_returns_nonzero(capsys):

@@ -550,11 +550,16 @@ def _build_mesh_factory(fmt: str, import_options: dict[str, Any]) -> tuple[Any, 
         return None, None, "unreal.GLTFImporter (auto-selected by UE; not implemented)"
 
     if fmt == "obj":
-        # UE 5.5 ObjFactory 类名待实测;本 milestone fixture 不含 OBJ,留 follow-up
+        # UE 5.5 实测:OBJ 通过 unreal.AssetTools.import_assets_automated 自动 dispatch
+        # ObjFactory 在 UE 5.5 Python binding 中名称可能是 unreal.ObjFactory(实测)或缺失
+        # 策略:优先用 getattr(unreal, "ObjFactory", None);若不存在 fallback 到 None(让 UE 按文件扩展名自动选)
         factory_class = getattr(unreal, "ObjFactory", None)
-        if factory_class is None:
-            return None, None, "unreal.ObjFactory (not found in this UE build; not implemented)"
-        return factory_class(), None, "unreal.ObjFactory"
+        if factory_class is not None:
+            return factory_class(), None, "unreal.ObjFactory"
+        # Fallback:返 None factory + None options,但 factory_class_name 标 auto-dispatch
+        # _importer_path_mesh 当前在 factory is None 时返 _evidence_failure;
+        # OBJ 此时 caller 路径会失败 — 留 follow-up 在 caller 层做"factory=None 但允许 import"的特殊兜底
+        return None, None, "unreal.ObjFactory (not found; UE auto-dispatch 未在本 milestone 实现,FU-04 部分 ongoing)"
 
     return None, None, f"unknown source_format: {fmt}"
 

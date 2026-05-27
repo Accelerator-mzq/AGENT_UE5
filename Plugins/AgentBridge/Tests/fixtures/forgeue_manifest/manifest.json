@@ -61,6 +61,16 @@
       "import_options": {"source_format": "fbx", "import_materials": false, "combine_meshes": false}
     },
     {
+      "asset_entry_id": "ae_run_p4_full_mesh_cube_obj",
+      "artifact_id": "run_p4_full_mesh_cube_obj",
+      "asset_kind": "static_mesh",
+      "source_uri": "payload/mesh_cube_obj.obj",
+      "target_object_path": "/Game/Generated/Tavern/run_p4_full/SM_run_p4_full_mesh_cube_obj",
+      "target_package_path": "/Game/Generated/Tavern/run_p4_full/SM_run_p4_full_mesh_cube_obj",
+      "ue_naming": {"policy": "house_rules", "prefix": "SM_", "base_name": "run_p4_full_mesh_cube_obj", "ue_name": "SM_run_p4_full_mesh_cube_obj"},
+      "import_options": {"source_format": "obj", "import_materials": false, "combine_meshes": false}
+    },
+    {
       "asset_entry_id": "ae_run_p4_full_material_simple",
       "artifact_id": "run_p4_full_material_simple",
       "asset_kind": "material",
@@ -84,7 +94,7 @@
   "import_rules": {
     "dry_run": false,
     "overwrite_existing": true,
-    "reviewer_selected": ["run_p4_full_tex_albedo", "run_p4_full_tex_sprite", "run_p4_full_tex_normal", "run_p4_full_sfx_click", "run_p4_full_mesh_cube", "run_p4_full_material_simple", "run_p4_full_video_clip"]
+    "reviewer_selected": ["run_p4_full_tex_albedo", "run_p4_full_tex_sprite", "run_p4_full_tex_normal", "run_p4_full_sfx_click", "run_p4_full_mesh_cube", "run_p4_full_mesh_cube_obj", "run_p4_full_material_simple", "run_p4_full_video_clip"]
   },
   "naming_policy": {
     "policy": "house_rules",
