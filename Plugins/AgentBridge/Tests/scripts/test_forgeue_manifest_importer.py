@@ -202,9 +202,7 @@ def test_cli_main_bridge_python_outside_ue_returns_nonzero(capsys):
     assert "UE Editor Python" in captured.err
 
 
-# ============================================================
-# Task 3.2 新增:每种 asset_kind 的 simulated 字段健康检查
-# ============================================================
+# Task 3.2 新增:每种 asset_kind 的 simulated 字段健康检查(parametrize 共享 module-scope fixture)
 
 @pytest.fixture(scope="module")
 def _simulated_six_kinds_result():
