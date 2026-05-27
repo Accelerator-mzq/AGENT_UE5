@@ -1,0 +1,44 @@
+{
+  "spec": "Docs/superpowers/specs/2026-05-27-llm-internal-reopen-design.md",
+  "plan": "Docs/superpowers/plans/2026-05-27-llm-internal-reopen.md",
+  "date": "2026-05-27",
+  "repeat": 1,
+  "all_promotable": true,
+  "runs": [
+    {
+      "run_id": "run-20260527-200354-328da1",
+      "promotable": true,
+      "per_dim_count": 7,
+      "per_dim_status": [
+        "success",
+        "success",
+        "success",
+        "success",
+        "success",
+        "success",
+        "success"
+      ],
+      "per_dim_attempts": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "per_dim_durations_ms": [
+        5955,
+        4197,
+        18099,
+        6640,
+        17547,
+        15015,
+        16415
+      ],
+      "design_space_report_path": "ProjectState\\runs\\run-20260527-200354-328da1\\design_space_report.json",
+      "llm_usage_path": "ProjectState\\runs\\run-20260527-200354-328da1\\llm_usage.json",
+      "aggregation_path": "ProjectState\\runs\\run-20260527-200354-328da1\\stage4_agent_traces\\llm_internal\\aggregation.json"
+    }
+  ]
+}

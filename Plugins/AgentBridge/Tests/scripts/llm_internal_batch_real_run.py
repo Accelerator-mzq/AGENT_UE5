@@ -115,14 +115,10 @@ def run_phase11_pipeline_with_llm(
     run_id: str,
     reports_dir: Path,
 ) -> dict:
-    """单 run 入口 — 触发 Phase 11 主链跑到 Stage 4,拿 per-dimension batch metadata。
+    """直接调 LLMBatchExecutor + BudgetTracker 跑 7 dimension 真 LLM 验收。
 
-    实施步骤(参 task11_phase11_mcp_e2e.py 范式):
-      1. 创建 CompilerSession(generator_provider="llm")
-      2. 加载 root_skill_contract + 其他前置 stage 产物(可用既有 fixture)
-      3. 调 pipeline_orchestrator 跑到 Stage 4 + 注入 router/policy/budget_tracker
-      4. 从 Stage 4 产物提取 design_space_report.per_dimension_batch_metadata
-      5. 落盘 design_space_report.json + llm_usage.json + stage4_agent_traces/
+    最小化合理 fixture:不拉 Stages 1-3,直接构造 7 个 Stage 4 candidates 的 batch 输入,
+    用真 router/policy 调 LLM,落盘 evidence。
 
     返回(成功路径):
       {
@@ -130,16 +126,201 @@ def run_phase11_pipeline_with_llm(
         "promotable": bool,
         "per_dim_count": int,
         "per_dim_status": list[str],
+        "per_dim_attempts": list[int],
+        "per_dim_durations_ms": list[int],
         "design_space_report_path": str,
         "llm_usage_path": str,
+        "aggregation_path": str,
       }
-
-    本骨架先 raise NotImplementedError,T18 阶段补具体调用。
     """
-    raise NotImplementedError(
-        f"T18 实施期补完整 Phase 11 主链 fixture(参 task11_phase11_mcp_e2e.py)。"
-        f" run_id={run_id} 产物应落 ProjectState/runs/{run_id}/。"
+    # 延迟 import:这些模块只有真跑路径才需要(skip-real-llm 路径不进此函数)
+    import asyncio
+    from pydantic import BaseModel
+    from Plugins.AgentBridge.Compiler.stages.candidates_batch_orchestrator import (
+        LLMBatchExecutor, RetryPolicySpec,
     )
+    from Plugins.AgentBridge.Compiler.observability.secrets import redact_mapping
+
+    # ----- 1. Schema:LLM 单 dim 输出契约 -----
+    class CandidatesDimOutput(BaseModel):
+        # 单 dimension 的 LLM 输出 schema(只校 shape,不强约束候选数量)
+        dimension_id: str
+        candidates: list[dict]
+
+    # ----- 2. Fixture:7 个 dimension(Monopoly 风格,与 Phase 11 主链贴近)-----
+    dim_specs = [
+        ("dim-board-layout-001", "棋盘世界布局", "Monopoly 风格 28 格环形棋盘的几何与可读性"),
+        ("dim-board-spacing-002", "格子间距", "玩家筹码与移动路径的间距策略"),
+        ("dim-camera-view-003", "镜头视角", "默认观战镜头(俯视/45度/自由)"),
+        ("dim-hud-layout-004", "HUD 布局", "玩家面板、骰子、按钮的屏幕占位"),
+        ("dim-piece-style-005", "棋子风格", "玩家筹码的几何风格(卡通/写实/低多边形)"),
+        ("dim-tile-decoration-006", "格子装饰", "tile 的视觉元素丰富度"),
+        ("dim-color-palette-007", "色彩调色板", "全局主色调与对比策略"),
+    ]
+    dimensions: list[dict[str, Any]] = []
+    for dim_id, dim_name, desc in dim_specs:
+        user_content = (
+            f"你是 UE5 游戏设计 agent。请为下面这个设计维度生成 2-3 个候选方向。\n\n"
+            f"维度 ID:{dim_id}\n"
+            f"维度名:{dim_name}\n"
+            f"维度描述:{desc}\n\n"
+            f"约束:满足 must_satisfy=[关卡内可读 / 玩家不混淆],不得违反 must_not=[屏幕拥挤 / 路径不清]。\n\n"
+            f"输出 JSON,只包含 dimension_id 和 candidates 数组。每个 candidate 包含 candidate_id, name, description。\n"
+            f"严格只返回一个 JSON object,不要 markdown 包裹。"
+        )
+        dimensions.append({
+            "dimension_id": dim_id,
+            "prompt_messages": [
+                {"role": "system", "content": (
+                    "你是 UE5 设计编译器内置的 candidates generator agent。"
+                    "你的任务:为给定的设计维度生成多个候选方向。"
+                    "永远只输出符合 schema 的 JSON object,不要解释、不要 markdown。"
+                )},
+                {"role": "user", "content": user_content},
+            ],
+        })
+
+    # ----- 3. 跑 LLMBatchExecutor -----
+    executor = LLMBatchExecutor()
+    # 默认 max_attempts=3 + exponential backoff + jitter (100,500),对齐 design doc §4.2
+    retry_policy = RetryPolicySpec()
+    concurrency = int(policy.extra.get("concurrency", {}).get("candidates_batch", 3))
+
+    print(
+        f"  跑 7 dim batch:concurrency={concurrency}, "
+        f"max_attempts={retry_policy.max_attempts}, model={policy.preferred_models[0]}"
+    )
+    print("  调真 LLM,预计 30-90 秒...")
+
+    report = asyncio.run(executor.run_candidates_batch(
+        dimensions=dimensions,
+        router=router,
+        policy=policy,
+        schema=CandidatesDimOutput,
+        retry_policy=retry_policy,
+        concurrency=concurrency,
+    ))
+
+    # ----- 4. evidence 落盘到 ProjectState/runs/{run_id}/ -----
+    run_dir = PROJECT_ROOT / "ProjectState" / "runs" / run_id
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    # 4a. design_space_report.json — 模拟 Phase 11 主链输出格式
+    design_space_report = {
+        "report_version": "1.0",
+        "skill_instance_id": "phase12-llm-internal-reopen-acceptance",
+        "discovery_dimensions": [
+            {
+                "dimension_id": d["dimension_id"],
+                "name": d["dimension_id"],
+                "constraint_source": "variant",
+                "variant_bounds": {"must_satisfy": [], "must_not": []},
+                "design_freedom": "high",
+            }
+            for d in dimensions
+        ],
+        "locked_dimensions": [],
+        "metadata": {
+            "generated_at": datetime.datetime.now().isoformat() + "Z",
+            "generator": "AgentBridge.Phase12.LLMBatchExecutor.AcceptanceRun",
+        },
+        "per_dimension_batch_metadata": [
+            {
+                "dimension_id": b.dimension_id,
+                "model": b.model or "unknown",
+                "attempt_count": b.attempt_count,
+                "duration_ms": b.duration_ms,
+                "usage": b.usage or {},
+                "status": b.status,
+                "error_class": b.error_class,
+                "raw_response_id": b.raw_response_id,
+            }
+            for b in report.per_dimension
+        ],
+    }
+    dsr_path = run_dir / "design_space_report.json"
+    dsr_path.write_text(
+        json.dumps(design_space_report, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+    # 4b. stage4_agent_traces/llm_internal/dim_*.json
+    traces_dir = run_dir / "stage4_agent_traces" / "llm_internal"
+    traces_dir.mkdir(parents=True, exist_ok=True)
+    for i, b in enumerate(report.per_dimension):
+        # 防御性脱敏:即便 ProviderCall 没明显放 api_key 在 messages 里,
+        # 落盘前还是过一次 redact_mapping 防意外
+        trace = {
+            "dimension_id": b.dimension_id,
+            "model": b.model,
+            "attempt_count": b.attempt_count,
+            "duration_ms": b.duration_ms,
+            "usage": b.usage,
+            "status": b.status,
+            "error_class": b.error_class,
+            "raw_response_id": b.raw_response_id,
+            "parsed_payload": b.parsed_payload,
+            "prompt_messages": [
+                redact_mapping(m) if isinstance(m, dict) else m
+                for m in b.prompt_messages
+            ],
+        }
+        (traces_dir / f"dim_{i+1}.json").write_text(
+            json.dumps(trace, indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
+
+    # 4c. aggregation.json
+    aggregation = {
+        "aggregation_id": report.aggregation_id,
+        "run_id": run_id,
+        "promotable": report.promotable,
+        "partial": report.partial,
+        "per_dim_count": len(report.per_dimension),
+        "per_dim_success": sum(1 for b in report.per_dimension if b.status == "success"),
+        "per_dim_failed": sum(1 for b in report.per_dimension if b.status == "failed"),
+    }
+    aggregation_path = traces_dir / "aggregation.json"
+    aggregation_path.write_text(
+        json.dumps(aggregation, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+    # 4d. llm_usage.json — BudgetTracker observe-only dump
+    bt = BudgetTracker(observe_only=True)
+    for b in report.per_dimension:
+        if b.usage:
+            bt.record(
+                dimension_id=b.dimension_id,
+                model=b.model or "unknown",
+                # 暂不算 cost(observe-only),只透传 token usage
+                cost_usd=0.0,
+                usage={
+                    "prompt": int(b.usage.get("prompt", 0)),
+                    "completion": int(b.usage.get("completion", 0)),
+                    "total": int(b.usage.get("total", 0)),
+                },
+            )
+    usage_path = run_dir / "llm_usage.json"
+    bt.dump_evidence(usage_path)
+
+    print(f"  run_dir 产物落盘:{run_dir}")
+    print(
+        f"  promotable={report.promotable}, "
+        f"per_dim_success={aggregation['per_dim_success']}/7"
+    )
+
+    return {
+        "run_id": run_id,
+        "promotable": report.promotable,
+        "per_dim_count": len(report.per_dimension),
+        "per_dim_status": [b.status for b in report.per_dimension],
+        "per_dim_attempts": [b.attempt_count for b in report.per_dimension],
+        "per_dim_durations_ms": [b.duration_ms for b in report.per_dimension],
+        "design_space_report_path": str(dsr_path.relative_to(PROJECT_ROOT)),
+        "llm_usage_path": str(usage_path.relative_to(PROJECT_ROOT)),
+        "aggregation_path": str(aggregation_path.relative_to(PROJECT_ROOT)),
+    }
 
 
 def _build_failure_run_record(
