@@ -58,9 +58,10 @@ class RetryPolicySpec:
     # 启动 jitter + 每次 backoff 后再叠加的随机 jitter (毫秒)
     jitter_ms: tuple[int, int] = (100, 500)
     # 哪些 error_class 会触发 retry;其他直接 fail
-    retry_on: tuple[str, ...] = (
-        "timeout", "transient_network", "schema_fail", "rate_limit",
-    )
+    # 默认 3 个对齐 plan §1693 + retry_policy.schema.json default;
+    # "rate_limit" 不在默认白名单内是有意的 — 由调用方按场景显式开启,
+    # `_sleep_backoff` 里的双倍 backoff 只在调用方显式 opt-in 时才生效
+    retry_on: tuple[str, ...] = ("timeout", "transient_network", "schema_fail")
 
 
 @dataclass

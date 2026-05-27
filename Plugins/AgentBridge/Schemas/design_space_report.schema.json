@@ -91,7 +91,7 @@
           "status": {"type": "string", "enum": ["success", "failed"]},
           "error_class": {"type": ["string", "null"], "enum": [
             null, "timeout", "schema_fail", "unsupported_response",
-            "provider_error", "rate_limited"
+            "provider_error", "rate_limit", "transient_network"
           ]},
           "raw_response_id": {"type": ["string", "null"]}
         }

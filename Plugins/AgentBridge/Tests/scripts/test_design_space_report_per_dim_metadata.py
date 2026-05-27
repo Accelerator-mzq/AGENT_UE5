@@ -78,3 +78,31 @@ def test_new_per_dim_metadata_invalid_status() -> None:
     ]
     with pytest.raises(ValidationError):
         validate(instance=instance, schema=schema)
+
+
+def test_new_per_dim_metadata_rate_limit_error_class_valid() -> None:
+    """error_class=rate_limit 与 transient_network 必须合法。
+
+    跨 task 修复:T10 实现的 LLMBatchExecutor._classify 会写出 "rate_limit"
+    和 "transient_network",但 T09 schema 漏了它们(且原本拼成 rate_limited)。
+    本 case 守护 T11/T12 落盘 design_space_report 时 schema 校验不爆。
+    """
+    schema = _load_schema()
+    instance = _load_example()
+    instance["per_dimension_batch_metadata"] = [
+        {
+            "dimension_id": "d1",
+            "model": "m",
+            "attempt_count": 2,
+            "status": "failed",
+            "error_class": "rate_limit",
+        },
+        {
+            "dimension_id": "d2",
+            "model": "m",
+            "attempt_count": 3,
+            "status": "failed",
+            "error_class": "transient_network",
+        },
+    ]
+    validate(instance=instance, schema=schema)
