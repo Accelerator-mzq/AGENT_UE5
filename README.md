@@ -1,8 +1,8 @@
 # Mvpv4TestCodex
 
 > 目标引擎版本：UE5.5.4
-> 当前状态：Phase 11 已完成并归档
-> 当前正式口径：[18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/acceptance/acceptance_report.md#1)
+> 当前状态：Phase 12 LLM Internal Reopen 已完成(2026-05-27),Phase 11 已归档
+> 当前正式口径：[18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/acceptance/acceptance_report.md#1) + [llm_internal_reopen_acceptance.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-05-27/llm_internal_reopen_acceptance.md)
 
 ## 项目简介
 

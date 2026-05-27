@@ -126,7 +126,7 @@ L1 = 项目当前权威 Current/* + 插件层 Docs/* + 本 SRS 与新结构 cont
   - F-CMP-12 Stage 4 路 B — Realization 回退。
   - F-CMP-13 Stage 4 路 C — Convergence 回退。
   - F-CMP-14 Stage 通用 Agent Protocol — LLM Agent 协议封装。
-  - F-CMP-15 Stage 通用 LLM Client — provider 抽象(OpenAI / Claude / 等)。
+  - F-CMP-15 Stage 通用 LLM Provider Framework — LiteLLM + Instructor 统一接入(`Compiler/providers/`)+ capability 路由 + observe-only budget(`Compiler/runtime/budget_tracker.py`)+ Stage 4 Candidates 分批(`Compiler/stages/candidates_batch_orchestrator.py`)。Phase 12 重开(2026-05-27,7/7 真 LLM 验收 PASS),旧 `llm_client.py` 已 deprecate。
   - F-CMP-16 Stage 7 Handoff v3 — `reviewed_handoff_v3` 输出。
   - F-CMP-17 Stage 5 Cross Review v2 — Cross-Domain 跨审 v2。
   - F-CMP-18 Stage 6 Lowering v2 — Build IR v2 下降。
