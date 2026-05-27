@@ -1055,15 +1055,24 @@ class HeuristicFallbackProvider(GeneratorProvider):
 def resolve_provider(
     allow_heuristic_fallback: bool = False,
     llm_client: Any = None,
+    *,
+    router: Any = None,
+    policy: Any = None,
+    batch_concurrency: int = 3,
 ) -> GeneratorProvider:
     """
     解析 Generator provider。
 
-    规则：
-      1. 有 llm_client → LLMProvider
-      2. 无 llm_client 且 allow_heuristic_fallback=True → HeuristicFallbackProvider
-      3. 无 llm_client 且 allow_heuristic_fallback=False → raise ProviderNotAvailable
+    规则(优先级从高到低):
+      1. 有 router + policy → LLMProvider(router, policy, batch_concurrency) — Phase 12 新路径
+      2. 有 llm_client → LLMProvider(llm_client=...) — 老路径
+      3. allow_heuristic_fallback=True → HeuristicFallbackProvider
+      4. 否则 raise ProviderNotAvailable
     """
+    # Phase 12 新路径优先:有 router + policy 直接走 LLMProvider 新分批入口
+    if router is not None and policy is not None:
+        return LLMProvider(router=router, policy=policy, batch_concurrency=batch_concurrency)
+
     if llm_client is not None:
         return LLMProvider(llm_client=llm_client)
 
