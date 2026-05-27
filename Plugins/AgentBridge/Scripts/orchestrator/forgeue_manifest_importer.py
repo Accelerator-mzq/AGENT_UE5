@@ -24,6 +24,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from _time_utils import now_iso_utc  # 公共时间 util(FU-10 抽出;orchestrator/ 在 sys.path 内)
+
 
 # ============================================================
 # manifest / plan 解析(原有,不动)
@@ -184,13 +186,6 @@ def _import_asset_by_kind(
 # helper:evidence 构造
 # ============================================================
 
-def _now_iso_utc() -> str:
-    """返回当前 UTC 时间 ISO 8601 含毫秒 + Z 后缀(避开 utcnow deprecation)。"""
-    # Python 3.13 起 datetime.utcnow() 已 deprecated,改用 timezone-aware now(UTC)
-    # 再 replace "+00:00" → "Z" 保持与 schema example 兼容的紧凑表示
-    return _dt.datetime.now(_dt.UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z")
-
-
 def _evidence_failure(asset: dict, bridge_mode: str, message: str,
                        *, source_uri_abs: str | Path | None = None,
                        errors: list[str] | None = None) -> dict:
@@ -201,7 +196,7 @@ def _evidence_failure(asset: dict, bridge_mode: str, message: str,
         "asset_kind": asset.get("asset_kind", ""),
         "bridge_mode": bridge_mode,
         "status": "failed",
-        "timestamp": _now_iso_utc(),
+        "timestamp": now_iso_utc(),
         # source_uri_abs 优先用 caller 提供的绝对路径;若 None 则 fallback 到 asset 中的相对路径
         # (但应避免 None 场景 — caller 应总是传入)
         "source_uri_abs": str(source_uri_abs) if source_uri_abs is not None
@@ -219,7 +214,7 @@ def _evidence_skipped(asset: dict, bridge_mode: str, reason: str,
         "asset_kind": asset.get("asset_kind", ""),
         "bridge_mode": bridge_mode,
         "status": "skipped",
-        "timestamp": _now_iso_utc(),
+        "timestamp": now_iso_utc(),
         # source_uri_abs 优先用 caller 提供的绝对路径;若 None 则 fallback 到 asset 中的相对路径
         # (但应避免 None 场景 — caller 应总是传入)
         "source_uri_abs": str(source_uri_abs) if source_uri_abs is not None
@@ -248,7 +243,7 @@ def _evidence_success(asset: dict, bridge_mode: str, source_uri_abs: Path,
         "asset_kind": asset.get("asset_kind", ""),
         "bridge_mode": bridge_mode,
         "status": "success",
-        "timestamp": _now_iso_utc(),
+        "timestamp": now_iso_utc(),
         "source_uri_abs": str(source_uri_abs),
         "uasset_object_path": uasset_object_path,
         "uasset_package_path": uasset_object_path.split(".")[0] if "." in uasset_object_path else uasset_object_path,
@@ -555,13 +550,55 @@ def _build_mesh_factory(fmt: str, import_options: dict[str, Any]) -> tuple[Any, 
         return None, None, "unreal.GLTFImporter (auto-selected by UE; not implemented)"
 
     if fmt == "obj":
-        # UE 5.5 ObjFactory 类名待实测;本 milestone fixture 不含 OBJ,留 follow-up
+        # UE 5.5 实测:OBJ 通过 unreal.AssetTools.import_assets_automated 自动 dispatch
+        # ObjFactory 在 UE 5.5 Python binding 中名称可能是 unreal.ObjFactory(实测)或缺失
+        # 策略:优先用 getattr(unreal, "ObjFactory", None);若不存在 fallback 到 None(让 UE 按文件扩展名自动选)
         factory_class = getattr(unreal, "ObjFactory", None)
-        if factory_class is None:
-            return None, None, "unreal.ObjFactory (not found in this UE build; not implemented)"
-        return factory_class(), None, "unreal.ObjFactory"
+        if factory_class is not None:
+            return factory_class(), None, "unreal.ObjFactory"
+        # Fallback:返 None factory + None options,但 factory_class_name 标 auto-dispatch
+        # _importer_path_mesh 当前在 factory is None 时返 _evidence_failure;
+        # OBJ 此时 caller 路径会失败 — 留 follow-up 在 caller 层做"factory=None 但允许 import"的特殊兜底
+        return None, None, "unreal.ObjFactory (not found; UE auto-dispatch 未在本 milestone 实现,FU-04 部分 ongoing)"
 
     return None, None, f"unknown source_format: {fmt}"
+
+
+def _add_material_constant_expression(
+    material_asset: Any,
+    expression_class: Any,
+    value: Any,
+    output_property: Any,
+    *,
+    set_property_name: str,
+) -> Any:
+    """在 Material 上加一个 Constant/Constant4Vector expression 并连到指定 output。
+
+    统一封装 3 步重复模式:
+        create_material_expression → set_editor_property → connect_material_property
+
+    Args:
+        material_asset: AssetTools.create_asset 返回的 Material 实例
+        expression_class: 如 unreal.MaterialExpressionConstant 或 MaterialExpressionConstant4Vector
+        value: 设置到 expression 的值
+                  Constant   → float(标量,如 metallic / roughness)
+                  Constant4Vector → unreal.LinearColor(颜色,如 base_color / emissive)
+        output_property: connect_material_property 的目标
+                  如 unreal.MaterialProperty.MP_BASE_COLOR
+        set_property_name: 在 expression 上 set_editor_property 的字段名
+                  Constant        → "r"
+                  Constant4Vector → "constant"
+
+    Returns:
+        创建好的 expression 实例(供未来再连其他端口使用)
+    """
+    import unreal  # 延迟 import,与 module 现有风格一致
+
+    lib = unreal.MaterialEditingLibrary
+    expr = lib.create_material_expression(material_asset, expression_class)
+    expr.set_editor_property(set_property_name, value)
+    lib.connect_material_property(expr, "", output_property)
+    return expr
 
 
 def _creator_path_material(
@@ -626,41 +663,75 @@ def _creator_path_material(
 
     # 2-4. MaterialEditingLibrary 加 4 个 expression + 连到 Material output + 编译 + 保存(整段 wrap)
     try:
-        lib = unreal.MaterialEditingLibrary
+        lib = unreal.MaterialEditingLibrary  # 保留用于 recompile_material
 
-        # 2.1 BaseColor:Constant4Vector
+        # 2.1 BaseColor:Constant4Vector(颜色 expression,set_property_name="constant")
         base_color = material_def.get("base_color_rgba", [0.5, 0.5, 0.5, 1.0])
-        base_color_expr = lib.create_material_expression(
-            material_asset, unreal.MaterialExpressionConstant4Vector,
+        _add_material_constant_expression(
+            material_asset,
+            unreal.MaterialExpressionConstant4Vector,
+            unreal.LinearColor(*base_color),
+            unreal.MaterialProperty.MP_BASE_COLOR,
+            set_property_name="constant",
         )
-        base_color_expr.set_editor_property("constant", unreal.LinearColor(*base_color))
-        lib.connect_material_property(base_color_expr, "", unreal.MaterialProperty.MP_BASE_COLOR)
 
-        # 2.2 Metallic:Constant
-        metallic_expr = lib.create_material_expression(
-            material_asset, unreal.MaterialExpressionConstant,
+        # 2.2 Metallic:Constant(标量 expression,set_property_name="r")
+        _add_material_constant_expression(
+            material_asset,
+            unreal.MaterialExpressionConstant,
+            float(material_def.get("metallic", 0.0)),
+            unreal.MaterialProperty.MP_METALLIC,
+            set_property_name="r",
         )
-        metallic_expr.set_editor_property("r", float(material_def.get("metallic", 0.0)))
-        lib.connect_material_property(metallic_expr, "", unreal.MaterialProperty.MP_METALLIC)
 
-        # 2.3 Roughness:Constant
-        roughness_expr = lib.create_material_expression(
-            material_asset, unreal.MaterialExpressionConstant,
+        # 2.3 Roughness:Constant(标量 expression,set_property_name="r")
+        _add_material_constant_expression(
+            material_asset,
+            unreal.MaterialExpressionConstant,
+            float(material_def.get("roughness", 0.7)),
+            unreal.MaterialProperty.MP_ROUGHNESS,
+            set_property_name="r",
         )
-        roughness_expr.set_editor_property("r", float(material_def.get("roughness", 0.7)))
-        lib.connect_material_property(roughness_expr, "", unreal.MaterialProperty.MP_ROUGHNESS)
 
         # 2.4 Normal:可选,只在 normal_texture_ref 非 None 时连
-        # 本 milestone 不解析 normal_texture_ref(需要二次资产 lookup),留 follow-up
-        # normal_ref = material_def.get("normal_texture_ref")
+        # FU-03 实现:EditorAssetLibrary.load_asset → MaterialExpressionTextureSample
+        # → sampler_type=SAMPLERTYPE_NORMAL → connect_material_property(MP_NORMAL)
+        # Normal 需要 TextureSample expression,不能复用 _add_material_constant_expression
+        normal_ref = material_def.get("normal_texture_ref")
+        if normal_ref:
+            # 二次 lookup:在已 import 的 texture asset 中定位 normal map
+            normal_texture = unreal.EditorAssetLibrary.load_asset(normal_ref)
+            if normal_texture is None:
+                # 容错:normal_ref 指向不存在的 asset 时跳过 Normal 连接
+                # 不让整 material 失败(与 spec §3.5 "单条 op 容错不中断全批" 一致)
+                unreal.log_warning(
+                    f"[forgeue.material] normal_texture_ref 指向不存在的 asset: {normal_ref},"
+                    f" 跳过 MP_NORMAL 连接"
+                )
+            else:
+                # 创建 TextureSample expression 并绑定 normal map 贴图
+                normal_expr = lib.create_material_expression(
+                    material_asset, unreal.MaterialExpressionTextureSample,
+                )
+                normal_expr.set_editor_property("texture", normal_texture)
+                # normal map 必须用 SAMPLERTYPE_NORMAL,否则 UE 警告且 linear/gamma 采样错误
+                normal_expr.set_editor_property(
+                    "sampler_type", unreal.MaterialSamplerType.SAMPLERTYPE_NORMAL,
+                )
+                # 连接 TextureSample 主输出(空字符串 = 默认 RGBA 输出)到 MP_NORMAL
+                lib.connect_material_property(
+                    normal_expr, "", unreal.MaterialProperty.MP_NORMAL,
+                )
 
-        # 2.5 Emissive:Constant4Vector
+        # 2.5 Emissive:Constant4Vector(颜色 expression,set_property_name="constant")
         emissive = material_def.get("emissive_color_rgba", [0.0, 0.0, 0.0, 1.0])
-        emissive_expr = lib.create_material_expression(
-            material_asset, unreal.MaterialExpressionConstant4Vector,
+        _add_material_constant_expression(
+            material_asset,
+            unreal.MaterialExpressionConstant4Vector,
+            unreal.LinearColor(*emissive),
+            unreal.MaterialProperty.MP_EMISSIVE_COLOR,
+            set_property_name="constant",
         )
-        emissive_expr.set_editor_property("constant", unreal.LinearColor(*emissive))
-        lib.connect_material_property(emissive_expr, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
 
         # 3. 编译 material(让 expressions 生效)
         lib.recompile_material(material_asset)
@@ -681,7 +752,7 @@ def _creator_path_material(
         uasset_object_path=f"{target_pkg}.{asset_name}",
         factory_class="unreal.MaterialFactoryNew + unreal.MaterialEditingLibrary",
         duration_ms=duration_ms,
-        import_log_excerpt=f"created material with 4 expressions (PBR Option α 五字段,normal_texture_ref pending)",
+        import_log_excerpt=f"created material with PBR expressions (BaseColor/Metallic/Roughness/Emissive + Normal if normal_texture_ref set)",
     )
 
 

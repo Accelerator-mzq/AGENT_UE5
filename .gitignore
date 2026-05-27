@@ -114,3 +114,6 @@ Thumbs.db
 
 # document-release marker(运行时状态,不入仓库)
 ProjectState/RuntimeConfigs/doc-release-markers/
+
+# ForgeUE 真机 import 产物(L3 smoke 多次跑会重复生成 .uasset)
+Content/Generated/

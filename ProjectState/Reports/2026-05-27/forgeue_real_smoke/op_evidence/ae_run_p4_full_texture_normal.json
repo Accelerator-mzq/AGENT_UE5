@@ -1,0 +1,15 @@
+{
+  "asset_entry_id": "ae_run_p4_full_texture_normal",
+  "op_id": "op_import_ae_run_p4_full_texture_normal",
+  "asset_kind": "texture",
+  "bridge_mode": "bridge_python",
+  "status": "success",
+  "timestamp": "2026-05-27T02:58:16.447Z",
+  "source_uri_abs": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Tests\\fixtures\\forgeue_manifest\\payload\\tex_normal.png",
+  "uasset_object_path": "/Game/Generated/Tavern/run_p4_full/T_run_p4_full_tex_normal.T_run_p4_full_tex_normal",
+  "uasset_package_path": "/Game/Generated/Tavern/run_p4_full/T_run_p4_full_tex_normal",
+  "factory_class": "unreal.TextureFactory",
+  "duration_ms": 234,
+  "import_log_excerpt": "imported texture from tex_normal.png + applied 6 options",
+  "errors": []
+}

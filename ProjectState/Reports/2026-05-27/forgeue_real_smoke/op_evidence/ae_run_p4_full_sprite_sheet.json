@@ -4,12 +4,12 @@
   "asset_kind": "sprite_sheet",
   "bridge_mode": "bridge_python",
   "status": "success",
-  "timestamp": "2026-05-26T20:05:14.233Z",
+  "timestamp": "2026-05-27T02:58:16.219Z",
   "source_uri_abs": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Tests\\fixtures\\forgeue_manifest\\payload\\tex_sprite_sheet.png",
   "uasset_object_path": "/Game/Generated/Tavern/run_p4_full/T_run_p4_full_tex_sprite.T_run_p4_full_tex_sprite",
   "uasset_package_path": "/Game/Generated/Tavern/run_p4_full/T_run_p4_full_tex_sprite",
   "factory_class": "unreal.TextureFactory",
-  "duration_ms": 47,
+  "duration_ms": 46,
   "import_log_excerpt": "imported sprite_sheet from tex_sprite_sheet.png + applied 6 options",
   "errors": []
 }

@@ -36,6 +36,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "Plugins" / "AgentBridge" / "Scripts" / "bridge"))
 sys.path.insert(0, str(PROJECT_ROOT / "Plugins" / "AgentBridge" / "Scripts" / "orchestrator"))
 
+from _time_utils import now_iso_utc  # noqa: E402  # 待 sys.path 加 orchestrator/ 后才能 import(FU-10 公共 util)
 
 # fixture 目录(manifest.json + import_plan.json 的位置)
 FIXTURE_DIR = PROJECT_ROOT / "Plugins" / "AgentBridge" / "Tests" / "fixtures" / "forgeue_manifest"
@@ -51,6 +52,15 @@ RC_FUNCTION_NAME = "import_assets_from_manifest"
 # UE 内置 EditorAssetLibrary(CamelCase BlueprintCallable,UE 内置 API 命名风格)
 EDITOR_ASSET_LIB = "/Script/EditorScriptingUtilities.Default__EditorAssetLibrary"
 
+# evidence_manifest.schema.json 字段值常量(避免 magic string 散落)
+_EVIDENCE_TEST_TYPE = "smoke_test"          # evidence_manifest.test_type 字段固定值
+_EVIDENCE_STATUS_PASS = "pass"              # evidence_manifest.status 通过
+_EVIDENCE_STATUS_FAIL = "fail"              # evidence_manifest.status 失败
+
+# importer.import_from_manifest 返回 payload status 枚举
+_PAYLOAD_STATUS_SUCCESS = "success"         # 全 asset 都 success
+_PAYLOAD_STATUS_PARTIAL = "partial"         # 部分 success / 部分 failed
+
 
 def _make_run_id() -> str:
     """生成 evidence_manifest.schema.json 兼容的 run_id(yyyy-mm-dd_xxxxxxxx)。
@@ -61,14 +71,6 @@ def _make_run_id() -> str:
     today = _dt.date.today().isoformat()
     short = hashlib.sha1(uuid.uuid4().bytes, usedforsecurity=False).hexdigest()[:8]
     return f"{today}_{short}"
-
-
-def _now_iso_utc() -> str:
-    """返回当前 UTC 时间 ISO 8601 含毫秒 + Z 后缀。
-
-    对齐 importer.py 中 _now_iso_utc 实现,避开 Python 3.13 utcnow deprecation。
-    """
-    return _dt.datetime.now(_dt.UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
 def _trigger_via_simulated() -> dict:
@@ -155,7 +157,7 @@ def _write_evidence_pack(
     )
 
     # 3. 构造 evidence_manifest.json(复用 evidence_manifest.schema.json,test_type=smoke_test)
-    timestamp = _now_iso_utc()
+    timestamp = now_iso_utc()
     evidence_items = []
     for op in payload.get("asset_results", []):
         evidence_items.append({
@@ -177,7 +179,7 @@ def _write_evidence_pack(
     manifest_evidence = {
         "run_id": run_id,
         "created_at": timestamp,
-        "test_type": "smoke_test",
+        "test_type": _EVIDENCE_TEST_TYPE,
         "test_scope": f"ForgeUE Manifest Real-UE Import Bridge ({bridge_mode})",
         "evidence_items": evidence_items,
         "summary": {
@@ -186,7 +188,7 @@ def _write_evidence_pack(
             "failed": failed,
             "warnings": 0,
         },
-        "status": "pass" if failed == 0 else "fail",
+        "status": _EVIDENCE_STATUS_PASS if failed == 0 else _EVIDENCE_STATUS_FAIL,
     }
     (report_dir / "evidence_manifest.json").write_text(
         json.dumps(manifest_evidence, ensure_ascii=False, indent=2),
@@ -251,7 +253,7 @@ def main() -> int:
     print(f"[L3 smoke] payload status={payload.get('status')}")
     print(f"[L3 smoke] assertions: passed={passed} / total={total}")
     print(
-        f"[L3 smoke] evidence_manifest.status={'pass' if assertions and all(assertions.values()) else 'fail'}"
+        f"[L3 smoke] evidence_manifest.status={_EVIDENCE_STATUS_PASS if assertions and all(assertions.values()) else _EVIDENCE_STATUS_FAIL}"
     )
 
     # --- Step 5: exit code ---
@@ -264,7 +266,7 @@ def main() -> int:
         return 1
 
     # assertions 全过 + payload 整体 success/partial 才算 0
-    if all(assertions.values()) and payload.get("status") in ("success", "partial"):
+    if all(assertions.values()) and payload.get("status") in (_PAYLOAD_STATUS_SUCCESS, _PAYLOAD_STATUS_PARTIAL):
         return 0
     return 1
 
