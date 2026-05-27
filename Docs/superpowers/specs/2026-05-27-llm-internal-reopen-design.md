@@ -96,9 +96,9 @@ Phase 11 收尾(2026-04-17 acceptance_report)显式记录了一条残留:
 
 **选 P MCP Agent 仍主路径,LLM Internal 并列可切换**:
 
-- `generator_provider ∈ {mcp_agent, llm, heuristic_fallback}`三者并列 promotable(`heuristic_fallback` 仍固化 promotable=False)
+- `generator_provider ∈ {mcp_agent, llm, heuristic_fallback}` 三者并列在 enum 中可选,其中 `mcp_agent` 与 `llm` 是 promotable 候选(本期 LLM 重开拿回此资格),`heuristic_fallback` 仍固化 `promotable=False`(后备角色,本次不变)
 - 默认仍 MCP Agent;不动 Phase 11 既有优先级
-- LLM Internal 重开只是拿回 promotable 资格
+- LLM Internal 重开只是拿回 promotable 资格,不顶替 MCP Agent
 
 ---
 
@@ -633,9 +633,11 @@ def make_test_router():
 
 | 证据 | 路径 | 关联 acceptance_report |
 |---|---|---|
-| 真 LLM 7/7 PASS | `ProjectState/Reports/2026-XX-XX/llm_internal_reopen_acceptance.{md,json}` | 删 §残留 LLM 暂缓 + 补 §1 主表 F-CMP-15 勾选 |
-| 单元 + 集成 pytest 全绿 | `ProjectState/Reports/2026-XX-XX/llm_internal_unit_test_passed.md` | §3 F-TST-01/02 关联 |
-| concurrency sweep | `ProjectState/Reports/2026-XX-XX/llm_internal_concurrency_sweep.json` | 选填,follow-up 数据 |
+| 真 LLM 7/7 PASS | `ProjectState/Reports/{date}/llm_internal_reopen_acceptance.{md,json}` | 删 §残留 LLM 暂缓 + 补 §1 主表 F-CMP-15 勾选 |
+| 单元 + 集成 pytest 全绿 | `ProjectState/Reports/{date}/llm_internal_unit_test_passed.md` | §3 F-TST-01/02 关联 |
+| concurrency sweep | `ProjectState/Reports/{date}/llm_internal_concurrency_sweep.json` | 选填,follow-up 数据 |
+
+> 占位符 `{date}` 由实施日期填入,格式 `YYYY-MM-DD`(与项目现行 ProjectState/Reports 目录命名一致)。
 
 ### 6.9 测试覆盖率口径
 
