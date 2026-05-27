@@ -36,6 +36,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "Plugins" / "AgentBridge" / "Scripts" / "bridge"))
 sys.path.insert(0, str(PROJECT_ROOT / "Plugins" / "AgentBridge" / "Scripts" / "orchestrator"))
 
+from _time_utils import now_iso_utc  # noqa: E402  # 待 sys.path 加 orchestrator/ 后才能 import(FU-10 公共 util)
 
 # fixture 目录(manifest.json + import_plan.json 的位置)
 FIXTURE_DIR = PROJECT_ROOT / "Plugins" / "AgentBridge" / "Tests" / "fixtures" / "forgeue_manifest"
@@ -70,14 +71,6 @@ def _make_run_id() -> str:
     today = _dt.date.today().isoformat()
     short = hashlib.sha1(uuid.uuid4().bytes, usedforsecurity=False).hexdigest()[:8]
     return f"{today}_{short}"
-
-
-def _now_iso_utc() -> str:
-    """返回当前 UTC 时间 ISO 8601 含毫秒 + Z 后缀。
-
-    对齐 importer.py 中 _now_iso_utc 实现,避开 Python 3.13 utcnow deprecation。
-    """
-    return _dt.datetime.now(_dt.UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
 def _trigger_via_simulated() -> dict:
@@ -164,7 +157,7 @@ def _write_evidence_pack(
     )
 
     # 3. 构造 evidence_manifest.json(复用 evidence_manifest.schema.json,test_type=smoke_test)
-    timestamp = _now_iso_utc()
+    timestamp = now_iso_utc()
     evidence_items = []
     for op in payload.get("asset_results", []):
         evidence_items.append({

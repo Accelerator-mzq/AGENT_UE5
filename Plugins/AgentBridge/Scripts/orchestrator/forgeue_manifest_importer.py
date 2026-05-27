@@ -24,6 +24,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from _time_utils import now_iso_utc  # 公共时间 util(FU-10 抽出;orchestrator/ 在 sys.path 内)
+
 
 # ============================================================
 # manifest / plan 解析(原有,不动)
@@ -184,13 +186,6 @@ def _import_asset_by_kind(
 # helper:evidence 构造
 # ============================================================
 
-def _now_iso_utc() -> str:
-    """返回当前 UTC 时间 ISO 8601 含毫秒 + Z 后缀(避开 utcnow deprecation)。"""
-    # Python 3.13 起 datetime.utcnow() 已 deprecated,改用 timezone-aware now(UTC)
-    # 再 replace "+00:00" → "Z" 保持与 schema example 兼容的紧凑表示
-    return _dt.datetime.now(_dt.UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z")
-
-
 def _evidence_failure(asset: dict, bridge_mode: str, message: str,
                        *, source_uri_abs: str | Path | None = None,
                        errors: list[str] | None = None) -> dict:
@@ -201,7 +196,7 @@ def _evidence_failure(asset: dict, bridge_mode: str, message: str,
         "asset_kind": asset.get("asset_kind", ""),
         "bridge_mode": bridge_mode,
         "status": "failed",
-        "timestamp": _now_iso_utc(),
+        "timestamp": now_iso_utc(),
         # source_uri_abs 优先用 caller 提供的绝对路径;若 None 则 fallback 到 asset 中的相对路径
         # (但应避免 None 场景 — caller 应总是传入)
         "source_uri_abs": str(source_uri_abs) if source_uri_abs is not None
@@ -219,7 +214,7 @@ def _evidence_skipped(asset: dict, bridge_mode: str, reason: str,
         "asset_kind": asset.get("asset_kind", ""),
         "bridge_mode": bridge_mode,
         "status": "skipped",
-        "timestamp": _now_iso_utc(),
+        "timestamp": now_iso_utc(),
         # source_uri_abs 优先用 caller 提供的绝对路径;若 None 则 fallback 到 asset 中的相对路径
         # (但应避免 None 场景 — caller 应总是传入)
         "source_uri_abs": str(source_uri_abs) if source_uri_abs is not None
@@ -248,7 +243,7 @@ def _evidence_success(asset: dict, bridge_mode: str, source_uri_abs: Path,
         "asset_kind": asset.get("asset_kind", ""),
         "bridge_mode": bridge_mode,
         "status": "success",
-        "timestamp": _now_iso_utc(),
+        "timestamp": now_iso_utc(),
         "source_uri_abs": str(source_uri_abs),
         "uasset_object_path": uasset_object_path,
         "uasset_package_path": uasset_object_path.split(".")[0] if "." in uasset_object_path else uasset_object_path,
