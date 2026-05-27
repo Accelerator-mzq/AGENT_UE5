@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "retry_policy.schema.json",
+  "title": "Retry Policy Contract",
+  "description": "Candidates batch executor 的 retry 策略,可在 llm_config.yaml retry: 字段配置。",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "max_attempts": {"type": "integer", "minimum": 1, "maximum": 10, "default": 3},
+    "backoff_mode": {"type": "string", "enum": ["exponential", "fixed"], "default": "exponential"},
+    "backoff_base_s": {"type": "number", "minimum": 0.0, "default": 2.0},
+    "jitter_ms": {
+      "type": "array",
+      "items": {"type": "integer", "minimum": 0},
+      "minItems": 2,
+      "maxItems": 2,
+      "default": [100, 500]
+    },
+    "retry_on": {
+      "type": "array",
+      "items": {"type": "string", "enum": [
+        "timeout", "transient_network", "schema_fail", "rate_limit"
+      ]},
+      "default": ["timeout", "transient_network", "schema_fail"]
+    },
+    "no_retry_on": {
+      "type": "array",
+      "items": {"type": "string", "enum": ["unsupported_response", "4xx_non_429"]},
+      "default": ["unsupported_response", "4xx_non_429"]
+    }
+  }
+}

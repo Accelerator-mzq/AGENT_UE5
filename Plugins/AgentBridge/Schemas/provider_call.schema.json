@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "provider_call.schema.json",
+  "title": "Provider Call Contract",
+  "description": "ProviderCall 数据契约 — 服务于 evidence trace 落盘 (stage4_agent_traces/llm_internal/dim_*.json)。落盘前需经 secrets.redact_mapping 脱敏。",
+  "type": "object",
+  "required": ["model", "messages"],
+  "additionalProperties": false,
+  "properties": {
+    "model": {"type": "string", "description": "litellm 格式 model 名,例如 anthropic/claude-3-haiku-20240307"},
+    "messages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["role", "content"],
+        "properties": {
+          "role": {"type": "string", "enum": ["system", "user", "assistant"]},
+          "content": {}
+        }
+      }
+    },
+    "temperature": {"type": "number", "minimum": 0.0, "maximum": 2.0},
+    "max_tokens": {"type": ["integer", "null"], "minimum": 1},
+    "timeout_s": {"type": ["number", "null"], "minimum": 1.0},
+    "seed": {"type": ["integer", "null"]},
+    "api_key": {"type": ["string", "null"], "description": "落盘前必经脱敏,允许 *** 占位值"},
+    "api_base": {"type": ["string", "null"]},
+    "extra": {"type": "object", "additionalProperties": true}
+  }
+}
