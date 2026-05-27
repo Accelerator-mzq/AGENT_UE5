@@ -106,3 +106,31 @@ def test_router_routes_empty_raises() -> None:
     p = ProviderPolicy()
     with pytest.raises(ProviderError):
         CapabilityRouter._routes(p)
+
+
+def test_load_policy_from_example_template_with_real_key_substituted(tmp_path: Path) -> None:
+    """example yaml 替换 api_key 后应能装载，且 Phase 12 新字段进 policy.extra。
+
+    注意：Phase 0 移植的 model_registry.load_provider_policy_from_yaml 把
+    prompt_cache.enabled 扁平化成 extra["prompt_cache_enabled"]（bool），
+    其余四个字段（concurrency / retry / auto_compact / budget）保留嵌套 dict。
+    """
+    src = Path("Plugins/AgentBridge/Config/llm_config.example.yaml")
+    dst = tmp_path / "llm_config.yaml"
+    text = src.read_text(encoding="utf-8").replace("YOUR_API_KEY_HERE", "sk-test-fake-key-1234567890")
+    dst.write_text(text, encoding="utf-8")
+
+    p = load_provider_policy_from_yaml(dst)
+    assert p is not None, "example yaml 替换 api_key 后必须能装载"
+    # Phase 12 新字段进 extra
+    assert "concurrency" in p.extra
+    assert p.extra["concurrency"]["candidates_batch"] == 3
+    assert "retry" in p.extra
+    assert p.extra["retry"]["max_attempts"] == 3
+    # prompt_cache 在 model_registry 里被扁平化成 prompt_cache_enabled 布尔
+    assert "prompt_cache_enabled" in p.extra
+    assert p.extra["prompt_cache_enabled"] is True
+    assert "auto_compact" in p.extra
+    assert p.extra["auto_compact"]["enabled"] is False
+    assert "budget" in p.extra
+    assert p.extra["budget"]["observe_only"] is True
