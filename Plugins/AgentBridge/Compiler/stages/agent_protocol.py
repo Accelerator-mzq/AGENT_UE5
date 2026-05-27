@@ -577,6 +577,7 @@ class LLMProvider(GeneratorProvider):
         router: Any = None,                  # CapabilityRouter | None — 用 Any 避免 import 循环
         policy: Any = None,                  # ProviderPolicy | None
         batch_concurrency: int = 3,
+        retry_policy: Any = None,            # RetryPolicySpec | None — F1 follow-up 注入口
     ) -> None:
         """
         参数:
@@ -584,6 +585,9 @@ class LLMProvider(GeneratorProvider):
           router:      新路径 CapabilityRouter(Phase 12 Stage 4 candidates 必走)。
           policy:      新路径 ProviderPolicy。
           batch_concurrency:  candidates 分批并发上限,默认 3。
+          retry_policy:  RetryPolicySpec 注入口(F1 follow-up 2026-05-27);默认 None 表示用
+                       RetryPolicySpec() 默认值(max_attempts=3, backoff_base_s=2.0, jitter (100,500))。
+                       测试场景可注 jitter_ms=(0,1)+backoff_base_s=0.01 把测试时长压到 ms 级。
 
         至少要传 llm_client 或 router 其一,否则 generate() 会 raise ProviderNotAvailable
         (与旧行为一致)。
@@ -592,6 +596,7 @@ class LLMProvider(GeneratorProvider):
         self._router = router
         self._policy = policy
         self._batch_concurrency = batch_concurrency
+        self._retry_policy = retry_policy
 
     @property
     def provider_type(self) -> str:
@@ -718,12 +723,14 @@ class LLMProvider(GeneratorProvider):
             })
 
         executor = LLMBatchExecutor()
+        # F1 follow-up:retry_policy 优先用 LLMProvider 构造时注入的,否则用默认值
+        effective_retry_policy = self._retry_policy or RetryPolicySpec()
         report = asyncio.run(executor.run_candidates_batch(
             dimensions=batch_input,
             router=self._router,
             policy=self._policy,
             schema=CandidatesDimSchema,
-            retry_policy=RetryPolicySpec(),
+            retry_policy=effective_retry_policy,
             concurrency=self._batch_concurrency,
         ))
 
@@ -1059,19 +1066,26 @@ def resolve_provider(
     router: Any = None,
     policy: Any = None,
     batch_concurrency: int = 3,
+    retry_policy: Any = None,           # F1 follow-up:RetryPolicySpec 注入口
 ) -> GeneratorProvider:
     """
     解析 Generator provider。
 
     规则(优先级从高到低):
-      1. 有 router + policy → LLMProvider(router, policy, batch_concurrency) — Phase 12 新路径
+      1. 有 router + policy → LLMProvider(router, policy, batch_concurrency, retry_policy) — Phase 12 新路径
       2. 有 llm_client → LLMProvider(llm_client=...) — 老路径
       3. allow_heuristic_fallback=True → HeuristicFallbackProvider
       4. 否则 raise ProviderNotAvailable
+
+    retry_policy 仅作用于新路径(router+policy);老路径忽略。
     """
     # Phase 12 新路径优先:有 router + policy 直接走 LLMProvider 新分批入口
     if router is not None and policy is not None:
-        return LLMProvider(router=router, policy=policy, batch_concurrency=batch_concurrency)
+        return LLMProvider(
+            router=router, policy=policy,
+            batch_concurrency=batch_concurrency,
+            retry_policy=retry_policy,
+        )
 
     if llm_client is not None:
         return LLMProvider(llm_client=llm_client)
