@@ -7,6 +7,11 @@
   - 向 Stage 4 提供稳定的 call(messages) -> str 接口
 """
 
+# DEPRECATED (2026-05-27):
+# 本模块在 Phase 12 LLM Internal Reopen 后被 Compiler/providers/litellm_adapter.py 替代。
+# 保留以维持 task09a 时期签名,但 Stage 4 Candidates 不再调用此处。
+# Phase 13 评估物理删除时机。
+
 from __future__ import annotations
 
 import os
