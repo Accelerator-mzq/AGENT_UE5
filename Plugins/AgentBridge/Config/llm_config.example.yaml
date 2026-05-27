@@ -10,8 +10,11 @@ provider: "anthropic"
 # API key（必填；openai_compatible 可使用占位值 "not-needed"）
 api_key: "YOUR_API_KEY_HERE"
 
-# 模型名（按 provider 填写对应模型 ID）
-model: "claude-sonnet-4-20250514"
+# 模型名（按 provider 填写对应模型 ID，**必须带 litellm provider 前缀**：
+#   anthropic/<model_name> | openai/<model_name> | openai_compatible/<model_name>
+# 不带前缀 litellm 会直接抛 BadRequestError(LLM Provider NOT provided)。
+# Phase 12 T18 真 LLM 验收期 implementer 实测踩坑,2026-05-27 修)
+model: "anthropic/claude-sonnet-4-20250514"
 
 # 可选：自定义 API base URL（中转站 / 兼容接口常用；anthropic 也支持）
 # base_url: "http://localhost:11434/v1"
@@ -53,22 +56,22 @@ budget:
   observe_only: true            # 本期 observe-only，只落盘不阻断
   cost_cap_usd: null            # observe_only=true 时此字段被忽略
 
-# 其他 provider 示例：
+# 其他 provider 示例(注意 model 必须带 litellm provider 前缀):
 #
 # Anthropic（Claude 系列）
 # provider: "anthropic"
 # api_key: "sk-ant-api03-real-key"
-# model: "claude-sonnet-4-20250514"
+# model: "anthropic/claude-sonnet-4-20250514"
 # base_url: "https://api.minimaxi.com/anthropic"
 # timeout_sec: 60
 #
 # OpenAI（GPT 系列）
 # provider: "openai"
 # api_key: "sk-real-key"
-# model: "gpt-4o"
+# model: "openai/gpt-4o"
 #
 # OpenAI 兼容接口（本地模型、第三方代理等）
 # provider: "openai_compatible"
 # api_key: "not-needed"
-# model: "llama3"
+# model: "openai_compatible/llama3"
 # base_url: "http://localhost:11434/v1"
