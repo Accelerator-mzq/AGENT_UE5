@@ -45,25 +45,37 @@ def _write_silent_wav(path: Path, seconds: float, sample_rate: int = 16000) -> N
 
 
 def _write_material_simple(path: Path) -> None:
-    """最简 PBR 五字段 material.definition(spec §3.4 Option α)。"""
+    """最简 PBR 五字段 material.definition(spec §3.4 Option α)。
+
+    FU-03: normal_texture_ref 从 None 改为 UE asset path,指向已 import 的 normal map 贴图。
+    该贴图由 ae_run_p4_full_texture_normal entry 产出,必须在 material import 前已完成导入。
+    """
     payload = {
         "base_color_rgba": [0.5, 0.5, 0.5, 1.0],
         "metallic": 0.0,
         "roughness": 0.7,
-        "normal_texture_ref": None,
+        # FU-03: 引用同 run 下 normal map Texture2D 的 UE asset path(不含扩展名)
+        "normal_texture_ref": "/Game/Generated/Tavern/run_p4_full/T_run_p4_full_tex_normal",
         "emissive_color_rgba": [0.0, 0.0, 0.0, 1.0],
     }
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def main() -> None:
-    """主入口:依次生成 PNG×2 + WAV + JSON 四个 fixture 文件。"""
+    """主入口:依次生成 PNG×3 + WAV + JSON 五个 fixture 文件。
+
+    FU-03 新增 tex_normal.png:64×64 RGBA(128,128,255,255) normal map "向上"标准色。
+    该贴图对应 manifest entry ae_run_p4_full_texture_normal,
+    必须比 material entry 先 import 以便 _creator_path_material 的 load_asset 能命中。
+    """
     PAYLOAD_DIR.mkdir(parents=True, exist_ok=True)
     _write_solid_png(PAYLOAD_DIR / "tex_albedo.png", 64, 64, (128, 128, 128, 255))
     _write_solid_png(PAYLOAD_DIR / "tex_sprite_sheet.png", 128, 128, (255, 255, 255, 255))
+    # FU-03: normal map "向上"颜色 RGBA(128,128,255,255),对应 XY=0.5,Z=1.0 法线方向
+    _write_solid_png(PAYLOAD_DIR / "tex_normal.png", 64, 64, (128, 128, 255, 255))
     _write_silent_wav(PAYLOAD_DIR / "sfx_click.wav", 0.5)
     _write_material_simple(PAYLOAD_DIR / "material_simple.json")
-    print(f"[generate_forgeue_fixture_payload] 4 files written under {PAYLOAD_DIR}")
+    print(f"[generate_forgeue_fixture_payload] 5 files written under {PAYLOAD_DIR}")  # 4 → 5
 
 
 if __name__ == "__main__":

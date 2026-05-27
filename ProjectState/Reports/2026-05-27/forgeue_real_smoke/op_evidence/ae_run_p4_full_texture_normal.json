@@ -1,0 +1,9 @@
+{
+  "status": "success",
+  "asset_entry_id": "ae_run_p4_full_texture_normal",
+  "artifact_id": "run_p4_full_tex_normal",
+  "asset_kind": "texture",
+  "target_object_path": "/Game/Generated/Tavern/run_p4_full/T_run_p4_full_tex_normal",
+  "source_uri": "payload/tex_normal.png",
+  "simulated": true
+}

@@ -7,7 +7,7 @@
   ],
   "metallic": 0.0,
   "roughness": 0.7,
-  "normal_texture_ref": null,
+  "normal_texture_ref": "/Game/Generated/Tavern/run_p4_full/T_run_p4_full_tex_normal",
   "emissive_color_rgba": [
     0.0,
     0.0,

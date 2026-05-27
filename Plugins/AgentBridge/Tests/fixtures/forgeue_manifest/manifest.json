@@ -31,6 +31,16 @@
       "import_options": {"compression_settings": "default", "color_space": "sRGB", "has_alpha": false, "tileable": true, "usage_hint": "ui_atlas", "source_format": "png"}
     },
     {
+      "asset_entry_id": "ae_run_p4_full_texture_normal",
+      "artifact_id": "run_p4_full_tex_normal",
+      "asset_kind": "texture",
+      "source_uri": "payload/tex_normal.png",
+      "target_object_path": "/Game/Generated/Tavern/run_p4_full/T_run_p4_full_tex_normal",
+      "target_package_path": "/Game/Generated/Tavern/run_p4_full/T_run_p4_full_tex_normal",
+      "ue_naming": {"policy": "house_rules", "prefix": "T_", "base_name": "run_p4_full_tex_normal", "ue_name": "T_run_p4_full_tex_normal"},
+      "import_options": {"compression_settings": "normal_map", "color_space": "Linear", "has_alpha": false, "tileable": false, "usage_hint": "normal", "source_format": "png"}
+    },
+    {
       "asset_entry_id": "ae_run_p4_full_sound_click",
       "artifact_id": "run_p4_full_sfx_click",
       "asset_kind": "sound_wave",
@@ -74,7 +84,7 @@
   "import_rules": {
     "dry_run": false,
     "overwrite_existing": true,
-    "reviewer_selected": ["run_p4_full_tex_albedo", "run_p4_full_tex_sprite", "run_p4_full_sfx_click", "run_p4_full_mesh_cube", "run_p4_full_material_simple", "run_p4_full_video_clip"]
+    "reviewer_selected": ["run_p4_full_tex_albedo", "run_p4_full_tex_sprite", "run_p4_full_tex_normal", "run_p4_full_sfx_click", "run_p4_full_mesh_cube", "run_p4_full_material_simple", "run_p4_full_video_clip"]
   },
   "naming_policy": {
     "policy": "house_rules",

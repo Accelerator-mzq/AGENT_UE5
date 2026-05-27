@@ -1,15 +1,9 @@
 {
-  "asset_entry_id": "ae_run_p4_full_mesh_cube",
-  "op_id": "op_import_ae_run_p4_full_mesh_cube",
-  "asset_kind": "static_mesh",
-  "bridge_mode": "bridge_python",
   "status": "success",
-  "timestamp": "2026-05-26T20:05:14.686Z",
-  "source_uri_abs": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Tests\\fixtures\\forgeue_manifest\\payload\\mesh_cube.fbx",
-  "uasset_object_path": "/Game/Generated/Tavern/run_p4_full/SM_run_p4_full_mesh_cube.SM_run_p4_full_mesh_cube",
-  "uasset_package_path": "/Game/Generated/Tavern/run_p4_full/SM_run_p4_full_mesh_cube",
-  "factory_class": "unreal.FbxFactory",
-  "duration_ms": 390,
-  "import_log_excerpt": "imported static_mesh (fbx) from mesh_cube.fbx",
-  "errors": []
+  "asset_entry_id": "ae_run_p4_full_mesh_cube",
+  "artifact_id": "run_p4_full_mesh_cube",
+  "asset_kind": "static_mesh",
+  "target_object_path": "/Game/Generated/Tavern/run_p4_full/SM_run_p4_full_mesh_cube",
+  "source_uri": "payload/mesh_cube.fbx",
+  "simulated": true
 }

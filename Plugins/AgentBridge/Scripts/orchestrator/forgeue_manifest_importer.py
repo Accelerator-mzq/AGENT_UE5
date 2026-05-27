@@ -689,9 +689,34 @@ def _creator_path_material(
         )
 
         # 2.4 Normal:可选,只在 normal_texture_ref 非 None 时连
-        # 本 milestone 不解析 normal_texture_ref(需要二次资产 lookup),留 follow-up
-        # normal_ref = material_def.get("normal_texture_ref")
+        # FU-03 实现:EditorAssetLibrary.load_asset → MaterialExpressionTextureSample
+        # → sampler_type=SAMPLERTYPE_NORMAL → connect_material_property(MP_NORMAL)
         # Normal 需要 TextureSample expression,不能复用 _add_material_constant_expression
+        normal_ref = material_def.get("normal_texture_ref")
+        if normal_ref:
+            # 二次 lookup:在已 import 的 texture asset 中定位 normal map
+            normal_texture = unreal.EditorAssetLibrary.load_asset(normal_ref)
+            if normal_texture is None:
+                # 容错:normal_ref 指向不存在的 asset 时跳过 Normal 连接
+                # 不让整 material 失败(与 spec §3.5 "单条 op 容错不中断全批" 一致)
+                unreal.log_warning(
+                    f"[forgeue.material] normal_texture_ref 指向不存在的 asset: {normal_ref},"
+                    f" 跳过 MP_NORMAL 连接"
+                )
+            else:
+                # 创建 TextureSample expression 并绑定 normal map 贴图
+                normal_expr = lib.create_material_expression(
+                    material_asset, unreal.MaterialExpressionTextureSample,
+                )
+                normal_expr.set_editor_property("texture", normal_texture)
+                # normal map 必须用 SAMPLERTYPE_NORMAL,否则 UE 警告且 linear/gamma 采样错误
+                normal_expr.set_editor_property(
+                    "sampler_type", unreal.MaterialSamplerType.SAMPLERTYPE_NORMAL,
+                )
+                # 连接 TextureSample 主输出(空字符串 = 默认 RGBA 输出)到 MP_NORMAL
+                lib.connect_material_property(
+                    normal_expr, "", unreal.MaterialProperty.MP_NORMAL,
+                )
 
         # 2.5 Emissive:Constant4Vector(颜色 expression,set_property_name="constant")
         emissive = material_def.get("emissive_color_rgba", [0.0, 0.0, 0.0, 1.0])
@@ -722,7 +747,7 @@ def _creator_path_material(
         uasset_object_path=f"{target_pkg}.{asset_name}",
         factory_class="unreal.MaterialFactoryNew + unreal.MaterialEditingLibrary",
         duration_ms=duration_ms,
-        import_log_excerpt=f"created material with 4 expressions (PBR Option α 五字段,normal_texture_ref pending)",
+        import_log_excerpt=f"created material with PBR expressions (BaseColor/Metallic/Roughness/Emissive + Normal if normal_texture_ref set)",
     )
 
 
