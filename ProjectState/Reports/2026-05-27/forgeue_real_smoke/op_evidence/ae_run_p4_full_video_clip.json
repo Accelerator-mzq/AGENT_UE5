@@ -1,9 +1,15 @@
 {
-  "status": "success",
   "asset_entry_id": "ae_run_p4_full_video_clip",
-  "artifact_id": "run_p4_full_video_clip",
+  "op_id": "op_import_ae_run_p4_full_video_clip",
   "asset_kind": "file_media_source",
-  "target_object_path": "/Game/Generated/Tavern/run_p4_full/MS_run_p4_full_video_clip",
-  "source_uri": "payload/video_clip.mp4",
-  "simulated": true
+  "bridge_mode": "bridge_python",
+  "status": "success",
+  "timestamp": "2026-05-27T02:58:24.631Z",
+  "source_uri_abs": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Tests\\fixtures\\forgeue_manifest\\payload\\video_clip.mp4",
+  "uasset_object_path": "/Game/Generated/Tavern/run_p4_full/MS_run_p4_full_video_clip.MS_run_p4_full_video_clip",
+  "uasset_package_path": "/Game/Generated/Tavern/run_p4_full/MS_run_p4_full_video_clip",
+  "factory_class": "unreal.FileMediaSourceFactoryNew",
+  "duration_ms": 1562,
+  "import_log_excerpt": "created file_media_source pointing to video_clip.mp4",
+  "errors": []
 }

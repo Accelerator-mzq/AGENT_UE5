@@ -1,0 +1,12 @@
+{
+  "asset_entry_id": "ae_run_p4_full_mesh_cube_obj",
+  "op_id": "op_failed_ae_run_p4_full_mesh_cube_obj",
+  "asset_kind": "static_mesh",
+  "bridge_mode": "bridge_python",
+  "status": "failed",
+  "timestamp": "2026-05-27T02:58:16.921Z",
+  "source_uri_abs": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Tests\\fixtures\\forgeue_manifest\\payload\\mesh_cube_obj.obj",
+  "errors": [
+    "unsupported mesh source_format: obj (expected fbx/gltf/glb/obj)"
+  ]
+}

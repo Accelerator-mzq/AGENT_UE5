@@ -1,56 +1,62 @@
 {
-  "run_id": "2026-05-27_a2f821b8",
-  "created_at": "2026-05-27T02:48:27.261Z",
+  "run_id": "2026-05-27_8e39692c",
+  "created_at": "2026-05-27T02:58:40.463Z",
   "test_type": "smoke_test",
-  "test_scope": "ForgeUE Manifest Real-UE Import Bridge (simulated)",
+  "test_scope": "ForgeUE Manifest Real-UE Import Bridge (bridge_rc_api)",
   "evidence_items": [
     {
       "type": "report",
       "path": "op_evidence/ae_run_p4_full_texture_albedo.json",
       "description": "texture import op evidence",
-      "timestamp": "2026-05-27T02:48:27.261Z"
+      "timestamp": "2026-05-27T02:58:16.164Z"
     },
     {
       "type": "report",
       "path": "op_evidence/ae_run_p4_full_sprite_sheet.json",
       "description": "sprite_sheet import op evidence",
-      "timestamp": "2026-05-27T02:48:27.261Z"
+      "timestamp": "2026-05-27T02:58:16.219Z"
     },
     {
       "type": "report",
       "path": "op_evidence/ae_run_p4_full_texture_normal.json",
       "description": "texture import op evidence",
-      "timestamp": "2026-05-27T02:48:27.261Z"
+      "timestamp": "2026-05-27T02:58:16.447Z"
     },
     {
       "type": "report",
       "path": "op_evidence/ae_run_p4_full_sound_click.json",
       "description": "sound_wave import op evidence",
-      "timestamp": "2026-05-27T02:48:27.261Z"
+      "timestamp": "2026-05-27T02:58:16.608Z"
     },
     {
       "type": "report",
       "path": "op_evidence/ae_run_p4_full_mesh_cube.json",
       "description": "static_mesh import op evidence",
-      "timestamp": "2026-05-27T02:48:27.261Z"
+      "timestamp": "2026-05-27T02:58:16.921Z"
+    },
+    {
+      "type": "report",
+      "path": "op_evidence/ae_run_p4_full_mesh_cube_obj.json",
+      "description": "static_mesh import op evidence",
+      "timestamp": "2026-05-27T02:58:16.921Z"
     },
     {
       "type": "report",
       "path": "op_evidence/ae_run_p4_full_material_simple.json",
       "description": "material import op evidence",
-      "timestamp": "2026-05-27T02:48:27.261Z"
+      "timestamp": "2026-05-27T02:58:23.069Z"
     },
     {
       "type": "report",
       "path": "op_evidence/ae_run_p4_full_video_clip.json",
       "description": "file_media_source import op evidence",
-      "timestamp": "2026-05-27T02:48:27.261Z"
+      "timestamp": "2026-05-27T02:58:24.631Z"
     },
     {
       "type": "assertion_result",
       "path": "assertions.json",
       "description": "EditorAssetLibrary.DoesAssetExist 6/6 校验结果",
-      "timestamp": "2026-05-27T02:48:27.261Z"
+      "timestamp": "2026-05-27T02:58:40.463Z"
     }
   ],
   "summary": {

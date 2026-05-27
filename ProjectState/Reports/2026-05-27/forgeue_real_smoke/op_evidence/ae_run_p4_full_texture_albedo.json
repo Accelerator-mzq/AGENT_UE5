@@ -1,9 +1,15 @@
 {
-  "status": "success",
   "asset_entry_id": "ae_run_p4_full_texture_albedo",
-  "artifact_id": "run_p4_full_tex_albedo",
+  "op_id": "op_import_ae_run_p4_full_texture_albedo",
   "asset_kind": "texture",
-  "target_object_path": "/Game/Generated/Tavern/run_p4_full/T_run_p4_full_tex_albedo",
-  "source_uri": "payload/tex_albedo.png",
-  "simulated": true
+  "bridge_mode": "bridge_python",
+  "status": "success",
+  "timestamp": "2026-05-27T02:58:16.164Z",
+  "source_uri_abs": "D:\\UnrealProjects\\Mvpv4TestCodex\\Plugins\\AgentBridge\\Tests\\fixtures\\forgeue_manifest\\payload\\tex_albedo.png",
+  "uasset_object_path": "/Game/Generated/Tavern/run_p4_full/T_run_p4_full_tex_albedo.T_run_p4_full_tex_albedo",
+  "uasset_package_path": "/Game/Generated/Tavern/run_p4_full/T_run_p4_full_tex_albedo",
+  "factory_class": "unreal.TextureFactory",
+  "duration_ms": 61,
+  "import_log_excerpt": "imported texture from tex_albedo.png + applied 6 options",
+  "errors": []
 }
