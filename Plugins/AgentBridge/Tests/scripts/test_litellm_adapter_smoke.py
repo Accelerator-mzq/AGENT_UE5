@@ -1,5 +1,7 @@
 """LiteLLMAdapter smoke 测试 — 不打真 LLM,只验证类构造与基础逻辑。"""
 
+import pytest
+
 from Plugins.AgentBridge.Compiler.providers.litellm_adapter import (
     LiteLLMAdapter,
     _is_anthropic_family,
@@ -65,3 +67,27 @@ def test_prompt_cache_off_by_default() -> None:
     out = _maybe_apply_prompt_cache(call)
     # 不被 tag,content 维持 str
     assert isinstance(out[0]["content"], str)
+
+
+def test_extract_text_empty_choices_raises_unsupported() -> None:
+    """resp.choices=[] 时应 raise ProviderUnsupportedResponse,而非静默回空字符串。"""
+    from Plugins.AgentBridge.Compiler.providers.litellm_adapter import _extract_text
+    from Plugins.AgentBridge.Compiler.providers.base import ProviderUnsupportedResponse
+
+    class FakeResp:
+        choices = []  # empty list
+
+    with pytest.raises(ProviderUnsupportedResponse):
+        _extract_text(FakeResp())
+
+
+def test_extract_text_missing_choices_raises_unsupported() -> None:
+    """resp 没有 .choices 属性时也应 raise ProviderUnsupportedResponse。"""
+    from Plugins.AgentBridge.Compiler.providers.litellm_adapter import _extract_text
+    from Plugins.AgentBridge.Compiler.providers.base import ProviderUnsupportedResponse
+
+    class FakeResp:
+        pass  # 无 choices
+
+    with pytest.raises(ProviderUnsupportedResponse):
+        _extract_text(FakeResp())

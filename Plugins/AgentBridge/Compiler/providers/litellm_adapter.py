@@ -20,6 +20,7 @@ from .base import (
     ProviderError,
     ProviderResult,
     ProviderTimeout,
+    ProviderUnsupportedResponse,
     SchemaValidationError,
 )
 
@@ -151,13 +152,30 @@ class LiteLLMAdapter(ProviderAdapter):
                 completions, "create_with_completion", None,
             )
             if create_with_completion is not None:
-                obj, raw_completion = await create_with_completion(**kwargs)
-                usage = _extract_usage(raw_completion)
+                # instructor 不同版本对 create_with_completion 返回签名有变化,
+                # 防御性处理避免硬解包抛 ValueError 被误判成 ProviderError(transient)。
+                result = await create_with_completion(**kwargs)
+                if isinstance(result, tuple) and len(result) == 2:
+                    obj, raw_completion = result
+                    usage = _extract_usage(raw_completion)
+                else:
+                    # 老/新版本 create_with_completion 返回非 tuple — 当作 obj-only 处理
+                    obj = result
+                    usage = {}
             else:
                 obj = await completions.create(**kwargs)
                 usage = {}
         except Exception as exc:
             msg = str(exc)
+            # 优先用 isinstance 判 pydantic ValidationError(instructor 主要抛此),
+            # 比字符串子串判断更健壮。
+            try:
+                from pydantic import ValidationError as PydanticValidationError
+                if isinstance(exc, PydanticValidationError):
+                    raise SchemaValidationError(msg) from exc
+            except ImportError:
+                pass
+            # fallback 用字符串子串判断(覆盖 instructor 抛的其他类型,例如 InstructorRetryException)
             if "timeout" in msg.lower():
                 raise ProviderTimeout(msg) from exc
             if "validation" in msg.lower() or "schema" in msg.lower():
@@ -250,8 +268,15 @@ def _is_anthropic_family(model: str) -> bool:
 
 
 def _extract_text(resp: Any) -> str:
+    # provider 返回 choices=[] 或缺失 choices 字段时,应 raise ProviderUnsupportedResponse,
+    # 让 FailureModeMap 路由到 abort_or_fallback 而非 same-step retry(避免同 provider 重复计费)。
+    choices = getattr(resp, "choices", None) or []
+    if not choices:
+        raise ProviderUnsupportedResponse(
+            "litellm response has empty/missing choices array"
+        )
     try:
-        return resp.choices[0].message.content or ""
+        return choices[0].message.content or ""
     except Exception:  # pragma: no cover
         return ""
 
