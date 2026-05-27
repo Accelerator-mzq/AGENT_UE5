@@ -559,6 +559,43 @@ def _build_mesh_factory(fmt: str, import_options: dict[str, Any]) -> tuple[Any, 
     return None, None, f"unknown source_format: {fmt}"
 
 
+def _add_material_constant_expression(
+    material_asset: Any,
+    expression_class: Any,
+    value: Any,
+    output_property: Any,
+    *,
+    set_property_name: str,
+) -> Any:
+    """在 Material 上加一个 Constant/Constant4Vector expression 并连到指定 output。
+
+    统一封装 3 步重复模式:
+        create_material_expression → set_editor_property → connect_material_property
+
+    Args:
+        material_asset: AssetTools.create_asset 返回的 Material 实例
+        expression_class: 如 unreal.MaterialExpressionConstant 或 MaterialExpressionConstant4Vector
+        value: 设置到 expression 的值
+                  Constant   → float(标量,如 metallic / roughness)
+                  Constant4Vector → unreal.LinearColor(颜色,如 base_color / emissive)
+        output_property: connect_material_property 的目标
+                  如 unreal.MaterialProperty.MP_BASE_COLOR
+        set_property_name: 在 expression 上 set_editor_property 的字段名
+                  Constant        → "r"
+                  Constant4Vector → "constant"
+
+    Returns:
+        创建好的 expression 实例(供未来再连其他端口使用)
+    """
+    import unreal  # 延迟 import,与 module 现有风格一致
+
+    lib = unreal.MaterialEditingLibrary
+    expr = lib.create_material_expression(material_asset, expression_class)
+    expr.set_editor_property(set_property_name, value)
+    lib.connect_material_property(expr, "", output_property)
+    return expr
+
+
 def _creator_path_material(
     asset: dict[str, Any], source_uri: Path, target_pkg: str,
     overwrite: bool, bridge_mode: str,
@@ -621,41 +658,50 @@ def _creator_path_material(
 
     # 2-4. MaterialEditingLibrary 加 4 个 expression + 连到 Material output + 编译 + 保存(整段 wrap)
     try:
-        lib = unreal.MaterialEditingLibrary
+        lib = unreal.MaterialEditingLibrary  # 保留用于 recompile_material
 
-        # 2.1 BaseColor:Constant4Vector
+        # 2.1 BaseColor:Constant4Vector(颜色 expression,set_property_name="constant")
         base_color = material_def.get("base_color_rgba", [0.5, 0.5, 0.5, 1.0])
-        base_color_expr = lib.create_material_expression(
-            material_asset, unreal.MaterialExpressionConstant4Vector,
+        _add_material_constant_expression(
+            material_asset,
+            unreal.MaterialExpressionConstant4Vector,
+            unreal.LinearColor(*base_color),
+            unreal.MaterialProperty.MP_BASE_COLOR,
+            set_property_name="constant",
         )
-        base_color_expr.set_editor_property("constant", unreal.LinearColor(*base_color))
-        lib.connect_material_property(base_color_expr, "", unreal.MaterialProperty.MP_BASE_COLOR)
 
-        # 2.2 Metallic:Constant
-        metallic_expr = lib.create_material_expression(
-            material_asset, unreal.MaterialExpressionConstant,
+        # 2.2 Metallic:Constant(标量 expression,set_property_name="r")
+        _add_material_constant_expression(
+            material_asset,
+            unreal.MaterialExpressionConstant,
+            float(material_def.get("metallic", 0.0)),
+            unreal.MaterialProperty.MP_METALLIC,
+            set_property_name="r",
         )
-        metallic_expr.set_editor_property("r", float(material_def.get("metallic", 0.0)))
-        lib.connect_material_property(metallic_expr, "", unreal.MaterialProperty.MP_METALLIC)
 
-        # 2.3 Roughness:Constant
-        roughness_expr = lib.create_material_expression(
-            material_asset, unreal.MaterialExpressionConstant,
+        # 2.3 Roughness:Constant(标量 expression,set_property_name="r")
+        _add_material_constant_expression(
+            material_asset,
+            unreal.MaterialExpressionConstant,
+            float(material_def.get("roughness", 0.7)),
+            unreal.MaterialProperty.MP_ROUGHNESS,
+            set_property_name="r",
         )
-        roughness_expr.set_editor_property("r", float(material_def.get("roughness", 0.7)))
-        lib.connect_material_property(roughness_expr, "", unreal.MaterialProperty.MP_ROUGHNESS)
 
         # 2.4 Normal:可选,只在 normal_texture_ref 非 None 时连
         # 本 milestone 不解析 normal_texture_ref(需要二次资产 lookup),留 follow-up
         # normal_ref = material_def.get("normal_texture_ref")
+        # Normal 需要 TextureSample expression,不能复用 _add_material_constant_expression
 
-        # 2.5 Emissive:Constant4Vector
+        # 2.5 Emissive:Constant4Vector(颜色 expression,set_property_name="constant")
         emissive = material_def.get("emissive_color_rgba", [0.0, 0.0, 0.0, 1.0])
-        emissive_expr = lib.create_material_expression(
-            material_asset, unreal.MaterialExpressionConstant4Vector,
+        _add_material_constant_expression(
+            material_asset,
+            unreal.MaterialExpressionConstant4Vector,
+            unreal.LinearColor(*emissive),
+            unreal.MaterialProperty.MP_EMISSIVE_COLOR,
+            set_property_name="constant",
         )
-        emissive_expr.set_editor_property("constant", unreal.LinearColor(*emissive))
-        lib.connect_material_property(emissive_expr, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
 
         # 3. 编译 material(让 expressions 生效)
         lib.recompile_material(material_asset)
