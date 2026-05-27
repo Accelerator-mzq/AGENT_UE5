@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
-from jsonschema import Draft7Validator, validate
+from jsonschema import Draft7Validator, ValidationError, validate
 
 SCHEMA_DIR = Path("Plugins/AgentBridge/Schemas")
 
@@ -29,7 +29,7 @@ def test_provider_call_minimal_instance() -> None:
 
 def test_provider_call_extra_field_rejected() -> None:
     s = json.loads((SCHEMA_DIR / "provider_call.schema.json").read_text(encoding="utf-8"))
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         validate(
             instance={"model": "m", "messages": [], "unknown_field": "x"},
             schema=s,
@@ -49,3 +49,27 @@ def test_retry_policy_default_compatible() -> None:
         },
         schema=s,
     )
+
+
+def test_provider_call_invalid_role_rejected() -> None:
+    """role enum 必须只接受 system/user/assistant,其他值应被拒。"""
+    s = json.loads((SCHEMA_DIR / "provider_call.schema.json").read_text(encoding="utf-8"))
+    with pytest.raises(ValidationError):
+        validate(
+            instance={"model": "m", "messages": [{"role": "tool", "content": "x"}]},
+            schema=s,
+        )
+
+
+def test_retry_policy_max_attempts_upper_bound() -> None:
+    """max_attempts 上界 10 必须生效。"""
+    s = json.loads((SCHEMA_DIR / "retry_policy.schema.json").read_text(encoding="utf-8"))
+    with pytest.raises(ValidationError):
+        validate(instance={"max_attempts": 11}, schema=s)
+
+
+def test_retry_policy_jitter_ms_size() -> None:
+    """jitter_ms 必须正好 2 个元素。"""
+    s = json.loads((SCHEMA_DIR / "retry_policy.schema.json").read_text(encoding="utf-8"))
+    with pytest.raises(ValidationError):
+        validate(instance={"jitter_ms": [100]}, schema=s)
