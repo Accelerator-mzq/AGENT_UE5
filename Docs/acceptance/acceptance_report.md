@@ -471,3 +471,12 @@ python -c "from Plugins.AgentBridge.MCP.tool_definitions import ALL_TOOLS; print
 - **FU-FORGEUE-04(P3)**:`_build_mesh_factory` GLTF / GLB / OBJ 路径返 (None, None, "...not implemented")。本 milestone fixture 只含 FBX cube。**Follow-up**:fixture 扩展含 GLTF/OBJ 后,实测 UE 5.5 `AssetTools.import_assets_automated` 是否能自动 dispatch GLTFImporter;OBJ 类似。
 - **FU-FORGEUE-05(P2)**:UE 5.7 升级时实测 BC-NEW-A(PythonScripted UCLASS RC 可见性)+ BC-NEW-B(MaterialEditingLibrary 与 BC-008 联动)— 见 `Docs/superpowers/specs/2026-05-26-ue57-breaking-changes-scan.md` §4 "NEW" 区段。
 - **FU-FORGEUE-06(P3 项目治理)**:本次 milestone 真机 import 在 `Content/Generated/Tavern/run_p4_full/` 产生 6 个 .uasset 文件,未进 git。`.gitignore` 是否覆盖 `Content/Generated/` 需治理决定(L3 smoke 多次跑会重复生成)。**Follow-up**:msc 决定是否加 `Content/Generated/` 到 `.gitignore`。
+
+### code quality reviewer minor nits 补充(2026-05-27 新增,实施期 reviewer 标"接受保留")
+
+下列 4 条来自 Plan T3/T6/T9/T12 code quality review 标记的 minor nits,reviewer 判定"不阻塞合并、可保留",但作为 backlog 显式记录避免未来遗忘:
+
+- **FU-FORGEUE-07(P3 风格)**:`Plugins/AgentBridge/Tests/scripts/test_forgeue_manifest_importer.py` 新增的 `# ===` section header 风格与文件内其他段(用空行自然分组)孤立。**Follow-up**:下次涉及该段时顺手统一(全文加 section 分隔或本处改为普通行注释)。来源:Plan T3 code quality review minor nit。
+- **FU-FORGEUE-08(P3 演进)**:`Scripts/run_forgeue_real_smoke.py` 内多处 magic string(`"smoke_test"` / `"pass"` / `"fail"` / `"success"` / `"partial"`)与 `evidence_manifest.schema.json` 字段值强绑定散落在多处。**Follow-up**:schema 演进时可考虑提模块级常量(`_STATUS_PASS = "pass"` 等)便于全局替换。来源:Plan T12 code quality review minor nit M-1。
+- **FU-FORGEUE-09(P3 DRY)**:`_creator_path_material` 中 4 个 expression(BaseColor / Metallic / Roughness / Emissive)创建模式重复,可抽 helper(如 `_add_constant_expression(material, value, output_property)`)。**Follow-up**:加 Normal expression(见 FU-FORGEUE-03)时一起 refactor。来源:Plan T9 code quality review minor.
+- **FU-FORGEUE-10(P3 DRY)**:`_now_iso_utc()` helper 现在 `Plugins/AgentBridge/Scripts/orchestrator/forgeue_manifest_importer.py` 和 `Scripts/run_forgeue_real_smoke.py` 两处各持一份(逐字节相同)。**Follow-up**:提到公共 utils 模块统一(注意 CLAUDE.md 禁止修改清单内的 `bridge/` 系列文件不能放,需要新增 `Plugins/AgentBridge/Scripts/utils/` 或 `Scripts/utils/`)。来源:Plan T12 code quality review self-consistency check。
