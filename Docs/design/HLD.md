@@ -101,7 +101,7 @@ Stage 4 Domain Skill Runtime 内部以"Discovery → Candidates → Convergence 
 三路 Provider 决定 Generator 的实际执行体:
 
 - **MCP Agent (主路径)**:Agent 通过 `compiler_stage4_node_prepare` 拉取 prompt + Context Bundle,自行做创造性推理,通过 `compiler_stage4_node_save` 回写输出。`generator_type=mcp_agent`,`promotable=true`。
-- **LLM Internal**:pipeline 内嵌 `llm_client`,在无人交互场景下自动驱动 Generator/Evaluator。`generator_type=llm`,`promotable=true`。
+- **LLM Internal**:pipeline 内嵌 LLM 调用栈(Phase 12 起 `Compiler/providers/{litellm_adapter,capability_router,...}.py`,旧 `llm_client.py` 已 deprecate),在无人交互场景下自动驱动 Generator/Evaluator;Stage 4 Candidates 走 `LLMBatchExecutor` 按 dimension 分批 + concurrency 控制 + retry。`generator_type=llm`,`promotable=true`。Phase 12 重开后稳定通过 7/7 真 LLM 验收(参 [ProjectState/Reports/2026-05-27/llm_internal_reopen_acceptance.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-05-27/llm_internal_reopen_acceptance.md))。
 - **Heuristic Fallback**:`*_fallback.py` 确定性退化,仅在 CI / fast_mode / `allow_heuristic_fallback=true` 时启用。`generator_type=heuristic_fallback`,`promotable=false`(强制不可晋升,见 §3 F-GOV-03)。
 
 > **三 phase → 三 fallback 文件映射(LLD 04 trace hook)**:Discovery → `Compiler/stages/discovery_fallback.py`(F-CMP-11);Candidates → `Compiler/stages/realization_fallback.py`(F-CMP-12);Convergence → `Compiler/stages/convergence_fallback.py`(F-CMP-13)。三文件实现 Heuristic Fallback 路径的确定性逻辑,Agent / LLM 路径走 stage 主 entry。

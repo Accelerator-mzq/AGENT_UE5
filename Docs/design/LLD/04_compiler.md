@@ -25,13 +25,37 @@ Compiler 子系统是 AgentBridge "Skill-First Design Compiler" 的编译前端,
 | Stage 4 路 B Realization Fallback | `Plugins/AgentBridge/Compiler/stages/realization_fallback.py` | F-CMP-12 | Candidates 启发式 fallback,产 realization_candidates |
 | Stage 4 路 C Convergence Fallback | `Plugins/AgentBridge/Compiler/stages/convergence_fallback.py` | F-CMP-13 | Convergence 启发式 fallback,产 converged_realization_pack |
 | Stage 通用 Agent Protocol | `Plugins/AgentBridge/Compiler/stages/agent_protocol.py` | F-CMP-14 | Provider 抽象(MCP/LLM/Heuristic 三路)+ phase trace |
-| Stage 通用 LLM Client | `Plugins/AgentBridge/Compiler/stages/llm_client.py` | F-CMP-15 | OpenAI/Anthropic 统一 LLM 客户端 |
+| Stage 通用 LLM Provider Framework | `Plugins/AgentBridge/Compiler/providers/{base,_retry,_retry_async,litellm_adapter,capability_router,model_registry,fake_adapter}.py` + `observability/{secrets,compactor}.py` + `runtime/budget_tracker.py` + `stages/candidates_batch_orchestrator.py` | F-CMP-15 | LiteLLM + Instructor 统一接入 + capability 路由 + observe-only budget + Stage 4 Candidates 分批(Phase 12 重开,旧 `llm_client.py` 已 deprecate)|
 | Stage 7 Handoff v3 | `Plugins/AgentBridge/Compiler/stages/handoff_v3.py` | F-CMP-16 | Stage 1-6 全产物 → Reviewed Handoff v3 组装 |
 | Stage 5 Cross Review v2 | `Plugins/AgentBridge/Compiler/stages/cross_review_v2.py` | F-CMP-17 | 5 维跨域审查(约束/Blueprint/baseline/playability/scope)|
 | Stage 6 Lowering v2 | `Plugins/AgentBridge/Compiler/stages/lowering_v2.py` | F-CMP-18 | Spec Tree → Build IR v2 + naming_resolution_log sidecar |
 | Stage 4 Domain Skill Runtime | `Plugins/AgentBridge/Compiler/stages/domain_skill_runtime.py` | F-CMP-19 | Stage 4 主体:Discovery+Candidates+Convergence 三 phase 编排 |
 
 12 Stage 模块按职责分四类:**契约层** Stage 1/2(F-CMP-08/09)生成根契约与澄清门;**规划层** Stage 3(F-CMP-10)生成 Skill Graph;**领域层** Stage 4(F-CMP-19)三 phase 编排 + 三 fallback(F-CMP-11/12/13);**收尾层** Stage 5/6/7(F-CMP-17/18/16)审查 + 下降 + 组装。Stage 通用支撑(F-CMP-14/15)横切所有 Stage。
+
+### 2.1.1 Phase 12 LLM Provider Framework 内部架构
+
+T08-T18 期间 LLM 内部子树重组,见 §2.1 F-CMP-15 行已经更新。子目录职责:
+
+- `Compiler/providers/`:LLM 抽象 + 路由 + adapter
+  - `base.py` — `ProviderAdapter` ABC + 4 类异常 + `ProviderCall/Result`
+  - `_retry.py` + `_retry_async.py` — transient 错误重试工具
+  - `litellm_adapter.py` — LiteLLM + Instructor 默认实现(支持 prompt cache + auto-compact)
+  - `capability_router.py` — 按 ProviderPolicy 路由(本期单 model,中期扩多 model fallback)
+  - `model_registry.py` — `build_default_router` 工厂(读 `Config/llm_config.yaml`)
+  - `fake_adapter.py` — offline 单测桩(L2-A/B/C 测试用)
+- `Compiler/observability/`:LLM 横切支撑
+  - `secrets.py` — `redact_mapping` / `redact_text`(api_key/Bearer/JWT 脱敏)
+  - `compactor.py` — 超长消息历史 `compact_messages`(4 char/token 估算)
+- `Compiler/runtime/`:run-level 资源跟踪
+  - `budget_tracker.py` — Per-Run cost/usage 累计(本期 observe-only,中期扩软阈值)
+- `Compiler/stages/candidates_batch_orchestrator.py`:Stage 4 Candidates 分批执行器
+  - `LLMBatchExecutor.run_candidates_batch()` async 入口,7 dim 并发 + retry + 聚合
+  - 7 个 batch 完成后聚合为 `AggregatedReport(promotable,partial,per_dimension)`
+
+完整 spec:[Docs/superpowers/specs/2026-05-27-llm-internal-reopen-design.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/specs/2026-05-27-llm-internal-reopen-design.md)。
+完整 plan:[Docs/superpowers/plans/2026-05-27-llm-internal-reopen.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/plans/2026-05-27-llm-internal-reopen.md)。
+真 LLM 验收 7/7:[ProjectState/Reports/2026-05-27/llm_internal_reopen_acceptance.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-05-27/llm_internal_reopen_acceptance.md)。
 
 ### 2.2 Legacy v1 Pipeline(F-CMP-01..06 + framework 残留 F-CMP-20..24)
 

@@ -1,7 +1,12 @@
 # 当前任务入口
 
-> 当前状态：Phase 11 已归档 / 等待下一阶段建立正式任务书
-> 入口类型：归档跳转页
+> 当前状态：Phase 12 LLM Internal Reopen 已完成(2026-05-27) / 等待下一阶段建立正式任务书
+> 入口类型：归档跳转页(Phase 11 + Phase 12 两份子任务并存)
+>
+> Phase 12 验收报告：[llm_internal_reopen_acceptance.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-05-27/llm_internal_reopen_acceptance.md)
+> Phase 12 实施 plan：[2026-05-27-llm-internal-reopen.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/plans/2026-05-27-llm-internal-reopen.md)
+> Phase 12 实施 spec：[2026-05-27-llm-internal-reopen-design.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/specs/2026-05-27-llm-internal-reopen-design.md)
+>
 > Phase 11 历史任务正文：[task11_phase11.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/archive/history/Tasks/task11_phase11.md)
 > Phase 11 收尾总览：[18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/acceptance/acceptance_report.md#1)
 > Phase 11 最终验收：[task15_phase11_final_acceptance.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/task15_phase11_final_acceptance.md)
