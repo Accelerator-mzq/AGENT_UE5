@@ -34,7 +34,8 @@ def redact_mapping(d: dict[str, Any]) -> dict[str, Any]:
     规则:
     - key 命中 SENSITIVE_KEYS → value 替换为 ``***``
     - value 为 dict → 递归
-    - value 为 list → 元素若是 dict 则递归
+    - value 为 list → dict 元素递归,str 元素走 redact_text(覆盖 list-of-str 容器,
+      如 HTTP headers / log lines)
     - value 为 str → 走 redact_text(扫敏感正则)
     """
     out: dict[str, Any] = {}
@@ -44,7 +45,12 @@ def redact_mapping(d: dict[str, Any]) -> dict[str, Any]:
         elif isinstance(v, dict):
             out[k] = redact_mapping(v)
         elif isinstance(v, list):
-            out[k] = [redact_mapping(it) if isinstance(it, dict) else it for it in v]
+            out[k] = [
+                redact_mapping(it) if isinstance(it, dict)
+                else redact_text(it) if isinstance(it, str)
+                else it
+                for it in v
+            ]
         elif isinstance(v, str):
             out[k] = redact_text(v)
         else:

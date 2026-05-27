@@ -32,14 +32,27 @@ def compact_messages(
 ) -> tuple[list[dict[str, Any]], dict[str, int]]:
     """裁剪消息历史到 ≤ max_tokens(粗估),保留 first system + last keep_tail turns。
 
-    返回 (compacted_messages, stats),stats 含 dropped_count / kept_tokens_estimate。
+    返回 (compacted_messages, stats),stats 含 dropped_count / kept_tokens_estimate /
+    over_budget。
+
+    注意:`first system message` 始终优先于 `max_tokens` 硬约束 — 如果单条 system
+    本身就超过 max_tokens,compactor 仍保留它,但 stats["over_budget"] 会标 True
+    告知调用方。
     """
     if not messages or max_tokens <= 0:
-        return list(messages), {"dropped_count": 0, "kept_tokens_estimate": 0}
+        return list(messages), {
+            "dropped_count": 0,
+            "kept_tokens_estimate": 0,
+            "over_budget": False,
+        }
 
     total = sum(_estimate_tokens(m) for m in messages)
     if total <= max_tokens:
-        return list(messages), {"dropped_count": 0, "kept_tokens_estimate": total}
+        return list(messages), {
+            "dropped_count": 0,
+            "kept_tokens_estimate": total,
+            "over_budget": False,
+        }
 
     # 保留 first system + last keep_tail turns
     system_msgs = [m for m in messages if m.get("role") == "system"]
@@ -51,4 +64,8 @@ def compact_messages(
     compacted = keep_head + keep_tail
     kept = sum(_estimate_tokens(m) for m in compacted)
     dropped = len(messages) - len(compacted)
-    return compacted, {"dropped_count": dropped, "kept_tokens_estimate": kept}
+    return compacted, {
+        "dropped_count": dropped,
+        "kept_tokens_estimate": kept,
+        "over_budget": kept > max_tokens,
+    }
