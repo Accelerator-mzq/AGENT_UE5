@@ -8,7 +8,7 @@
 
 ## 1. 项目状态(一句话)
 
-**Phase 12 LLM Internal Reopen 已完成(2026-05-27),Phase 11 已归档,UE 5.5.4 → 5.7 重构准备中**:Phase 11 (Skill-First Design Compiler Framework) 验收已 closeout(`Docs/acceptance/acceptance_report.md` §1);Phase 12 重开 LLM Internal 路径(`Compiler/providers/` + `observability/` + `runtime/` + `stages/candidates_batch_orchestrator.py`),通过 7/7 真 LLM 验收(`ProjectState/Reports/2026-05-27/llm_internal_reopen_acceptance.md`)作为 UE 5.7 重构前置门禁。本次文档重组(Phase 0-4)产出本 INDEX 等 22 份新文档,作为 UE 5.7 重构开发者的输入规格,旧文档全量归档到 `Docs/archive/` 反向映射可追溯。
+**Phase 12 LLM Internal Reopen 已完成(2026-05-27),Phase 11 已归档,UE 5.5.4 稳定**:Phase 11 (Skill-First Design Compiler Framework) 验收已 closeout(`Docs/acceptance/acceptance_report.md` §1);Phase 12 重开 LLM Internal 路径(`Compiler/providers/` + `observability/` + `runtime/` + `stages/candidates_batch_orchestrator.py`),通过 7/7 真 LLM 验收(`ProjectState/Reports/2026-05-27/llm_internal_reopen_acceptance.md`)。本次文档重组(Phase 0-4)产出本 INDEX 等 22 份新文档,旧文档全量归档到 `Docs/archive/` 反向映射可追溯。**注:UE 5.7 重构计划已企汰**(2026-05-27);`Docs/superpowers/specs/2026-05-26-ue57-breaking-changes-scan.md` 的 BC 知识库内容(P1 6 条 msc 已裁决 + P2/P3 留实测)保留作未来可能的重启资产,LLD/01-07 §UE 5.7 迁移变更点 + HLD §UE 5.7 升级 BC 表 + contracts §UE 5.5.4 → 5.7 升级表仍 anchor 在该 spec,**不主动维护但不删除**。
 
 ---
 
@@ -109,7 +109,7 @@ Docs/
 | 7 阶段主链 | `Docs/requirements/SRS.md §4.1` + `Docs/design/HLD.md §2.1` | Stage 1-7(Root Skill Contract → Reviewed Handoff v3)|
 | Run 治理 | `Docs/requirements/SRS.md §4.3` + `Docs/design/HLD.md §3` | F-GOV-01..04(run_id / fast_mode / generator_provider / compare-promote)|
 | Schema --strict 27/27 | `Docs/testing/test_spec.md §5` + `Docs/acceptance/acceptance_report.md §2.1` | `validate_examples.py --strict`(2026-05-27 26→27,加 `forgeue_import_evidence_example.json`)|
-| UE 引擎目标版本 | `Docs/requirements/SRS.md §1.2` | **UE 5.5.4 → 5.7** |
+| UE 引擎目标版本 | `Docs/requirements/SRS.md §1.2` | **UE 5.5.4 稳定**(UE 5.7 重构计划已企汰 2026-05-27,BC 知识库保留)|
 | 项目层 + 插件层分层 | `Docs/design/HLD.md §1.1` | 双层架构 + 进程拓扑 |
 | 4 通道(契约) | `Docs/contracts/tool_contract.md §5.2` | Channel A/B/C/D;代码实际 BridgeChannel 4 值,channel_map 暴露 3 档 |
 | F-* IDs 总数 | `Docs/FEATURE_INVENTORY.md` 主表 | **105 行 × 8 列 / 15 family** |

@@ -76,7 +76,9 @@ Defer 治理项与 UE 运行时专项全部落盘,残留风险仅有 `LLM Intern
 
 ## 2. 验收门禁清单
 
-UE 5.7 重构验收必须逐项通过下列 5 个门禁,任何一项不通过视为整体未达验收:
+> ⚠️ **UE 5.7 重构计划已于 2026-05-27 企汰**;本节门禁原为 UE 5.7 重构验收设计,**Phase 12 收尾后改作 UE 5.5.4 主线的回归门禁基线**,任何回归视为 main 退化。
+
+下列 5 个门禁是 main 主线的回归门禁(原 UE 5.7 重构验收口径),任何一项不通过视为 main 退化:
 
 ### 2.1 Schema --strict 26/26
 
@@ -134,9 +136,11 @@ python -c "from Plugins.AgentBridge.MCP.tool_definitions import ALL_TOOLS; print
   7 份 LLD(01..07)全部实地化,无 placeholder。
 - 对应 F-HOOK-01 document-release gate 通过、F-VAL-01..03 治理脚本全绿。
 
-## 3. UE 5.7 重构验收模板(空模板,待重构完成后填)
+## 3. UE 5.7 重构验收模板(**计划已企汰 2026-05-27**,模板保留作未来可能重启的资产)
 
-> 说明:本节是 UE 5.5.4 → 5.7 重构完成后的验收 checkbox 模板。
+> ⚠️ **UE 5.7 重构计划已于 2026-05-27 企汰**。本节模板保留(BC 知识库尚有 P1 6 条 msc 已裁决 + P2/P3 留实测)作为未来重启资产,但本阶段不再主动维护、不阻塞主线。
+>
+> 说明:本节原为 UE 5.5.4 → 5.7 重构完成后的验收 checkbox 模板。
 > 每项需附执行命令与证据文件链接,证据落 `ProjectState/Reports/<YYYY-MM-DD>/`。
 > Breaking Change ID 来源:[2026-05-26-ue57-breaking-changes-scan.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/specs/2026-05-26-ue57-breaking-changes-scan.md) §3 共 25 条。
 
