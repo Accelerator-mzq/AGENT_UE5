@@ -1,7 +1,9 @@
 # 当前任务入口
 
-> 当前状态：Phase 12 LLM Internal Reopen 已完成(2026-05-27) / 等待下一阶段建立正式任务书
+> 当前状态：Phase 12 LLM Internal Reopen 已完成(2026-05-27) / UE 5.5.4 稳定 / 等待下一阶段建立正式任务书
 > 入口类型：归档跳转页(Phase 11 + Phase 12 两份子任务并存)
+>
+> ⚠️ UE 5.7 重构计划已于 2026-05-27 企汰;BC 知识库 `Docs/superpowers/specs/2026-05-26-ue57-breaking-changes-scan.md` 保留作未来可能的重启资产,不主动维护。
 >
 > Phase 12 验收报告：[llm_internal_reopen_acceptance.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-05-27/llm_internal_reopen_acceptance.md)
 > Phase 12 实施 plan：[2026-05-27-llm-internal-reopen.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/plans/2026-05-27-llm-internal-reopen.md)
