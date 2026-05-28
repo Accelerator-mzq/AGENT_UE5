@@ -891,6 +891,7 @@ def run_domain_skill_runtime(
     router: Any = None,                  # Phase 12 新路径:CapabilityRouter
     policy: Any = None,                  # ProviderPolicy
     batch_concurrency: int = 3,
+    retry_policy: Any = None,            # F1 follow-up:RetryPolicySpec(仅作用于 router 路径)
 ) -> Dict[str, Any]:
     """
     执行 Stage 4 Domain Skill Runtime。
@@ -909,6 +910,7 @@ def run_domain_skill_runtime(
             router=router,
             policy=policy,
             batch_concurrency=batch_concurrency,
+            retry_policy=retry_policy,
         )
     except agent_protocol.ProviderNotAvailable as exc:
         return {

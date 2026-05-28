@@ -64,12 +64,22 @@ def load_provider_policy_from_yaml(
 
     model = str(payload.get("model", "")).strip()
     api_key = str(payload.get("api_key", "")).strip()
+    provider = str(payload.get("provider", "")).strip()
     base_url = payload.get("base_url") or None
 
     # 占位符识别:llm_config.example.yaml 的 YOUR_API_KEY_HERE 等都视为未配置。
     placeholders = {"", "YOUR_API_KEY_HERE", "CHANGE_ME", "REPLACE_ME"}
     if api_key in placeholders or not model:
         return None
+
+    # Phase 12 follow-up F2:若 model 不带 litellm provider 前缀,从 provider 字段补上。
+    # litellm 要求 model 形如 "anthropic/claude-3-haiku" / "openai/gpt-4o" / "openai_compatible/llama3"。
+    # 已带 "/" 的视为已经合规(用户显式写了完整形式),不动。
+    if "/" not in model and provider:
+        known_providers = {"anthropic", "openai", "openai_compatible"}
+        if provider in known_providers:
+            model = f"{provider}/{model}"
+        # 未知 provider 不强拼,让 litellm 抛错给清晰反馈
 
     return ProviderPolicy(
         preferred_models=[model],

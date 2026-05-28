@@ -262,6 +262,51 @@ def test_router_routes_empty_raises() -> None:
         CapabilityRouter._routes(p)
 
 
+def test_load_policy_auto_prefix_anthropic(tmp_path: Path) -> None:
+    """provider=anthropic + model 裸写 → 自动拼 anthropic/ 前缀。"""
+    cfg = tmp_path / "llm_config.yaml"
+    cfg.write_text(
+        "provider: anthropic\n"
+        "model: claude-3-haiku-20240307\n"
+        "api_key: sk-test-fake-1234567890\n",
+        encoding="utf-8",
+    )
+    p = load_provider_policy_from_yaml(cfg)
+    assert p is not None
+    assert p.preferred_models == ["anthropic/claude-3-haiku-20240307"], \
+        f"expected auto-prefix, got: {p.preferred_models}"
+
+
+def test_load_policy_existing_prefix_not_doubled(tmp_path: Path) -> None:
+    """model 已带 / 视为合规,不重复拼前缀。"""
+    cfg = tmp_path / "llm_config.yaml"
+    cfg.write_text(
+        "provider: anthropic\n"
+        "model: openai/gpt-4o\n"
+        "api_key: sk-test-fake-1234567890\n",
+        encoding="utf-8",
+    )
+    p = load_provider_policy_from_yaml(cfg)
+    assert p is not None
+    assert p.preferred_models == ["openai/gpt-4o"], \
+        f"expected no double-prefix, got: {p.preferred_models}"
+
+
+def test_load_policy_unknown_provider_no_prefix(tmp_path: Path) -> None:
+    """未知 provider(如 'bedrock')不强拼前缀,让 litellm 自己抛清晰错误。"""
+    cfg = tmp_path / "llm_config.yaml"
+    cfg.write_text(
+        "provider: bedrock\n"
+        "model: anthropic.claude-3-haiku\n"
+        "api_key: sk-test-fake-1234567890\n",
+        encoding="utf-8",
+    )
+    p = load_provider_policy_from_yaml(cfg)
+    assert p is not None
+    # provider 不在 known_providers 集合内,model 保持裸名
+    assert p.preferred_models == ["anthropic.claude-3-haiku"]
+
+
 def test_load_policy_from_example_template_with_real_key_substituted(tmp_path: Path) -> None:
     """example yaml 替换 api_key 后应能装载，且 Phase 12 新字段进 policy.extra。
 

@@ -200,6 +200,7 @@ def test_llm_provider_router_failure_propagates() -> None:
     LLMProvider 必须把 7 dim 的 failed/timeout 透传到 per_dimension_batch_metadata。
     """
     from Plugins.AgentBridge.Compiler.providers.base import ProviderTimeout
+    from Plugins.AgentBridge.Compiler.stages.candidates_batch_orchestrator import RetryPolicySpec
 
     fa = FakeAdapter()
     # 7 dim × 3 attempts(默认 max_attempts) = 21 个 timeout output
@@ -209,12 +210,12 @@ def test_llm_provider_router_failure_propagates() -> None:
     router = CapabilityRouter()
     router.register(fa)
     policy = ProviderPolicy(preferred_models=["m"])
-    # batch_concurrency=1 + RetryPolicySpec 默认 backoff_base_s=2 会让 case 跑数十秒;
-    # LLMProvider 内部用的是 RetryPolicySpec() 默认值,这里调小 concurrency 不影响测试语义,
-    # 但为了不动 production,接受 ~默认 retry 时间(timeout error 默认 backoff
-    # exponential base=2 第 1 次 2s + 第 2 次 4s ≈ 6s/dim × 7 dim = 42s — 太慢)。
-    # 因此用 concurrency=7 让 7 dim 并行,总耗时 ≈ 6s + jitter。
-    provider = LLMProvider(router=router, policy=policy, batch_concurrency=7)
+    # F1 follow-up 2026-05-27:LLMProvider 现已支持 retry_policy 注入,
+    # 把 backoff_base_s/jitter 压到 ms 级,7 dim × 3 retry 整测从 ~6s 降到 <100ms。
+    provider = LLMProvider(
+        router=router, policy=policy, batch_concurrency=7,
+        retry_policy=RetryPolicySpec(jitter_ms=(0, 1), backoff_base_s=0.001),
+    )
 
     out = provider.generate(
         phase="candidates",
@@ -233,23 +234,20 @@ def test_llm_provider_batch_concurrency_propagated() -> None:
 
     通过 CountingFake 在每次 structured 调用进入/退出时维护 in-flight 计数,
     断 max in-flight == 2 证明 semaphore 上限确为 2。
+
+    F1 follow-up 2026-05-27:LLMProvider 现已支持 retry_policy 注入,
+    把 jitter_ms 压到 (0, 1) 让 CountingFake sleep 50ms 即可稳定重叠 — 整测从 ~4s 降到 ~250ms。
     """
+    from Plugins.AgentBridge.Compiler.stages.candidates_batch_orchestrator import RetryPolicySpec
+
     in_flight = {"count": 0, "max": 0}
 
     class CountingFake(FakeAdapter):
-        """子类化 FakeAdapter:override astructured_with_usage(LLMBatchExecutor 实际调用的钩子)。
-
-        关键设计:LLMProvider._generate_candidates_via_batch 用 RetryPolicySpec() 默认值,
-        jitter_ms 默认 (100, 500)。每个 task 进 sem 后先 jitter sleep ~100-500ms,
-        然后才进 CountingFake。要让 in_flight 窗口稳定重叠,CountingFake 内 sleep 必须
-        显著大于 jitter 上限(500ms),否则 max 可能拍到 1。这里取 0.6s 确保重叠。
-        """
-
         async def astructured_with_usage(self, call, schema):
             in_flight["count"] += 1
             in_flight["max"] = max(in_flight["max"], in_flight["count"])
-            # > jitter 上限 500ms,确保并发窗口稳定重叠
-            await asyncio.sleep(0.6)
+            # jitter 已被 RetryPolicySpec(jitter_ms=(0,1)) 压到 ~0,50ms sleep 足够稳定重叠
+            await asyncio.sleep(0.05)
             try:
                 return await super().astructured_with_usage(call, schema)
             finally:
@@ -264,7 +262,11 @@ def test_llm_provider_batch_concurrency_propagated() -> None:
     router.register(fa)
     policy = ProviderPolicy(preferred_models=["m"])
     # 关键:batch_concurrency=2 必须在底层强制 semaphore=2
-    provider = LLMProvider(router=router, policy=policy, batch_concurrency=2)
+    # F1 follow-up:retry_policy 注入快 jitter,让测试不依赖默认 (100,500) jitter
+    provider = LLMProvider(
+        router=router, policy=policy, batch_concurrency=2,
+        retry_policy=RetryPolicySpec(jitter_ms=(0, 1), backoff_base_s=0.01),
+    )
 
     provider.generate(
         phase="candidates",
@@ -273,3 +275,45 @@ def test_llm_provider_batch_concurrency_propagated() -> None:
         node={},
     )
     assert in_flight["max"] == 2, f"batch_concurrency 未透传,max={in_flight['max']}"
+
+
+def test_llm_provider_retry_policy_injected() -> None:
+    """Case 10 (F1 follow-up 2026-05-27):LLMProvider(retry_policy=...) 必须透传到底层 LLMBatchExecutor。
+
+    通过 RetryPolicySpec(max_attempts=2) + FakeAdapter 2 次 timeout 验证:
+      - 注入 max_attempts=2 → 第 2 次失败后立即 failed(attempt_count=2)
+      - 默认 max_attempts=3 时同输入会跑 3 次
+
+    本测试 dim 0 配 2 个 timeout output 然后看 attempt_count == 2 即可证明注入生效。
+    """
+    from Plugins.AgentBridge.Compiler.providers.base import ProviderTimeout
+    from Plugins.AgentBridge.Compiler.stages.candidates_batch_orchestrator import RetryPolicySpec
+
+    fa = FakeAdapter()
+    fa.program("m", outputs=[
+        FakeModelProgram(raise_error=ProviderTimeout(f"t{i}")) for i in range(2)
+    ] + [
+        FakeModelProgram(schema_value={"dimension_id": f"d{i+2}", "candidates": []})
+        for i in range(6)
+    ])
+    router = CapabilityRouter()
+    router.register(fa)
+    policy = ProviderPolicy(preferred_models=["m"])
+    provider = LLMProvider(
+        router=router, policy=policy, batch_concurrency=1,
+        retry_policy=RetryPolicySpec(
+            max_attempts=2, jitter_ms=(0, 1), backoff_base_s=0.001,
+        ),
+    )
+
+    out = provider.generate(
+        phase="candidates",
+        context_bundle=_make_ctx_with_dims(7),
+        template_prompts={"system_prompt": "sys"},
+        node={},
+    )
+    # dim 1 在 max_attempts=2 下应该 attempt_count=2 后 failed(默认 3 attempt 时 attempt_count 会是 2 然后第 3 attempt 拿到 success output)
+    assert out["per_dimension_batch_metadata"][0]["status"] == "failed"
+    assert out["per_dimension_batch_metadata"][0]["attempt_count"] == 2, \
+        f"max_attempts=2 未被注入,实际 attempt_count={out['per_dimension_batch_metadata'][0]['attempt_count']}"
+    assert out["metadata"]["promotable"] is False
