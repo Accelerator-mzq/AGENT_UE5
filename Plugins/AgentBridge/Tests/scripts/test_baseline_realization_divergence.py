@@ -52,11 +52,63 @@ def test_selected_realization_from_converged_third_level_fallback():
     assert dsr._selected_realization_from_converged(converged_pack) == {"dim-d": "cand-7"}
 
 
+def test_baseline_eligible_emits_selected_realization():
+    """realization_eligible baseline 节点：带 converged_pack 时写入 selected_realization。"""
+    node = {"instance_id": "skill-baseline-hud", "capability_id": "baseline-hud"}
+    capability = {
+        "baseline_item": "HUD",
+        "realization_class": "realization_eligible",
+        "required_elements": ["current_player", "turn_number"],
+    }
+    converged_pack = {
+        "converged_choices": [
+            {"dimension_id": "dim-hud-density", "chosen_candidate_name": "紧凑列表密度"},
+        ]
+    }
+    fragments = dsr._build_baseline_spec_fragment(
+        node, capability, {}, converged_pack=converged_pack
+    )
+    spec = next(iter(fragments.values()))
+    assert spec.get("selected_realization") == {"dim-hud-density": "紧凑列表密度"}, spec
+
+
+def test_baseline_presence_only_no_selected_realization():
+    """presence_only baseline：即使误传 converged_pack 也不写 selected_realization。"""
+    node = {"instance_id": "skill-baseline-main-menu", "capability_id": "baseline-main-menu"}
+    capability = {
+        "baseline_item": "Main Menu",
+        "realization_class": "presence_only",
+        "required_elements": ["New Game", "Quit"],
+    }
+    fragments = dsr._build_baseline_spec_fragment(
+        node, capability, {}, converged_pack={"converged_choices": [
+            {"dimension_id": "x", "chosen_candidate_name": "y"}]}
+    )
+    spec = next(iter(fragments.values()))
+    assert "selected_realization" not in spec, spec
+
+
+def test_baseline_eligible_without_converged_pack_no_field():
+    """realization_eligible 但未传 converged_pack（默认 None）时不写 selected_realization。"""
+    node = {"instance_id": "skill-baseline-hud", "capability_id": "baseline-hud"}
+    capability = {
+        "baseline_item": "HUD",
+        "realization_class": "realization_eligible",
+        "required_elements": ["current_player", "turn_number"],
+    }
+    fragments = dsr._build_baseline_spec_fragment(node, capability, {})
+    spec = next(iter(fragments.values()))
+    assert "selected_realization" not in spec, spec
+
+
 ALL_TESTS = [
     test_selected_realization_from_converged_maps_choices,
     test_selected_realization_from_converged_empty,
     test_selected_realization_from_converged_uses_fallback_key,
     test_selected_realization_from_converged_third_level_fallback,
+    test_baseline_eligible_emits_selected_realization,
+    test_baseline_presence_only_no_selected_realization,
+    test_baseline_eligible_without_converged_pack_no_field,
 ]
 
 

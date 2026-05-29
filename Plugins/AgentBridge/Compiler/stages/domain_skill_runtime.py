@@ -489,6 +489,7 @@ def _build_baseline_spec_fragment(
     node: Dict[str, Any],
     capability: Dict[str, Any],
     clarification_gate_report: Dict[str, Any],
+    converged_pack: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     """为 baseline 节点构建最小 spec_fragments。"""
     family_name = _family_name(node)
@@ -520,6 +521,12 @@ def _build_baseline_spec_fragment(
         spec["persistence"] = "session_only"
     if node.get("instance_id") == "skill-baseline-platform-foundation":
         spec["platform_scope"] = "desktop_local_runtime"
+
+    # realization_eligible baseline 与 gameplay 对称：把发散收敛结果写入 spec。
+    if capability.get("realization_class") == "realization_eligible":
+        selected_realization = _selected_realization_from_converged(converged_pack)
+        if selected_realization:
+            spec["selected_realization"] = selected_realization
 
     return {family_name: spec}
 
