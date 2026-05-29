@@ -516,7 +516,6 @@ def _build_baseline_spec_fragment(
         ]
 
     if node.get("instance_id") == "skill-baseline-hud":
-        spec["required_elements"] = capability.get("required_elements", [])
         spec["notes"] = "HUD 为 realization_eligible baseline，后续可结合 gameplay state 细化。"
     if node.get("instance_id") == "skill-baseline-settings":
         spec["persistence"] = "session_only"
@@ -658,6 +657,17 @@ def _build_discovered_fragment(
                 "_build_discovered_fragment: baseline capability_id=%r 未在 contract 中找到，fragment 将降级",
                 node.get("capability_id", ""),
             )
+        # HUD 拥有 GDD 锁定的 required_hud_fields 硬约束，required_elements 以此为准
+        # （保留 Task 3 前语义，避免泛化后静默改变 HUD 产出）；其余 baseline 用 capability 自带值。
+        if node.get("capability_id") == "baseline-hud":
+            hud_required = (
+                root_skill_contract.get("constraint_fields", {})
+                .get("ui.required_hud_fields", {})
+                .get("value")
+            )
+            if hud_required is not None:
+                # 用新 dict 覆盖，避免原地修改 _capability_map 缓存的共享引用
+                capability = {**capability, "required_elements": hud_required}
         spec_fragments = _build_baseline_spec_fragment(
             node, capability, clarification_gate_report, converged_pack=converged_pack
         )

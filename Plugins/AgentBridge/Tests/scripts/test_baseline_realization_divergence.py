@@ -102,17 +102,23 @@ def test_baseline_eligible_without_converged_pack_no_field():
 
 
 def _fake_contract_two_eligible():
-    """构造含两个 realization_eligible baseline capability 的 root_skill_contract。"""
+    """构造含两个 realization_eligible baseline capability 的 root_skill_contract。
+    HUD capability 的 required_elements 故意与 constraint_fields 不同，
+    用于验证 HUD 保留逻辑确实以 constraint 值为准。
+    """
     return {
         "baseline_capabilities": [
             {"capability_id": "baseline-hud", "baseline_item": "HUD",
              "realization_class": "realization_eligible",
-             "required_elements": ["current_player", "turn_number"]},
+             "required_elements": ["current_turn", "dice_result"]},  # 故意不同于 constraint
             {"capability_id": "baseline-audio-foundation", "baseline_item": "Audio Foundation",
              "realization_class": "realization_eligible",
              "required_elements": ["master_volume", "sfx_bus"]},
         ],
         "gameplay_capabilities": [],
+        "constraint_fields": {
+            "ui.required_hud_fields": {"value": ["current_player", "player_cash", "turn_number"]}
+        },
     }
 
 
@@ -160,7 +166,9 @@ def test_discovered_baseline_hud_semantics_preserved():
         phase_scope="test",
     )
     spec = next(iter(fragment["spec_fragments"].values()))
-    assert spec.get("required_elements") == ["current_player", "turn_number"], spec
+    # HUD 保留语义：required_elements 必须来自 constraint_fields（["current_player","player_cash","turn_number"]），
+    # 而非 capability 自带值（["current_turn","dice_result"]）
+    assert spec.get("required_elements") == ["current_player", "player_cash", "turn_number"], spec
     assert spec.get("selected_realization") == {"dim-hud-density": "紧凑列表密度"}, spec
     assert spec.get("capability") == "HUD", spec
 
