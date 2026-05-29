@@ -113,9 +113,6 @@ def _fake_contract_two_eligible():
              "required_elements": ["master_volume", "sfx_bus"]},
         ],
         "gameplay_capabilities": [],
-        "constraint_fields": {
-            "ui.required_hud_fields": {"value": ["current_player", "turn_number"]}
-        },
     }
 
 
@@ -165,6 +162,7 @@ def test_discovered_baseline_hud_semantics_preserved():
     spec = next(iter(fragment["spec_fragments"].values()))
     assert spec.get("required_elements") == ["current_player", "turn_number"], spec
     assert spec.get("selected_realization") == {"dim-hud-density": "紧凑列表密度"}, spec
+    assert spec.get("capability") == "HUD", spec
 
 
 ALL_TESTS = [

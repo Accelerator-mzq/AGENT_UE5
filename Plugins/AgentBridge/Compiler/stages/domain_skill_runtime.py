@@ -11,6 +11,7 @@ Phase 11 Domain Skill Runtime.
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
@@ -651,6 +652,12 @@ def _build_discovered_fragment(
         capability = _capability_map(root_skill_contract).get(
             node.get("capability_id", ""), {}
         )
+        if not capability:
+            # capability_id 在 contract 中查不到，fragment 将降级为空信息产出，显式告警便于排查
+            logging.getLogger(__name__).warning(
+                "_build_discovered_fragment: baseline capability_id=%r 未在 contract 中找到，fragment 将降级",
+                node.get("capability_id", ""),
+            )
         spec_fragments = _build_baseline_spec_fragment(
             node, capability, clarification_gate_report, converged_pack=converged_pack
         )
