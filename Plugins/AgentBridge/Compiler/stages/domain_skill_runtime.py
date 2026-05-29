@@ -646,11 +646,18 @@ def _build_discovered_fragment(
     """为 gameplay / realization_eligible baseline 节点生成完整 fragment。"""
     is_baseline = node.get("domain_type") == "baseline"
     design_decision_log = _build_converged_decision_log(node, design_space_report, converged_pack)
-    spec_fragments = (
-        _build_baseline_spec_fragment(node, {"baseline_item": "HUD", "realization_class": "realization_eligible", "required_elements": root_skill_contract["constraint_fields"]["ui.required_hud_fields"]["value"]}, clarification_gate_report)
-        if is_baseline
-        else _build_gameplay_spec_fragment(node, root_skill_contract, converged_pack, clarification_gate_report)
-    )
+    # 按 capability_id 动态查 capability，去掉 HUD 硬编码；同时把 converged_pack 传入 baseline 分支
+    if is_baseline:
+        capability = _capability_map(root_skill_contract).get(
+            node.get("capability_id", ""), {}
+        )
+        spec_fragments = _build_baseline_spec_fragment(
+            node, capability, clarification_gate_report, converged_pack=converged_pack
+        )
+    else:
+        spec_fragments = _build_gameplay_spec_fragment(
+            node, root_skill_contract, converged_pack, clarification_gate_report
+        )
 
     retained_gate_items = _find_gate_items(
         clarification_gate_report,

@@ -101,6 +101,72 @@ def test_baseline_eligible_without_converged_pack_no_field():
     assert "selected_realization" not in spec, spec
 
 
+def _fake_contract_two_eligible():
+    """构造含两个 realization_eligible baseline capability 的 root_skill_contract。"""
+    return {
+        "baseline_capabilities": [
+            {"capability_id": "baseline-hud", "baseline_item": "HUD",
+             "realization_class": "realization_eligible",
+             "required_elements": ["current_player", "turn_number"]},
+            {"capability_id": "baseline-audio-foundation", "baseline_item": "Audio Foundation",
+             "realization_class": "realization_eligible",
+             "required_elements": ["master_volume", "sfx_bus"]},
+        ],
+        "gameplay_capabilities": [],
+        "constraint_fields": {
+            "ui.required_hud_fields": {"value": ["current_player", "turn_number"]}
+        },
+    }
+
+
+def _fake_converged(dim_id, choice):
+    """构造仅含一条 converged_choices 的 converged_pack。"""
+    return {"converged_choices": [{"dimension_id": dim_id, "chosen_candidate_name": choice}]}
+
+
+def test_discovered_baseline_uses_capability_by_id_not_hardcoded_hud():
+    """非 HUD 的 realization_eligible baseline 不再被硬编码成 HUD。"""
+    contract = _fake_contract_two_eligible()
+    node = {
+        "instance_id": "skill-baseline-audio-foundation",
+        "capability_id": "baseline-audio-foundation",
+        "domain_type": "baseline",
+    }
+    fragment = dsr._build_discovered_fragment(
+        node=node,
+        root_skill_contract=contract,
+        clarification_gate_report={},
+        design_space_report={"discovery_dimensions": []},
+        converged_pack=_fake_converged("dim-audio-density", "丰富音效层"),
+        phase_scope="test",
+    )
+    spec = next(iter(fragment["spec_fragments"].values()))
+    assert spec.get("capability") == "Audio Foundation", spec
+    assert spec.get("required_elements") == ["master_volume", "sfx_bus"], spec
+    assert spec.get("selected_realization") == {"dim-audio-density": "丰富音效层"}, spec
+
+
+def test_discovered_baseline_hud_semantics_preserved():
+    """HUD 经泛化路径后 required_elements 不变，且新增 selected_realization。"""
+    contract = _fake_contract_two_eligible()
+    node = {
+        "instance_id": "skill-baseline-hud",
+        "capability_id": "baseline-hud",
+        "domain_type": "baseline",
+    }
+    fragment = dsr._build_discovered_fragment(
+        node=node,
+        root_skill_contract=contract,
+        clarification_gate_report={},
+        design_space_report={"discovery_dimensions": []},
+        converged_pack=_fake_converged("dim-hud-density", "紧凑列表密度"),
+        phase_scope="test",
+    )
+    spec = next(iter(fragment["spec_fragments"].values()))
+    assert spec.get("required_elements") == ["current_player", "turn_number"], spec
+    assert spec.get("selected_realization") == {"dim-hud-density": "紧凑列表密度"}, spec
+
+
 ALL_TESTS = [
     test_selected_realization_from_converged_maps_choices,
     test_selected_realization_from_converged_empty,
@@ -109,6 +175,8 @@ ALL_TESTS = [
     test_baseline_eligible_emits_selected_realization,
     test_baseline_presence_only_no_selected_realization,
     test_baseline_eligible_without_converged_pack_no_field,
+    test_discovered_baseline_uses_capability_by_id_not_hardcoded_hud,
+    test_discovered_baseline_hud_semantics_preserved,
 ]
 
 
