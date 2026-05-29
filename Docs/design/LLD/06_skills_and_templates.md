@@ -89,9 +89,10 @@ def load_mcp_node_state(output_dir, node_id) -> Dict[str, Any]:
 
 # Fragment 构造
 def _build_gameplay_spec_fragment(node, ...) -> Dict[str, Any]:
-    # gameplay / realization_eligible baseline 完整 fragment
-def _build_baseline_spec_fragment(node, ...) -> Dict[str, Any]:
-    # baseline 节点的 fragment(presence_only 走 _build_presence_fragment 短路径)
+    # gameplay 节点完整 fragment(locked_constraints + 来自 converged_pack 的 selected_realization)
+def _build_baseline_spec_fragment(node, ..., converged_pack=None) -> Dict[str, Any]:
+    # baseline 节点 fragment;realization_eligible 时写入 selected_realization(与 gameplay 对称),presence_only 走 _build_presence_fragment 短路径
+    # 注:realization_eligible baseline(如 HUD)经 _build_discovered_fragment 调用本函数,capability 按 capability_id 动态查;HUD 的 required_elements 仍以 constraint_fields.ui.required_hud_fields 为准
 def _build_presence_fragment(node, ...) -> Dict[str, Any]:
     # presence_only / fast_mode 短路径,跳过 Discovery 直接生成最小 Fragment
 def _build_discovered_fragment(node, design_space, candidates, convergence) -> Dict[str, Any]:
