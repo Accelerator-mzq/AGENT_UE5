@@ -309,6 +309,29 @@ def _family_name(node: Dict[str, Any]) -> str:
     )
 
 
+def _selected_realization_from_converged(converged_pack: Dict[str, Any] | None) -> Dict[str, Any]:
+    """从 converged_pack 提取 dimension_id -> chosen 候选 的映射。
+
+    兼容 converged_choices / convergence_decisions 两种键，
+    以及 chosen_candidate_name / chosen_candidate / selected_candidate_id 三种候选字段。
+    与 _build_gameplay_spec_fragment 行内逻辑保持一致，供 baseline 复用。
+    当前仅新增、暂不替换 _build_gameplay_spec_fragment 行内块（保持 gameplay 路径不变）；Task 2 起由 baseline 路径调用。
+    """
+    if not converged_pack:
+        return {}
+    convergence_choices = (
+        converged_pack.get("converged_choices")
+        or converged_pack.get("convergence_decisions", [])
+    )
+    return {
+        choice.get("dimension_id", ""): choice.get(
+            "chosen_candidate_name",
+            choice.get("chosen_candidate", choice.get("selected_candidate_id", "")),
+        )
+        for choice in convergence_choices
+    }
+
+
 def _build_gameplay_spec_fragment(
     node: Dict[str, Any],
     root_skill_contract: Dict[str, Any],
