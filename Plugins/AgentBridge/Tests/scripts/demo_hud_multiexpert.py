@@ -73,13 +73,26 @@ def _parse_json(raw: str) -> dict:
     return json.loads(text[start:end + 1])
 
 
-def _call(client, system_prompt: str, user_prompt: str) -> dict:
+def _call(client, system_prompt: str, user_prompt: str, diag: dict | None = None) -> dict:
+    """调用 LLM 并返回解析后的 dict。
+
+    diag: 可选诊断字典，调用者传入后此函数会向其写入：
+      - diag["raw"]    原始 LLM 文本（解析前）
+      - diag["reason"] 异常信息（仅 call_error 时）
+      调用者可通过检查 diag 内容判断空结果的真因。
+    """
     try:
         raw = client.call([
             {"role": "system", "content": system_prompt + "\n只返回一个合法 JSON object。"},
             {"role": "user", "content": user_prompt},
         ])
+        # 诊断留痕：拿到原始文本后立即写入 diag，无论后续解析是否成功
+        if diag is not None:
+            diag["raw"] = raw
     except Exception as exc:  # noqa: BLE001
+        # 诊断留痕：网络/SDK 异常写入 diag
+        if diag is not None:
+            diag["reason"] = str(exc)
         return {"call_error": True, "reason": str(exc)}
     try:
         return _parse_json(raw)
@@ -114,20 +127,28 @@ def stance(client, expert: str, ctx: str, dims: list) -> dict:
     return {k: v.get("choice", "") for k, v in out.get("stance", {}).items() if isinstance(v, dict)}
 
 
-def arbitrate(client, ctx: str, dims: list, stances: dict) -> dict:
+def arbitrate(client, ctx: str, dims: list, stances: dict, diag: dict | None = None) -> dict:
     """中立总监一次性裁决：读三方立场，逐维度语义整合。
 
     返回 {dimension_id: {final_choice, integration_note, unresolved}}。
     失败时（网络错误/JSON 解析失败/格式异常）返回空 dict 或剔除异常项，
     交由 assemble_arbitration_result 以 arbiter_missing 兜底留痕（可追溯，不崩溃）。
+
+    diag: 可选诊断字典，透传给 _call，最终持有裁决调用的原始 LLM 文本，
+          以及额外补充 out_keys（解析后顶层 keys）以便判断格式遵从情况。
     """
     dim_ids = [d.get("dimension_id", "") for d in dims if d.get("dimension_id")]
+    # 诊断留痕：把 diag 透传给 _call，原始 LLM 文本将写入 diag["raw"]
     out = _call(client, ARBITER_PROMPT,
                 ctx + f"\n## 待裁决维度全集\n{json.dumps(dim_ids, ensure_ascii=False)}\n"
                 f"## 三方立场\n{json.dumps(stances, ensure_ascii=False)}\n"
                 "## 任务\n对每个维度做语义整合裁决。"
                 "输出 JSON: {\"arbitration\":{\"hud.xxx\":"
-                "{\"final_choice\":\"..\",\"integration_note\":\"..\",\"unresolved\":false}}}")
+                "{\"final_choice\":\"..\",\"integration_note\":\"..\",\"unresolved\":false}}}",
+                diag)
+    # 诊断留痕：记录解析后的顶层 keys，以便区分"格式不遵从"（key 不叫 arbitration）和"真空"
+    if diag is not None:
+        diag["out_keys"] = list(out.keys()) if isinstance(out, dict) else None
     result = out.get("arbitration", {})
     if not isinstance(result, dict):
         return {}
@@ -158,8 +179,10 @@ def run_pilot() -> int:
     log["stances"] = stances
 
     # 阶段3 中立总监裁决（一次性，语义整合，无字符串比较）
-    arbitration = arbitrate(client, ctx, merged, stances)
+    arb_diag: dict = {}
+    arbitration = arbitrate(client, ctx, merged, stances, arb_diag)
     log["arbitration"] = arbitration
+    log["arbitration_diag"] = arb_diag   # 诊断留痕：裁决调用的原始 LLM 文本（截断/格式不遵从/真空均可辨）
 
     # 阶段4 装配（正常/unresolved/missing 三情况由 core 处理）
     final, gaps = core.assemble_arbitration_result(merged, arbitration, stances)
