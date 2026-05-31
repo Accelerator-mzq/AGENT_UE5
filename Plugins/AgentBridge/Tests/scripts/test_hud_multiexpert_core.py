@@ -66,6 +66,9 @@ def test_weighted_majority_owner_weight_and_tie():
     assert core.weighted_majority_fallback(
         {"ux-designer": "A", "ui-programmer": "A", "art-director": "A"}, "art-director") == "A"
     assert core.weighted_majority_fallback({}, "ux-designer") is None
+    # owner(art-director)未表态，A/B 各 1 票平票 → 取字典序最小 "A"
+    assert core.weighted_majority_fallback(
+        {"ux-designer": "B", "ui-programmer": "A"}, "art-director") == "A"
 
 
 def test_compare_dimension_coverage():
@@ -96,7 +99,7 @@ def main() -> int:
             fn()
             print(f"PASS {fn.__name__}")
         except Exception as exc:  # noqa: BLE001
-            failures.append(fn.__name__)
+            failures.append((fn.__name__, repr(exc)))
             print(f"FAIL {fn.__name__}: {exc!r}")
     if failures:
         print(f"\n{len(failures)} failed / {len(ALL_TESTS)} total")
