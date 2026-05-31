@@ -82,6 +82,48 @@ def test_compare_dimension_coverage():
     assert res["common"] == ["hud.info_density", "hud.layout"], res
 
 
+def test_assemble_arbitration_normal():
+    """全部 resolved：selected 取 final_choice，gaps 空。"""
+    merged = [{"dimension_id": "hud.a", "proposed_by": ["ux-designer"]},
+              {"dimension_id": "hud.b", "proposed_by": ["art-director"]}]
+    arbitration = {
+        "hud.a": {"final_choice": "方案A", "integration_note": "三方一致", "unresolved": False},
+        "hud.b": {"final_choice": "方案B", "integration_note": "采纳美术", "unresolved": False},
+    }
+    stances = {"ux-designer": {"hud.a": "x", "hud.b": "y"}}
+    selected, gaps = core.assemble_arbitration_result(merged, arbitration, stances)
+    assert selected == {"hud.a": "方案A", "hud.b": "方案B"}, selected
+    assert gaps == [], gaps
+
+
+def test_assemble_arbitration_unresolved():
+    """unresolved=true：selected 仍取 final_choice，但该维度进 gaps 附三方立场。"""
+    merged = [{"dimension_id": "hud.a", "proposed_by": ["ux-designer"]}]
+    arbitration = {"hud.a": {"final_choice": "总监择优X", "integration_note": "UX与美术对立", "unresolved": True}}
+    stances = {"ux-designer": {"hud.a": "全显示"}, "art-director": {"hud.a": "极简"}}
+    selected, gaps = core.assemble_arbitration_result(merged, arbitration, stances)
+    assert selected == {"hud.a": "总监择优X"}, selected
+    assert len(gaps) == 1, gaps
+    assert gaps[0]["dimension_id"] == "hud.a"
+    assert gaps[0]["resolved_by"] == "arbiter_unresolved"
+    assert gaps[0]["integration_note"] == "UX与美术对立"
+    assert gaps[0]["stances"] == {"ux-designer": "全显示", "art-director": "极简"}
+
+
+def test_assemble_arbitration_missing():
+    """合并维度在 arbitration 中缺失：selected 兜底空串 + gap 标 arbiter_missing。"""
+    merged = [{"dimension_id": "hud.a", "proposed_by": ["ux-designer"]},
+              {"dimension_id": "hud.missing", "proposed_by": ["ui-programmer"]}]
+    arbitration = {"hud.a": {"final_choice": "方案A", "integration_note": "", "unresolved": False}}
+    stances = {"ui-programmer": {"hud.missing": "我的主张"}}
+    selected, gaps = core.assemble_arbitration_result(merged, arbitration, stances)
+    assert selected == {"hud.a": "方案A", "hud.missing": ""}, selected
+    assert len(gaps) == 1, gaps
+    assert gaps[0]["dimension_id"] == "hud.missing"
+    assert gaps[0]["resolved_by"] == "arbiter_missing"
+    assert gaps[0]["stances"] == {"ui-programmer": "我的主张"}
+
+
 ALL_TESTS = [
     test_merge_dedup_and_records_proposers,
     test_resolve_owner_priority_and_fallback,
@@ -89,6 +131,9 @@ ALL_TESTS = [
     test_detect_convergence_single_voice_is_converged,
     test_weighted_majority_owner_weight_and_tie,
     test_compare_dimension_coverage,
+    test_assemble_arbitration_normal,
+    test_assemble_arbitration_unresolved,
+    test_assemble_arbitration_missing,
 ]
 
 

@@ -100,3 +100,51 @@ def compare_dimension_coverage(
         "only_in_single": sorted(single - multi),
         "common": sorted(multi & single),
     }
+
+
+def assemble_arbitration_result(
+    merged_dims: list[dict[str, Any]],
+    arbitration: dict[str, dict[str, Any]],
+    stances: dict[str, dict[str, str]],
+) -> tuple[dict[str, str], list[dict[str, Any]]]:
+    """根据中立总监的裁决结果装配最终 spec。
+
+    merged_dims: merge_discovered_dimensions 的输出（每项含 dimension_id）。
+    arbitration: 总监输出 {dimension_id: {final_choice, integration_note, unresolved}}。
+    stances: {专家名: {dimension_id: choice}} 三方原始立场（用于 gap 留痕）。
+    返回: (selected_realization, capability_gaps)。
+      - 正常 resolved：selected 取 final_choice，不进 gaps；
+      - unresolved=True：selected 仍取 final_choice，该维度进 gaps（附 integration_note + 三方立场）；
+      - 合并维度在 arbitration 中缺失：selected 兜底空串，进 gaps 标 arbiter_missing。
+    """
+    def _stances_for(did: str) -> dict[str, str]:
+        # 收集所有对该维度有表态的专家立场
+        return {expert: per[did] for expert, per in stances.items() if did in per}
+
+    selected: dict[str, str] = {}
+    gaps: list[dict[str, Any]] = []
+    for dim in merged_dims:
+        did = dim.get("dimension_id")
+        if not did:
+            continue
+        verdict = arbitration.get(did)
+        if verdict is None:
+            # 该维度在裁决结果中缺失，兜底空串并记录 gap
+            selected[did] = ""
+            gaps.append({
+                "dimension_id": did,
+                "resolved_by": "arbiter_missing",
+                "stances": _stances_for(did),
+            })
+            continue
+        # 正常写入 final_choice，None 或缺失均兜底空串
+        selected[did] = verdict.get("final_choice", "") or ""
+        if verdict.get("unresolved"):
+            # 虽有裁决但标记为未解决，进 gaps 留痕
+            gaps.append({
+                "dimension_id": did,
+                "integration_note": verdict.get("integration_note", ""),
+                "resolved_by": "arbiter_unresolved",
+                "stances": _stances_for(did),
+            })
+    return selected, gaps
