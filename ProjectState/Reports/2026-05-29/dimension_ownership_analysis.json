@@ -1,0 +1,409 @@
+{
+  "field_to_nodes": {
+    "board.world_layout_dimensions": [
+      "skill-board-topology"
+    ],
+    "board.tile_visual_style": [
+      "skill-board-topology",
+      "skill-tile-system",
+      "skill-economy"
+    ],
+    "hud.layout_style": [
+      "skill-board-topology",
+      "skill-turn-loop",
+      "skill-economy",
+      "skill-player-management",
+      "skill-jail",
+      "skill-baseline-hud"
+    ],
+    "player_token.visual_style": [
+      "skill-tile-system",
+      "skill-economy",
+      "skill-player-management",
+      "skill-baseline-hud"
+    ],
+    "popup.presentation_style": [
+      "skill-tile-system",
+      "skill-turn-loop",
+      "skill-dice",
+      "skill-economy",
+      "skill-player-management",
+      "skill-jail"
+    ],
+    "dice.roll_feedback": [
+      "skill-turn-loop",
+      "skill-dice",
+      "skill-jail",
+      "skill-baseline-hud"
+    ],
+    "frontend.visual_theme": [
+      "skill-baseline-hud"
+    ]
+  },
+  "per_node": {
+    "skill-board-topology": {
+      "domain_type": "gameplay",
+      "coupling": [
+        "skill-baseline-hud"
+      ],
+      "dependencies": [],
+      "fields": [
+        {
+          "variant_field": "board.world_layout_dimensions",
+          "prefix": "board",
+          "ownership": "native",
+          "endpoint_in_edges": null,
+          "lens_dims": [
+            "spatial_readability",
+            "view_framing"
+          ],
+          "shared_with_n_nodes": 1
+        },
+        {
+          "variant_field": "board.tile_visual_style",
+          "prefix": "board",
+          "ownership": "native",
+          "endpoint_in_edges": null,
+          "lens_dims": [
+            "semantic_coding",
+            "anchor_emphasis"
+          ],
+          "shared_with_n_nodes": 3
+        },
+        {
+          "variant_field": "hud.layout_style",
+          "prefix": "hud",
+          "ownership": "borrowed",
+          "endpoint_in_edges": true,
+          "lens_dims": [
+            "information_footprint",
+            "focus_priority"
+          ],
+          "shared_with_n_nodes": 6
+        }
+      ]
+    },
+    "skill-tile-system": {
+      "domain_type": "gameplay",
+      "coupling": [
+        "skill-jail",
+        "skill-baseline-hud"
+      ],
+      "dependencies": [
+        "skill-board-topology"
+      ],
+      "fields": [
+        {
+          "variant_field": "board.tile_visual_style",
+          "prefix": "board",
+          "ownership": "native",
+          "endpoint_in_edges": null,
+          "lens_dims": [
+            "semantic_coding",
+            "anchor_emphasis"
+          ],
+          "shared_with_n_nodes": 3
+        },
+        {
+          "variant_field": "player_token.visual_style",
+          "prefix": "player_token",
+          "ownership": "borrowed",
+          "endpoint_in_edges": false,
+          "lens_dims": [
+            "identity_surface"
+          ],
+          "shared_with_n_nodes": 4
+        },
+        {
+          "variant_field": "popup.presentation_style",
+          "prefix": "popup",
+          "ownership": "cross_cutting",
+          "endpoint_in_edges": null,
+          "lens_dims": [
+            "decision_surface",
+            "event_notice_weight"
+          ],
+          "shared_with_n_nodes": 6
+        }
+      ]
+    },
+    "skill-turn-loop": {
+      "domain_type": "gameplay",
+      "coupling": [
+        "skill-dice"
+      ],
+      "dependencies": [
+        "skill-board-topology",
+        "skill-dice"
+      ],
+      "fields": [
+        {
+          "variant_field": "dice.roll_feedback",
+          "prefix": "dice",
+          "ownership": "native",
+          "endpoint_in_edges": null,
+          "lens_dims": [
+            "reveal_rhythm",
+            "rule_event_emphasis"
+          ],
+          "shared_with_n_nodes": 4
+        },
+        {
+          "variant_field": "popup.presentation_style",
+          "prefix": "popup",
+          "ownership": "cross_cutting",
+          "endpoint_in_edges": null,
+          "lens_dims": [
+            "decision_surface",
+            "event_notice_weight"
+          ],
+          "shared_with_n_nodes": 6
+        },
+        {
+          "variant_field": "hud.layout_style",
+          "prefix": "hud",
+          "ownership": "borrowed",
+          "endpoint_in_edges": false,
+          "lens_dims": [
+            "information_footprint",
+            "focus_priority"
+          ],
+          "shared_with_n_nodes": 6
+        }
+      ]
+    },
+    "skill-dice": {
+      "domain_type": "gameplay",
+      "coupling": [
+        "skill-turn-loop"
+      ],
+      "dependencies": [],
+      "fields": [
+        {
+          "variant_field": "dice.roll_feedback",
+          "prefix": "dice",
+          "ownership": "native",
+          "endpoint_in_edges": null,
+          "lens_dims": [
+            "reveal_rhythm",
+            "rule_event_emphasis"
+          ],
+          "shared_with_n_nodes": 4
+        },
+        {
+          "variant_field": "popup.presentation_style",
+          "prefix": "popup",
+          "ownership": "cross_cutting",
+          "endpoint_in_edges": null,
+          "lens_dims": [
+            "decision_surface",
+            "event_notice_weight"
+          ],
+          "shared_with_n_nodes": 6
+        }
+      ]
+    },
+    "skill-economy": {
+      "domain_type": "gameplay",
+      "coupling": [
+        "skill-jail"
+      ],
+      "dependencies": [
+        "skill-tile-system",
+        "skill-turn-loop"
+      ],
+      "fields": [
+        {
+          "variant_field": "popup.presentation_style",
+          "prefix": "popup",
+          "ownership": "cross_cutting",
+          "endpoint_in_edges": null,
+          "lens_dims": [
+            "decision_surface",
+            "event_notice_weight"
+          ],
+          "shared_with_n_nodes": 6
+        },
+        {
+          "variant_field": "board.tile_visual_style",
+          "prefix": "board",
+          "ownership": "borrowed",
+          "endpoint_in_edges": true,
+          "lens_dims": [
+            "semantic_coding",
+            "anchor_emphasis"
+          ],
+          "shared_with_n_nodes": 3
+        },
+        {
+          "variant_field": "player_token.visual_style",
+          "prefix": "player_token",
+          "ownership": "borrowed",
+          "endpoint_in_edges": false,
+          "lens_dims": [
+            "identity_surface"
+          ],
+          "shared_with_n_nodes": 4
+        },
+        {
+          "variant_field": "hud.layout_style",
+          "prefix": "hud",
+          "ownership": "borrowed",
+          "endpoint_in_edges": false,
+          "lens_dims": [
+            "information_footprint",
+            "focus_priority"
+          ],
+          "shared_with_n_nodes": 6
+        }
+      ]
+    },
+    "skill-player-management": {
+      "domain_type": "gameplay",
+      "coupling": [],
+      "dependencies": [
+        "skill-turn-loop",
+        "skill-economy"
+      ],
+      "fields": [
+        {
+          "variant_field": "player_token.visual_style",
+          "prefix": "player_token",
+          "ownership": "native",
+          "endpoint_in_edges": null,
+          "lens_dims": [
+            "identity_surface"
+          ],
+          "shared_with_n_nodes": 4
+        },
+        {
+          "variant_field": "hud.layout_style",
+          "prefix": "hud",
+          "ownership": "borrowed",
+          "endpoint_in_edges": false,
+          "lens_dims": [
+            "information_footprint",
+            "focus_priority"
+          ],
+          "shared_with_n_nodes": 6
+        },
+        {
+          "variant_field": "popup.presentation_style",
+          "prefix": "popup",
+          "ownership": "cross_cutting",
+          "endpoint_in_edges": null,
+          "lens_dims": [
+            "decision_surface",
+            "event_notice_weight"
+          ],
+          "shared_with_n_nodes": 6
+        }
+      ]
+    },
+    "skill-jail": {
+      "domain_type": "gameplay",
+      "coupling": [
+        "skill-tile-system",
+        "skill-economy"
+      ],
+      "dependencies": [
+        "skill-turn-loop",
+        "skill-player-management"
+      ],
+      "fields": [
+        {
+          "variant_field": "popup.presentation_style",
+          "prefix": "popup",
+          "ownership": "cross_cutting",
+          "endpoint_in_edges": null,
+          "lens_dims": [
+            "decision_surface",
+            "event_notice_weight"
+          ],
+          "shared_with_n_nodes": 6
+        },
+        {
+          "variant_field": "hud.layout_style",
+          "prefix": "hud",
+          "ownership": "borrowed",
+          "endpoint_in_edges": false,
+          "lens_dims": [
+            "information_footprint",
+            "focus_priority"
+          ],
+          "shared_with_n_nodes": 6
+        },
+        {
+          "variant_field": "dice.roll_feedback",
+          "prefix": "dice",
+          "ownership": "borrowed",
+          "endpoint_in_edges": true,
+          "lens_dims": [
+            "reveal_rhythm",
+            "rule_event_emphasis"
+          ],
+          "shared_with_n_nodes": 4
+        }
+      ]
+    },
+    "skill-baseline-hud": {
+      "domain_type": "baseline",
+      "coupling": [
+        "skill-board-topology",
+        "skill-tile-system",
+        "skill-baseline-pause",
+        "skill-baseline-results",
+        "skill-baseline-input-foundation"
+      ],
+      "dependencies": [
+        "skill-turn-loop",
+        "skill-economy",
+        "skill-player-management"
+      ],
+      "fields": [
+        {
+          "variant_field": "hud.layout_style",
+          "prefix": "hud",
+          "ownership": "native",
+          "endpoint_in_edges": null,
+          "lens_dims": [
+            "information_footprint",
+            "focus_priority"
+          ],
+          "shared_with_n_nodes": 6
+        },
+        {
+          "variant_field": "dice.roll_feedback",
+          "prefix": "dice",
+          "ownership": "borrowed",
+          "endpoint_in_edges": true,
+          "lens_dims": [
+            "reveal_rhythm",
+            "rule_event_emphasis"
+          ],
+          "shared_with_n_nodes": 4
+        },
+        {
+          "variant_field": "frontend.visual_theme",
+          "prefix": "frontend",
+          "ownership": "cross_cutting",
+          "endpoint_in_edges": null,
+          "lens_dims": [
+            "theme_readability"
+          ],
+          "shared_with_n_nodes": 1
+        },
+        {
+          "variant_field": "player_token.visual_style",
+          "prefix": "player_token",
+          "ownership": "borrowed",
+          "endpoint_in_edges": true,
+          "lens_dims": [
+            "identity_surface"
+          ],
+          "shared_with_n_nodes": 4
+        }
+      ]
+    }
+  }
+}

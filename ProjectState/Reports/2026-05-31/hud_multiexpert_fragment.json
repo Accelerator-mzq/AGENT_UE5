@@ -1,0 +1,63 @@
+{
+  "fragment_version": "2.0",
+  "skill_instance_id": "skill-baseline-hud",
+  "template_id": "baseline.hud.realization_eligible",
+  "domain_type": "baseline",
+  "phase_scope": "phase11_hud_multiexpert_pilot",
+  "status": "completed",
+  "emitted_families": [
+    "hud_spec"
+  ],
+  "spec_fragments": {
+    "hud_spec": {
+      "capability": "HUD",
+      "realization_class": "realization_eligible",
+      "required_elements": [
+        "current_player",
+        "player_cash",
+        "turn_number"
+      ],
+      "selected_realization": {
+        "hud.accessibility": "Color‑blind safe palette and adjustable font size",
+        "hud.accessibility_contrast": "Contrast ratio ≥ 4.5:1 for all HUD text",
+        "hud.animation_feedback": "Pulse effect on cash increase, slide effect on turn change",
+        "hud.animation_performance": "Simple scale/fade animations under 200 ms",
+        "hud.cash_display": "Currency formatted with symbol, animated pulse on value change",
+        "hud.color_scheme": "Dark semi‑transparent background (#00000080) with white text and distinct player accent colors",
+        "hud.contextual_adaptation": "HUD reduces opacity to 70 % and hides non‑essential elements when a modal is open",
+        "hud.data_binding_source": "GameState singleton bound to HUD widgets",
+        "hud.edge_margins": "20 px margin from all screen edges",
+        "hud.iconography": "Simple icons: user silhouette, coin, clock",
+        "hud.info_hierarchy": "Primary: current player, Secondary: cash, Tertiary: turn number",
+        "hud.layout_position": "Fixed at top‑center with 20 px side margins",
+        "hud.layout_zone": "Top zone for HUD, bottom zone reserved for action buttons",
+        "hud.modularity": "Separate widget panels for player, cash, and turn",
+        "hud.multiplayer_indicator": "Player color strips alongside the player name in the HUD",
+        "hud.multiplayer_labeling": "Labels show player number (P1, P2…) and name",
+        "hud.overlay_behavior": "HUD overlays the board but hides when a modal appears",
+        "hud.player_identity": "Active player name plus color‑coded avatar",
+        "hud.player_indicator": "Color‑coded circle plus avatar next to the player name",
+        "hud.readability": "High‑contrast sans‑serif text at minimum 14 pt, scalable",
+        "hud.refresh_trigger": "Event‑driven updates on onTurnChanged and onCashChanged",
+        "hud.responsive_scaling": "Scale factor based on 1080p baseline, UI scales proportionally",
+        "hud.screen_adaptation": "Responsive scaling anchored to screen width, max 90 % width",
+        "hud.spatial_layout": "Edge-anchored horizontal top bar",
+        "hud.state_feedback": "Animated cash pulse on changes and subtle turn indicator",
+        "hud.symmetry_balance": "Mirror‑symmetrical layout with player panels evenly spaced left‑right",
+        "hud.temporal_cues": "Turn number with a thin progress bar",
+        "hud.theme_consistency": "HUD uses the same color palette, fonts, and style as the rest of the game UI",
+        "hud.transparency_opacity": "Base 100 % opacity, reduced to 70 % during modal state",
+        "hud.turn_counter": "Text label ‘Turn X’ with numeric value",
+        "hud.typography": "Sans‑serif font (Roboto/Open Sans) with bold headings",
+        "hud.visual_hierarchy": "Current player name largest, cash medium, turn smallest",
+        "hud.z_order_stacking": "HUD rendered below modal dialogs but above the board"
+      }
+    }
+  },
+  "capability_gaps": [],
+  "metadata": {
+    "generator": "HUD-MultiExpert-Pilot",
+    "promotable": false,
+    "mode": "multiexpert_pilot"
+  }
+}

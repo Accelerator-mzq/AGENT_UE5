@@ -1,0 +1,104 @@
+{
+  "fragment_version": "2.0",
+  "skill_instance_id": "skill-baseline-hud",
+  "template_id": "baseline.hud.realization_eligible",
+  "domain_type": "baseline",
+  "phase_scope": "phase11_hud_real_divergence_demo",
+  "status": "completed",
+  "emitted_families": [
+    "hud_spec"
+  ],
+  "spec_fragments": {
+    "hud_spec": {
+      "capability": "HUD",
+      "realization_class": "realization_eligible",
+      "required_elements": [
+        "current_player",
+        "player_cash",
+        "turn_number"
+      ],
+      "required_controls": [],
+      "activation": "required",
+      "notes": "HUD 为 realization_eligible baseline，后续可结合 gameplay state 细化。",
+      "selected_realization": {
+        "dim-skill-baseline-hud-reveal_rhythm": "HUD的结果揭示节奏与反馈重量·耦合优先",
+        "dim-skill-baseline-hud-information_footprint": "HUD的信息占位与棋盘遮挡平衡·耦合优先",
+        "dim-skill-baseline-hud-identity_surface": "HUD的玩家身份区分与归属表达·耦合优先",
+        "dim-skill-baseline-hud-focus_priority": "HUD的关键状态优先级排序·耦合优先"
+      }
+    }
+  },
+  "design_decision_log": [
+    {
+      "decision_id": "ddl-skill-baseline-hud-01",
+      "topic": "HUD的结果揭示节奏与反馈重量",
+      "context": "skill-baseline-hud 在 Discovery 后对该维度进行了收敛选择。",
+      "chosen": "HUD的结果揭示节奏与反馈重量·耦合优先",
+      "rationale": "HUD的结果揭示节奏与反馈重量 选择 HUD的结果揭示节奏与反馈重量·耦合优先，因为它在 边界满足度、耦合对齐度 上更贴合当前节点与阶段目标；相对次优方案保有 0.007 的总分优势。",
+      "alternatives": [
+        "rc-dim-skill-baseline-hud-reveal_rhythm-constraint_first: HUD的结果揭示节奏与反馈重量·约束优先 在 耦合对齐度 上更弱，总分 0.952 低于已选方案的 0.959。",
+        "rc-dim-skill-baseline-hud-reveal_rhythm-balanced: HUD的结果揭示节奏与反馈重量·均衡整合 在 风险控制度 上更弱，总分 0.932 低于已选方案的 0.959。"
+      ],
+      "provisional": false,
+      "fast_mode_default": false,
+      "impact": "medium"
+    },
+    {
+      "decision_id": "ddl-skill-baseline-hud-02",
+      "topic": "HUD的信息占位与棋盘遮挡平衡",
+      "context": "skill-baseline-hud 在 Discovery 后对该维度进行了收敛选择。",
+      "chosen": "HUD的信息占位与棋盘遮挡平衡·耦合优先",
+      "rationale": "HUD的信息占位与棋盘遮挡平衡 选择 HUD的信息占位与棋盘遮挡平衡·耦合优先，因为它在 边界满足度、耦合对齐度 上更贴合当前节点与阶段目标；相对次优方案保有 0.007 的总分优势。",
+      "alternatives": [
+        "rc-dim-skill-baseline-hud-information_footprint-constraint_first: HUD的信息占位与棋盘遮挡平衡·约束优先 在 耦合对齐度 上更弱，总分 0.952 低于已选方案的 0.959。",
+        "rc-dim-skill-baseline-hud-information_footprint-balanced: HUD的信息占位与棋盘遮挡平衡·均衡整合 在 风险控制度 上更弱，总分 0.932 低于已选方案的 0.959。"
+      ],
+      "provisional": false,
+      "fast_mode_default": false,
+      "impact": "medium"
+    },
+    {
+      "decision_id": "ddl-skill-baseline-hud-03",
+      "topic": "HUD的玩家身份区分与归属表达",
+      "context": "skill-baseline-hud 在 Discovery 后对该维度进行了收敛选择。",
+      "chosen": "HUD的玩家身份区分与归属表达·耦合优先",
+      "rationale": "HUD的玩家身份区分与归属表达 选择 HUD的玩家身份区分与归属表达·耦合优先，因为它在 边界满足度、耦合对齐度 上更贴合当前节点与阶段目标；相对次优方案保有 0.007 的总分优势。",
+      "alternatives": [
+        "rc-dim-skill-baseline-hud-identity_surface-constraint_first: HUD的玩家身份区分与归属表达·约束优先 在 耦合对齐度 上更弱，总分 0.952 低于已选方案的 0.959。",
+        "rc-dim-skill-baseline-hud-identity_surface-balanced: HUD的玩家身份区分与归属表达·均衡整合 在 风险控制度 上更弱，总分 0.932 低于已选方案的 0.959。"
+      ],
+      "provisional": false,
+      "fast_mode_default": false,
+      "impact": "medium"
+    },
+    {
+      "decision_id": "ddl-skill-baseline-hud-04",
+      "topic": "HUD的关键状态优先级排序",
+      "context": "skill-baseline-hud 在 Discovery 后对该维度进行了收敛选择。",
+      "chosen": "HUD的关键状态优先级排序·耦合优先",
+      "rationale": "HUD的关键状态优先级排序 选择 HUD的关键状态优先级排序·耦合优先，因为它在 边界满足度、耦合对齐度 上更贴合当前节点与阶段目标；相对次优方案保有 0.007 的总分优势。",
+      "alternatives": [
+        "rc-dim-skill-baseline-hud-focus_priority-constraint_first: HUD的关键状态优先级排序·约束优先 在 耦合对齐度 上更弱，总分 0.952 低于已选方案的 0.959。",
+        "rc-dim-skill-baseline-hud-focus_priority-balanced: HUD的关键状态优先级排序·均衡整合 在 风险控制度 上更弱，总分 0.932 低于已选方案的 0.959。"
+      ],
+      "provisional": false,
+      "fast_mode_default": false,
+      "impact": "medium"
+    }
+  ],
+  "assumptions": [],
+  "open_questions": [],
+  "review_hints": [
+    "与以下耦合节点一起检查接口一致性: skill-board-topology, skill-tile-system, skill-baseline-pause, skill-baseline-results, skill-baseline-input-foundation"
+  ],
+  "capability_gaps": [],
+  "confidence": {
+    "coverage": 0.9,
+    "consistency": 0.9
+  },
+  "metadata": {
+    "generated_at": "2026-05-30T04:36:16.503918+00:00",
+    "generator": "AgentBridge.Compiler.DomainSkillRuntime.v1",
+    "template_version": "1.0"
+  }
+}

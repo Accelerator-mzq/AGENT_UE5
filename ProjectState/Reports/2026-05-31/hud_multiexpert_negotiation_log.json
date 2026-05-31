@@ -1,0 +1,556 @@
+{
+  "max_rounds": 2,
+  "experts": [
+    "ux-designer",
+    "ui-programmer",
+    "art-director"
+  ],
+  "discovered_per_expert": {
+    "ux-designer": [
+      "hud.spatial_layout",
+      "hud.player_identity",
+      "hud.info_hierarchy",
+      "hud.state_feedback",
+      "hud.readability",
+      "hud.modularity",
+      "hud.symmetry_balance",
+      "hud.temporal_cues",
+      "hud.contextual_adaptation",
+      "hud.accessibility"
+    ],
+    "ui-programmer": [
+      "hud.layout_zone",
+      "hud.data_binding_source",
+      "hud.refresh_trigger",
+      "hud.z_order_stacking",
+      "hud.multiplayer_indicator",
+      "hud.screen_adaptation",
+      "hud.animation_performance",
+      "hud.overlay_behavior"
+    ],
+    "art-director": [
+      "hud.layout_position",
+      "hud.visual_hierarchy",
+      "hud.color_scheme",
+      "hud.typography",
+      "hud.iconography",
+      "hud.transparency_opacity",
+      "hud.edge_margins",
+      "hud.player_indicator",
+      "hud.cash_display",
+      "hud.turn_counter",
+      "hud.responsive_scaling",
+      "hud.accessibility_contrast",
+      "hud.animation_feedback",
+      "hud.multiplayer_labeling",
+      "hud.theme_consistency"
+    ]
+  },
+  "merged_dimensions": [
+    {
+      "dimension_id": "hud.spatial_layout",
+      "name": "空间布局",
+      "description": "HUD 元素在屏幕边缘的分布位置，优先角落区域避免遮挡棋盘视野",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.player_identity",
+      "name": "玩家身份标识",
+      "description": "2-4 名玩家的视觉区分：色块/图标/头像框，确保本地多玩家快速识别各自状态",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.info_hierarchy",
+      "name": "信息层次结构",
+      "description": "锁定字段与次要信息的视觉权重分配，当前玩家信息最突出，其他玩家信息紧凑排列",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.state_feedback",
+      "name": "状态反馈",
+      "description": "轮到玩家/待决策/等待他人等状态的实时视觉指示，降低玩家认知负担",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.readability",
+      "name": "可读性设计",
+      "description": "字体大小/对比度/图标语义，确保文字缩放模式下仍可读，满足色盲友好配色",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.modularity",
+      "name": "模块化与遮挡规避",
+      "description": "HUD 与弹窗的层级关系设计，确保购买/租金/监狱弹窗出现时 HUD 局部收缩或透明",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.symmetry_balance",
+      "name": "对称与平衡",
+      "description": "多玩家信息对称排列（屏侧边栏或环绕式布局），确保每名玩家视角信息量对等",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.temporal_cues",
+      "name": "时间线索",
+      "description": "回合编号与倒计时/等待时长的渐进式提示，辅助玩家感知游戏节奏",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.contextual_adaptation",
+      "name": "上下文自适应",
+      "description": "HUD 根据游戏阶段动态调整：正常回合/交易中/危机时刻的信息展示策略",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.accessibility",
+      "name": "无障碍适配",
+      "description": "高对比度模式/图标+文字双通道/屏幕阅读器兼容，确保视觉障碍玩家可获取信息",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.layout_zone",
+      "name": "布局区域划分",
+      "description": "定义 HUD 元素在屏幕上的可放置区域。需避开中央棋盘区域(28格完整可见)和底部/顶部弹出窗口区域。典型分区：顶部信息栏(玩家状态/回合)、底部快捷操作栏、角落资源指示器。需保证所有区域不遮挡 property_card/purchase_dialog/rent_dialog/prison_dialog。",
+      "proposed_by": [
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.data_binding_source",
+      "name": "数据绑定源",
+      "description": "HUD 各字段绑定到后端状态的路径。current_player → game_state.current_turn_index，player_cash → game_state.players[current].cash，turn_number → game_state.turn_counter。UI 层仅读状态，不持有状态副本。",
+      "proposed_by": [
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.refresh_trigger",
+      "name": "刷新触发机制",
+      "description": "HUD 更新策略。推荐事件驱动：game_event_bus.on('player_cash_changed')、game_event_bus.on('turn_changed')。避免每帧轮询。最小化绘制调用：合并同一帧内多个状态变化的更新。玩家头像/现金变化需即时响应，回合切换可带 0.3s 淡入动画。",
+      "proposed_by": [
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.z_order_stacking",
+      "name": "层级堆叠顺序",
+      "description": "Unity UI Canvas 层级规划。Board(0) → HUD(10) → Modal_Overlay(20) → Dialog_Purchase(30) → Dialog_Rent(31) → Dialog_Prison(32)。HUD 固定 Z=10，确保 dialog 自动遮盖 HUD 但 HUD 不遮挡 dialog。",
+      "proposed_by": [
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.multiplayer_indicator",
+      "name": "多人玩家指示器",
+      "description": "2-4 名玩家的视觉区分。顶部条显示所有玩家状态卡片(头像、昵称、现金)，当前行动玩家高亮。现金需实时更新以体现交易。布局需适配 2/3/4 人：2人横排，3人横排+下角，4人四宫格。",
+      "proposed_by": [
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.screen_adaptation",
+      "name": "屏幕适配策略",
+      "description": "不同分辨率/长宽比下的响应式布局。使用 Canvas Scaler + 基于 Anchor 的流式布局。16:9/16:10/4:3 需保证棋盘区域不变形，HUD 区域可压缩但不消失。最小安全区：顶部 5%高度、底部 8%高度用于 HUD。",
+      "proposed_by": [
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.animation_performance",
+      "name": "动画性能约束",
+      "description": "HUD 内动画需可控。现金数字变化使用 CountingTextAnimator 而非每帧 lerp。状态切换淡入淡出 ≤ 300ms。使用 CanvasGroup 控制显隐而非 Destroy/Instantiate 重建。避免粒子系统和复杂 shader 以保证 60fps。",
+      "proposed_by": [
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.overlay_behavior",
+      "name": "弹窗交互行为",
+      "description": "当 purchase/rent/prison dialog 弹出时，HUD 应自动收起非关键元素(如轮次指示器淡出)，弹窗结束后恢复。可使用事件监听 dialog_shown/dialog_closed 信号。HUD 自身不得阻塞 raycast，dialog 独占交互焦点。",
+      "proposed_by": [
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.layout_position",
+      "name": "Layout Position",
+      "description": "Defines where the HUD sits relative to the board: top‑bar, bottom‑bar, or side‑panel. Must keep the 28 squares fully visible and avoid overlapping any central area where purchase/rent/prison pop‑ups appear.",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.visual_hierarchy",
+      "name": "Visual Hierarchy",
+      "description": "Prioritizes the three locked fields (current player, cash, turn number) so they are instantly readable. Uses size, contrast, and placement to lead the eye to the most critical data first.",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.color_scheme",
+      "name": "Color Scheme",
+      "description": "Chooses a palette that harmonizes with the board’s visual style while providing enough contrast for legibility. Includes a muted base to avoid distraction and accent colors for key states (e.g., active player).",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.typography",
+      "name": "Typography",
+      "description": "Selects typefaces and font sizes that remain crisp on all supported resolutions. Uses bold weights for critical info (current player) and lighter weights for supporting data (turn number).",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.iconography",
+      "name": "Iconography",
+      "description": "Integrates clear icons (e.g., coin for cash, arrow for turn) to support quick scanning and reinforce the Monopoly theme.",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.transparency_opacity",
+      "name": "Transparency / Opacity",
+      "description": "Sets background opacity of the HUD panel so it does not visually clash with the board yet remains legible. Semi‑transparent panels are preferred to keep the board visible.",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.edge_margins",
+      "name": "Edge Margins",
+      "description": "Ensures a safe zone around the HUD so UI elements are never clipped by screen edges or hidden by pop‑ups.",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.player_indicator",
+      "name": "Player Indicator",
+      "description": "Visualizes whose turn it is (e.g., colored badge, avatar, or highlight) with a consistent style that matches the player tokens on the board.",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.cash_display",
+      "name": "Cash Display",
+      "description": "Shows each player’s cash amount using a compact numeric format, optional currency symbol, and a small coin icon. The layout should accommodate 2‑4 players without clutter.",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.turn_counter",
+      "name": "Turn Counter",
+      "description": "Presents the current turn number in a minimal, non‑intrusive manner, preferably near the player indicator for easy correlation.",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.responsive_scaling",
+      "name": "Responsive Scaling",
+      "description": "Ensures the HUD scales proportionally on different screen sizes and aspect ratios while preserving the integrity of the 28‑square board view.",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.accessibility_contrast",
+      "name": "Accessibility Contrast",
+      "description": "Meets contrast ratio guidelines for text and iconography so that players with visual impairments can read the HUD under typical lighting.",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.animation_feedback",
+      "name": "Animation & Feedback",
+      "description": "Adds subtle animations (e.g., pulse on cash change, slide‑in on turn change) that reinforce state changes without obscuring the board or pop‑ups.",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.multiplayer_labeling",
+      "name": "Multiplayer Labeling",
+      "description": "Supports clear labeling of player names/colors in a compact way (e.g., color‑coded badges) to avoid confusion during local multiplayer sessions.",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.theme_consistency",
+      "name": "Theme Consistency",
+      "description": "Ensures the HUD’s visual style (shapes, textures, borders) aligns with the overall Monopoly board theme to maintain brand recognizability.",
+      "proposed_by": [
+        "art-director"
+      ]
+    }
+  ],
+  "round_0_stances": {
+    "ux-designer": {
+      "hud.spatial_layout": "Edge-anchored horizontal top bar",
+      "hud.player_identity": "Active player name plus color‑coded avatar",
+      "hud.info_hierarchy": "Primary: current player, Secondary: cash, Tertiary: turn number",
+      "hud.state_feedback": "Animated cash pulse on changes and subtle turn indicator",
+      "hud.readability": "High‑contrast sans‑serif text at minimum 14 pt, scalable",
+      "hud.modularity": "Separate widget panels for player, cash, and turn",
+      "hud.symmetry_balance": "Mirror‑symmetrical layout with player panels evenly spaced left‑right",
+      "hud.temporal_cues": "Turn number with a thin progress bar",
+      "hud.contextual_adaptation": "HUD reduces opacity to 70 % and hides non‑essential elements when a modal is open",
+      "hud.accessibility": "Color‑blind safe palette and adjustable font size",
+      "hud.layout_zone": "Top zone for HUD, bottom zone reserved for action buttons",
+      "hud.data_binding_source": "GameState singleton bound to HUD widgets",
+      "hud.refresh_trigger": "Event‑driven updates on onTurnChanged and onCashChanged",
+      "hud.z_order_stacking": "HUD rendered below modal dialogs but above the board",
+      "hud.multiplayer_indicator": "Player color strips alongside the player name in the HUD",
+      "hud.screen_adaptation": "Responsive scaling anchored to screen width, max 90 % width",
+      "hud.animation_performance": "Simple scale/fade animations under 200 ms",
+      "hud.overlay_behavior": "HUD overlays the board but hides when a modal appears",
+      "hud.layout_position": "Fixed at top‑center with 20 px side margins",
+      "hud.visual_hierarchy": "Current player name largest, cash medium, turn smallest",
+      "hud.color_scheme": "Dark semi‑transparent background (#00000080) with white text and distinct player accent colors",
+      "hud.typography": "Sans‑serif font (Roboto/Open Sans) with bold headings",
+      "hud.iconography": "Simple icons: user silhouette, coin, clock",
+      "hud.transparency_opacity": "Base 100 % opacity, reduced to 70 % during modal state",
+      "hud.edge_margins": "20 px margin from all screen edges",
+      "hud.player_indicator": "Color‑coded circle plus avatar next to the player name",
+      "hud.cash_display": "Currency formatted with symbol, animated pulse on value change",
+      "hud.turn_counter": "Text label ‘Turn X’ with numeric value",
+      "hud.responsive_scaling": "Scale factor based on 1080p baseline, UI scales proportionally",
+      "hud.accessibility_contrast": "Contrast ratio ≥ 4.5:1 for all HUD text",
+      "hud.animation_feedback": "Pulse effect on cash increase, slide effect on turn change",
+      "hud.multiplayer_labeling": "Labels show player number (P1, P2…) and name",
+      "hud.theme_consistency": "HUD uses the same color palette, fonts, and style as the rest of the game UI"
+    },
+    "ui-programmer": {},
+    "art-director": {}
+  },
+  "round_1_conflicts": [],
+  "final_convergence": {
+    "hud.accessibility": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Color‑blind safe palette and adjustable font size"
+      }
+    },
+    "hud.accessibility_contrast": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Contrast ratio ≥ 4.5:1 for all HUD text"
+      }
+    },
+    "hud.animation_feedback": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Pulse effect on cash increase, slide effect on turn change"
+      }
+    },
+    "hud.animation_performance": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Simple scale/fade animations under 200 ms"
+      }
+    },
+    "hud.cash_display": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Currency formatted with symbol, animated pulse on value change"
+      }
+    },
+    "hud.color_scheme": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Dark semi‑transparent background (#00000080) with white text and distinct player accent colors"
+      }
+    },
+    "hud.contextual_adaptation": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "HUD reduces opacity to 70 % and hides non‑essential elements when a modal is open"
+      }
+    },
+    "hud.data_binding_source": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "GameState singleton bound to HUD widgets"
+      }
+    },
+    "hud.edge_margins": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "20 px margin from all screen edges"
+      }
+    },
+    "hud.iconography": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Simple icons: user silhouette, coin, clock"
+      }
+    },
+    "hud.info_hierarchy": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Primary: current player, Secondary: cash, Tertiary: turn number"
+      }
+    },
+    "hud.layout_position": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Fixed at top‑center with 20 px side margins"
+      }
+    },
+    "hud.layout_zone": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Top zone for HUD, bottom zone reserved for action buttons"
+      }
+    },
+    "hud.modularity": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Separate widget panels for player, cash, and turn"
+      }
+    },
+    "hud.multiplayer_indicator": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Player color strips alongside the player name in the HUD"
+      }
+    },
+    "hud.multiplayer_labeling": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Labels show player number (P1, P2…) and name"
+      }
+    },
+    "hud.overlay_behavior": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "HUD overlays the board but hides when a modal appears"
+      }
+    },
+    "hud.player_identity": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Active player name plus color‑coded avatar"
+      }
+    },
+    "hud.player_indicator": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Color‑coded circle plus avatar next to the player name"
+      }
+    },
+    "hud.readability": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "High‑contrast sans‑serif text at minimum 14 pt, scalable"
+      }
+    },
+    "hud.refresh_trigger": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Event‑driven updates on onTurnChanged and onCashChanged"
+      }
+    },
+    "hud.responsive_scaling": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Scale factor based on 1080p baseline, UI scales proportionally"
+      }
+    },
+    "hud.screen_adaptation": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Responsive scaling anchored to screen width, max 90 % width"
+      }
+    },
+    "hud.spatial_layout": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Edge-anchored horizontal top bar"
+      }
+    },
+    "hud.state_feedback": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Animated cash pulse on changes and subtle turn indicator"
+      }
+    },
+    "hud.symmetry_balance": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Mirror‑symmetrical layout with player panels evenly spaced left‑right"
+      }
+    },
+    "hud.temporal_cues": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Turn number with a thin progress bar"
+      }
+    },
+    "hud.theme_consistency": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "HUD uses the same color palette, fonts, and style as the rest of the game UI"
+      }
+    },
+    "hud.transparency_opacity": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Base 100 % opacity, reduced to 70 % during modal state"
+      }
+    },
+    "hud.turn_counter": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Text label ‘Turn X’ with numeric value"
+      }
+    },
+    "hud.typography": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Sans‑serif font (Roboto/Open Sans) with bold headings"
+      }
+    },
+    "hud.visual_hierarchy": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "Current player name largest, cash medium, turn smallest"
+      }
+    },
+    "hud.z_order_stacking": {
+      "converged": true,
+      "choices": {
+        "ux-designer": "HUD rendered below modal dialogs but above the board"
+      }
+    }
+  },
+  "downgraded_gaps": []
+}

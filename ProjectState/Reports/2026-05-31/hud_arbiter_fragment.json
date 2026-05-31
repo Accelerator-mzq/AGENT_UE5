@@ -1,0 +1,76 @@
+{
+  "fragment_version": "2.0",
+  "skill_instance_id": "skill-baseline-hud",
+  "template_id": "baseline.hud.realization_eligible",
+  "domain_type": "baseline",
+  "phase_scope": "phase11_hud_arbiter_pilot",
+  "status": "completed",
+  "emitted_families": [
+    "hud_spec"
+  ],
+  "spec_fragments": {
+    "hud_spec": {
+      "capability": "HUD",
+      "realization_class": "realization_eligible",
+      "required_elements": [
+        "current_player",
+        "player_cash",
+        "turn_number"
+      ],
+      "selected_realization": {
+        "hud.layout_position": "Top-edge anchored centered horizontal strip with corner extensions",
+        "hud.information_grouping": "Player-centric grouping with vertical stack per player [Avatar][Name][Cash] displayed in horizontal row",
+        "hud.current_player_indicator": "Color-coded border/indicator with animated highlight",
+        "hud.cash_display_format": "Currency symbol + thousand separators, e.g., '$1,250'",
+        "hud.turn_number_visibility": "Always visible, positioned adjacent to current player card or top-right corner",
+        "hud.multi_player_symmetry": "All player panels displayed simultaneously in horizontal row with identical layouts",
+        "hud.player_color_coding": "Each player assigned unique color (Red, Blue, Green, Yellow) with left border stripe and color-matched avatar on HUD panel",
+        "hud.transparency_opacity": "HUD container at 70% opacity; active player card at 100%; inactive player cards at 60-85%",
+        "hud.z_index_layering": "Board (Layer 1) → HUD (Layer 2) → Popups (Layer 3) → System notifications (Layer 4)",
+        "hud.collapsibility": "Non-collapsible; HUD always fully visible",
+        "hud.accessibility_scaling": "Base size 16sp with scaling 1x–1.5x via system settings or pinch; minimum 48px touch targets",
+        "hud.contrast_mode": "High-contrast default (dark text on semi-transparent light panel); optional dark mode with inverted contrast",
+        "hud.feedback_animations": "Cash count-up/down animation on change; subtle pulse/scale on highlight change; slide-in for turn transitions",
+        "hud.responsive_adaptation": "Horizontal layout compresses (reduced padding first, then card size) before switching to 2-row vertical stack below 480px",
+        "hud.notification_peak": "Relevant HUD element glows briefly to draw attention",
+        "hud.data_binding": "Reactive data binding to game state model with single-frame update propagation",
+        "hud.refresh_trigger": "Event-driven refresh on onTurnChange, onTransaction, onPropertyAction",
+        "hud.multiplayer_indicator": "All 2-4 players visible simultaneously in HUD row with colored dot/highlight indicating active player",
+        "hud.popup_avoidance": "HUD positioned at top edge; popups constrained to center band and lower screen area with margins",
+        "hud.visual_hierarchy": "Tier 1 (largest, highlighted): Current player name + cash; Tier 2 (medium): Other players; Tier 3 (small): Turn number",
+        "hud.responsive_scale": "Proportional scaling with viewport; font scales 14sp (mobile) to 18sp (tablet) to 22sp (desktop)",
+        "hud.animation_feedback": "200ms ease-out for state transitions; 400ms count-up/down for cash changes; 2s breathing glow for player highlight",
+        "hud.accessibility": "Full screen-reader labels, ARIA tags, focus indicators, keyboard navigation; minimum 16sp for cash values; color-blind safe mode using shape + pattern",
+        "hud.layout_zones": "Top zone: HUD with player cards; Center zone: Board (28 squares); Bottom zone: Controls (dice, end turn); HUD split left-right for 4 players",
+        "hud.visual_containment": "Bounded rectangular container with 8px rounded corners and subtle drop shadow",
+        "hud.monopoly_identity": "Classic Monopoly color palette (deep blue, gold, cream, green) with Bahnschrift/similar condensed sans-serif; subtle board-inspired decorative elements",
+        "hud.multiplayer_visibility": "All 2-4 players visible simultaneously in HUD with expanded cards showing name + cash; state icons overlay on cards",
+        "hud.board_visibility_boundary": "HUD height ≤5% of viewport, stopping at least 60px above board edge; all 28 squares fully visible",
+        "hud.popup_noninterference": "HUD at lower z-index than all popups; popup system queries HUD bounds and auto-repositions to avoid overlap",
+        "hud.aesthetic_theme": "Clean flat modern design with subtle shadows and gradients; uses classic Monopoly color palette; retains brand warmth without skeuomorphic excess",
+        "hud.color_coding": "Red, Blue, Green, Yellow (classic assignment); HUD accent stripe matches player token color; active state uses brighter variant",
+        "hud.motion_responsiveness": "Smooth 150-200ms transitions with easing; animations interruptible; no animation on critical-path actions (buy confirmation)",
+        "hud.opacity_attenuation": "Inactive panels 60-85% opacity based on importance; active player at 100%; text always 100% opaque",
+        "hud.typography_scale": "Player name 16sp bold; Cash 20sp semibold; Turn number 12sp regular; secondary elements at 85% scale; supports up to 1.5x scaling",
+        "hud.iconography_consistency": "Uniform flat line icons with 2px stroke and rounded caps; 20px inline for cash (banknote), player (silhouette), turn (circular arrow); 32px for standalone"
+      }
+    }
+  },
+  "capability_gaps": [
+    {
+      "dimension_id": "hud.collapsibility",
+      "integration_note": "UX Designer and UI Programmer advocate collapsible with toggle/auto-collapse. Art Director insists non-collapsible for constant information access. Art Director's requirement prevents HUD disappearing during critical gameplay moments. UNRESOLVED if Art Director's hard constraint cannot be relaxed.",
+      "resolved_by": "arbiter_unresolved",
+      "stances": {
+        "ux-designer": "Auto‑collapse after 5 seconds of inactivity, re‑appear on any input",
+        "ui-programmer": "collapsible via toggle",
+        "art-director": "Non-collapsible; always fully visible"
+      }
+    }
+  ],
+  "metadata": {
+    "generator": "HUD-Arbiter-Pilot",
+    "promotable": false,
+    "mode": "arbiter_pilot"
+  }
+}

@@ -11,6 +11,7 @@ Phase 11 Domain Skill Runtime.
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
@@ -309,6 +310,29 @@ def _family_name(node: Dict[str, Any]) -> str:
     )
 
 
+def _selected_realization_from_converged(converged_pack: Dict[str, Any] | None) -> Dict[str, Any]:
+    """从 converged_pack 提取 dimension_id -> chosen 候选 的映射。
+
+    兼容 converged_choices / convergence_decisions 两种键，
+    以及 chosen_candidate_name / chosen_candidate / selected_candidate_id 三种候选字段。
+    与 _build_gameplay_spec_fragment 行内逻辑保持一致，供 baseline 复用。
+    当前仅新增、暂不替换 _build_gameplay_spec_fragment 行内块（保持 gameplay 路径不变）；Task 2 起由 baseline 路径调用。
+    """
+    if not converged_pack:
+        return {}
+    convergence_choices = (
+        converged_pack.get("converged_choices")
+        or converged_pack.get("convergence_decisions", [])
+    )
+    return {
+        choice.get("dimension_id", ""): choice.get(
+            "chosen_candidate_name",
+            choice.get("chosen_candidate", choice.get("selected_candidate_id", "")),
+        )
+        for choice in convergence_choices
+    }
+
+
 def _build_gameplay_spec_fragment(
     node: Dict[str, Any],
     root_skill_contract: Dict[str, Any],
@@ -466,6 +490,7 @@ def _build_baseline_spec_fragment(
     node: Dict[str, Any],
     capability: Dict[str, Any],
     clarification_gate_report: Dict[str, Any],
+    converged_pack: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     """为 baseline 节点构建最小 spec_fragments。"""
     family_name = _family_name(node)
@@ -491,12 +516,17 @@ def _build_baseline_spec_fragment(
         ]
 
     if node.get("instance_id") == "skill-baseline-hud":
-        spec["required_elements"] = capability.get("required_elements", [])
         spec["notes"] = "HUD 为 realization_eligible baseline，后续可结合 gameplay state 细化。"
     if node.get("instance_id") == "skill-baseline-settings":
         spec["persistence"] = "session_only"
     if node.get("instance_id") == "skill-baseline-platform-foundation":
         spec["platform_scope"] = "desktop_local_runtime"
+
+    # realization_eligible baseline 与 gameplay 对称：把发散收敛结果写入 spec。
+    if capability.get("realization_class") == "realization_eligible":
+        selected_realization = _selected_realization_from_converged(converged_pack)
+        if selected_realization:
+            spec["selected_realization"] = selected_realization
 
     return {family_name: spec}
 
@@ -616,11 +646,35 @@ def _build_discovered_fragment(
     """为 gameplay / realization_eligible baseline 节点生成完整 fragment。"""
     is_baseline = node.get("domain_type") == "baseline"
     design_decision_log = _build_converged_decision_log(node, design_space_report, converged_pack)
-    spec_fragments = (
-        _build_baseline_spec_fragment(node, {"baseline_item": "HUD", "realization_class": "realization_eligible", "required_elements": root_skill_contract["constraint_fields"]["ui.required_hud_fields"]["value"]}, clarification_gate_report)
-        if is_baseline
-        else _build_gameplay_spec_fragment(node, root_skill_contract, converged_pack, clarification_gate_report)
-    )
+    # 按 capability_id 动态查 capability，去掉 HUD 硬编码；同时把 converged_pack 传入 baseline 分支
+    if is_baseline:
+        capability = _capability_map(root_skill_contract).get(
+            node.get("capability_id", ""), {}
+        )
+        if not capability:
+            # capability_id 在 contract 中查不到，fragment 将降级为空信息产出，显式告警便于排查
+            logging.getLogger(__name__).warning(
+                "_build_discovered_fragment: baseline capability_id=%r 未在 contract 中找到，fragment 将降级",
+                node.get("capability_id", ""),
+            )
+        # HUD 拥有 GDD 锁定的 required_hud_fields 硬约束，required_elements 以此为准
+        # （保留 Task 3 前语义，避免泛化后静默改变 HUD 产出）；其余 baseline 用 capability 自带值。
+        if node.get("capability_id") == "baseline-hud":
+            hud_required = (
+                root_skill_contract.get("constraint_fields", {})
+                .get("ui.required_hud_fields", {})
+                .get("value")
+            )
+            if hud_required is not None:
+                # 用新 dict 覆盖，避免原地修改 _capability_map 缓存的共享引用
+                capability = {**capability, "required_elements": hud_required}
+        spec_fragments = _build_baseline_spec_fragment(
+            node, capability, clarification_gate_report, converged_pack=converged_pack
+        )
+    else:
+        spec_fragments = _build_gameplay_spec_fragment(
+            node, root_skill_contract, converged_pack, clarification_gate_report
+        )
 
     retained_gate_items = _find_gate_items(
         clarification_gate_report,

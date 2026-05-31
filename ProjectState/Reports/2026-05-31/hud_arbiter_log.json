@@ -1,0 +1,644 @@
+{
+  "experts": [
+    "ux-designer",
+    "ui-programmer",
+    "art-director"
+  ],
+  "discovered_per_expert": {
+    "ux-designer": [
+      "hud.layout_position",
+      "hud.information_grouping",
+      "hud.current_player_indicator",
+      "hud.cash_display_format",
+      "hud.turn_number_visibility",
+      "hud.multi_player_symmetry",
+      "hud.player_color_coding",
+      "hud.transparency_opacity",
+      "hud.z_index_layering",
+      "hud.collapsibility",
+      "hud.accessibility_scaling",
+      "hud.contrast_mode",
+      "hud.feedback_animations",
+      "hud.responsive_adaptation",
+      "hud.notification_peak"
+    ],
+    "ui-programmer": [
+      "hud.layout_position",
+      "hud.data_binding",
+      "hud.refresh_trigger",
+      "hud.multiplayer_indicator",
+      "hud.popup_avoidance",
+      "hud.visual_hierarchy",
+      "hud.responsive_scale",
+      "hud.animation_feedback",
+      "hud.accessibility"
+    ],
+    "art-director": [
+      "hud.layout_zones",
+      "hud.visual_containment",
+      "hud.monopoly_identity",
+      "hud.visual_hierarchy",
+      "hud.multiplayer_visibility",
+      "hud.board_visibility_boundary",
+      "hud.popup_noninterference",
+      "hud.aesthetic_theme",
+      "hud.color_coding",
+      "hud.motion_responsiveness",
+      "hud.opacity_attenuation",
+      "hud.typography_scale",
+      "hud.iconography_consistency"
+    ]
+  },
+  "merged_dimensions": [
+    {
+      "dimension_id": "hud.layout_position",
+      "name": "HUD 布局位置",
+      "description": "确定 HUD 元素在屏幕上的安放位置。考虑四边角落布局，确保 28 个棋盘格子在主相机下完整可见，同时保持视觉平衡。建议顶部角落（不遮挡棋盘上部）或屏幕侧边。",
+      "proposed_by": [
+        "ux-designer",
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.information_grouping",
+      "name": "信息分组与层级",
+      "description": "将 HUD 信息按逻辑分组。当前玩家信息（名称+现金）可捆绑显示，轮次信息独立。视觉上通过间距、边框或背景色区分组别，降低认知负担。多玩家信息需在空间上均衡分布以保证对称性。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.current_player_indicator",
+      "name": "当前玩家标识",
+      "description": "明确标识当前操作玩家。可通过高亮边框、颜色标记或「当前」标签实现。在多玩家本地游戏中，视觉标识应让所有玩家一眼识别轮到谁，避免混淆。需与玩家棋子颜色/编号保持一致。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.cash_display_format",
+      "name": "现金显示格式",
+      "description": "player_cash 的呈现方式。可选择数字+货币符号、图标式金额条、动态数字动画（如滚动递增/递减效果）。需考虑大数字显示的紧凑性，以及金额变化时的视觉反馈强度。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.turn_number_visibility",
+      "name": "轮次信息可见性",
+      "description": "turn_number 的视觉权重。可作为次要信息（较小字体、柔和色调）或重要进度指示（突出显示）。位置可放在 HUD 边缘或中心。需确保玩家随时知道当前游戏阶段。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.multi_player_symmetry",
+      "name": "多玩家信息对称性",
+      "description": "在 2-4 名玩家模式下，确保所有玩家信息的视觉权重和位置均衡。避免任何玩家获得「中心」或「更显眼」的位置。屏幕空间应公平分配给各玩家信息区。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.player_color_coding",
+      "name": "玩家颜色编码",
+      "description": "HUD 中玩家标识的颜色系统。需与棋盘上玩家棋子颜色对应，建立认知关联。考虑色盲友好设计：不仅依赖颜色，可加入形状、编号或图案区分。2-4 色需高对比度可区分。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.transparency_opacity",
+      "name": "透明度与不透明度",
+      "description": "HUD 背景的透明度设置。高透明度减少视觉遮挡但降低可读性；完全不透明提高可读性但可能遮挡棋盘。需在遮挡性与可读性之间取得平衡，建议 70-90% 不透明度或使用模糊背景。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.z_index_layering",
+      "name": "Z轴层级控制",
+      "description": "HUD 与弹窗的层级关系。HUD 应处于棋盘之上、弹窗之下，确保购买/租金/监狱弹窗出现时不会被遮挡。设定明确的 Z-index 优先级规则，保证 UI 层级清晰。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.collapsibility",
+      "name": "可折叠/最小化选项",
+      "description": "提供玩家隐藏 HUD 的选项。在关键时刻（如查看完整棋盘或拍照）可收起 HUD，保留最小状态指示器。折叠/展开应有平滑过渡动画，不干扰游戏流程。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.accessibility_scaling",
+      "name": "无障碍文字缩放",
+      "description": "支持系统文字缩放设置。HUD 文字应在用户放大文字时保持可读，不溢出边界或被裁剪。考虑字号上限与下限，确保关键信息始终可见。图标应随文字等比缩放。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.contrast_mode",
+      "name": "高对比度模式",
+      "description": "提供高对比度/暗色模式选项，适应不同光照环境和视力需求。确保 HUD 在明亮或昏暗环境中都有足够可读性。对比度比值应符合 WCAG AA 标准。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.feedback_animations",
+      "name": "状态变化动画反馈",
+      "description": "现金变化、轮次切换时的动画效果。现金减少可用红色闪烁，减少用绿色+上箭头。轮次切换可使用淡入淡出或滑入动画。动画应简短（200-400ms）避免延迟感。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.responsive_adaptation",
+      "name": "响应式适配",
+      "description": "适应不同屏幕尺寸和比例。横屏/竖屏模式下的布局调整。小屏幕设备上 HUD 元素的压缩策略。保持核心信息完整性，牺牲非关键装饰元素。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.notification_peak",
+      "name": "关键信息峰值提示",
+      "description": "重要变化时的临时突出显示。当现金骤变、轮到玩家时，HUD 可短暂放大或加亮该信息区域，2-3 秒后恢复正常状态。避免持续干扰，同时确保玩家注意到关键变化。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.data_binding",
+      "name": "数据绑定策略",
+      "description": "HUD 三个字段的数据源绑定。current_player（玩家标识/颜色）绑定 gameplay 状态机的 active_player 引用；player_cash 绑定当前玩家现金字段；turn_number 绑定游戏回合计数。只读展示，不持有状态。",
+      "proposed_by": [
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.refresh_trigger",
+      "name": "刷新触发时机",
+      "description": "HUD 数据更新频率。推荐在以下事件触发刷新：回合切换（turn_number +1、current_player 切换）、现金变动（购买/租金交易后）、玩家状态变化（入狱/破产）。避免每帧轮询。",
+      "proposed_by": [
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.multiplayer_indicator",
+      "name": "多玩家指示器",
+      "description": "2-4 名本地玩家时，HUD 如何区分当前玩家。建议使用玩家颜色/头像图标在 current_player 字段左侧标识，让其他玩家一目了然知晓当前回合归属。",
+      "proposed_by": [
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.popup_avoidance",
+      "name": "弹窗避让机制",
+      "description": "当购买弹窗、租金弹窗、监狱选项弹窗触发时，HUD 需 Z-order 低于弹窗，且在屏幕空间上不与之重叠。可采用：HUD 收窄宽度、移至屏幕更边缘、或弹窗激活时 HUD 透明度降低。",
+      "proposed_by": [
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.visual_hierarchy",
+      "name": "视觉层级",
+      "description": "HUD 在 Canvas/Scene 层级中的 Z 值。必须低于弹窗 UI，高于棋盘格子背景（但不遮挡格子视角）。推荐使用专属 UI Layer，设置 render queue 保证可读性。",
+      "proposed_by": [
+        "ui-programmer",
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.responsive_scale",
+      "name": "响应式缩放",
+      "description": "在不同分辨率/宽高比下，HUD 元素如何自适应。建议使用锚点（Anchor）和相对布局，宽度占屏幕 80-90%，字号基于屏幕高度动态计算，保证 2-4 名玩家时文本不重叠。",
+      "proposed_by": [
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.animation_feedback",
+      "name": "动画反馈",
+      "description": "HUD 数据变更时的过渡动画。当 player_cash 减少（租金）时触发红色闪烁；增加（购买土地）时触发绿色高亮；turn_number 切换时数字滚动动画。动画时长建议 200-400ms。",
+      "proposed_by": [
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.accessibility",
+      "name": "可访问性设计",
+      "description": "HUD 文字对比度、字号最小值、颜色无障碍区分（current_player 颜色需对色盲友好）。支持 UI 懒加载预制体，运行时可切换皮肤主题。",
+      "proposed_by": [
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.layout_zones",
+      "name": "HUD 布局分区策略",
+      "description": "将屏幕划分为非冲突区域：顶部信息栏（玩家/现金/回合）、底部/侧边次要操作区，确保不遮挡棋盘中心和弹窗叠加层",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.visual_containment",
+      "name": "视觉边界设计",
+      "description": "HUD 元素需有明确的视觉收束区域，与棋盘格子形成自然分界，避免视觉渗透导致棋盘完整性受损",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.monopoly_identity",
+      "name": "Monopoly 品牌视觉一致性",
+      "description": "HUD 需延续大富翁经典色系（深绿/金色/暖白），使用符合经典字体的排版，强化品牌识别度",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.multiplayer_visibility",
+      "name": "多玩家状态可见性",
+      "description": "2-4人本地时，各玩家信息需在 HUD 中并置展示，通过图标/颜色区分，避免视线在多名玩家信息间频繁跳转",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.board_visibility_boundary",
+      "name": "棋盘可见边界维护",
+      "description": "HUD 边缘留出安全缓冲区，确保28格棋盘在主相机视角下四角完整可见，不被 HUD 元素切割",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.popup_noninterference",
+      "name": "弹窗非介入设计",
+      "description": "HUD 布局需预设 z-index 层叠关系，确保购买/租金/监狱弹窗出现时自动避让或 HUD 元素隐式降权",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.aesthetic_theme",
+      "name": "美术风格主题",
+      "description": "定义 HUD 整体美术方向：经典复古（深木纹材质/金属质感）VS 现代简约（扁平化/几何线条），需与棋盘视觉语言统一",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.color_coding",
+      "name": "玩家颜色编码",
+      "description": "为2-4名玩家分配高辨识度色码（红/蓝/绿/黄），HUD 中玩家头像/标识需与棋盘上棋子颜色一致",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.motion_responsiveness",
+      "name": "动态反馈设计",
+      "description": "玩家现金变动、回合切换时的微动画设计，在不干扰核心棋局的前提下提供视觉反馈",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.opacity_attenuation",
+      "name": "透明度衰减策略",
+      "description": "HUD 边缘区域可适度透明化，减少对棋盘的视觉侵入，同时保持核心信息区域完全不透明",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.typography_scale",
+      "name": "字体层级与比例",
+      "description": "协调 HUD 内各字段字号：current_player 需醒目（主标题级）、player_cash 中等（数据展示级）、turn_number 较小（状态指示级）",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.iconography_consistency",
+      "name": "图标风格一致性",
+      "description": "HUD 中使用的图标（玩家头像、现金符号等）需统一线宽/填充风格，与棋盘上的地产图标视觉语言对齐",
+      "proposed_by": [
+        "art-director"
+      ]
+    }
+  ],
+  "stances": {
+    "ux-designer": {
+      "hud.layout_position": "Top horizontal bar anchored to the top edge",
+      "hud.information_grouping": "Group by player status (current player name, cash, turn number) within a single compact card; secondary players shown as smaller cards in a row",
+      "hud.current_player_indicator": "Color‑coded border + animated highlight plus a player icon next to the name",
+      "hud.cash_display_format": "Numeric value with thousand separators and a currency symbol, e.g., '$1,250'",
+      "hud.turn_number_visibility": "Visible as ‘Turn X’ label adjacent to the current player card",
+      "hud.multi_player_symmetry": "All player panels displayed simultaneously in a horizontal row, each showing name and cash, with the active player highlighted",
+      "hud.player_color_coding": "Each player panel tinted with the player’s token color (e.g., red, blue, green, yellow)",
+      "hud.transparency_opacity": "Background at 70% opacity, text fully opaque",
+      "hud.z_index_layering": "HUD at z‑index 100; pop‑ups (purchase, rent, prison) at z‑index 200",
+      "hud.collapsibility": "Auto‑collapse after 5 seconds of inactivity, re‑appear on any input",
+      "hud.accessibility_scaling": "Default base size 16 px with optional scaling up to 200% via system accessibility settings",
+      "hud.contrast_mode": "High‑contrast mode: dark background with bright text; default mode uses dark semi‑transparent bar with light text",
+      "hud.feedback_animations": "Cash change triggers a brief count‑up/down animation and a subtle pulse on the cash label",
+      "hud.responsive_adaptation": "Horizontal layout scales down on narrow screens; on very small devices the HUD switches to a compact vertical stack",
+      "hud.notification_peak": "When a rent or purchase popup is triggered, the relevant HUD element glows briefly to draw attention",
+      "hud.data_binding": "Real‑time binding to game state variables (currentPlayer, playerCash, turnNumber)",
+      "hud.refresh_trigger": "Event‑driven refresh on relevant state changes (cash change, turn advance, player swap)",
+      "hud.multiplayer_indicator": "Row of player avatars/names with a small colored dot indicating the active player",
+      "hud.popup_avoidance": "HUD positioned at the top edge; popups are centered with a margin so they never overlap the HUD bar",
+      "hud.visual_hierarchy": "Primary: current player card (largest, highlighted); Secondary: other player cards (smaller, muted); Tertiary: turn number label (small, right‑aligned)",
+      "hud.responsive_scale": "Layout uses percentage‑based widths and font sizes relative to viewport",
+      "hud.animation_feedback": "Same as feedback animations: count‑up/down on cash change, subtle scale pulse on highlight change",
+      "hud.accessibility": "Full screen‑reader labels, focus indicators, and keyboard navigation support for all HUD elements",
+      "hud.layout_zones": "Top zone for HUD, central zone for board (28 squares), bottom zone for controls (dice, end turn)",
+      "hud.visual_containment": "HUD confined within a single rectangular bar that does not extend beyond the screen edges",
+      "hud.monopoly_identity": "Use classic Monopoly color palette (green, gold, deep red) with a subtle board‑style border",
+      "hud.multiplayer_visibility": "All 2‑4 players visible simultaneously in the HUD row",
+      "hud.board_visibility_boundary": "HUD height limited to ≤5% of the viewport, ensuring no board square is covered",
+      "hud.popup_noninterference": "HUD placed at the top with low z‑index, popups centered at higher z‑index",
+      "hud.aesthetic_theme": "Clean, flat design with subtle shadows and the classic Monopoly green/gold accent colors",
+      "hud.color_coding": "Each player assigned a unique color (e.g., red, blue, green, yellow) used consistently in their HUD panel and on the board token",
+      "hud.motion_responsiveness": "Animations complete within 150 ms, with easing for smooth transitions",
+      "hud.opacity_attenuation": "Inactive player panels operate at 60% opacity, current player panel at 100% opacity",
+      "hud.typography_scale": "Base font 16 px for primary info, 14 px for secondary, with support for scaling up to 200%",
+      "hud.iconography_consistency": "All icons use a uniform outlined style: cash (banknote), player (silhouette), turn (circular arrow)"
+    },
+    "ui-programmer": {
+      "hud.layout_position": "top-left corner",
+      "hud.information_grouping": "player-centric",
+      "hud.current_player_indicator": "colored badge",
+      "hud.cash_display_format": "currency symbol with thousands separator",
+      "hud.turn_number_visibility": "always visible",
+      "hud.multi_player_symmetry": "identical layout for each player",
+      "hud.player_color_coding": "unique color per player",
+      "hud.transparency_opacity": "0.75",
+      "hud.z_index_layering": "above board but below popups",
+      "hud.collapsibility": "collapsible via toggle",
+      "hud.accessibility_scaling": "1.25x",
+      "hud.contrast_mode": "high",
+      "hud.feedback_animations": "slide-in from edge",
+      "hud.responsive_adaptation": "dynamic repositioning",
+      "hud.notification_peak": "brief flash",
+      "hud.data_binding": "reactive data binding",
+      "hud.refresh_trigger": "on turn change and cash transaction",
+      "hud.multiplayer_indicator": "player list sidebar",
+      "hud.popup_avoidance": "dynamic shift",
+      "hud.visual_hierarchy": "primary info (player/cash) top, secondary (turn) below",
+      "hud.responsive_scale": "scale with viewport",
+      "hud.animation_feedback": "subtle pulse",
+      "hud.accessibility": "text labels with ARIA tags",
+      "hud.layout_zones": "corner zones (top-left and top-right)",
+      "hud.visual_containment": "bounded container with rounded corners",
+      "hud.monopoly_identity": "classic Monopoly theme",
+      "hud.multiplayer_visibility": "split panels per player",
+      "hud.board_visibility_boundary": "full board visible with 2px margin",
+      "hud.popup_noninterference": "HUD below overlay priority",
+      "hud.aesthetic_theme": "flat modern with subtle gradients",
+      "hud.color_coding": "player-specific colors for backgrounds",
+      "hud.motion_responsiveness": "smooth 200ms transitions",
+      "hud.opacity_attenuation": "fade to 50% opacity on overlapping board",
+      "hud.typography_scale": "1.0 base with 0.85 secondary",
+      "hud.iconography_consistency": "unified line icons"
+    },
+    "art-director": {
+      "hud.layout_position": "Top-edge anchored, centered horizontal strip with corner extensions",
+      "hud.information_grouping": "Vertical stack per player: [Avatar] [Name] [Cash] stacked within horizontal row",
+      "hud.current_player_indicator": "Glowing border + elevated z-index + pulsing animation on active player's card",
+      "hud.cash_display_format": "Icon-prefixed numeric (e.g., '💵 $1,400') with 2-digit minimum fraction",
+      "hud.turn_number_visibility": "Subtle badge in top-right corner outside main HUD strip",
+      "hud.multi_player_symmetry": "Equal-width player cards in horizontal row, centered",
+      "hud.player_color_coding": "Left border stripe in player's assigned color (6px) + color-matched avatar icon",
+      "hud.transparency_opacity": "Player cards: 85% opaque background; active player card: 100% opaque; HUD container: 70% opaque",
+      "hud.z_index_layering": "Layer 1 (bottom): Board. Layer 2: HUD strip. Layer 3: Popups. Layer 4: System notifications",
+      "hud.collapsibility": "Non-collapsible; always fully visible",
+      "hud.accessibility_scaling": "HUD scales 1x–1.5x via pinch; minimum touch target 48px for interactive elements",
+      "hud.contrast_mode": "High-contrast default (dark text on semi-transparent light panel); optional dark mode with inverted contrast",
+      "hud.feedback_animations": "Cash value: count-up/down animation (400ms) on change; active player: subtle breathing glow (2s cycle); turn transition: slide-in indicator",
+      "hud.responsive_adaptation": "HUD compresses horizontally (reduced padding) before reducing player card size; below 480px width: 2-row vertical stack",
+      "hud.notification_peak": "Badge appears above affected player's card; auto-dismisses after 3s or on acknowledgment",
+      "hud.data_binding": "Cash values bound to game state model; updates propagate within single frame via reactive binding",
+      "hud.refresh_trigger": "Event-driven: onTurnChange, onTransaction, onPropertyAction; not polling-based",
+      "hud.multiplayer_indicator": "All 2–4 players visible simultaneously in HUD; turn order indicated by left-to-right sequence with active highlight",
+      "hud.popup_avoidance": "HUD occupies top 12% of screen; all popups constrained to center 76% horizontal band and bottom 60% vertical",
+      "hud.visual_hierarchy": "Tier 1 (largest, full opacity): Current player name + cash. Tier 2 (medium): Other players' names + cash. Tier 3 (small): Turn number, game mode icons.",
+      "hud.responsive_scale": "HUD elements scale proportionally with viewport; font scales from 14px (mobile) to 18px (tablet) to 22px (desktop)",
+      "hud.animation_feedback": "State transitions: 200ms ease-out; cash changes: 400ms with easing overshoot; player highlight: continuous 2s sine wave",
+      "hud.accessibility": "Font: Inter or system-ui; minimum 16sp for cash values; color-blind safe mode using shape + pattern instead of hue alone",
+      "hud.layout_zones": "Zone A (top-left): Player 1 & 2 cards. Zone B (top-center): Active turn indicator. Zone C (top-right): Player 3 & 4 cards + turn number",
+      "hud.visual_containment": "Each player card: rounded rectangle (8px radius) with subtle drop shadow (4px blur, 20% opacity)",
+      "hud.monopoly_identity": "Fonts: Bahnschrift or similar condensed sans-serif for headers; color palette from classic board (deep blue, gold, cream); subtle board-inspired decorative elements",
+      "hud.multiplayer_visibility": "All player cards always expanded (not collapsed) showing name + cash; player state icons (jail, bankrupt) overlay on card",
+      "hud.board_visibility_boundary": "HUD stops 60px above board edge; board tiles remain fully visible including bottom row; no HUD element extends into board area",
+      "hud.popup_noninterference": "HUD has lower z-index than all popup types; popup system queries HUD bounds before positioning; popups auto-reposition to avoid HUD overlap",
+      "hud.aesthetic_theme": "Modernized classic Monopoly: clean lines, subtle gradients, matte surfaces; avoids skeuomorphic excess but retains brand warmth",
+      "hud.color_coding": "Player colors: Red, Blue, Green, Yellow (classic assignment); HUD accent stripe matches player piece color; active state uses 20% brighter variant",
+      "hud.motion_responsiveness": "Animations interruptible; rapid state changes collapse intermediate frames; no animation on critical-path actions (buy confirmation)",
+      "hud.opacity_attenuation": "Background panels: 60–85% opacity based on information importance; text always 100% opacity; icons scale opacity 80–100% based on interaction state",
+      "hud.typography_scale": "Player name: 16sp bold; Cash value: 20sp semibold; Turn number: 12sp regular; All caps for player names for consistency",
+      "hud.iconography_consistency": "Custom icon set: flat, single-weight (2px stroke), rounded caps; size 20px for inline, 32px for standalone; monetary icon always precedes cash value"
+    }
+  },
+  "arbitration": {
+    "hud.layout_position": {
+      "final_choice": "Top-edge anchored centered horizontal strip with corner extensions",
+      "integration_note": "UX Designer and Art Director align on horizontal bar; UI Programmer's 'top-left corner' is subsumed by the broader horizontal strip that spans the top.",
+      "unresolved": false
+    },
+    "hud.information_grouping": {
+      "final_choice": "Player-centric grouping with vertical stack per player [Avatar][Name][Cash] displayed in horizontal row",
+      "integration_note": "All three agree on player-centric grouping. UX Designer and Art Director both describe vertical stacks within horizontal layout; UI Programmer's 'player-centric' is the semantic intent.",
+      "unresolved": false
+    },
+    "hud.current_player_indicator": {
+      "final_choice": "Color-coded border/indicator with animated highlight",
+      "integration_note": "UX Designer (color-coded border + animation + icon), UI Programmer (colored badge), and Art Director (glowing border + z-elevation + pulsing) all converge on color + animation for active player indication.",
+      "unresolved": false
+    },
+    "hud.cash_display_format": {
+      "final_choice": "Currency symbol + thousand separators, e.g., '$1,250'",
+      "integration_note": "UX Designer and UI Programmer agree on currency symbol with separators. Art Director adds icon prefix which is decorative and optional; core format is shared.",
+      "unresolved": false
+    },
+    "hud.turn_number_visibility": {
+      "final_choice": "Always visible, positioned adjacent to current player card or top-right corner",
+      "integration_note": "All agree turn number must be visible. UX Designer positions it adjacent to player card; Art Director places it top-right; UI Programmer says 'always visible'. Unified as always visible with placement flexible.",
+      "unresolved": false
+    },
+    "hud.multi_player_symmetry": {
+      "final_choice": "All player panels displayed simultaneously in horizontal row with identical layouts",
+      "integration_note": "UX Designer and Art Director both describe horizontal row of equal-width cards; UI Programmer's 'identical layout' reinforces the symmetry requirement.",
+      "unresolved": false
+    },
+    "hud.player_color_coding": {
+      "final_choice": "Each player assigned unique color (Red, Blue, Green, Yellow) with left border stripe and color-matched avatar on HUD panel",
+      "integration_note": "UX Designer emphasizes tinted background; Art Director specifies left border stripe + avatar. Both implement player-specific colors consistently. Merged into border stripe + avatar approach.",
+      "unresolved": false
+    },
+    "hud.transparency_opacity": {
+      "final_choice": "HUD container at 70% opacity; active player card at 100%; inactive player cards at 60-85%",
+      "integration_note": "UX Designer (70%), UI Programmer (75%), Art Director (70% container, 85% cards, 100% active). All within acceptable range; Art Director's graduated opacity adds useful nuance.",
+      "unresolved": false
+    },
+    "hud.z_index_layering": {
+      "final_choice": "Board (Layer 1) → HUD (Layer 2) → Popups (Layer 3) → System notifications (Layer 4)",
+      "integration_note": "UX Designer provides numeric values (100/200); UI Programmer describes relative order; Art Director provides complete layer breakdown. All agree on HUD between board and popups.",
+      "unresolved": false
+    },
+    "hud.collapsibility": {
+      "final_choice": "Non-collapsible; HUD always fully visible",
+      "integration_note": "UX Designer and UI Programmer advocate collapsible with toggle/auto-collapse. Art Director insists non-collapsible for constant information access. Art Director's requirement prevents HUD disappearing during critical gameplay moments. UNRESOLVED if Art Director's hard constraint cannot be relaxed.",
+      "unresolved": true
+    },
+    "hud.accessibility_scaling": {
+      "final_choice": "Base size 16sp with scaling 1x–1.5x via system settings or pinch; minimum 48px touch targets",
+      "integration_note": "UX Designer proposes up to 200%; UI Programmer at 1.25x; Art Director at 1x–1.5x with 48px minimum touch targets. Art Director's cap and touch target requirement prioritizes usability over maximum scaling.",
+      "unresolved": false
+    },
+    "hud.contrast_mode": {
+      "final_choice": "High-contrast default (dark text on semi-transparent light panel); optional dark mode with inverted contrast",
+      "integration_note": "UX Designer and UI Programmer specify high contrast; Art Director adds optional dark/inverted mode. Art Director's default matches others; additional mode is additive enhancement.",
+      "unresolved": false
+    },
+    "hud.feedback_animations": {
+      "final_choice": "Cash count-up/down animation on change; subtle pulse/scale on highlight change; slide-in for turn transitions",
+      "integration_note": "UX Designer (count-up/down + pulse), UI Programmer (slide-in), Art Director (count-up/down 400ms + breathing glow 2s + slide-in). Combined into count-up/down cash animation + pulse + slide-in transition.",
+      "unresolved": false
+    },
+    "hud.responsive_adaptation": {
+      "final_choice": "Horizontal layout compresses (reduced padding first, then card size) before switching to 2-row vertical stack below 480px",
+      "integration_note": "UX Designer and Art Director describe progressive degradation (padding → card size → vertical stack). UI Programmer's 'dynamic repositioning' is the implementation approach. Art Director's 480px breakpoint provides specific threshold.",
+      "unresolved": false
+    },
+    "hud.notification_peak": {
+      "final_choice": "Relevant HUD element glows briefly to draw attention",
+      "integration_note": "UX Designer (glow), UI Programmer (brief flash), Art Director (badge with 3s auto-dismiss). Brief glow is the common element across all three positions.",
+      "unresolved": false
+    },
+    "hud.data_binding": {
+      "final_choice": "Reactive data binding to game state model with single-frame update propagation",
+      "integration_note": "UX Designer (real-time binding), UI Programmer (reactive data binding), Art Director (reactive binding within single frame). All three agree on reactive binding semantics.",
+      "unresolved": false
+    },
+    "hud.refresh_trigger": {
+      "final_choice": "Event-driven refresh on onTurnChange, onTransaction, onPropertyAction",
+      "integration_note": "UX Designer (state changes), UI Programmer (turn change + cash transaction), Art Director (explicit event names). All advocate event-driven over polling.",
+      "unresolved": false
+    },
+    "hud.multiplayer_indicator": {
+      "final_choice": "All 2-4 players visible simultaneously in HUD row with colored dot/highlight indicating active player",
+      "integration_note": "UX Designer (avatars + colored dot), UI Programmer (player list sidebar), Art Director (all visible + left-to-right sequence). UX Designer and Art Director converge on horizontal row with active highlight.",
+      "unresolved": false
+    },
+    "hud.popup_avoidance": {
+      "final_choice": "HUD positioned at top edge; popups constrained to center band and lower screen area with margins",
+      "integration_note": "UX Designer and Art Director both position HUD at top; UI Programmer's 'dynamic shift' is the mechanism. Art Director's specific positioning (top 12%, center 76% band, bottom 60%) provides implementation detail.",
+      "unresolved": false
+    },
+    "hud.visual_hierarchy": {
+      "final_choice": "Tier 1 (largest, highlighted): Current player name + cash; Tier 2 (medium): Other players; Tier 3 (small): Turn number",
+      "integration_note": "All three explicitly define 3 tiers with current player most prominent, others secondary, turn number tertiary. Art Director's size specifications (largest/medium/small) align with UX Designer's description.",
+      "unresolved": false
+    },
+    "hud.responsive_scale": {
+      "final_choice": "Proportional scaling with viewport; font scales 14sp (mobile) to 18sp (tablet) to 22sp (desktop)",
+      "integration_note": "UX Designer (percentage-based widths), UI Programmer (scale with viewport), Art Director (specific font sizes per device). All advocate proportional scaling; Art Director provides concrete breakpoints.",
+      "unresolved": false
+    },
+    "hud.animation_feedback": {
+      "final_choice": "200ms ease-out for state transitions; 400ms count-up/down for cash changes; 2s breathing glow for player highlight",
+      "integration_note": "UX Designer (150ms), UI Programmer (200ms), Art Director (200ms/400ms with overshoot). Art Director's timing specifications are most detailed and include cash-specific duration.",
+      "unresolved": false
+    },
+    "hud.accessibility": {
+      "final_choice": "Full screen-reader labels, ARIA tags, focus indicators, keyboard navigation; minimum 16sp for cash values; color-blind safe mode using shape + pattern",
+      "integration_note": "UX Designer (screen-reader + focus + keyboard), UI Programmer (ARIA tags), Art Director (16sp minimum + color-blind safe mode). Combined into comprehensive accessibility support.",
+      "unresolved": false
+    },
+    "hud.layout_zones": {
+      "final_choice": "Top zone: HUD with player cards; Center zone: Board (28 squares); Bottom zone: Controls (dice, end turn); HUD split left-right for 4 players",
+      "integration_note": "UX Designer defines basic zones; UI Programmer suggests corner zones; Art Director provides detailed split (Players 1&2 left, Players 3&4 right, turn center). Art Director's zone breakdown is most complete.",
+      "unresolved": false
+    },
+    "hud.visual_containment": {
+      "final_choice": "Bounded rectangular container with 8px rounded corners and subtle drop shadow",
+      "integration_note": "UX Designer (rectangular bar within screen), UI Programmer (bounded container + rounded corners), Art Director (8px radius + 4px blur shadow). Merged into specific rounded rect with shadow.",
+      "unresolved": false
+    },
+    "hud.monopoly_identity": {
+      "final_choice": "Classic Monopoly color palette (deep blue, gold, cream, green) with Bahnschrift/similar condensed sans-serif; subtle board-inspired decorative elements",
+      "integration_note": "UX Designer (green, gold, deep red), UI Programmer (classic theme), Art Director (deep blue, gold, cream + specific font). Art Director's palette and font specifications are most detailed.",
+      "unresolved": false
+    },
+    "hud.multiplayer_visibility": {
+      "final_choice": "All 2-4 players visible simultaneously in HUD with expanded cards showing name + cash; state icons overlay on cards",
+      "integration_note": "UX Designer (all visible in row), UI Programmer (split panels), Art Director (always expanded + state icons). All three agree on full simultaneous visibility.",
+      "unresolved": false
+    },
+    "hud.board_visibility_boundary": {
+      "final_choice": "HUD height ≤5% of viewport, stopping at least 60px above board edge; all 28 squares fully visible",
+      "integration_note": "UX Designer (≤5%), UI Programmer (2px margin), Art Director (60px stop). Art Director's 60px specification effectively satisfies ≤5% requirement and matches GDD's 28-square visibility constraint.",
+      "unresolved": false
+    },
+    "hud.popup_noninterference": {
+      "final_choice": "HUD at lower z-index than all popups; popup system queries HUD bounds and auto-repositions to avoid overlap",
+      "integration_note": "UX Designer (low z-index + margin), UI Programmer (HUD below overlay priority), Art Director (auto-reposition). All three agree HUD must not interfere with popups.",
+      "unresolved": false
+    },
+    "hud.aesthetic_theme": {
+      "final_choice": "Clean flat modern design with subtle shadows and gradients; uses classic Monopoly color palette; retains brand warmth without skeuomorphic excess",
+      "integration_note": "UX Designer (clean flat + subtle shadows), UI Programmer (flat modern + subtle gradients), Art Director (modernized classic + matte surfaces). All converge on flat modern with brand colors.",
+      "unresolved": false
+    },
+    "hud.color_coding": {
+      "final_choice": "Red, Blue, Green, Yellow (classic assignment); HUD accent stripe matches player token color; active state uses brighter variant",
+      "integration_note": "All three specify Red/Blue/Green/Yellow. UX Designer and Art Director use same token colors; UI Programmer's 'player-specific colors' is less specific but compatible.",
+      "unresolved": false
+    },
+    "hud.motion_responsiveness": {
+      "final_choice": "Smooth 150-200ms transitions with easing; animations interruptible; no animation on critical-path actions (buy confirmation)",
+      "integration_note": "UX Designer (150ms), UI Programmer (200ms), Art Director (200ms + interruptible + no critical-path animation). Art Director's critical-path exclusion adds important constraint.",
+      "unresolved": false
+    },
+    "hud.opacity_attenuation": {
+      "final_choice": "Inactive panels 60-85% opacity based on importance; active player at 100%; text always 100% opaque",
+      "integration_note": "UX Designer (60% inactive), UI Programmer (50% overlap), Art Director (60-85% based on importance). Art Director's graduated approach based on importance is most nuanced.",
+      "unresolved": false
+    },
+    "hud.typography_scale": {
+      "final_choice": "Player name 16sp bold; Cash 20sp semibold; Turn number 12sp regular; secondary elements at 85% scale; supports up to 1.5x scaling",
+      "integration_note": "UX Designer (16px/14px base), UI Programmer (1.0/0.85 ratio), Art Director (16sp/20sp/12sp specific). Art Director's specific size assignments are most actionable.",
+      "unresolved": false
+    },
+    "hud.iconography_consistency": {
+      "final_choice": "Uniform flat line icons with 2px stroke and rounded caps; 20px inline for cash (banknote), player (silhouette), turn (circular arrow); 32px for standalone",
+      "integration_note": "UX Designer (uniform outlined style), UI Programmer (unified line icons), Art Director (2px stroke, 20px/32px sizes). Art Director provides concrete specifications.",
+      "unresolved": false
+    }
+  },
+  "arbitration_diag": {
+    "raw": "```json\n{\n  \"arbitration\": {\n    \"hud.layout_position\": {\n      \"final_choice\": \"Top-edge anchored centered horizontal strip with corner extensions\",\n      \"integration_note\": \"UX Designer and Art Director align on horizontal bar; UI Programmer's 'top-left corner' is subsumed by the broader horizontal strip that spans the top.\",\n      \"unresolved\": false\n    },\n    \"hud.information_grouping\": {\n      \"final_choice\": \"Player-centric grouping with vertical stack per player [Avatar][Name][Cash] displayed in horizontal row\",\n      \"integration_note\": \"All three agree on player-centric grouping. UX Designer and Art Director both describe vertical stacks within horizontal layout; UI Programmer's 'player-centric' is the semantic intent.\",\n      \"unresolved\": false\n    },\n    \"hud.current_player_indicator\": {\n      \"final_choice\": \"Color-coded border/indicator with animated highlight\",\n      \"integration_note\": \"UX Designer (color-coded border + animation + icon), UI Programmer (colored badge), and Art Director (glowing border + z-elevation + pulsing) all converge on color + animation for active player indication.\",\n      \"unresolved\": false\n    },\n    \"hud.cash_display_format\": {\n      \"final_choice\": \"Currency symbol + thousand separators, e.g., '$1,250'\",\n      \"integration_note\": \"UX Designer and UI Programmer agree on currency symbol with separators. Art Director adds icon prefix which is decorative and optional; core format is shared.\",\n      \"unresolved\": false\n    },\n    \"hud.turn_number_visibility\": {\n      \"final_choice\": \"Always visible, positioned adjacent to current player card or top-right corner\",\n      \"integration_note\": \"All agree turn number must be visible. UX Designer positions it adjacent to player card; Art Director places it top-right; UI Programmer says 'always visible'. Unified as always visible with placement flexible.\",\n      \"unresolved\": false\n    },\n    \"hud.multi_player_symmetry\": {\n      \"final_choice\": \"All player panels displayed simultaneously in horizontal row with identical layouts\",\n      \"integration_note\": \"UX Designer and Art Director both describe horizontal row of equal-width cards; UI Programmer's 'identical layout' reinforces the symmetry requirement.\",\n      \"unresolved\": false\n    },\n    \"hud.player_color_coding\": {\n      \"final_choice\": \"Each player assigned unique color (Red, Blue, Green, Yellow) with left border stripe and color-matched avatar on HUD panel\",\n      \"integration_note\": \"UX Designer emphasizes tinted background; Art Director specifies left border stripe + avatar. Both implement player-specific colors consistently. Merged into border stripe + avatar approach.\",\n      \"unresolved\": false\n    },\n    \"hud.transparency_opacity\": {\n      \"final_choice\": \"HUD container at 70% opacity; active player card at 100%; inactive player cards at 60-85%\",\n      \"integration_note\": \"UX Designer (70%), UI Programmer (75%), Art Director (70% container, 85% cards, 100% active). All within acceptable range; Art Director's graduated opacity adds useful nuance.\",\n      \"unresolved\": false\n    },\n    \"hud.z_index_layering\": {\n      \"final_choice\": \"Board (Layer 1) → HUD (Layer 2) → Popups (Layer 3) → System notifications (Layer 4)\",\n      \"integration_note\": \"UX Designer provides numeric values (100/200); UI Programmer describes relative order; Art Director provides complete layer breakdown. All agree on HUD between board and popups.\",\n      \"unresolved\": false\n    },\n    \"hud.collapsibility\": {\n      \"final_choice\": \"Non-collapsible; HUD always fully visible\",\n      \"integration_note\": \"UX Designer and UI Programmer advocate collapsible with toggle/auto-collapse. Art Director insists non-collapsible for constant information access. Art Director's requirement prevents HUD disappearing during critical gameplay moments. UNRESOLVED if Art Director's hard constraint cannot be relaxed.\",\n      \"unresolved\": true\n    },\n    \"hud.accessibility_scaling\": {\n      \"final_choice\": \"Base size 16sp with scaling 1x–1.5x via system settings or pinch; minimum 48px touch targets\",\n      \"integration_note\": \"UX Designer proposes up to 200%; UI Programmer at 1.25x; Art Director at 1x–1.5x with 48px minimum touch targets. Art Director's cap and touch target requirement prioritizes usability over maximum scaling.\",\n      \"unresolved\": false\n    },\n    \"hud.contrast_mode\": {\n      \"final_choice\": \"High-contrast default (dark text on semi-transparent light panel); optional dark mode with inverted contrast\",\n      \"integration_note\": \"UX Designer and UI Programmer specify high contrast; Art Director adds optional dark/inverted mode. Art Director's default matches others; additional mode is additive enhancement.\",\n      \"unresolved\": false\n    },\n    \"hud.feedback_animations\": {\n      \"final_choice\": \"Cash count-up/down animation on change; subtle pulse/scale on highlight change; slide-in for turn transitions\",\n      \"integration_note\": \"UX Designer (count-up/down + pulse), UI Programmer (slide-in), Art Director (count-up/down 400ms + breathing glow 2s + slide-in). Combined into count-up/down cash animation + pulse + slide-in transition.\",\n      \"unresolved\": false\n    },\n    \"hud.responsive_adaptation\": {\n      \"final_choice\": \"Horizontal layout compresses (reduced padding first, then card size) before switching to 2-row vertical stack below 480px\",\n      \"integration_note\": \"UX Designer and Art Director describe progressive degradation (padding → card size → vertical stack). UI Programmer's 'dynamic repositioning' is the implementation approach. Art Director's 480px breakpoint provides specific threshold.\",\n      \"unresolved\": false\n    },\n    \"hud.notification_peak\": {\n      \"final_choice\": \"Relevant HUD element glows briefly to draw attention\",\n      \"integration_note\": \"UX Designer (glow), UI Programmer (brief flash), Art Director (badge with 3s auto-dismiss). Brief glow is the common element across all three positions.\",\n      \"unresolved\": false\n    },\n    \"hud.data_binding\": {\n      \"final_choice\": \"Reactive data binding to game state model with single-frame update propagation\",\n      \"integration_note\": \"UX Designer (real-time binding), UI Programmer (reactive data binding), Art Director (reactive binding within single frame). All three agree on reactive binding semantics.\",\n      \"unresolved\": false\n    },\n    \"hud.refresh_trigger\": {\n      \"final_choice\": \"Event-driven refresh on onTurnChange, onTransaction, onPropertyAction\",\n      \"integration_note\": \"UX Designer (state changes), UI Programmer (turn change + cash transaction), Art Director (explicit event names). All advocate event-driven over polling.\",\n      \"unresolved\": false\n    },\n    \"hud.multiplayer_indicator\": {\n      \"final_choice\": \"All 2-4 players visible simultaneously in HUD row with colored dot/highlight indicating active player\",\n      \"integration_note\": \"UX Designer (avatars + colored dot), UI Programmer (player list sidebar), Art Director (all visible + left-to-right sequence). UX Designer and Art Director converge on horizontal row with active highlight.\",\n      \"unresolved\": false\n    },\n    \"hud.popup_avoidance\": {\n      \"final_choice\": \"HUD positioned at top edge; popups constrained to center band and lower screen area with margins\",\n      \"integration_note\": \"UX Designer and Art Director both position HUD at top; UI Programmer's 'dynamic shift' is the mechanism. Art Director's specific positioning (top 12%, center 76% band, bottom 60%) provides implementation detail.\",\n      \"unresolved\": false\n    },\n    \"hud.visual_hierarchy\": {\n      \"final_choice\": \"Tier 1 (largest, highlighted): Current player name + cash; Tier 2 (medium): Other players; Tier 3 (small): Turn number\",\n      \"integration_note\": \"All three explicitly define 3 tiers with current player most prominent, others secondary, turn number tertiary. Art Director's size specifications (largest/medium/small) align with UX Designer's description.\",\n      \"unresolved\": false\n    },\n    \"hud.responsive_scale\": {\n      \"final_choice\": \"Proportional scaling with viewport; font scales 14sp (mobile) to 18sp (tablet) to 22sp (desktop)\",\n      \"integration_note\": \"UX Designer (percentage-based widths), UI Programmer (scale with viewport), Art Director (specific font sizes per device). All advocate proportional scaling; Art Director provides concrete breakpoints.\",\n      \"unresolved\": false\n    },\n    \"hud.animation_feedback\": {\n      \"final_choice\": \"200ms ease-out for state transitions; 400ms count-up/down for cash changes; 2s breathing glow for player highlight\",\n      \"integration_note\": \"UX Designer (150ms), UI Programmer (200ms), Art Director (200ms/400ms with overshoot). Art Director's timing specifications are most detailed and include cash-specific duration.\",\n      \"unresolved\": false\n    },\n    \"hud.accessibility\": {\n      \"final_choice\": \"Full screen-reader labels, ARIA tags, focus indicators, keyboard navigation; minimum 16sp for cash values; color-blind safe mode using shape + pattern\",\n      \"integration_note\": \"UX Designer (screen-reader + focus + keyboard), UI Programmer (ARIA tags), Art Director (16sp minimum + color-blind safe mode). Combined into comprehensive accessibility support.\",\n      \"unresolved\": false\n    },\n    \"hud.layout_zones\": {\n      \"final_choice\": \"Top zone: HUD with player cards; Center zone: Board (28 squares); Bottom zone: Controls (dice, end turn); HUD split left-right for 4 players\",\n      \"integration_note\": \"UX Designer defines basic zones; UI Programmer suggests corner zones; Art Director provides detailed split (Players 1&2 left, Players 3&4 right, turn center). Art Director's zone breakdown is most complete.\",\n      \"unresolved\": false\n    },\n    \"hud.visual_containment\": {\n      \"final_choice\": \"Bounded rectangular container with 8px rounded corners and subtle drop shadow\",\n      \"integration_note\": \"UX Designer (rectangular bar within screen), UI Programmer (bounded container + rounded corners), Art Director (8px radius + 4px blur shadow). Merged into specific rounded rect with shadow.\",\n      \"unresolved\": false\n    },\n    \"hud.monopoly_identity\": {\n      \"final_choice\": \"Classic Monopoly color palette (deep blue, gold, cream, green) with Bahnschrift/similar condensed sans-serif; subtle board-inspired decorative elements\",\n      \"integration_note\": \"UX Designer (green, gold, deep red), UI Programmer (classic theme), Art Director (deep blue, gold, cream + specific font). Art Director's palette and font specifications are most detailed.\",\n      \"unresolved\": false\n    },\n    \"hud.multiplayer_visibility\": {\n      \"final_choice\": \"All 2-4 players visible simultaneously in HUD with expanded cards showing name + cash; state icons overlay on cards\",\n      \"integration_note\": \"UX Designer (all visible in row), UI Programmer (split panels), Art Director (always expanded + state icons). All three agree on full simultaneous visibility.\",\n      \"unresolved\": false\n    },\n    \"hud.board_visibility_boundary\": {\n      \"final_choice\": \"HUD height ≤5% of viewport, stopping at least 60px above board edge; all 28 squares fully visible\",\n      \"integration_note\": \"UX Designer (≤5%), UI Programmer (2px margin), Art Director (60px stop). Art Director's 60px specification effectively satisfies ≤5% requirement and matches GDD's 28-square visibility constraint.\",\n      \"unresolved\": false\n    },\n    \"hud.popup_noninterference\": {\n      \"final_choice\": \"HUD at lower z-index than all popups; popup system queries HUD bounds and auto-repositions to avoid overlap\",\n      \"integration_note\": \"UX Designer (low z-index + margin), UI Programmer (HUD below overlay priority), Art Director (auto-reposition). All three agree HUD must not interfere with popups.\",\n      \"unresolved\": false\n    },\n    \"hud.aesthetic_theme\": {\n      \"final_choice\": \"Clean flat modern design with subtle shadows and gradients; uses classic Monopoly color palette; retains brand warmth without skeuomorphic excess\",\n      \"integration_note\": \"UX Designer (clean flat + subtle shadows), UI Programmer (flat modern + subtle gradients), Art Director (modernized classic + matte surfaces). All converge on flat modern with brand colors.\",\n      \"unresolved\": false\n    },\n    \"hud.color_coding\": {\n      \"final_choice\": \"Red, Blue, Green, Yellow (classic assignment); HUD accent stripe matches player token color; active state uses brighter variant\",\n      \"integration_note\": \"All three specify Red/Blue/Green/Yellow. UX Designer and Art Director use same token colors; UI Programmer's 'player-specific colors' is less specific but compatible.\",\n      \"unresolved\": false\n    },\n    \"hud.motion_responsiveness\": {\n      \"final_choice\": \"Smooth 150-200ms transitions with easing; animations interruptible; no animation on critical-path actions (buy confirmation)\",\n      \"integration_note\": \"UX Designer (150ms), UI Programmer (200ms), Art Director (200ms + interruptible + no critical-path animation). Art Director's critical-path exclusion adds important constraint.\",\n      \"unresolved\": false\n    },\n    \"hud.opacity_attenuation\": {\n      \"final_choice\": \"Inactive panels 60-85% opacity based on importance; active player at 100%; text always 100% opaque\",\n      \"integration_note\": \"UX Designer (60% inactive), UI Programmer (50% overlap), Art Director (60-85% based on importance). Art Director's graduated approach based on importance is most nuanced.\",\n      \"unresolved\": false\n    },\n    \"hud.typography_scale\": {\n      \"final_choice\": \"Player name 16sp bold; Cash 20sp semibold; Turn number 12sp regular; secondary elements at 85% scale; supports up to 1.5x scaling\",\n      \"integration_note\": \"UX Designer (16px/14px base), UI Programmer (1.0/0.85 ratio), Art Director (16sp/20sp/12sp specific). Art Director's specific size assignments are most actionable.\",\n      \"unresolved\": false\n    },\n    \"hud.iconography_consistency\": {\n      \"final_choice\": \"Uniform flat line icons with 2px stroke and rounded caps; 20px inline for cash (banknote), player (silhouette), turn (circular arrow); 32px for standalone\",\n      \"integration_note\": \"UX Designer (uniform outlined style), UI Programmer (unified line icons), Art Director (2px stroke, 20px/32px sizes). Art Director provides concrete specifications.\",\n      \"unresolved\": false\n    }\n  }\n}\n```",
+    "out_keys": [
+      "arbitration"
+    ]
+  },
+  "capability_gaps": [
+    {
+      "dimension_id": "hud.collapsibility",
+      "integration_note": "UX Designer and UI Programmer advocate collapsible with toggle/auto-collapse. Art Director insists non-collapsible for constant information access. Art Director's requirement prevents HUD disappearing during critical gameplay moments. UNRESOLVED if Art Director's hard constraint cannot be relaxed.",
+      "resolved_by": "arbiter_unresolved",
+      "stances": {
+        "ux-designer": "Auto‑collapse after 5 seconds of inactivity, re‑appear on any input",
+        "ui-programmer": "collapsible via toggle",
+        "art-director": "Non-collapsible; always fully visible"
+      }
+    }
+  ]
+}

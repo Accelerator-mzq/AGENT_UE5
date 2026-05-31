@@ -1,0 +1,1153 @@
+{
+  "candidates_version": "1.0",
+  "skill_instance_id": "skill-aggregate-realization-candidates",
+  "source_design_space_report": "design_space_report.json",
+  "candidates": [
+    {
+      "dimension_id": "hud.info_density",
+      "candidates": [
+        {
+          "candidate_id": "hud.density.minimal",
+          "name": "Minimal Info Display",
+          "description": "仅展示 HUD 必须字段：当前玩家姓名、全部玩家现金余额、当前回合数。无额外扩展信息，保持界面极简。",
+          "trade_offs": {
+            "pros": [
+              "界面最简洁，信息噪音最低",
+              "开发成本最小，易于快速实现",
+              "对棋盘可见性影响最小"
+            ],
+            "cons": [
+              "战略信息不足，玩家需要额外记忆地产状态",
+              "无法直观展示位置、入狱状态等关键信息",
+              "玩家可能需要打开面板才能了解详情"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "low"
+        },
+        {
+          "candidate_id": "hud.density.balanced",
+          "name": "Balanced Info Display",
+          "description": "在最小集合基础上增加玩家位置索引（当前格编号）和入狱状态图标。提供平衡的可读性与信息丰富度。",
+          "trade_offs": {
+            "pros": [
+              "提供足够战略信息，支持快速决策",
+              "布局复杂度适中，不会遮挡棋盘",
+              "玩家可快速获取位置和状态信息"
+            ],
+            "cons": [
+              "信息量适中，平衡了简洁性和可用性"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "medium"
+        },
+        {
+          "candidate_id": "hud.density.rich",
+          "name": "Rich Info Display",
+          "description": "展示完整信息集：当前玩家、全部现金、回合数、位置索引/格名称、入狱状态、地产持有计数。最大程度减少玩家信息获取成本。",
+          "trade_offs": {
+            "pros": [
+              "信息最全面，玩家无需额外操作获取信息",
+              "支持复杂策略判断，减少认知负担",
+              "提升多地块持有玩家的可读性"
+            ],
+            "cons": [
+              "界面密度高，可能影响棋盘可读性",
+              "开发复杂度高，需响应式布局",
+              "可能遮挡核心棋盘区域"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "high"
+        }
+      ]
+    },
+    {
+      "dimension_id": "hud.layout_direction",
+      "candidates": [
+        {
+          "candidate_id": "hud.layout.topbar",
+          "name": "Top Bar Layout",
+          "description": "HUD 水平排列于屏幕顶部中央区域，采用横向条状布局。玩家信息紧凑排列，视觉上作为\"标题栏\"。",
+          "trade_offs": {
+            "pros": [
+              "水平布局符合自然阅读顺序",
+              "对棋盘空间影响集中在顶部",
+              "易于适配不同分辨率"
+            ],
+            "cons": [
+              "顶部空间有限，扩展信息时拥挤",
+              "与某些系统 UI 冲突概率高",
+              "位置指示器空间受限"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "low"
+        },
+        {
+          "candidate_id": "hud.layout.sidebar",
+          "name": "Sidebar Layout",
+          "description": "HUD 垂直排列于屏幕左侧或右侧边缘，采用窄条侧边栏布局。玩家信息列表式纵向展开。",
+          "trade_offs": {
+            "pros": [
+              "垂直空间充裕，可显示更多玩家",
+              "适合 2-4 名玩家的列表展示",
+              "不遮挡棋盘左右两侧边角"
+            ],
+            "cons": [
+              "占据水平空间，影响棋盘宽度",
+              "在宽屏/窄屏上表现差异大",
+              "侧边栏折叠逻辑增加复杂度"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "medium"
+        },
+        {
+          "candidate_id": "hud.layout.bottompanel",
+          "name": "Bottom Panel Layout",
+          "description": "HUD 水平排列于屏幕底部，采用横条面板布局。底部区域通常视觉权重较低，不干扰棋盘焦点。",
+          "trade_offs": {
+            "pros": [
+              "底部空间通常空闲，不抢占焦点",
+              "横条布局适合紧凑显示",
+              "与棋盘底部角格视觉协调"
+            ],
+            "cons": [
+              "底部与棋盘边缘接近，视觉接近度高",
+              "空间受限，无法展示过多信息",
+              "需防止键盘/触控冲突"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "low"
+        },
+        {
+          "candidate_id": "hud.layout.corners",
+          "name": "Corner Indicators Layout",
+          "description": "HUD 信息分散至四个角落：左上角回合数、右上角当前玩家、左下/右下角玩家资金列表。最大化利用边缘空间。",
+          "trade_offs": {
+            "pros": [
+              "最大程度减少对中央棋盘区域遮挡",
+              "四角分布符合界面惯性与视觉平衡",
+              "各信息块独立，便于局部刷新"
+            ],
+            "cons": [
+              "信息分散，视觉注意力需多区域切换",
+              "布局碎片化，开发复杂度高",
+              "响应式适配困难"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "high"
+        }
+      ]
+    },
+    {
+      "dimension_id": "hud.player_display_mode",
+      "candidates": [
+        {
+          "candidate_id": "hud.player.list",
+          "name": "List View Mode",
+          "description": "所有 2-4 名玩家的信息以列表形式同时可见。列表显示玩家名称、现金、入狱状态等，高亮当前活跃玩家。",
+          "trade_offs": {
+            "pros": [
+              "所有玩家状态一目了然",
+              "易于比较各玩家资金",
+              "当前玩家高亮明确"
+            ],
+            "cons": [
+              "2-4 名玩家全部显示时占用空间大",
+              "列表较长时可能遮挡棋盘",
+              "玩家多时文字需缩小"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "low"
+        },
+        {
+          "candidate_id": "hud.player.carousel",
+          "name": "Carousel Mode",
+          "description": "仅高亮显示当前活跃玩家信息，其他玩家信息淡化或隐藏。通过切换动画展示下一位玩家。",
+          "trade_offs": {
+            "pros": [
+              "界面最简洁，聚焦当前玩家",
+              "节省大量空间用于棋盘",
+              "减少视觉干扰"
+            ],
+            "cons": [
+              "无法快速比较其他玩家状态",
+              "需要切换动作获取信息",
+              "多玩家时需记住顺序"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "medium"
+        },
+        {
+          "candidate_id": "hud.player.panel",
+          "name": "Panel Mode",
+          "description": "当前玩家信息展开显示，其他玩家信息折叠为可展开面板。用户点击可展开任意玩家详情。",
+          "trade_offs": {
+            "pros": [
+              "默认状态简洁，需要时可展开",
+              "支持信息丰富与空间节省的平衡",
+              "可按需查看任意玩家详情"
+            ],
+            "cons": [
+              "需要点击交互获取信息",
+              "折叠/展开逻辑增加复杂度",
+              "操作路径稍长"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "medium"
+        }
+      ]
+    },
+    {
+      "dimension_id": "hud.dynamic_visibility",
+      "candidates": [
+        {
+          "candidate_id": "hud.visibility.always",
+          "name": "Always Visible Mode",
+          "description": "HUD 元素在 gameplay 期间始终可见，无显隐切换。信息随时可读，无动画延迟。",
+          "trade_offs": {
+            "pros": [
+              "信息随时可读，无额外操作",
+              "无动画，响应最快",
+              "实现最简单"
+            ],
+            "cons": [
+              "始终占用屏幕空间",
+              "可能影响沉浸感",
+              "始终显示时注意力可能被分散"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "low"
+        },
+        {
+          "candidate_id": "hud.visibility.expandable",
+          "name": "Expandable On Demand",
+          "description": "HUD 默认折叠为小型指示器，点击/悬停时展开完整信息面板。保持棋盘最大可视区域。",
+          "trade_offs": {
+            "pros": [
+              "默认状态不占用空间",
+              "按需查看，信息获取主动",
+              "最大化棋盘可视区域"
+            ],
+            "cons": [
+              "需要用户主动操作",
+              "折叠状态信息量不足",
+              "悬停展开在触控设备上不适用"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "medium"
+        },
+        {
+          "candidate_id": "hud.visibility.highlight",
+          "name": "Turn Change Highlight",
+          "description": "HUD 保持始终可见，但回合切换时播放短暂高亮动画（如边框闪烁或玩家卡片放大），增强反馈感。",
+          "trade_offs": {
+            "pros": [
+              "始终可见的同时增加视觉反馈",
+              "高亮动画强化回合切换感知",
+              "不阻塞操作，动画非阻塞式"
+            ],
+            "cons": [
+              "需要设计高亮动画",
+              "动画设计不当可能分散注意力",
+              "轻微增加渲染复杂度"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "medium"
+        }
+      ]
+    },
+    {
+      "dimension_id": "hud.cash_feedback",
+      "candidates": [
+        {
+          "candidate_id": "hud.cash.none",
+          "name": "No Cash Feedback",
+          "description": "资金变化时 HUD 仅静默更新数字，不提供额外视觉反馈。简洁直接，无动画效果。",
+          "trade_offs": {
+            "pros": [
+              "实现最简单",
+              "无动画延迟",
+              "界面最简洁"
+            ],
+            "cons": [
+              "资金变化不够明显",
+              "玩家可能错过重要交易反馈",
+              "交易后需主动检查资金"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "low"
+        },
+        {
+          "candidate_id": "hud.cash.tick",
+          "name": "Number Tick Animation",
+          "description": "资金数字变化时播放数字跳动动画（递增/递减动画），直观展示变化趋势。",
+          "trade_offs": {
+            "pros": [
+              "明确展示变化方向（增/减）",
+              "动画时间短，不阻塞操作",
+              "视觉反馈清晰但不突兀"
+            ],
+            "cons": [
+              "数字跳动动画需额外开发",
+              "快速连续交易时动画可能堆积",
+              "复杂度和性能开销略有增加"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "medium"
+        },
+        {
+          "candidate_id": "hud.cash.flash",
+          "name": "Color Flash Feedback",
+          "description": "资金增加时数字短暂变绿闪烁，资金减少时短暂变红闪烁。颜色变化提供即时反馈。",
+          "trade_offs": {
+            "pros": [
+              "颜色变化直觉性强",
+              "实现相对简单",
+              "反馈即时明确"
+            ],
+            "cons": [
+              "频繁闪动可能分散注意力",
+              "红绿配色需考虑色盲可及性",
+              "不适合快速连续交易场景"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "medium"
+        },
+        {
+          "candidate_id": "hud.cash.popup",
+          "name": "Popup Number Feedback",
+          "description": "资金变化时在 HUD 附近弹出 +/-$XX 数字，飘浮后消失。类似 RPG 游戏中的伤害/治疗数字。",
+          "trade_offs": {
+            "pros": [
+              "反馈最直观醒目",
+              "玩家无需追踪数字变化",
+              "变化量一目了然"
+            ],
+            "cons": [
+              "弹出动画需额外开发",
+              "多个玩家同时变化时可能冲突",
+              "最复杂，影响性能"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "high"
+        }
+      ]
+    },
+    {
+      "dimension_id": "hud.position_visibility",
+      "candidates": [
+        {
+          "candidate_id": "hud.position.hidden",
+          "name": "Position Hidden",
+          "description": "HUD 中不显示玩家位置信息。玩家位置仅通过棋盘上的棋子可视化获取，保持 HUD 简洁。",
+          "trade_offs": {
+            "pros": [
+              "HUD 界面最简洁",
+              "开发成本最低",
+              "不产生位置信息矛盾"
+            ],
+            "cons": [
+              "玩家无法快速获取位置文字信息",
+              "需依赖棋盘可视化判断位置",
+              "位置信息获取效率低"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "low"
+        },
+        {
+          "candidate_id": "hud.position.simple",
+          "name": "Simple Index Display",
+          "description": "HUD 显示玩家当前所在格子编号（如\"位置: 14\"）。仅展示数字索引，无格名称。",
+          "trade_offs": {
+            "pros": [
+              "实现简单，信息紧凑",
+              "适合配合棋盘可视化使用",
+              "不占用过多空间"
+            ],
+            "cons": [
+              "编号需对照棋盘理解",
+              "无法直观知道格子类型",
+              "对不熟悉棋盘玩家不友好"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "low"
+        },
+        {
+          "candidate_id": "hud.position.detailed",
+          "name": "Detailed Name Display",
+          "description": "HUD 显示玩家当前所在格子名称（如\"位置: 自由停车场\"）或格名称+距离起点步数。提供完整位置上下文。",
+          "trade_offs": {
+            "pros": [
+              "位置信息最完整",
+              "玩家无需对照棋盘",
+              "支持复杂策略判断"
+            ],
+            "cons": [
+              "格名称文字较长",
+              "占用空间较大",
+              "需要维护格名称数据"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "medium"
+        }
+      ]
+    },
+    {
+      "dimension_id": "hud.jail_indicator_style",
+      "candidates": [
+        {
+          "candidate_id": "hud.jail.icon",
+          "name": "Icon Indicator",
+          "description": "入狱玩家在 HUD 中显示监狱图标（如栅栏或牢门图标），图标旁可叠加剩余回合数。",
+          "trade_offs": {
+            "pros": [
+              "图标直观，一眼可辨",
+              "占用空间小",
+              "符合 UI 一致性"
+            ],
+            "cons": [
+              "需设计/引入图标资源",
+              "纯图标可能语义不够明确",
+              "需考虑图标可及性"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "low"
+        },
+        {
+          "candidate_id": "hud.jail.border",
+          "name": "Color Border Indicator",
+          "description": "入狱玩家在 HUD 中以红色边框标识，边框旁显示\"入狱\"文字标签。颜色区分明确。",
+          "trade_offs": {
+            "pros": [
+              "颜色变化直觉性强",
+              "实现简单，无需图标",
+              "红/灰对比度高"
+            ],
+            "cons": [
+              "红绿配色需考虑可及性",
+              "仅靠颜色可能不够明确",
+              "边框样式需与主题协调"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "low"
+        },
+        {
+          "candidate_id": "hud.jail.badge",
+          "name": "Badge Indicator",
+          "description": "入狱玩家在 HUD 中显示圆角矩形徽章，内含\"入狱\"文字及剩余回合倒计时。",
+          "trade_offs": {
+            "pros": [
+              "状态和剩余时间一目了然",
+              "徽章视觉突出",
+              "信息完整且紧凑"
+            ],
+            "cons": [
+              "徽章设计需与主题协调",
+              "占用空间比图标大",
+              "需数值倒计时逻辑"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "medium"
+        },
+        {
+          "candidate_id": "hud.jail.text",
+          "name": "Text Label Indicator",
+          "description": "入狱玩家在 HUD 中显示\"入狱 (X/3)\"文字标签，无额外图标或颜色边框。",
+          "trade_offs": {
+            "pros": [
+              "实现最简单",
+              "信息最完整",
+              "无需额外图标资源"
+            ],
+            "cons": [
+              "视觉突出度最低",
+              "不如图标直观",
+              "可能与正常状态难以区分"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "low"
+        }
+      ]
+    },
+    {
+      "dimension_id": "hud.theme_integration",
+      "candidates": [
+        {
+          "candidate_id": "hud.theme.integrated",
+          "name": "Fully Integrated Theme",
+          "description": "HUD 视觉风格完全融入游戏整体前端主题，包括字体、颜色、圆角、阴影等，保持视觉一致性。",
+          "trade_offs": {
+            "pros": [
+              "视觉最统一协调",
+              "沉浸感最强",
+              "符合设计规范"
+            ],
+            "cons": [
+              "主题定制受限",
+              "开发需遵循主题规范",
+              "可能与游戏内元素视觉冲突"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "medium"
+        },
+        {
+          "candidate_id": "hud.theme.contrast",
+          "name": "High Contrast Mode",
+          "description": "HUD 采用高对比度设计，如深色背景+亮色文字，与游戏棋盘区域形成明显分离，提高可读性。",
+          "trade_offs": {
+            "pros": [
+              "信息可读性最高",
+              "不依赖游戏配色",
+              "在复杂背景下仍清晰"
+            ],
+            "cons": [
+              "可能破坏视觉一致性",
+              "沉浸感略有下降",
+              "需单独设计 HUD 配色"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "medium"
+        },
+        {
+          "candidate_id": "hud.theme.mixed",
+          "name": "Mixed Style",
+          "description": "HUD 主体融入主题，但在关键信息（如资金、回合数）处使用高对比度或强调色，确保信息获取效率。",
+          "trade_offs": {
+            "pros": [
+              "平衡一致性与可读性",
+              "灵活调整关键信息突出度",
+              "可逐步迭代优化"
+            ],
+            "cons": [
+              "混合格式需仔细设计",
+              "可能产生视觉不一致",
+              "开发复杂度中等"
+            ]
+          },
+          "satisfies_bounds": true,
+          "estimated_complexity": "medium"
+        }
+      ]
+    }
+  ],
+  "entries": [
+    {
+      "candidates": [
+        {
+          "dimension_id": "hud.info_density",
+          "candidates": [
+            {
+              "candidate_id": "hud.density.minimal",
+              "name": "Minimal Info Display",
+              "description": "仅展示 HUD 必须字段：当前玩家姓名、全部玩家现金余额、当前回合数。无额外扩展信息，保持界面极简。",
+              "trade_offs": {
+                "pros": [
+                  "界面最简洁，信息噪音最低",
+                  "开发成本最小，易于快速实现",
+                  "对棋盘可见性影响最小"
+                ],
+                "cons": [
+                  "战略信息不足，玩家需要额外记忆地产状态",
+                  "无法直观展示位置、入狱状态等关键信息",
+                  "玩家可能需要打开面板才能了解详情"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "low"
+            },
+            {
+              "candidate_id": "hud.density.balanced",
+              "name": "Balanced Info Display",
+              "description": "在最小集合基础上增加玩家位置索引（当前格编号）和入狱状态图标。提供平衡的可读性与信息丰富度。",
+              "trade_offs": {
+                "pros": [
+                  "提供足够战略信息，支持快速决策",
+                  "布局复杂度适中，不会遮挡棋盘",
+                  "玩家可快速获取位置和状态信息"
+                ],
+                "cons": [
+                  "信息量适中，平衡了简洁性和可用性"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "medium"
+            },
+            {
+              "candidate_id": "hud.density.rich",
+              "name": "Rich Info Display",
+              "description": "展示完整信息集：当前玩家、全部现金、回合数、位置索引/格名称、入狱状态、地产持有计数。最大程度减少玩家信息获取成本。",
+              "trade_offs": {
+                "pros": [
+                  "信息最全面，玩家无需额外操作获取信息",
+                  "支持复杂策略判断，减少认知负担",
+                  "提升多地块持有玩家的可读性"
+                ],
+                "cons": [
+                  "界面密度高，可能影响棋盘可读性",
+                  "开发复杂度高，需响应式布局",
+                  "可能遮挡核心棋盘区域"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "high"
+            }
+          ]
+        },
+        {
+          "dimension_id": "hud.layout_direction",
+          "candidates": [
+            {
+              "candidate_id": "hud.layout.topbar",
+              "name": "Top Bar Layout",
+              "description": "HUD 水平排列于屏幕顶部中央区域，采用横向条状布局。玩家信息紧凑排列，视觉上作为\"标题栏\"。",
+              "trade_offs": {
+                "pros": [
+                  "水平布局符合自然阅读顺序",
+                  "对棋盘空间影响集中在顶部",
+                  "易于适配不同分辨率"
+                ],
+                "cons": [
+                  "顶部空间有限，扩展信息时拥挤",
+                  "与某些系统 UI 冲突概率高",
+                  "位置指示器空间受限"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "low"
+            },
+            {
+              "candidate_id": "hud.layout.sidebar",
+              "name": "Sidebar Layout",
+              "description": "HUD 垂直排列于屏幕左侧或右侧边缘，采用窄条侧边栏布局。玩家信息列表式纵向展开。",
+              "trade_offs": {
+                "pros": [
+                  "垂直空间充裕，可显示更多玩家",
+                  "适合 2-4 名玩家的列表展示",
+                  "不遮挡棋盘左右两侧边角"
+                ],
+                "cons": [
+                  "占据水平空间，影响棋盘宽度",
+                  "在宽屏/窄屏上表现差异大",
+                  "侧边栏折叠逻辑增加复杂度"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "medium"
+            },
+            {
+              "candidate_id": "hud.layout.bottompanel",
+              "name": "Bottom Panel Layout",
+              "description": "HUD 水平排列于屏幕底部，采用横条面板布局。底部区域通常视觉权重较低，不干扰棋盘焦点。",
+              "trade_offs": {
+                "pros": [
+                  "底部空间通常空闲，不抢占焦点",
+                  "横条布局适合紧凑显示",
+                  "与棋盘底部角格视觉协调"
+                ],
+                "cons": [
+                  "底部与棋盘边缘接近，视觉接近度高",
+                  "空间受限，无法展示过多信息",
+                  "需防止键盘/触控冲突"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "low"
+            },
+            {
+              "candidate_id": "hud.layout.corners",
+              "name": "Corner Indicators Layout",
+              "description": "HUD 信息分散至四个角落：左上角回合数、右上角当前玩家、左下/右下角玩家资金列表。最大化利用边缘空间。",
+              "trade_offs": {
+                "pros": [
+                  "最大程度减少对中央棋盘区域遮挡",
+                  "四角分布符合界面惯性与视觉平衡",
+                  "各信息块独立，便于局部刷新"
+                ],
+                "cons": [
+                  "信息分散，视觉注意力需多区域切换",
+                  "布局碎片化，开发复杂度高",
+                  "响应式适配困难"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "high"
+            }
+          ]
+        },
+        {
+          "dimension_id": "hud.player_display_mode",
+          "candidates": [
+            {
+              "candidate_id": "hud.player.list",
+              "name": "List View Mode",
+              "description": "所有 2-4 名玩家的信息以列表形式同时可见。列表显示玩家名称、现金、入狱状态等，高亮当前活跃玩家。",
+              "trade_offs": {
+                "pros": [
+                  "所有玩家状态一目了然",
+                  "易于比较各玩家资金",
+                  "当前玩家高亮明确"
+                ],
+                "cons": [
+                  "2-4 名玩家全部显示时占用空间大",
+                  "列表较长时可能遮挡棋盘",
+                  "玩家多时文字需缩小"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "low"
+            },
+            {
+              "candidate_id": "hud.player.carousel",
+              "name": "Carousel Mode",
+              "description": "仅高亮显示当前活跃玩家信息，其他玩家信息淡化或隐藏。通过切换动画展示下一位玩家。",
+              "trade_offs": {
+                "pros": [
+                  "界面最简洁，聚焦当前玩家",
+                  "节省大量空间用于棋盘",
+                  "减少视觉干扰"
+                ],
+                "cons": [
+                  "无法快速比较其他玩家状态",
+                  "需要切换动作获取信息",
+                  "多玩家时需记住顺序"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "medium"
+            },
+            {
+              "candidate_id": "hud.player.panel",
+              "name": "Panel Mode",
+              "description": "当前玩家信息展开显示，其他玩家信息折叠为可展开面板。用户点击可展开任意玩家详情。",
+              "trade_offs": {
+                "pros": [
+                  "默认状态简洁，需要时可展开",
+                  "支持信息丰富与空间节省的平衡",
+                  "可按需查看任意玩家详情"
+                ],
+                "cons": [
+                  "需要点击交互获取信息",
+                  "折叠/展开逻辑增加复杂度",
+                  "操作路径稍长"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "medium"
+            }
+          ]
+        },
+        {
+          "dimension_id": "hud.dynamic_visibility",
+          "candidates": [
+            {
+              "candidate_id": "hud.visibility.always",
+              "name": "Always Visible Mode",
+              "description": "HUD 元素在 gameplay 期间始终可见，无显隐切换。信息随时可读，无动画延迟。",
+              "trade_offs": {
+                "pros": [
+                  "信息随时可读，无额外操作",
+                  "无动画，响应最快",
+                  "实现最简单"
+                ],
+                "cons": [
+                  "始终占用屏幕空间",
+                  "可能影响沉浸感",
+                  "始终显示时注意力可能被分散"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "low"
+            },
+            {
+              "candidate_id": "hud.visibility.expandable",
+              "name": "Expandable On Demand",
+              "description": "HUD 默认折叠为小型指示器，点击/悬停时展开完整信息面板。保持棋盘最大可视区域。",
+              "trade_offs": {
+                "pros": [
+                  "默认状态不占用空间",
+                  "按需查看，信息获取主动",
+                  "最大化棋盘可视区域"
+                ],
+                "cons": [
+                  "需要用户主动操作",
+                  "折叠状态信息量不足",
+                  "悬停展开在触控设备上不适用"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "medium"
+            },
+            {
+              "candidate_id": "hud.visibility.highlight",
+              "name": "Turn Change Highlight",
+              "description": "HUD 保持始终可见，但回合切换时播放短暂高亮动画（如边框闪烁或玩家卡片放大），增强反馈感。",
+              "trade_offs": {
+                "pros": [
+                  "始终可见的同时增加视觉反馈",
+                  "高亮动画强化回合切换感知",
+                  "不阻塞操作，动画非阻塞式"
+                ],
+                "cons": [
+                  "需要设计高亮动画",
+                  "动画设计不当可能分散注意力",
+                  "轻微增加渲染复杂度"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "medium"
+            }
+          ]
+        },
+        {
+          "dimension_id": "hud.cash_feedback",
+          "candidates": [
+            {
+              "candidate_id": "hud.cash.none",
+              "name": "No Cash Feedback",
+              "description": "资金变化时 HUD 仅静默更新数字，不提供额外视觉反馈。简洁直接，无动画效果。",
+              "trade_offs": {
+                "pros": [
+                  "实现最简单",
+                  "无动画延迟",
+                  "界面最简洁"
+                ],
+                "cons": [
+                  "资金变化不够明显",
+                  "玩家可能错过重要交易反馈",
+                  "交易后需主动检查资金"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "low"
+            },
+            {
+              "candidate_id": "hud.cash.tick",
+              "name": "Number Tick Animation",
+              "description": "资金数字变化时播放数字跳动动画（递增/递减动画），直观展示变化趋势。",
+              "trade_offs": {
+                "pros": [
+                  "明确展示变化方向（增/减）",
+                  "动画时间短，不阻塞操作",
+                  "视觉反馈清晰但不突兀"
+                ],
+                "cons": [
+                  "数字跳动动画需额外开发",
+                  "快速连续交易时动画可能堆积",
+                  "复杂度和性能开销略有增加"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "medium"
+            },
+            {
+              "candidate_id": "hud.cash.flash",
+              "name": "Color Flash Feedback",
+              "description": "资金增加时数字短暂变绿闪烁，资金减少时短暂变红闪烁。颜色变化提供即时反馈。",
+              "trade_offs": {
+                "pros": [
+                  "颜色变化直觉性强",
+                  "实现相对简单",
+                  "反馈即时明确"
+                ],
+                "cons": [
+                  "频繁闪动可能分散注意力",
+                  "红绿配色需考虑色盲可及性",
+                  "不适合快速连续交易场景"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "medium"
+            },
+            {
+              "candidate_id": "hud.cash.popup",
+              "name": "Popup Number Feedback",
+              "description": "资金变化时在 HUD 附近弹出 +/-$XX 数字，飘浮后消失。类似 RPG 游戏中的伤害/治疗数字。",
+              "trade_offs": {
+                "pros": [
+                  "反馈最直观醒目",
+                  "玩家无需追踪数字变化",
+                  "变化量一目了然"
+                ],
+                "cons": [
+                  "弹出动画需额外开发",
+                  "多个玩家同时变化时可能冲突",
+                  "最复杂，影响性能"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "high"
+            }
+          ]
+        },
+        {
+          "dimension_id": "hud.position_visibility",
+          "candidates": [
+            {
+              "candidate_id": "hud.position.hidden",
+              "name": "Position Hidden",
+              "description": "HUD 中不显示玩家位置信息。玩家位置仅通过棋盘上的棋子可视化获取，保持 HUD 简洁。",
+              "trade_offs": {
+                "pros": [
+                  "HUD 界面最简洁",
+                  "开发成本最低",
+                  "不产生位置信息矛盾"
+                ],
+                "cons": [
+                  "玩家无法快速获取位置文字信息",
+                  "需依赖棋盘可视化判断位置",
+                  "位置信息获取效率低"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "low"
+            },
+            {
+              "candidate_id": "hud.position.simple",
+              "name": "Simple Index Display",
+              "description": "HUD 显示玩家当前所在格子编号（如\"位置: 14\"）。仅展示数字索引，无格名称。",
+              "trade_offs": {
+                "pros": [
+                  "实现简单，信息紧凑",
+                  "适合配合棋盘可视化使用",
+                  "不占用过多空间"
+                ],
+                "cons": [
+                  "编号需对照棋盘理解",
+                  "无法直观知道格子类型",
+                  "对不熟悉棋盘玩家不友好"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "low"
+            },
+            {
+              "candidate_id": "hud.position.detailed",
+              "name": "Detailed Name Display",
+              "description": "HUD 显示玩家当前所在格子名称（如\"位置: 自由停车场\"）或格名称+距离起点步数。提供完整位置上下文。",
+              "trade_offs": {
+                "pros": [
+                  "位置信息最完整",
+                  "玩家无需对照棋盘",
+                  "支持复杂策略判断"
+                ],
+                "cons": [
+                  "格名称文字较长",
+                  "占用空间较大",
+                  "需要维护格名称数据"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "medium"
+            }
+          ]
+        },
+        {
+          "dimension_id": "hud.jail_indicator_style",
+          "candidates": [
+            {
+              "candidate_id": "hud.jail.icon",
+              "name": "Icon Indicator",
+              "description": "入狱玩家在 HUD 中显示监狱图标（如栅栏或牢门图标），图标旁可叠加剩余回合数。",
+              "trade_offs": {
+                "pros": [
+                  "图标直观，一眼可辨",
+                  "占用空间小",
+                  "符合 UI 一致性"
+                ],
+                "cons": [
+                  "需设计/引入图标资源",
+                  "纯图标可能语义不够明确",
+                  "需考虑图标可及性"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "low"
+            },
+            {
+              "candidate_id": "hud.jail.border",
+              "name": "Color Border Indicator",
+              "description": "入狱玩家在 HUD 中以红色边框标识，边框旁显示\"入狱\"文字标签。颜色区分明确。",
+              "trade_offs": {
+                "pros": [
+                  "颜色变化直觉性强",
+                  "实现简单，无需图标",
+                  "红/灰对比度高"
+                ],
+                "cons": [
+                  "红绿配色需考虑可及性",
+                  "仅靠颜色可能不够明确",
+                  "边框样式需与主题协调"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "low"
+            },
+            {
+              "candidate_id": "hud.jail.badge",
+              "name": "Badge Indicator",
+              "description": "入狱玩家在 HUD 中显示圆角矩形徽章，内含\"入狱\"文字及剩余回合倒计时。",
+              "trade_offs": {
+                "pros": [
+                  "状态和剩余时间一目了然",
+                  "徽章视觉突出",
+                  "信息完整且紧凑"
+                ],
+                "cons": [
+                  "徽章设计需与主题协调",
+                  "占用空间比图标大",
+                  "需数值倒计时逻辑"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "medium"
+            },
+            {
+              "candidate_id": "hud.jail.text",
+              "name": "Text Label Indicator",
+              "description": "入狱玩家在 HUD 中显示\"入狱 (X/3)\"文字标签，无额外图标或颜色边框。",
+              "trade_offs": {
+                "pros": [
+                  "实现最简单",
+                  "信息最完整",
+                  "无需额外图标资源"
+                ],
+                "cons": [
+                  "视觉突出度最低",
+                  "不如图标直观",
+                  "可能与正常状态难以区分"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "low"
+            }
+          ]
+        },
+        {
+          "dimension_id": "hud.theme_integration",
+          "candidates": [
+            {
+              "candidate_id": "hud.theme.integrated",
+              "name": "Fully Integrated Theme",
+              "description": "HUD 视觉风格完全融入游戏整体前端主题，包括字体、颜色、圆角、阴影等，保持视觉一致性。",
+              "trade_offs": {
+                "pros": [
+                  "视觉最统一协调",
+                  "沉浸感最强",
+                  "符合设计规范"
+                ],
+                "cons": [
+                  "主题定制受限",
+                  "开发需遵循主题规范",
+                  "可能与游戏内元素视觉冲突"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "medium"
+            },
+            {
+              "candidate_id": "hud.theme.contrast",
+              "name": "High Contrast Mode",
+              "description": "HUD 采用高对比度设计，如深色背景+亮色文字，与游戏棋盘区域形成明显分离，提高可读性。",
+              "trade_offs": {
+                "pros": [
+                  "信息可读性最高",
+                  "不依赖游戏配色",
+                  "在复杂背景下仍清晰"
+                ],
+                "cons": [
+                  "可能破坏视觉一致性",
+                  "沉浸感略有下降",
+                  "需单独设计 HUD 配色"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "medium"
+            },
+            {
+              "candidate_id": "hud.theme.mixed",
+              "name": "Mixed Style",
+              "description": "HUD 主体融入主题，但在关键信息（如资金、回合数）处使用高对比度或强调色，确保信息获取效率。",
+              "trade_offs": {
+                "pros": [
+                  "平衡一致性与可读性",
+                  "灵活调整关键信息突出度",
+                  "可逐步迭代优化"
+                ],
+                "cons": [
+                  "混合格式需仔细设计",
+                  "可能产生视觉不一致",
+                  "开发复杂度中等"
+                ]
+              },
+              "satisfies_bounds": true,
+              "estimated_complexity": "medium"
+            }
+          ]
+        }
+      ],
+      "metadata": {
+        "generator_type": "llm",
+        "generated_at": "2026-05-31T03:19:23.549749+00:00",
+        "promotable": true
+      }
+    }
+  ],
+  "metadata": {
+    "generated_at": "2026-05-31T03:19:44.362992+00:00",
+    "generator": "AgentBridge.Compiler.RealizationCandidates.v1",
+    "entry_count": 1,
+    "execution_order": [
+      "skill-baseline-hud"
+    ],
+    "lifecycle_records": [
+      {
+        "skill_instance_id": "skill-baseline-hud",
+        "domain_type": "baseline",
+        "status": "running",
+        "mode": "discovery",
+        "execution_index": 1,
+        "allows_design_space_discovery": true
+      },
+      {
+        "skill_instance_id": "skill-baseline-hud",
+        "domain_type": "baseline",
+        "status": "completed",
+        "mode": "agent_protocol",
+        "execution_index": 1,
+        "allows_design_space_discovery": true
+      }
+    ],
+    "final_status_map": {
+      "skill-baseline-hud": "completed"
+    },
+    "generator_type": "llm",
+    "promotable": true,
+    "fast_mode_skipped": false,
+    "clarification_gate_policy": "auto_default_low_medium_only"
+  }
+}

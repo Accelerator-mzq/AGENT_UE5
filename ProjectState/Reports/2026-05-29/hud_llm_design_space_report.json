@@ -1,0 +1,450 @@
+{
+  "report_version": "1.0",
+  "skill_instance_id": "skill-aggregate-design-space",
+  "source_contract_id": "rsc.monopoly.phase11_task14_baseline_template_validation.20260417",
+  "source_graph_id": "sg.monopoly.phase11_task14_baseline_template_validation.20260417",
+  "discovery_dimensions": [
+    {
+      "dimension_id": "hud.info_density",
+      "name": "HUD Information Density",
+      "description": "控制 HUD 展示数据的丰富程度。最小集合（当前玩家+现金+回合）由约束锁定，扩展集合可包含位置、地产持有量、监狱状态等。信息密度影响可读性与策略清晰度之间的平衡。",
+      "design_freedom": "high",
+      "variant_bounds": {
+        "must_satisfy": [
+          "显示当前玩家",
+          "显示全部玩家现金",
+          "显示当前回合数"
+        ],
+        "must_not": [
+          "遮挡购买/租金/监狱弹窗"
+        ]
+      },
+      "coupled_dimensions": [
+        "hud.layout_direction",
+        "hud.theme_integration"
+      ]
+    },
+    {
+      "dimension_id": "hud.layout_direction",
+      "name": "HUD 布局方向",
+      "description": "HUD 在屏幕上的放置区域。选项包括：顶部横条、侧边栏、底部面板、角落指示器、或混合布局。布局方向直接影响棋盘可视区域与信息可及性的权衡。",
+      "design_freedom": "high",
+      "variant_bounds": {
+        "must_satisfy": [
+          "28 个格子在主相机下完整可见",
+          "四个角格可读且玩家移动路径清晰",
+          "不遮挡购买/租金/监狱弹窗"
+        ],
+        "must_not": [
+          "格子重叠",
+          "HUD 遮挡核心棋盘区域"
+        ]
+      },
+      "coupled_dimensions": [
+        "board.world_layout_dimensions",
+        "hud.info_density"
+      ]
+    },
+    {
+      "dimension_id": "hud.player_display_mode",
+      "name": "玩家信息展示模式",
+      "description": "多玩家信息的展示方式。列表式（始终显示全部玩家）、轮播式（高亮当前玩家）、面板式（折叠/展开玩家详情）。需适配 2-4 名玩家。",
+      "design_freedom": "medium",
+      "variant_bounds": {
+        "must_satisfy": [
+          "2-4 名玩家在棋盘上可区分",
+          "当前活跃玩家标识明确"
+        ],
+        "must_not": [
+          "玩家信息遮挡棋盘关键区域"
+        ]
+      },
+      "coupled_dimensions": [
+        "hud.info_density",
+        "game.player_count_range"
+      ]
+    },
+    {
+      "dimension_id": "hud.dynamic_visibility",
+      "name": "HUD 动态显隐策略",
+      "description": "HUD 元素的可见性变化策略。始终可见、按需展开/折叠、回合切换时高亮动画。动态显隐影响沉浸感与信息获取效率。",
+      "design_freedom": "medium",
+      "variant_bounds": {
+        "must_satisfy": [
+          "回合切换时有明确反馈",
+          "关键信息随时可查"
+        ],
+        "must_not": [
+          "动画延迟阻塞回合节奏"
+        ]
+      },
+      "coupled_dimensions": [
+        "hud.layout_direction",
+        "hud.cash_feedback"
+      ]
+    },
+    {
+      "dimension_id": "hud.cash_feedback",
+      "name": "资金变化反馈方式",
+      "description": "玩家资金变动时的视觉/动画反馈。无反馈、数字跳动、颜色闪烁、弹出数字等。反馈方式影响交易清晰度与节奏感。",
+      "design_freedom": "medium",
+      "variant_bounds": {
+        "must_satisfy": [
+          "资金变化可感知",
+          "增加/减少可区分"
+        ],
+        "must_not": [
+          "动画延迟阻塞回合节奏"
+        ]
+      },
+      "coupled_dimensions": [
+        "hud.dynamic_visibility",
+        "hud.theme_integration"
+      ]
+    },
+    {
+      "dimension_id": "hud.position_visibility",
+      "name": "玩家位置信息展示",
+      "description": "是否在 HUD 中显示玩家在棋盘上的位置。可选：隐藏（仅棋盘可见）、简化显示（当前格索引）、详细显示（格名称+距离起点步数）。",
+      "design_freedom": "medium",
+      "variant_bounds": {
+        "must_satisfy": [
+          "玩家在棋盘上可区分"
+        ],
+        "must_not": [
+          "位置信息遮挡格子标签"
+        ]
+      },
+      "coupled_dimensions": [
+        "player_token.visual_style",
+        "board.tile_visual_style"
+      ]
+    },
+    {
+      "dimension_id": "hud.jail_indicator_style",
+      "name": "监狱状态指示样式",
+      "description": "玩家入狱状态的视觉标识样式。图标、颜色边框、徽章、文字标签等。需在信息丰富性与界面简洁性之间平衡。",
+      "design_freedom": "low",
+      "variant_bounds": {
+        "must_satisfy": [
+          "入狱状态可辨识"
+        ],
+        "must_not": [
+          "遮挡购买/租金/监狱弹窗"
+        ]
+      },
+      "coupled_dimensions": [
+        "hud.theme_integration",
+        "jail.bail_cost",
+        "jail.max_turns"
+      ]
+    },
+    {
+      "dimension_id": "hud.theme_integration",
+      "name": "HUD 视觉主题整合",
+      "description": "HUD 与整体前端视觉主题的一致性程度。完全融入主题、高对比度分离、混合风格。需保持 Monopoly-like 识别度与按钮/文字可读性。",
+      "design_freedom": "medium",
+      "variant_bounds": {
+        "must_satisfy": [
+          "保留 Monopoly-like 棋盘策略识别度",
+          "主题风格不降低按钮和文字可读性"
+        ],
+        "must_not": []
+      },
+      "coupled_dimensions": [
+        "frontend.visual_theme",
+        "hud.info_density",
+        "hud.cash_feedback"
+      ]
+    }
+  ],
+  "locked_dimensions": [
+    {
+      "dimension_id": "hud.required_fields",
+      "name": "HUD 必需信息字段",
+      "description": "HUD 必须显示的最小数据字段集",
+      "locked_value": [
+        "current_player",
+        "player_cash",
+        "turn_number"
+      ],
+      "constraint_ref": "ui.required_hud_fields",
+      "gdd_ref": "GDD 4.1 HUD 信息"
+    },
+    {
+      "dimension_id": "board.world_layout_dimensions",
+      "name": "棋盘世界尺寸约束",
+      "description": "28 个格子必须在主相机视角下完整可见，四个角格可读",
+      "locked_constraint": "28 tiles visible in main camera",
+      "variant_ref": "board.world_layout_dimensions",
+      "gdd_ref": "GDD 2.1 仅锁定环形路线"
+    },
+    {
+      "dimension_id": "board.tile_visual_style",
+      "name": "格子视觉样式可区分性",
+      "description": "地产、税务、机会、公共基金等类型必须可区分",
+      "locked_constraint": "tile types visually distinguishable",
+      "variant_ref": "board.tile_visual_style",
+      "gdd_ref": "GDD 2.2 格子类型定义"
+    },
+    {
+      "dimension_id": "hud.non_blocking",
+      "name": "HUD 非遮挡约束",
+      "description": "HUD 布局不得遮挡购买、租金、监狱相关弹窗",
+      "locked_constraint": "must not block purchase/rent/jail popups",
+      "variant_ref": "hud.layout_style",
+      "gdd_ref": "GDD 4.1 HUD 布局未锁定，但交互弹窗必须无遮挡"
+    },
+    {
+      "dimension_id": "player_token.distinguishability",
+      "name": "玩家棋子可区分性",
+      "description": "2-4 名玩家在棋盘上必须可区分",
+      "locked_constraint": "2-4 players distinguishable on board",
+      "variant_ref": "player_token.visual_style",
+      "gdd_ref": "GDD 未锁定棋子模型，但可区分性必须保证"
+    }
+  ],
+  "entries": [
+    {
+      "discovery_dimensions": [
+        {
+          "dimension_id": "hud.info_density",
+          "name": "HUD Information Density",
+          "description": "控制 HUD 展示数据的丰富程度。最小集合（当前玩家+现金+回合）由约束锁定，扩展集合可包含位置、地产持有量、监狱状态等。信息密度影响可读性与策略清晰度之间的平衡。",
+          "design_freedom": "high",
+          "variant_bounds": {
+            "must_satisfy": [
+              "显示当前玩家",
+              "显示全部玩家现金",
+              "显示当前回合数"
+            ],
+            "must_not": [
+              "遮挡购买/租金/监狱弹窗"
+            ]
+          },
+          "coupled_dimensions": [
+            "hud.layout_direction",
+            "hud.theme_integration"
+          ]
+        },
+        {
+          "dimension_id": "hud.layout_direction",
+          "name": "HUD 布局方向",
+          "description": "HUD 在屏幕上的放置区域。选项包括：顶部横条、侧边栏、底部面板、角落指示器、或混合布局。布局方向直接影响棋盘可视区域与信息可及性的权衡。",
+          "design_freedom": "high",
+          "variant_bounds": {
+            "must_satisfy": [
+              "28 个格子在主相机下完整可见",
+              "四个角格可读且玩家移动路径清晰",
+              "不遮挡购买/租金/监狱弹窗"
+            ],
+            "must_not": [
+              "格子重叠",
+              "HUD 遮挡核心棋盘区域"
+            ]
+          },
+          "coupled_dimensions": [
+            "board.world_layout_dimensions",
+            "hud.info_density"
+          ]
+        },
+        {
+          "dimension_id": "hud.player_display_mode",
+          "name": "玩家信息展示模式",
+          "description": "多玩家信息的展示方式。列表式（始终显示全部玩家）、轮播式（高亮当前玩家）、面板式（折叠/展开玩家详情）。需适配 2-4 名玩家。",
+          "design_freedom": "medium",
+          "variant_bounds": {
+            "must_satisfy": [
+              "2-4 名玩家在棋盘上可区分",
+              "当前活跃玩家标识明确"
+            ],
+            "must_not": [
+              "玩家信息遮挡棋盘关键区域"
+            ]
+          },
+          "coupled_dimensions": [
+            "hud.info_density",
+            "game.player_count_range"
+          ]
+        },
+        {
+          "dimension_id": "hud.dynamic_visibility",
+          "name": "HUD 动态显隐策略",
+          "description": "HUD 元素的可见性变化策略。始终可见、按需展开/折叠、回合切换时高亮动画。动态显隐影响沉浸感与信息获取效率。",
+          "design_freedom": "medium",
+          "variant_bounds": {
+            "must_satisfy": [
+              "回合切换时有明确反馈",
+              "关键信息随时可查"
+            ],
+            "must_not": [
+              "动画延迟阻塞回合节奏"
+            ]
+          },
+          "coupled_dimensions": [
+            "hud.layout_direction",
+            "hud.cash_feedback"
+          ]
+        },
+        {
+          "dimension_id": "hud.cash_feedback",
+          "name": "资金变化反馈方式",
+          "description": "玩家资金变动时的视觉/动画反馈。无反馈、数字跳动、颜色闪烁、弹出数字等。反馈方式影响交易清晰度与节奏感。",
+          "design_freedom": "medium",
+          "variant_bounds": {
+            "must_satisfy": [
+              "资金变化可感知",
+              "增加/减少可区分"
+            ],
+            "must_not": [
+              "动画延迟阻塞回合节奏"
+            ]
+          },
+          "coupled_dimensions": [
+            "hud.dynamic_visibility",
+            "hud.theme_integration"
+          ]
+        },
+        {
+          "dimension_id": "hud.position_visibility",
+          "name": "玩家位置信息展示",
+          "description": "是否在 HUD 中显示玩家在棋盘上的位置。可选：隐藏（仅棋盘可见）、简化显示（当前格索引）、详细显示（格名称+距离起点步数）。",
+          "design_freedom": "medium",
+          "variant_bounds": {
+            "must_satisfy": [
+              "玩家在棋盘上可区分"
+            ],
+            "must_not": [
+              "位置信息遮挡格子标签"
+            ]
+          },
+          "coupled_dimensions": [
+            "player_token.visual_style",
+            "board.tile_visual_style"
+          ]
+        },
+        {
+          "dimension_id": "hud.jail_indicator_style",
+          "name": "监狱状态指示样式",
+          "description": "玩家入狱状态的视觉标识样式。图标、颜色边框、徽章、文字标签等。需在信息丰富性与界面简洁性之间平衡。",
+          "design_freedom": "low",
+          "variant_bounds": {
+            "must_satisfy": [
+              "入狱状态可辨识"
+            ],
+            "must_not": [
+              "遮挡购买/租金/监狱弹窗"
+            ]
+          },
+          "coupled_dimensions": [
+            "hud.theme_integration",
+            "jail.bail_cost",
+            "jail.max_turns"
+          ]
+        },
+        {
+          "dimension_id": "hud.theme_integration",
+          "name": "HUD 视觉主题整合",
+          "description": "HUD 与整体前端视觉主题的一致性程度。完全融入主题、高对比度分离、混合风格。需保持 Monopoly-like 识别度与按钮/文字可读性。",
+          "design_freedom": "medium",
+          "variant_bounds": {
+            "must_satisfy": [
+              "保留 Monopoly-like 棋盘策略识别度",
+              "主题风格不降低按钮和文字可读性"
+            ],
+            "must_not": []
+          },
+          "coupled_dimensions": [
+            "frontend.visual_theme",
+            "hud.info_density",
+            "hud.cash_feedback"
+          ]
+        }
+      ],
+      "locked_dimensions": [
+        {
+          "dimension_id": "hud.required_fields",
+          "name": "HUD 必需信息字段",
+          "description": "HUD 必须显示的最小数据字段集",
+          "locked_value": [
+            "current_player",
+            "player_cash",
+            "turn_number"
+          ],
+          "constraint_ref": "ui.required_hud_fields",
+          "gdd_ref": "GDD 4.1 HUD 信息"
+        },
+        {
+          "dimension_id": "board.world_layout_dimensions",
+          "name": "棋盘世界尺寸约束",
+          "description": "28 个格子必须在主相机视角下完整可见，四个角格可读",
+          "locked_constraint": "28 tiles visible in main camera",
+          "variant_ref": "board.world_layout_dimensions",
+          "gdd_ref": "GDD 2.1 仅锁定环形路线"
+        },
+        {
+          "dimension_id": "board.tile_visual_style",
+          "name": "格子视觉样式可区分性",
+          "description": "地产、税务、机会、公共基金等类型必须可区分",
+          "locked_constraint": "tile types visually distinguishable",
+          "variant_ref": "board.tile_visual_style",
+          "gdd_ref": "GDD 2.2 格子类型定义"
+        },
+        {
+          "dimension_id": "hud.non_blocking",
+          "name": "HUD 非遮挡约束",
+          "description": "HUD 布局不得遮挡购买、租金、监狱相关弹窗",
+          "locked_constraint": "must not block purchase/rent/jail popups",
+          "variant_ref": "hud.layout_style",
+          "gdd_ref": "GDD 4.1 HUD 布局未锁定，但交互弹窗必须无遮挡"
+        },
+        {
+          "dimension_id": "player_token.distinguishability",
+          "name": "玩家棋子可区分性",
+          "description": "2-4 名玩家在棋盘上必须可区分",
+          "locked_constraint": "2-4 players distinguishable on board",
+          "variant_ref": "player_token.visual_style",
+          "gdd_ref": "GDD 未锁定棋子模型，但可区分性必须保证"
+        }
+      ],
+      "metadata": {
+        "generator_type": "llm",
+        "generated_at": "2026-05-31T03:19:00.295270+00:00",
+        "promotable": true
+      }
+    }
+  ],
+  "metadata": {
+    "generated_at": "2026-05-31T03:19:44.362992+00:00",
+    "generator": "AgentBridge.Compiler.DesignSpaceDiscovery.v1",
+    "entry_count": 1,
+    "execution_order": [
+      "skill-baseline-hud"
+    ],
+    "lifecycle_records": [
+      {
+        "skill_instance_id": "skill-baseline-hud",
+        "domain_type": "baseline",
+        "status": "running",
+        "mode": "discovery",
+        "execution_index": 1,
+        "allows_design_space_discovery": true
+      },
+      {
+        "skill_instance_id": "skill-baseline-hud",
+        "domain_type": "baseline",
+        "status": "completed",
+        "mode": "agent_protocol",
+        "execution_index": 1,
+        "allows_design_space_discovery": true
+      }
+    ],
+    "final_status_map": {
+      "skill-baseline-hud": "completed"
+    },
+    "generator_type": "llm",
+    "promotable": true,
+    "fast_mode_skipped": false,
+    "clarification_gate_policy": "auto_default_low_medium_only"
+  }
+}
