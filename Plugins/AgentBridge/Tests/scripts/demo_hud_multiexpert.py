@@ -153,7 +153,7 @@ def run_pilot() -> int:
         if info["converged"]:
             final[did] = next(iter(info["choices"].values())) if info["choices"] else ""
         else:
-            final[did] = core.weighted_majority_fallback(info["choices"], owner_map.get(did, EXPERT_PRIORITY[0]))
+            final[did] = core.weighted_majority_fallback(info["choices"], owner_map.get(did, EXPERT_PRIORITY[0])) or ""
             gaps.append({"dimension_id": did, "choices": info["choices"],
                          "resolved_by": "weighted_majority", "owner": owner_map.get(did)})
     log["final_convergence"] = conv
