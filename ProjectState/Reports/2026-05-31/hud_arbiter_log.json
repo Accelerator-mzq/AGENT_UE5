@@ -1,0 +1,702 @@
+{
+  "experts": [
+    "ux-designer",
+    "ui-programmer",
+    "art-director"
+  ],
+  "discovered_per_expert": {
+    "ux-designer": [
+      "hud.position_layout",
+      "hud.information_layering",
+      "hud.player_identity",
+      "hud.cash_display",
+      "hud.turn_indicator",
+      "hud.transaction_feedback",
+      "hud.modal_avoidance",
+      "hud.urgency_signals",
+      "hud.color_accessibility",
+      "hud.text_scaling",
+      "hud.information_density",
+      "hud.animation_motion",
+      "hud.contextual_hints"
+    ],
+    "ui-programmer": [
+      "hud.position",
+      "hud.height_ratio",
+      "hud.cash_format",
+      "hud.player_stacking",
+      "hud.turn_indicator_style",
+      "hud.update_trigger",
+      "hud.animation_feedback",
+      "hud.transparency",
+      "hud.responsive_scaling",
+      "hud.accessibility"
+    ],
+    "art-director": [
+      "hud.placement",
+      "hud.visual_weight",
+      "hud.information_hierarchy",
+      "hud.color_scheme",
+      "hud.iconography",
+      "hud.container_style",
+      "hud.typography",
+      "hud.player_identification",
+      "hud.animation",
+      "hud.transparency"
+    ]
+  },
+  "merged_dimensions": [
+    {
+      "dimension_id": "hud.position_layout",
+      "name": "定位与布局",
+      "description": "HUD在屏幕边缘的精确放置位置，需确保28个格子完整可见且不被遮挡。涉及安全区域（边缘避让）、信息分组排列、空间利用率最大化。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.information_layering",
+      "name": "信息层级结构",
+      "description": "区分核心必需信息（current_player, player_cash, turn_number）与上下文信息的重要程度排序，决定视觉权重、位置优先级和遮挡关系。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.player_identity",
+      "name": "玩家身份标识",
+      "description": "多玩家本地环境下的视觉区分度——如何用颜色/图标/头像区分不同玩家，确保2-4名玩家从任意视角都能快速识别当前行动者和各自状态。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.cash_display",
+      "name": "现金信息呈现",
+      "description": "player_cash的格式、精度、单位符号、位置显示方式，需考虑数字变化时的动画反馈、金额高低的视觉暗示。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.turn_indicator",
+      "name": "回合指示",
+      "description": "turn_number的可见性、current_player的切换提示、回合开始/结束的视觉反馈，确保本地多玩家信息对称。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.transaction_feedback",
+      "name": "交易反馈",
+      "description": "购买/租金等操作时HUD的动态响应——金额增减动画、资金流向指示、玩家状态变化的可视化（谁付谁收）。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.modal_avoidance",
+      "name": "弹窗避让",
+      "description": "购买弹窗、租金弹窗、监狱选项弹窗出现时HUD的动态调整机制——信息折叠、透明度降低、位置偏移确保不遮挡交互元素。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.urgency_signals",
+      "name": "紧急状态信号",
+      "description": "资金不足、破产边缘、需要支付大额租金等紧急情况下的HUD视觉提示，确保玩家即时感知到需要决策的关键信息。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.color_accessibility",
+      "name": "色彩无障碍设计",
+      "description": "2-4名玩家用色需满足色盲友好（红绿盲、黄蓝盲），避免仅靠色相传递信息，结合形状/位置/图标/纹理。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.text_scaling",
+      "name": "文字缩放支持",
+      "description": "玩家本地观看距离不同，HUD文字需支持系统文字缩放，不因字体大小变化导致布局错位或信息截断。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.information_density",
+      "name": "信息密度控制",
+      "description": "在28格完整可见的约束下，HUD必须在紧凑性与可读性之间取得平衡——信息量与视觉负担的权衡。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.animation_motion",
+      "name": "动效与过渡",
+      "description": "回合切换、金额变化、玩家切换时的动画设计——平滑过渡、方向感、信息层级的动态调整，避免视觉突兀性。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.contextual_hints",
+      "name": "上下文提示",
+      "description": "基于当前状态的辅助提示显示——当前玩家行动指引、可用选项提示、下一回合信息预览的渐进式展示。",
+      "proposed_by": [
+        "ux-designer"
+      ]
+    },
+    {
+      "dimension_id": "hud.position",
+      "name": "布局定位",
+      "description": "HUD 元素在屏幕上的固定锚点区域（顶部栏/底部栏/角落/边缘浮动层）",
+      "proposed_by": [
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.height_ratio",
+      "name": "高度占比",
+      "description": "HUD 占用屏幕垂直空间的百分比，需确保 28 格棋盘完整可见（建议 <12%）",
+      "proposed_by": [
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.cash_format",
+      "name": "现金显示格式",
+      "description": "数值格式化为货币样式（符号/千位分隔符/动画数字增量/大额缩写 K/M）",
+      "proposed_by": [
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.player_stacking",
+      "name": "玩家信息堆叠方式",
+      "description": "2-4 名玩家信息的排列方式（水平列表/垂直堆叠/2x2 网格/仅高亮当前玩家）",
+      "proposed_by": [
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.turn_indicator_style",
+      "name": "回合指示样式",
+      "description": "当前玩家标识方式（边框高亮/头像标记/颜色条/文字标签）",
+      "proposed_by": [
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.update_trigger",
+      "name": "数据刷新触发策略",
+      "description": "HUD 数据绑定更新时机（事件驱动型/轮询型/混合型）",
+      "proposed_by": [
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.animation_feedback",
+      "name": "数值变化动画反馈",
+      "description": "现金变动时的视觉反馈（闪烁/滑入/缩放/粒子特效）",
+      "proposed_by": [
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.transparency",
+      "name": "透明度与遮罩规避",
+      "description": "HUD 背景透明度设置以避免遮挡购买/租金/监狱弹窗区域",
+      "proposed_by": [
+        "ui-programmer",
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.responsive_scaling",
+      "name": "响应式缩放策略",
+      "description": "自适应不同分辨率和屏幕比例的缩放/重排版规则",
+      "proposed_by": [
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.accessibility",
+      "name": "可访问性设计",
+      "description": "字体大小/对比度/色盲友好配色方案",
+      "proposed_by": [
+        "ui-programmer"
+      ]
+    },
+    {
+      "dimension_id": "hud.placement",
+      "name": "布局定位",
+      "description": "HUD 元素在屏幕上的物理位置——顶部/底部/侧边栏，决定与棋盘的空间关系及视线动线。",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.visual_weight",
+      "name": "视觉重量",
+      "description": "每个字段的尺寸、边框粗细、阴影强度，决定信息主次关系。current_player 与 player_cash 之间需明确层级。",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.information_hierarchy",
+      "name": "信息层级",
+      "description": "强制字段的视觉优先级排列——玩家标识 > 现金 > 回合数，通过大小、颜色、位置引导玩家视线流。",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.color_scheme",
+      "name": "配色方案",
+      "description": "HUD 背景色/文字色与棋盘、弹窗的协调性；玩家色与全局色调的关系；确保不与棋盘格颜色冲突。",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.iconography",
+      "name": "图标语言",
+      "description": "现金图标、玩家头像/棋子图标、回合数字的视觉表达方式——像素风/扁平化/手绘风，影响整体游戏氛围。",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.container_style",
+      "name": "容器形态",
+      "description": "HUD 是否使用背景容器（半透明遮罩/实色面板/毛玻璃），影响对棋盘的遮挡程度与界面层次感。",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.typography",
+      "name": "字体排版",
+      "description": "数字/玩家名的字体选择、字重、大小写规范，确保可读性与 Monopoly 桌游感的视觉调性统一。",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.player_identification",
+      "name": "玩家标识系统",
+      "description": "2-4 名玩家的视觉区分方式——色块/图标/棋子图腾，确保多人游戏时快速识别当前玩家状态。",
+      "proposed_by": [
+        "art-director"
+      ]
+    },
+    {
+      "dimension_id": "hud.animation",
+      "name": "动效节奏",
+      "description": "回合切换、现金变化时的微动效——数字跳动/渐变色/缩放，影响体验流畅度与游戏节奏感。",
+      "proposed_by": [
+        "art-director"
+      ]
+    }
+  ],
+  "stances": {
+    "ux-designer": {
+      "hud.position_layout": "edge_anchored",
+      "hud.information_layering": "single_layer",
+      "hud.player_identity": "icon_and_label",
+      "hud.cash_display": "numeric_with_icon",
+      "hud.turn_indicator": "banner_overlay",
+      "hud.transaction_feedback": "toast_notification",
+      "hud.modal_avoidance": "layered_z_index",
+      "hud.urgency_signals": "pulsing_icon",
+      "hud.color_accessibility": "high_contrast_with_patterns",
+      "hud.text_scaling": "user_adjustable",
+      "hud.information_density": "low",
+      "hud.animation_motion": "subtle",
+      "hud.contextual_hints": "tooltip_on_hover",
+      "hud.position": "top_and_bottom",
+      "hud.height_ratio": "10_percent",
+      "hud.cash_format": "formatted_currency",
+      "hud.player_stacking": "horizontal_row",
+      "hud.turn_indicator_style": "badge",
+      "hud.update_trigger": "event_driven",
+      "hud.animation_feedback": "flash_once",
+      "hud.transparency": "semi_transparent",
+      "hud.responsive_scaling": "percentage_based",
+      "hud.accessibility": "full",
+      "hud.placement": "edge_anchored",
+      "hud.visual_weight": "light",
+      "hud.information_hierarchy": "priority_ordered",
+      "hud.color_scheme": "neutral_with_accent",
+      "hud.iconography": "minimal_icons",
+      "hud.container_style": "frameless",
+      "hud.typography": "sans_serif",
+      "hud.player_identification": "color_and_icon",
+      "hud.animation": "fade_and_scale"
+    },
+    "ui-programmer": {
+      "hud.position_layout": "top-center horizontal strip",
+      "hud.information_layering": "single canvas layer with explicit draw order",
+      "hud.player_identity": "player icon + name label",
+      "hud.cash_display": "numeric with locale currency symbol and thousands separator",
+      "hud.turn_indicator": "text label ‘Turn X’",
+      "hud.transaction_feedback": "non‑intrusive toast notification",
+      "hud.modal_avoidance": "anchored to top safe area with 20px margin",
+      "hud.urgency_signals": "red highlight when cash < 20% of max",
+      "hud.color_accessibility": "WCAG AA contrast palette with pattern fallback",
+      "hud.text_scaling": "dynamic font scaling based on viewport width",
+      "hud.information_density": "minimal density – only current player, cash, turn",
+      "hud.animation_motion": "150ms opacity fade on value change",
+      "hud.contextual_hints": "tooltip on hover after 500ms",
+      "hud.position": "top‑center horizontal strip",
+      "hud.height_ratio": "10% of screen height, capped at 80px",
+      "hud.cash_format": "locale‑aware currency string with symbol",
+      "hud.player_stacking": "horizontal row of player icons",
+      "hud.turn_indicator_style": "bold text + thin progress bar",
+      "hud.update_trigger": "event‑driven update on value change",
+      "hud.animation_feedback": "pulse animation on cash change",
+      "hud.transparency": "70% opacity background",
+      "hud.responsive_scaling": "viewport‑relative layout using anchors",
+      "hud.accessibility": "ARIA labels on each HUD element",
+      "hud.placement": "top strip with safe margins",
+      "hud.visual_weight": "bold for player name, normal for cash/turn",
+      "hud.information_hierarchy": "player name → cash → turn number",
+      "hud.color_scheme": "neutral gray background with player‑specific accent colors",
+      "hud.iconography": "SVG icons for player icon and currency symbol",
+      "hud.container_style": "rounded rectangle with subtle drop shadow",
+      "hud.typography": "system sans‑serif, 16px base size",
+      "hud.player_identification": "icon + name label",
+      "hud.animation": "fade transition 150ms"
+    },
+    "art-director": {
+      "hud.position_layout": "Bottom-anchored horizontal strip with top-right corner badge",
+      "hud.information_layering": "Three-tier: critical(cash+player)基层 > contextual(turn+number)中层 > optional(hints)高层",
+      "hud.player_identity": "Colored avatar icon + abbreviated name in pill container",
+      "hud.cash_display": "Large monospace number with currency symbol prefix, compact icon badge",
+      "hud.turn_indicator": "Pulsing glow ring around active player's avatar with corner 'YOUR TURN' callout",
+      "hud.transaction_feedback": "Screen-edge flash (green=income/red=expense) + floating delta number on cash badge",
+      "hud.modal_avoidance": "HUD elements use safe zones: bottom 15% height, corner 20% width; modal overlay auto-dims HUD",
+      "hud.urgency_signals": "Jail/auction状态下HUD边框变橙色，呼吸动画加速",
+      "hud.color_accessibility": "主要状态色满足WCAG AA对比度(≥4.5:1)；另备图案/图标双编码作为辅助",
+      "hud.text_scaling": "基础12sp，行号用10sp标题用16sp；支持系统字体缩放但设1.3倍上限",
+      "hud.information_density": "Minimal essential: current_player+player_cash+turn_number三者常驻；其他按需出现",
+      "hud.animation_motion": "仅用于状态变化：cash跳动+/-数字、滑入/滑出panel；持续动画<300ms",
+      "hud.contextual_hints": "悬浮问号图标触发tooltip；每个购买/建造机会首次出现时fade-in提示",
+      "hud.position": "绝对定位bottom和top-right；中间区域零HUD元素",
+      "hud.height_ratio": "HUD总高占屏幕高度≤12%，单行元素高度≤8%",
+      "hud.cash_format": "简化格式：$1.5M(百万) / $500K(千) / $1,234(全写)；自动适配宽度",
+      "hud.player_stacking": "玩家列表水平排列，自身放首位且高亮；最多横向滚动处理4人",
+      "hud.turn_indicator_style": "发光环脉冲 + 轮次数字徽章",
+      "hud.update_trigger": "玩家移动终点触发cash重算；购买/租金完成时弹跳确认动画",
+      "hud.animation_feedback": "数值变化用跳动动画；交易完成用边缘闪光；错误用震动/红闪",
+      "hud.transparency": "HUD背景80%不透明度；模态激活时降至40%",
+      "hud.responsive_scaling": "基于屏幕短边计算HUD尺寸；最小触摸目标48dp；横屏优先设计",
+      "hud.accessibility": "支持TalkBack语义标签；所有可交互元素contentDescription完整；高对比模式切换",
+      "hud.placement": "边缘固定 + 中央零占用；HUD与棋盘边界留8dp间距",
+      "hud.visual_weight": "active玩家元素视觉权重2x；inactive玩家权重0.5x灰度处理",
+      "hud.information_hierarchy": "P0:当前玩家+cash(最高亮) > P1:轮次编号(次高亮) > P2:其他玩家状态(低调)",
+      "hud.color_scheme": "深色半透明容器(40%黑色) + 高饱和状态色(红/绿/黄) + 白色文字",
+      "hud.iconography": "线性风格图标Stroke 2dp，与文字等高；交易用+/-符号简化表达",
+      "hud.container_style": "圆角矩形corner radius 8dp，底部加微妙阴影(blur 4dp offset 2dp)",
+      "hud.typography": "Roboto Medium主字体；数字用Roboto Mono确保对齐；标题14sp/正文12sp/副文本10sp",
+      "hud.player_identification": "颜色圆点+昵称首2字组合；颜色从预设Palette选择避免与棋盘地标色冲突",
+      "hud.animation": "原则：状态变化必动画，环境稳定必静止；时长100-300ms；缓动ease-out"
+    }
+  },
+  "arbitration": {},
+  "capability_gaps": [
+    {
+      "dimension_id": "hud.position_layout",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "edge_anchored",
+        "ui-programmer": "top-center horizontal strip",
+        "art-director": "Bottom-anchored horizontal strip with top-right corner badge"
+      }
+    },
+    {
+      "dimension_id": "hud.information_layering",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "single_layer",
+        "ui-programmer": "single canvas layer with explicit draw order",
+        "art-director": "Three-tier: critical(cash+player)基层 > contextual(turn+number)中层 > optional(hints)高层"
+      }
+    },
+    {
+      "dimension_id": "hud.player_identity",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "icon_and_label",
+        "ui-programmer": "player icon + name label",
+        "art-director": "Colored avatar icon + abbreviated name in pill container"
+      }
+    },
+    {
+      "dimension_id": "hud.cash_display",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "numeric_with_icon",
+        "ui-programmer": "numeric with locale currency symbol and thousands separator",
+        "art-director": "Large monospace number with currency symbol prefix, compact icon badge"
+      }
+    },
+    {
+      "dimension_id": "hud.turn_indicator",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "banner_overlay",
+        "ui-programmer": "text label ‘Turn X’",
+        "art-director": "Pulsing glow ring around active player's avatar with corner 'YOUR TURN' callout"
+      }
+    },
+    {
+      "dimension_id": "hud.transaction_feedback",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "toast_notification",
+        "ui-programmer": "non‑intrusive toast notification",
+        "art-director": "Screen-edge flash (green=income/red=expense) + floating delta number on cash badge"
+      }
+    },
+    {
+      "dimension_id": "hud.modal_avoidance",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "layered_z_index",
+        "ui-programmer": "anchored to top safe area with 20px margin",
+        "art-director": "HUD elements use safe zones: bottom 15% height, corner 20% width; modal overlay auto-dims HUD"
+      }
+    },
+    {
+      "dimension_id": "hud.urgency_signals",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "pulsing_icon",
+        "ui-programmer": "red highlight when cash < 20% of max",
+        "art-director": "Jail/auction状态下HUD边框变橙色，呼吸动画加速"
+      }
+    },
+    {
+      "dimension_id": "hud.color_accessibility",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "high_contrast_with_patterns",
+        "ui-programmer": "WCAG AA contrast palette with pattern fallback",
+        "art-director": "主要状态色满足WCAG AA对比度(≥4.5:1)；另备图案/图标双编码作为辅助"
+      }
+    },
+    {
+      "dimension_id": "hud.text_scaling",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "user_adjustable",
+        "ui-programmer": "dynamic font scaling based on viewport width",
+        "art-director": "基础12sp，行号用10sp标题用16sp；支持系统字体缩放但设1.3倍上限"
+      }
+    },
+    {
+      "dimension_id": "hud.information_density",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "low",
+        "ui-programmer": "minimal density – only current player, cash, turn",
+        "art-director": "Minimal essential: current_player+player_cash+turn_number三者常驻；其他按需出现"
+      }
+    },
+    {
+      "dimension_id": "hud.animation_motion",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "subtle",
+        "ui-programmer": "150ms opacity fade on value change",
+        "art-director": "仅用于状态变化：cash跳动+/-数字、滑入/滑出panel；持续动画<300ms"
+      }
+    },
+    {
+      "dimension_id": "hud.contextual_hints",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "tooltip_on_hover",
+        "ui-programmer": "tooltip on hover after 500ms",
+        "art-director": "悬浮问号图标触发tooltip；每个购买/建造机会首次出现时fade-in提示"
+      }
+    },
+    {
+      "dimension_id": "hud.position",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "top_and_bottom",
+        "ui-programmer": "top‑center horizontal strip",
+        "art-director": "绝对定位bottom和top-right；中间区域零HUD元素"
+      }
+    },
+    {
+      "dimension_id": "hud.height_ratio",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "10_percent",
+        "ui-programmer": "10% of screen height, capped at 80px",
+        "art-director": "HUD总高占屏幕高度≤12%，单行元素高度≤8%"
+      }
+    },
+    {
+      "dimension_id": "hud.cash_format",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "formatted_currency",
+        "ui-programmer": "locale‑aware currency string with symbol",
+        "art-director": "简化格式：$1.5M(百万) / $500K(千) / $1,234(全写)；自动适配宽度"
+      }
+    },
+    {
+      "dimension_id": "hud.player_stacking",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "horizontal_row",
+        "ui-programmer": "horizontal row of player icons",
+        "art-director": "玩家列表水平排列，自身放首位且高亮；最多横向滚动处理4人"
+      }
+    },
+    {
+      "dimension_id": "hud.turn_indicator_style",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "badge",
+        "ui-programmer": "bold text + thin progress bar",
+        "art-director": "发光环脉冲 + 轮次数字徽章"
+      }
+    },
+    {
+      "dimension_id": "hud.update_trigger",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "event_driven",
+        "ui-programmer": "event‑driven update on value change",
+        "art-director": "玩家移动终点触发cash重算；购买/租金完成时弹跳确认动画"
+      }
+    },
+    {
+      "dimension_id": "hud.animation_feedback",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "flash_once",
+        "ui-programmer": "pulse animation on cash change",
+        "art-director": "数值变化用跳动动画；交易完成用边缘闪光；错误用震动/红闪"
+      }
+    },
+    {
+      "dimension_id": "hud.transparency",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "semi_transparent",
+        "ui-programmer": "70% opacity background",
+        "art-director": "HUD背景80%不透明度；模态激活时降至40%"
+      }
+    },
+    {
+      "dimension_id": "hud.responsive_scaling",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "percentage_based",
+        "ui-programmer": "viewport‑relative layout using anchors",
+        "art-director": "基于屏幕短边计算HUD尺寸；最小触摸目标48dp；横屏优先设计"
+      }
+    },
+    {
+      "dimension_id": "hud.accessibility",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "full",
+        "ui-programmer": "ARIA labels on each HUD element",
+        "art-director": "支持TalkBack语义标签；所有可交互元素contentDescription完整；高对比模式切换"
+      }
+    },
+    {
+      "dimension_id": "hud.placement",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "edge_anchored",
+        "ui-programmer": "top strip with safe margins",
+        "art-director": "边缘固定 + 中央零占用；HUD与棋盘边界留8dp间距"
+      }
+    },
+    {
+      "dimension_id": "hud.visual_weight",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "light",
+        "ui-programmer": "bold for player name, normal for cash/turn",
+        "art-director": "active玩家元素视觉权重2x；inactive玩家权重0.5x灰度处理"
+      }
+    },
+    {
+      "dimension_id": "hud.information_hierarchy",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "priority_ordered",
+        "ui-programmer": "player name → cash → turn number",
+        "art-director": "P0:当前玩家+cash(最高亮) > P1:轮次编号(次高亮) > P2:其他玩家状态(低调)"
+      }
+    },
+    {
+      "dimension_id": "hud.color_scheme",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "neutral_with_accent",
+        "ui-programmer": "neutral gray background with player‑specific accent colors",
+        "art-director": "深色半透明容器(40%黑色) + 高饱和状态色(红/绿/黄) + 白色文字"
+      }
+    },
+    {
+      "dimension_id": "hud.iconography",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "minimal_icons",
+        "ui-programmer": "SVG icons for player icon and currency symbol",
+        "art-director": "线性风格图标Stroke 2dp，与文字等高；交易用+/-符号简化表达"
+      }
+    },
+    {
+      "dimension_id": "hud.container_style",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "frameless",
+        "ui-programmer": "rounded rectangle with subtle drop shadow",
+        "art-director": "圆角矩形corner radius 8dp，底部加微妙阴影(blur 4dp offset 2dp)"
+      }
+    },
+    {
+      "dimension_id": "hud.typography",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "sans_serif",
+        "ui-programmer": "system sans‑serif, 16px base size",
+        "art-director": "Roboto Medium主字体；数字用Roboto Mono确保对齐；标题14sp/正文12sp/副文本10sp"
+      }
+    },
+    {
+      "dimension_id": "hud.player_identification",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "color_and_icon",
+        "ui-programmer": "icon + name label",
+        "art-director": "颜色圆点+昵称首2字组合；颜色从预设Palette选择避免与棋盘地标色冲突"
+      }
+    },
+    {
+      "dimension_id": "hud.animation",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "fade_and_scale",
+        "ui-programmer": "fade transition 150ms",
+        "art-director": "原则：状态变化必动画，环境稳定必静止；时长100-300ms；缓动ease-out"
+      }
+    }
+  ]
+}

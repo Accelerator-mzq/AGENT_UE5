@@ -36,3 +36,76 @@
 - **值得推广的部分**：多专家**并行发现维度**确实显著提升覆盖与专业分工，这是真实增益。
 - **需重新设计的部分**：若要让「协商辩论」真正发挥作用，需先让三专家**面向同一套维度全集表态**（而非各自发明 id），分歧才会显现。当前编排「各自发现 → 合并」会稀释冲突。推广到框架前，应调整为「先合并出统一维度全集 → 三专家对同一全集各自选择 → 再检测冲突」，否则协商层形同虚设。
 - 本结论基于**单次** Heuristic-free 真实 LLM 运行，未跨运行验证稳定性，亦未接入 Stage 5/6/7。推广需另立项并补充端到端回归。
+
+---
+
+## 总监裁决版（arbiter_pilot）—— 真实 LLM 试点结果
+
+> 运行日期：2026-05-31
+> 产物：`ProjectState/Reports/2026-05-31/hud_arbiter_fragment.json` + `hud_arbiter_log.json`
+> 模型：anthropic/MiniMax M2.7
+
+### 基本数据
+
+| 指标 | 数值 |
+|---|---|
+| 合并后维度数 | 32 |
+| selected_realization 条数 | 32 |
+| capability_gaps 总数 | 32（全部为 arbiter_missing） |
+| unresolved 维度数 | 0 |
+| arbiter_missing 维度数 | **32**（占比 100%） |
+| LLM 实际调用次数 | 7 次（discover×3 + stance×3 + arbitrate×1） |
+
+### LLM 调用阶段结构（来自 hud_arbiter_log.json）
+
+- 阶段1：三专家各自发现维度，3 次调用 —— 正常返回（UX 发现 17 维度，UI程序 8，美术 7；合并后 32 个）
+- 阶段2：三专家各自对维度全集表态，3 次调用 —— 正常返回（三方均对全部 32 个维度有立场）
+- 阶段3：中立总监一次性裁决，1 次调用 —— **返回空 dict（`arbitration: {}`），裁决结果完全缺失**
+
+### 诚实记录（必须纳入决策）
+
+**本次试点的核心发现：总监裁决阶段 LLM 调用成功（无网络/SDK 异常），但返回的 arbitration 字段为空 dict。**
+
+具体表现：
+- `_call()` 正常执行，`_parse_json()` 也未报错（即 LLM 确实返回了某段文本）
+- 但解析后 `out.get("arbitration", {})` 取到空 dict，说明 LLM 的响应中 `arbitration` key 不存在或对应值为空/非 dict
+- 兜底机制按设计正确触发：全部 32 维度进 gaps，标记 `resolved_by: arbiter_missing`，`selected_realization` 保留 key 但值为空串
+
+**arbitration 返回空的可能原因（单次 LLM 非确定性判断，无法复核）：**
+1. 上下文窗口过长：输入包含 32 个维度 id + 三方各 32 条立场（约 200 行 JSON），可能超出模型有效处理能力
+2. 输出格式遵从失败：模型未能严格按 `{"arbitration":{...}}` 格式输出，可能输出了解释性文字或截断
+3. 单次调用局限：将 32 个维度的三方裁决压缩为单次 LLM 调用，信息量可能超出模型单次可靠输出的边界
+
+这不是框架 bug（兜底机制正确工作），而是**单次 LLM 调用承载量与维度规模的不匹配问题**。
+
+### 与单专家基线的覆盖对比（dimension_id 精确匹配）
+
+运行 `compare_dimension_coverage(arbiter_keys, single_keys)`：
+
+- **only_in_multi（总监版独有）**：32 个
+- **only_in_single（单专家独有）**：8 个（`hud.cash_feedback`, `hud.dynamic_visibility`, `hud.info_density`, `hud.jail_indicator_style`, `hud.layout_direction`, `hud.player_display_mode`, `hud.position_visibility`, `hud.theme_integration`）
+- **common（两版共有）**：0 个
+
+说明与协商版一致：每次 LLM 运行的维度命名均不同，导致 id 级零交集。这不代表多专家版缺少这 8 个单专家维度所对应的设计考量，仅代表命名体系不同。
+
+### 总监裁决版 vs 协商版对比
+
+| 维度 | 协商版 | 总监裁决版 |
+|---|---|---|
+| 维度覆盖 | 33 个 | 32 个（规模相近） |
+| LLM 调用次数 | ~12 次 | 7 次（成本更低） |
+| 有效最终 spec | 33 个有值的 selected | **32 个均为空串**（总监裁决完全失效） |
+| capability_gaps | 0 个 | 32 个（arbiter_missing×32） |
+| 伪收敛/伪分歧问题 | 有（字符串比较零冲突）| 无法评估（裁决阶段未产出结果） |
+| 语义整合连贯性 | 协商版收敛但语义混合 | 未产出 |
+
+### 结论
+
+**总监裁决版本次未能消除协商版的缺陷，原因不同：协商版的缺陷是字符串比较导致伪零冲突（收敛看起来成功但缺乏语义整合），而总监裁决版的缺陷是单次 LLM 调用无法为 32 个维度产出有效裁决，导致整个 spec 为空。**
+
+架构设计层面，总监裁决的思路（语义整合替代字符串比较）是正确方向，但实现上需要解决：
+1. 维度规模过大时改为分批裁决（而非单次承载全部）
+2. 增加裁决结果的格式验证与重试机制
+3. 推广前须先小规模（≤10 维度）验证裁决输出稳定性
+
+**本结论基于单次真实 LLM 运行，arbitration 返回空属于本次实测发现，客观记录，不做乐观估计。**

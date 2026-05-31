@@ -1,0 +1,351 @@
+{
+  "fragment_version": "2.0",
+  "skill_instance_id": "skill-baseline-hud",
+  "template_id": "baseline.hud.realization_eligible",
+  "domain_type": "baseline",
+  "phase_scope": "phase11_hud_arbiter_pilot",
+  "status": "completed",
+  "emitted_families": [
+    "hud_spec"
+  ],
+  "spec_fragments": {
+    "hud_spec": {
+      "capability": "HUD",
+      "realization_class": "realization_eligible",
+      "required_elements": [
+        "current_player",
+        "player_cash",
+        "turn_number"
+      ],
+      "selected_realization": {
+        "hud.position_layout": "",
+        "hud.information_layering": "",
+        "hud.player_identity": "",
+        "hud.cash_display": "",
+        "hud.turn_indicator": "",
+        "hud.transaction_feedback": "",
+        "hud.modal_avoidance": "",
+        "hud.urgency_signals": "",
+        "hud.color_accessibility": "",
+        "hud.text_scaling": "",
+        "hud.information_density": "",
+        "hud.animation_motion": "",
+        "hud.contextual_hints": "",
+        "hud.position": "",
+        "hud.height_ratio": "",
+        "hud.cash_format": "",
+        "hud.player_stacking": "",
+        "hud.turn_indicator_style": "",
+        "hud.update_trigger": "",
+        "hud.animation_feedback": "",
+        "hud.transparency": "",
+        "hud.responsive_scaling": "",
+        "hud.accessibility": "",
+        "hud.placement": "",
+        "hud.visual_weight": "",
+        "hud.information_hierarchy": "",
+        "hud.color_scheme": "",
+        "hud.iconography": "",
+        "hud.container_style": "",
+        "hud.typography": "",
+        "hud.player_identification": "",
+        "hud.animation": ""
+      }
+    }
+  },
+  "capability_gaps": [
+    {
+      "dimension_id": "hud.position_layout",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "edge_anchored",
+        "ui-programmer": "top-center horizontal strip",
+        "art-director": "Bottom-anchored horizontal strip with top-right corner badge"
+      }
+    },
+    {
+      "dimension_id": "hud.information_layering",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "single_layer",
+        "ui-programmer": "single canvas layer with explicit draw order",
+        "art-director": "Three-tier: critical(cash+player)基层 > contextual(turn+number)中层 > optional(hints)高层"
+      }
+    },
+    {
+      "dimension_id": "hud.player_identity",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "icon_and_label",
+        "ui-programmer": "player icon + name label",
+        "art-director": "Colored avatar icon + abbreviated name in pill container"
+      }
+    },
+    {
+      "dimension_id": "hud.cash_display",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "numeric_with_icon",
+        "ui-programmer": "numeric with locale currency symbol and thousands separator",
+        "art-director": "Large monospace number with currency symbol prefix, compact icon badge"
+      }
+    },
+    {
+      "dimension_id": "hud.turn_indicator",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "banner_overlay",
+        "ui-programmer": "text label ‘Turn X’",
+        "art-director": "Pulsing glow ring around active player's avatar with corner 'YOUR TURN' callout"
+      }
+    },
+    {
+      "dimension_id": "hud.transaction_feedback",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "toast_notification",
+        "ui-programmer": "non‑intrusive toast notification",
+        "art-director": "Screen-edge flash (green=income/red=expense) + floating delta number on cash badge"
+      }
+    },
+    {
+      "dimension_id": "hud.modal_avoidance",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "layered_z_index",
+        "ui-programmer": "anchored to top safe area with 20px margin",
+        "art-director": "HUD elements use safe zones: bottom 15% height, corner 20% width; modal overlay auto-dims HUD"
+      }
+    },
+    {
+      "dimension_id": "hud.urgency_signals",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "pulsing_icon",
+        "ui-programmer": "red highlight when cash < 20% of max",
+        "art-director": "Jail/auction状态下HUD边框变橙色，呼吸动画加速"
+      }
+    },
+    {
+      "dimension_id": "hud.color_accessibility",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "high_contrast_with_patterns",
+        "ui-programmer": "WCAG AA contrast palette with pattern fallback",
+        "art-director": "主要状态色满足WCAG AA对比度(≥4.5:1)；另备图案/图标双编码作为辅助"
+      }
+    },
+    {
+      "dimension_id": "hud.text_scaling",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "user_adjustable",
+        "ui-programmer": "dynamic font scaling based on viewport width",
+        "art-director": "基础12sp，行号用10sp标题用16sp；支持系统字体缩放但设1.3倍上限"
+      }
+    },
+    {
+      "dimension_id": "hud.information_density",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "low",
+        "ui-programmer": "minimal density – only current player, cash, turn",
+        "art-director": "Minimal essential: current_player+player_cash+turn_number三者常驻；其他按需出现"
+      }
+    },
+    {
+      "dimension_id": "hud.animation_motion",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "subtle",
+        "ui-programmer": "150ms opacity fade on value change",
+        "art-director": "仅用于状态变化：cash跳动+/-数字、滑入/滑出panel；持续动画<300ms"
+      }
+    },
+    {
+      "dimension_id": "hud.contextual_hints",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "tooltip_on_hover",
+        "ui-programmer": "tooltip on hover after 500ms",
+        "art-director": "悬浮问号图标触发tooltip；每个购买/建造机会首次出现时fade-in提示"
+      }
+    },
+    {
+      "dimension_id": "hud.position",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "top_and_bottom",
+        "ui-programmer": "top‑center horizontal strip",
+        "art-director": "绝对定位bottom和top-right；中间区域零HUD元素"
+      }
+    },
+    {
+      "dimension_id": "hud.height_ratio",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "10_percent",
+        "ui-programmer": "10% of screen height, capped at 80px",
+        "art-director": "HUD总高占屏幕高度≤12%，单行元素高度≤8%"
+      }
+    },
+    {
+      "dimension_id": "hud.cash_format",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "formatted_currency",
+        "ui-programmer": "locale‑aware currency string with symbol",
+        "art-director": "简化格式：$1.5M(百万) / $500K(千) / $1,234(全写)；自动适配宽度"
+      }
+    },
+    {
+      "dimension_id": "hud.player_stacking",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "horizontal_row",
+        "ui-programmer": "horizontal row of player icons",
+        "art-director": "玩家列表水平排列，自身放首位且高亮；最多横向滚动处理4人"
+      }
+    },
+    {
+      "dimension_id": "hud.turn_indicator_style",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "badge",
+        "ui-programmer": "bold text + thin progress bar",
+        "art-director": "发光环脉冲 + 轮次数字徽章"
+      }
+    },
+    {
+      "dimension_id": "hud.update_trigger",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "event_driven",
+        "ui-programmer": "event‑driven update on value change",
+        "art-director": "玩家移动终点触发cash重算；购买/租金完成时弹跳确认动画"
+      }
+    },
+    {
+      "dimension_id": "hud.animation_feedback",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "flash_once",
+        "ui-programmer": "pulse animation on cash change",
+        "art-director": "数值变化用跳动动画；交易完成用边缘闪光；错误用震动/红闪"
+      }
+    },
+    {
+      "dimension_id": "hud.transparency",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "semi_transparent",
+        "ui-programmer": "70% opacity background",
+        "art-director": "HUD背景80%不透明度；模态激活时降至40%"
+      }
+    },
+    {
+      "dimension_id": "hud.responsive_scaling",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "percentage_based",
+        "ui-programmer": "viewport‑relative layout using anchors",
+        "art-director": "基于屏幕短边计算HUD尺寸；最小触摸目标48dp；横屏优先设计"
+      }
+    },
+    {
+      "dimension_id": "hud.accessibility",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "full",
+        "ui-programmer": "ARIA labels on each HUD element",
+        "art-director": "支持TalkBack语义标签；所有可交互元素contentDescription完整；高对比模式切换"
+      }
+    },
+    {
+      "dimension_id": "hud.placement",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "edge_anchored",
+        "ui-programmer": "top strip with safe margins",
+        "art-director": "边缘固定 + 中央零占用；HUD与棋盘边界留8dp间距"
+      }
+    },
+    {
+      "dimension_id": "hud.visual_weight",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "light",
+        "ui-programmer": "bold for player name, normal for cash/turn",
+        "art-director": "active玩家元素视觉权重2x；inactive玩家权重0.5x灰度处理"
+      }
+    },
+    {
+      "dimension_id": "hud.information_hierarchy",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "priority_ordered",
+        "ui-programmer": "player name → cash → turn number",
+        "art-director": "P0:当前玩家+cash(最高亮) > P1:轮次编号(次高亮) > P2:其他玩家状态(低调)"
+      }
+    },
+    {
+      "dimension_id": "hud.color_scheme",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "neutral_with_accent",
+        "ui-programmer": "neutral gray background with player‑specific accent colors",
+        "art-director": "深色半透明容器(40%黑色) + 高饱和状态色(红/绿/黄) + 白色文字"
+      }
+    },
+    {
+      "dimension_id": "hud.iconography",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "minimal_icons",
+        "ui-programmer": "SVG icons for player icon and currency symbol",
+        "art-director": "线性风格图标Stroke 2dp，与文字等高；交易用+/-符号简化表达"
+      }
+    },
+    {
+      "dimension_id": "hud.container_style",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "frameless",
+        "ui-programmer": "rounded rectangle with subtle drop shadow",
+        "art-director": "圆角矩形corner radius 8dp，底部加微妙阴影(blur 4dp offset 2dp)"
+      }
+    },
+    {
+      "dimension_id": "hud.typography",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "sans_serif",
+        "ui-programmer": "system sans‑serif, 16px base size",
+        "art-director": "Roboto Medium主字体；数字用Roboto Mono确保对齐；标题14sp/正文12sp/副文本10sp"
+      }
+    },
+    {
+      "dimension_id": "hud.player_identification",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "color_and_icon",
+        "ui-programmer": "icon + name label",
+        "art-director": "颜色圆点+昵称首2字组合；颜色从预设Palette选择避免与棋盘地标色冲突"
+      }
+    },
+    {
+      "dimension_id": "hud.animation",
+      "resolved_by": "arbiter_missing",
+      "stances": {
+        "ux-designer": "fade_and_scale",
+        "ui-programmer": "fade transition 150ms",
+        "art-director": "原则：状态变化必动画，环境稳定必静止；时长100-300ms；缓动ease-out"
+      }
+    }
+  ],
+  "metadata": {
+    "generator": "HUD-Arbiter-Pilot",
+    "promotable": false,
+    "mode": "arbiter_pilot"
+  }
+}
