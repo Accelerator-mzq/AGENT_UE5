@@ -1,7 +1,7 @@
 """HUD 多专家协商试点主脚本。
 
 3 专家（UX/UI程序/美术）各自发现维度 → 立场 → 多轮协商 → 收敛/降级，
-产出 HUD fragment + 协商记录 + 与单专家版对比。
+产出 HUD fragment + 协商记录（与单专家版的对比在后续步骤生成）。
 
 须用带 anthropic SDK 的解释器运行：
   C:\\Python312\\python.exe Plugins/AgentBridge/Tests/scripts/demo_hud_multiexpert.py
@@ -20,7 +20,7 @@ from Plugins.AgentBridge.Tests.scripts import hud_multiexpert_core as core  # no
 
 SRC_RUN = PROJECT_ROOT / "ProjectState" / "runs" / "run-20260417-051444-a2b8"
 OUT_DIR = PROJECT_ROOT / "ProjectState" / "Reports" / "2026-05-31"
-MAX_ROUNDS = 2
+MAX_ROUNDS = 2  # 试点：限制协商轮数以控制 token 消耗
 EXPERT_PRIORITY = ["ux-designer", "ui-programmer", "art-director"]
 
 # 3 专家 system prompt（试点内联；推广时抽出为 SkillTemplate persona）
@@ -54,8 +54,9 @@ def _parse_json(raw: str) -> dict:
     """从 LLM 文本中提取 JSON object（去除可能的 ``` 代码围栏）。"""
     text = (raw or "").strip()
     if text.startswith("```"):
-        text = text.split("```", 2)[1] if "```" in text[3:] else text
-        text = text.lstrip("json").strip().strip("`").strip()
+        # 提取围栏内内容；无闭合围栏时截去前三个反引号
+        inner = text.split("```", 2)[1] if "```" in text[3:] else text[3:]
+        text = inner.lstrip("json").strip()
     start, end = text.find("{"), text.rfind("}")
     if start == -1 or end == -1:
         return {}
@@ -63,10 +64,13 @@ def _parse_json(raw: str) -> dict:
 
 
 def _call(client, system_prompt: str, user_prompt: str) -> dict:
-    raw = client.call([
-        {"role": "system", "content": system_prompt + "\n只返回一个合法 JSON object。"},
-        {"role": "user", "content": user_prompt},
-    ])
+    try:
+        raw = client.call([
+            {"role": "system", "content": system_prompt + "\n只返回一个合法 JSON object。"},
+            {"role": "user", "content": user_prompt},
+        ])
+    except Exception as exc:  # noqa: BLE001
+        return {"call_error": True, "reason": str(exc)}
     try:
         return _parse_json(raw)
     except Exception:  # noqa: BLE001
@@ -93,7 +97,7 @@ def discover(client, expert: str, ctx: str) -> list:
 
 
 def stance(client, expert: str, ctx: str, dims: list) -> dict:
-    dim_ids = [d["dimension_id"] for d in dims]
+    dim_ids = [d.get("dimension_id", "") for d in dims if d.get("dimension_id")]
     out = _call(client, EXPERT_PROMPTS[expert],
                 ctx + f"\n## 维度全集\n{dim_ids}\n## 任务\n对每个维度给出你主张的选择与理由。"
                 "输出 JSON: {\"stance\":{\"hud.xxx\":{\"choice\":\"..\",\"reason\":\"..\"}}}")
