@@ -1,7 +1,7 @@
-"""HUD 多专家协商试点主脚本。
+"""HUD 总监裁决试点主脚本。
 
-3 专家（UX/UI程序/美术）各自发现维度 → 立场 → 多轮协商 → 收敛/降级，
-产出 HUD fragment + 协商记录（与单专家版的对比在后续步骤生成）。
+3 专家（UX/UI程序/美术）各自发现维度 → 立场 → 中立总监语义整合裁决，
+产出 HUD fragment + 裁决记录（与单专家版的对比在后续步骤生成）。
 
 须用带 anthropic SDK 的解释器运行：
   C:\\Python312\\python.exe Plugins/AgentBridge/Tests/scripts/demo_hud_multiexpert.py
@@ -20,7 +20,6 @@ from Plugins.AgentBridge.Tests.scripts import hud_multiexpert_core as core  # no
 
 SRC_RUN = PROJECT_ROOT / "ProjectState" / "runs" / "run-20260417-051444-a2b8"
 OUT_DIR = PROJECT_ROOT / "ProjectState" / "Reports" / "2026-05-31"
-MAX_ROUNDS = 2  # 试点：限制协商轮数以控制 token 消耗
 EXPERT_PRIORITY = ["ux-designer", "ui-programmer", "art-director"]
 
 # 3 专家 system prompt（试点内联；推广时抽出为 SkillTemplate persona）
@@ -44,6 +43,17 @@ EXPERT_PROMPTS = {
         "必须遵守给定的 GDD locked 约束。只输出 JSON，不要解释文字。"
     ),
 }
+
+
+# 中立总监 system prompt（试点内联；CCGS 无对应 persona，本项目编译链特有）
+ARBITER_PROMPT = (
+    "你是中立的设计整合者，不偏向 UX / UI 程序 / 美术任何一方。"
+    "给你三位专家对一组 HUD 设计维度的各自主张。"
+    "对每个维度，识别三方是\"说法不同但意思相同\"（合并成一个连贯统一的表述），"
+    "还是\"存在真实设计分歧\"（择优选择并说明理由；若三方诉求真实对立、"
+    "无法在不牺牲某方硬需求下调和，则标记 unresolved=true）。"
+    "必须遵守给定的 GDD locked 约束，不得违反。只输出 JSON，不要解释文字。"
+)
 
 
 def _load(name: str) -> dict:
@@ -104,12 +114,20 @@ def stance(client, expert: str, ctx: str, dims: list) -> dict:
     return {k: v.get("choice", "") for k, v in out.get("stance", {}).items() if isinstance(v, dict)}
 
 
-def renegotiate(client, expert: str, ctx: str, all_stances: dict, conflicts: list) -> dict:
-    out = _call(client, EXPERT_PROMPTS[expert],
-                ctx + f"\n## 三方当前立场\n{json.dumps(all_stances, ensure_ascii=False)}\n"
-                f"## 仍有分歧的维度\n{conflicts}\n## 任务\n查看其他专家立场，对分歧维度调整或坚持你的选择并说明理由。"
-                "输出 JSON: {\"stance\":{\"hud.xxx\":{\"choice\":\"..\",\"reason\":\"..\"}}}")
-    return {k: v.get("choice", "") for k, v in out.get("stance", {}).items() if isinstance(v, dict)}
+def arbitrate(client, ctx: str, dims: list, stances: dict) -> dict:
+    """中立总监一次性裁决：读三方立场，逐维度语义整合。
+
+    返回 {dimension_id: {final_choice, integration_note, unresolved}}。
+    """
+    dim_ids = [d.get("dimension_id", "") for d in dims if d.get("dimension_id")]
+    out = _call(client, ARBITER_PROMPT,
+                ctx + f"\n## 待裁决维度全集\n{dim_ids}\n"
+                f"## 三方立场\n{json.dumps(stances, ensure_ascii=False)}\n"
+                "## 任务\n对每个维度做语义整合裁决。"
+                "输出 JSON: {\"arbitration\":{\"hud.xxx\":"
+                "{\"final_choice\":\"..\",\"integration_note\":\"..\",\"unresolved\":false}}}")
+    result = out.get("arbitration", {})
+    return result if isinstance(result, dict) else {}
 
 
 def run_pilot() -> int:
@@ -122,49 +140,32 @@ def run_pilot() -> int:
 
     contract = _load("root_skill_contract.json")
     ctx = _context_block(contract)
-    log: dict = {"max_rounds": MAX_ROUNDS, "experts": EXPERT_PRIORITY}
+    log: dict = {"experts": EXPERT_PRIORITY}
 
     # 阶段1 各自发现 → 合并
     discovered = [(e, discover(client, e, ctx)) for e in EXPERT_PRIORITY]
     merged = core.merge_discovered_dimensions(discovered)
     log["discovered_per_expert"] = {e: [d.get("dimension_id") for d in dl] for e, dl in discovered}
     log["merged_dimensions"] = merged
-    owner_map = {d["dimension_id"]: core.resolve_owner(d["proposed_by"], EXPERT_PRIORITY) for d in merged}
 
     # 阶段2 各自立场
     stances = {e: stance(client, e, ctx, merged) for e in EXPERT_PRIORITY}
-    log["round_0_stances"] = stances
+    log["stances"] = stances
 
-    # 阶段3 多轮协商
-    for rnd in range(1, MAX_ROUNDS + 1):
-        conv = core.detect_convergence(stances)
-        conflicts = [d for d, info in conv.items() if not info["converged"]]
-        log[f"round_{rnd}_conflicts"] = conflicts
-        if not conflicts:
-            break
-        stances = {e: {**stances[e], **renegotiate(client, e, ctx, stances, conflicts)} for e in EXPERT_PRIORITY}
-        log[f"round_{rnd}_stances"] = stances
+    # 阶段3 中立总监裁决（一次性，语义整合，无字符串比较）
+    arbitration = arbitrate(client, ctx, merged, stances)
+    log["arbitration"] = arbitration
 
-    # 阶段4 收敛/降级
-    conv = core.detect_convergence(stances)
-    final = {}
-    gaps = []
-    for did, info in conv.items():
-        if info["converged"]:
-            final[did] = next(iter(info["choices"].values())) if info["choices"] else ""
-        else:
-            final[did] = core.weighted_majority_fallback(info["choices"], owner_map.get(did, EXPERT_PRIORITY[0])) or ""
-            gaps.append({"dimension_id": did, "choices": info["choices"],
-                         "resolved_by": "weighted_majority", "owner": owner_map.get(did)})
-    log["final_convergence"] = conv
-    log["downgraded_gaps"] = gaps
+    # 阶段4 装配（正常/unresolved/missing 三情况由 core 处理）
+    final, gaps = core.assemble_arbitration_result(merged, arbitration, stances)
+    log["capability_gaps"] = gaps
 
     fragment = {
         "fragment_version": "2.0",
         "skill_instance_id": "skill-baseline-hud",
         "template_id": "baseline.hud.realization_eligible",
         "domain_type": "baseline",
-        "phase_scope": "phase11_hud_multiexpert_pilot",
+        "phase_scope": "phase11_hud_arbiter_pilot",
         "status": "completed",
         "emitted_families": ["hud_spec"],
         "spec_fragments": {"hud_spec": {
@@ -174,15 +175,15 @@ def run_pilot() -> int:
             "selected_realization": final,
         }},
         "capability_gaps": gaps,
-        "metadata": {"generator": "HUD-MultiExpert-Pilot", "promotable": False, "mode": "multiexpert_pilot"},
+        "metadata": {"generator": "HUD-Arbiter-Pilot", "promotable": False, "mode": "arbiter_pilot"},
     }
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    (OUT_DIR / "hud_multiexpert_fragment.json").write_text(
+    (OUT_DIR / "hud_arbiter_fragment.json").write_text(
         json.dumps(fragment, ensure_ascii=False, indent=2), encoding="utf-8")
-    (OUT_DIR / "hud_multiexpert_negotiation_log.json").write_text(
+    (OUT_DIR / "hud_arbiter_log.json").write_text(
         json.dumps(log, ensure_ascii=False, indent=2), encoding="utf-8")
-    print("已落盘 fragment + negotiation_log；维度数:", len(merged), "| 降级数:", len(gaps))
+    print("已落盘 arbiter fragment + log；维度数:", len(merged), "| 未解分歧/遗漏数:", len(gaps))
     return 0
 
 
