@@ -483,3 +483,11 @@ python -c "from Plugins.AgentBridge.MCP.tool_definitions import ALL_TOOLS; print
 - **FU-FORGEUE-08(P3 演进)**:~~`run_forgeue_real_smoke.py` magic string 与 schema 强绑定散落~~ **[CLOSED 2026-05-27,commit `1423966`]** 5 个模块级常量(_EVIDENCE_TEST_TYPE / _EVIDENCE_STATUS_PASS / _EVIDENCE_STATUS_FAIL / _PAYLOAD_STATUS_SUCCESS / _PAYLOAD_STATUS_PARTIAL),4 处引用替换,与 evidence_manifest.schema.json 字段值同步演进更易。
 - **FU-FORGEUE-09(P3 DRY)**:~~`_creator_path_material` 4 expression 创建模式重复~~ **[CLOSED 2026-05-27,commit `bafd5b2`]** 抽 `_add_material_constant_expression(material, expression_class, value, output_property, *, set_property_name)` helper,4 个 expression(BaseColor Constant4Vector / Metallic Constant / Roughness Constant / Emissive Constant4Vector)各 1 行 helper 调用;原 try/except 整段 wrap + lib.recompile_material 不变。**真机验证 PASS**(material asset 创建 + 4 expression 连接正确)。
 - **FU-FORGEUE-10(P3 DRY)**:~~`_now_iso_utc()` 两处副本~~ **[CLOSED 2026-05-27,commit `6de6a21`]** 抽 `Plugins/AgentBridge/Scripts/orchestrator/_time_utils.py`(避开 `bridge/` 红线),public API `now_iso_utc()`,importer + run_forgeue_real_smoke.py 删本地副本 + `from _time_utils import now_iso_utc`。
+
+## 附 3:HUD 多专家协商试点 follow-up(2026-05-31 新增)
+
+由 `Docs/archive/superpowers/specs/2026-05-31-hud-multiexpert-negotiation-design.md` + 真实 LLM 试点(`ProjectState/Reports/2026-05-31/hud_multiexpert_vs_single_comparison.md`)产出。试点为**独立脚本、不可 promote**,未碰编译主链(domain_skill_runtime / agent_protocol / SkillTemplate / llm_client 零改动)。
+
+- **FU-HUDME-01(P2 设计结论)**:试点证明「多专家**并行发现维度**」显著提升覆盖(33 维 vs 单专家 8 维)与专业分工(UX/UI程序/美术视角清晰可辨),此半价值成立。但「**协商辩论收敛分歧**」另一半价值**未被验证**:本次 `round_1_conflicts=0`,因三专家各自发明不重叠的 dimension_id,无人对同一维度持异议,辩论层形同虚设。**Follow-up**:若推广到框架,编排须改为「先合并出**统一维度全集** → 三专家对同一全集各自表态 → 再检测冲突」,否则「各自发现→合并」会稀释冲突、协商空转。
+- **FU-HUDME-02(P3 度量)**:`compare_dimension_coverage` 按 dimension_id 精确匹配,得多/单专家**零 id 交集**——主因是命名体系不同(单专家 `hud.info_density` vs 多专家 `hud.info_hierarchy`),非语义全新。**Follow-up**:维度净增量需人工语义比对或引入维度语义归并,不能直接用 id 差值作覆盖增益结论。
+- **FU-HUDME-03(P3 推广前置)**:推广到框架需另立项——3 专家 prompt 抽为 SkillTemplate persona、改造 `LLMProvider` 支持多 persona 编排、接入 `domain_skill_runtime` 主链、补 Stage 4→5→6→7 端到端回归。本试点结论基于**单次**真实 LLM 运行,未跨运行验证稳定性。
