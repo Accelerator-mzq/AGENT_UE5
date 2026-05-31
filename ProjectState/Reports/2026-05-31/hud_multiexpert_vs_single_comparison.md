@@ -80,7 +80,7 @@
 | capability_gaps 总数 | **1**（arbiter_unresolved，非 missing） |
 | arbiter_unresolved 维度 | `hud.collapsibility`（唯一真实未解分歧） |
 | arbiter_missing 维度数 | **0** |
-| LLM 调用次数 | 7（discover×3 + stance×3 + arbitrate×1） |
+| LLM 调用次数 | 7（由脚本阶段结构推算：discover×3 + stance×3 + arbitrate×1；log 未记录调用计数） |
 
 #### 裁决成功的诊断证据
 
