@@ -1,0 +1,165 @@
+{
+  "fragment_version": "2.0",
+  "skill_instance_id": "skill-baseline-hud",
+  "template_id": "baseline.hud.realization_eligible",
+  "domain_type": "baseline",
+  "phase_scope": "phase11_hud_llm_divergence_demo",
+  "status": "completed",
+  "emitted_families": [
+    "hud_spec"
+  ],
+  "spec_fragments": {
+    "hud_spec": {
+      "capability": "HUD",
+      "realization_class": "realization_eligible",
+      "required_elements": [
+        "current_player",
+        "player_cash",
+        "turn_number"
+      ],
+      "required_controls": [],
+      "activation": "required",
+      "notes": "HUD 为 realization_eligible baseline，后续可结合 gameplay state 细化。",
+      "selected_realization": {
+        "hud.info_density": "hud.density.balanced",
+        "hud.layout_direction": "hud.layout.bottompanel",
+        "hud.player_display_mode": "hud.player.list",
+        "hud.dynamic_visibility": "hud.visibility.always",
+        "hud.cash_feedback": "hud.cash.flash",
+        "hud.position_visibility": "hud.position.simple",
+        "hud.jail_indicator_style": "hud.jail.icon",
+        "hud.theme_integration": "hud.theme.mixed"
+      }
+    }
+  },
+  "design_decision_log": [
+    {
+      "decision_id": "ddl-skill-baseline-hud-01",
+      "topic": "HUD Information Density",
+      "context": "skill-baseline-hud 在 Discovery 后对该维度进行了收敛选择。",
+      "chosen": "hud.density.balanced",
+      "rationale": "Phase 1 原型需要足够的战略信息支持快速决策，但需控制复杂度。balanced 在最小集合（当前玩家+现金+回合）基础上增加位置索引和入狱状态，满足 GDD 4.1 约束的同时提供平衡的可读性与信息丰富度。minimal 信息不足影响策略清晰度；rich 界面密度过高可能遮挡 28 格棋盘区域。",
+      "alternatives": [
+        "hud.density.minimal: 仅显示必需字段会导致战略信息不足，玩家需额外记忆地产状态，多地块持有时认知负担高，影响策略判断效率。",
+        "hud.density.rich: 完整信息集界面密度过高，占用空间大，与 28 格棋盘完整可见约束冲突，且开发复杂度高，不适合 Phase 1 快速迭代目标。"
+      ],
+      "provisional": false,
+      "fast_mode_default": false,
+      "impact": "medium"
+    },
+    {
+      "decision_id": "ddl-skill-baseline-hud-02",
+      "topic": "HUD 布局方向",
+      "context": "skill-baseline-hud 在 Discovery 后对该维度进行了收敛选择。",
+      "chosen": "hud.layout.bottompanel",
+      "rationale": "底部面板布局将 HUD 放置于屏幕底部区域，最大化主相机视角的中央棋盘可视区域，符合 board.world_layout_dimensions 约束。顶部横条可能与相机视角冲突，侧边栏占据水平空间影响棋盘宽度，四角分散布局开发复杂度高且碎片化。底部空间在 Monopoly-like 棋盘视觉上协调，不抢占玩家焦点区域。",
+      "alternatives": [
+        "hud.layout.topbar: 顶部区域与主相机视角和系统 UI 冲突概率高，且顶部空间有限，扩展信息时容易拥挤，不适合 2-4 名玩家的列表展示。",
+        "hud.layout.sidebar: 侧边栏占据水平空间，直接影响棋盘宽度，与 28 格完整可见约束冲突。2-4 名玩家纵向列表在窄屏上表现差。",
+        "hud.layout.corners: 四角分散布局信息碎片化，视觉注意力需多区域切换，开发和响应式适配复杂度高，不适合 Phase 1 快速实现。"
+      ],
+      "provisional": false,
+      "fast_mode_default": false,
+      "impact": "medium"
+    },
+    {
+      "decision_id": "ddl-skill-baseline-hud-03",
+      "topic": "玩家信息展示模式",
+      "context": "skill-baseline-hud 在 Discovery 后对该维度进行了收敛选择。",
+      "chosen": "hud.player.list",
+      "rationale": "列表式展示在 gameplay 期间始终可见全部玩家状态，符合 local multiplayer 竞局游戏的特性——玩家需要随时比较各对手的资金和状态以便制定策略。carousel 虽简洁但无法快速获取其他玩家信息，违背了 clear feedback 目标；panel 需额外点击交互获取信息，操作路径稍长。",
+      "alternatives": [
+        "hud.player.carousel: 仅高亮当前玩家导致无法快速比较其他玩家状态，在本地多人游戏中违反了竞局信息对称原则，限制了玩家策略判断能力。",
+        "hud.player.panel: 折叠/展开逻辑增加交互复杂度，玩家需主动点击才能查看其他玩家信息，在快节奏 gameplay 中增加认知和操作负担。"
+      ],
+      "provisional": false,
+      "fast_mode_default": false,
+      "impact": "medium"
+    },
+    {
+      "decision_id": "ddl-skill-baseline-hud-04",
+      "topic": "HUD 动态显隐策略",
+      "context": "skill-baseline-hud 在 Discovery 后对该维度进行了收敛选择。",
+      "chosen": "hud.visibility.always",
+      "rationale": "HUD 元素始终可见提供最快的响应速度，无动画延迟，符合 Phase 1 gameplay 流畅性目标。expandable 需额外点击/悬停操作获取信息，在触控设备上悬停不适用；highlight 动画增加非阻塞式渲染复杂度。在 bottompanel 紧凑布局下，始终可见且不折叠是最优解。",
+      "alternatives": [
+        "hud.visibility.expandable: 需要用户主动操作获取信息，在触控设备和快节奏 gameplay 中操作路径过长，与 clear feedback 目标冲突。",
+        "hud.visibility.highlight: 高亮动画增加渲染复杂度，且与 balanced info density 配合时可能导致视觉焦点分散，不适合 Phase 1 简洁实现。"
+      ],
+      "provisional": false,
+      "fast_mode_default": false,
+      "impact": "medium"
+    },
+    {
+      "decision_id": "ddl-skill-baseline-hud-05",
+      "topic": "资金变化反馈方式",
+      "context": "skill-baseline-hud 在 Discovery 后对该维度进行了收敛选择。",
+      "chosen": "hud.cash.flash",
+      "rationale": "颜色闪烁反馈（绿增红减）提供即时、直觉的资金变化感知，无需等待数字跳动动画完成，符合 Phase 1 回合节奏不阻塞原则。flash 比 tick 视觉反馈更醒目，比 popup 复杂度低且不产生弹窗冲突。绿色/红色区分增加/减少，但需考虑色盲可及性（通过形状或图标辅助区分）。",
+      "alternatives": [
+        "hud.cash.none: 静默更新使资金变化不够明显，玩家可能错过重要交易反馈，违背了 clear feedback for cash changes 目标。",
+        "hud.cash.tick: 数字跳动动画需等待递增/递减过程，虽非阻塞但增加视觉延迟，在快速连续交易场景下动画可能堆积影响体验。",
+        "hud.cash.popup: 弹出数字动画复杂度最高，多玩家同时变化时可能产生视觉冲突，且与 bottompanel 布局空间竞争，不适合 Phase 1。"
+      ],
+      "provisional": false,
+      "fast_mode_default": false,
+      "impact": "medium"
+    },
+    {
+      "decision_id": "ddl-skill-baseline-hud-06",
+      "topic": "玩家位置信息展示",
+      "context": "skill-baseline-hud 在 Discovery 后对该维度进行了收敛选择。",
+      "chosen": "hud.position.simple",
+      "rationale": "仅显示格子编号（如'位置: 14'）在信息丰富性和空间占用间取得平衡，适合 bottompanel 紧凑布局。hidden 强制玩家依赖棋盘可视化判断位置，效率低；detailed 显示格名称文字过长，占用空间大，与 balanced info density 冲突。编号配合棋盘可视化使用满足基本位置信息需求。",
+      "alternatives": [
+        "hud.position.hidden: 位置信息完全依赖棋盘可视化获取效率低，玩家需在 HUD 和棋盘间频繁切换注意力，不符合 clear feedback 目标。",
+        "hud.position.detailed: 格名称（如'自由停车场'）文字较长，占用空间大，在 bottompanel 紧凑布局下难以容纳，影响其他信息可读性。"
+      ],
+      "provisional": false,
+      "fast_mode_default": false,
+      "impact": "medium"
+    },
+    {
+      "decision_id": "ddl-skill-baseline-hud-07",
+      "topic": "监狱状态指示样式",
+      "context": "skill-baseline-hud 在 Discovery 后对该维度进行了收敛选择。",
+      "chosen": "hud.jail.icon",
+      "rationale": "监狱图标（如栅栏图标）直观醒目，占用空间小，与 bottompanel 紧凑布局兼容。icon 比纯文字标签更易辨识，符合 UI 一致性原则。badge 信息完整但占用空间略大，border 颜色区分需考虑色盲可及性，text 视觉突出度最低。",
+      "alternatives": [
+        "hud.jail.border: 红色边框在部分主题配色下可能与棋盘元素冲突，且色盲可及性存在问题，需额外辅助标识。",
+        "hud.jail.badge: 徽章设计占用空间比图标大，在 bottompanel 紧凑布局下可能导致信息拥挤，不适合 Phase 1 简洁实现。",
+        "hud.jail.text: 纯文字标签视觉突出度最低，不如图标直观，与正常状态区分不够明显，影响入狱状态的快速辨识。"
+      ],
+      "provisional": false,
+      "fast_mode_default": false,
+      "impact": "medium"
+    },
+    {
+      "decision_id": "ddl-skill-baseline-hud-08",
+      "topic": "HUD 视觉主题整合",
+      "context": "skill-baseline-hud 在 Discovery 后对该维度进行了收敛选择。",
+      "chosen": "hud.theme.mixed",
+      "rationale": "mixed 风格在主题一致性和信息可读性间取得平衡：HUD 主体融入游戏视觉主题保持沉浸感，关键信息（资金、回合数）使用高对比度确保快速获取。fully integrated 可能因主题配色导致关键信息可读性下降，high contrast 则过于强调 HUD 与棋盘的分离感，降低整体沉浸度。",
+      "alternatives": [
+        "hud.theme.integrated: 完全融入主题可能导致关键信息（如资金数字）在复杂背景或特定主题配色下可读性下降，影响玩家信息获取效率。",
+        "hud.theme.contrast: 高对比度模式过于强调 HUD 与棋盘区域的分离，与 Monopoly-like 整体沉浸感冲突，视觉上过于突兀。"
+      ],
+      "provisional": false,
+      "fast_mode_default": false,
+      "impact": "medium"
+    }
+  ],
+  "assumptions": [],
+  "open_questions": [],
+  "review_hints": [],
+  "capability_gaps": [],
+  "confidence": {
+    "coverage": 0.9,
+    "consistency": 0.9
+  },
+  "metadata": {
+    "generated_at": "2026-05-31T03:19:44.362992+00:00",
+    "generator": "AgentBridge.Compiler.DomainSkillRuntime.v1",
+    "template_version": "1.0"
+  }
+}
