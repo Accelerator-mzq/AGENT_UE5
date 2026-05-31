@@ -118,16 +118,21 @@ def arbitrate(client, ctx: str, dims: list, stances: dict) -> dict:
     """中立总监一次性裁决：读三方立场，逐维度语义整合。
 
     返回 {dimension_id: {final_choice, integration_note, unresolved}}。
+    失败时（网络错误/JSON 解析失败/格式异常）返回空 dict 或剔除异常项，
+    交由 assemble_arbitration_result 以 arbiter_missing 兜底留痕（可追溯，不崩溃）。
     """
     dim_ids = [d.get("dimension_id", "") for d in dims if d.get("dimension_id")]
     out = _call(client, ARBITER_PROMPT,
-                ctx + f"\n## 待裁决维度全集\n{dim_ids}\n"
+                ctx + f"\n## 待裁决维度全集\n{json.dumps(dim_ids, ensure_ascii=False)}\n"
                 f"## 三方立场\n{json.dumps(stances, ensure_ascii=False)}\n"
                 "## 任务\n对每个维度做语义整合裁决。"
                 "输出 JSON: {\"arbitration\":{\"hud.xxx\":"
                 "{\"final_choice\":\"..\",\"integration_note\":\"..\",\"unresolved\":false}}}")
     result = out.get("arbitration", {})
-    return result if isinstance(result, dict) else {}
+    if not isinstance(result, dict):
+        return {}
+    # 仅保留 value 为 dict 的裁决项；异常项剔除后由 assemble_arbitration_result 走 arbiter_missing 兜底留痕
+    return {k: v for k, v in result.items() if isinstance(v, dict)}
 
 
 def run_pilot() -> int:
