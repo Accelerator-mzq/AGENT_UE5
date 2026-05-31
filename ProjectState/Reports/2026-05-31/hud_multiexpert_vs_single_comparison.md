@@ -39,73 +39,162 @@
 
 ---
 
-## 总监裁决版（arbiter_pilot）—— 真实 LLM 试点结果
+## 总监裁决版（arbiter_pilot）—— 两次真实 LLM 运行对照记录
 
-> 运行日期：2026-05-31
-> 产物：`ProjectState/Reports/2026-05-31/hud_arbiter_fragment.json` + `hud_arbiter_log.json`
+> 运行日期：2026-05-31（两次）
+> 产物（第二次，当前落盘）：`ProjectState/Reports/2026-05-31/hud_arbiter_fragment.json` + `hud_arbiter_log.json`
 > 模型：anthropic/MiniMax M2.7
 
-### 基本数据
+### 重要前言：同一脚本两次运行、结果截然不同
+
+本节记录的是**同一脚本（arbiter_pilot）的两次独立真实 LLM 运行**。第一次运行总监裁决返回空；加入原始响应诊断留痕（`arbitration_diag`）后重跑，第二次裁决完整成功。两次结果截然不同，这是**非确定性**，是本试点最重要的诚实发现之一，必须如实记录、不可掩盖。
+
+---
+
+### 第一次运行：裁决返回空，spec 完全缺失
 
 | 指标 | 数值 |
 |---|---|
 | 合并后维度数 | 32 |
-| selected_realization 条数 | 32 |
-| capability_gaps 总数 | 32（全部为 arbiter_missing） |
-| unresolved 维度数 | 0 |
-| arbiter_missing 维度数 | **32**（占比 100%） |
-| LLM 实际调用次数 | 7 次（discover×3 + stance×3 + arbitrate×1） |
+| selected_realization 非空条数 | **0**（全部为空串） |
+| capability_gaps 总数 | 32（全部 arbiter_missing） |
+| arbiter_unresolved 数 | 0（非真无分歧，而是裁决未产出） |
+| LLM 调用次数 | 7（discover×3 + stance×3 + arbitrate×1） |
 
-### LLM 调用阶段结构（来自 hud_arbiter_log.json）
+**裁决阶段行为**：`arbitrate` 调用后，解析得到 `arbitration: {}`，兜底机制正确触发，32 个维度全部进 gaps 标记 `arbiter_missing`，selected 均为空串。
 
-- 阶段1：三专家各自发现维度，3 次调用 —— 正常返回（UX 发现 17 维度，UI程序 8，美术 7；合并后 32 个）
-- 阶段2：三专家各自对维度全集表态，3 次调用 —— 正常返回（三方均对全部 32 个维度有立场）
-- 阶段3：中立总监一次性裁决，1 次调用 —— **返回空 dict（`arbitration: {}`），裁决结果完全缺失**
+**真因不可追溯（必须诚实写明）**：当时 `arbitrate` 未留原始响应（raw），旧报告中"_call/_parse_json 未报错"的表述属于**不可验证推断**——无 raw 留存，就无法区分是（A）网络/SDK 调用异常、（B）输出被截断后 JSON 不完整、（C）模型确实输出了 `{"arbitration":{}}` 空 dict、还是（D）模型输出了解释性文字但 parse 静默落空。旧报告相关说法不应作为已知陈述，现予以纠正。
 
-### 诚实记录（必须纳入决策）
+---
 
-**本次试点的核心发现：总监裁决阶段 LLM 调用成功（无网络/SDK 异常），但返回的 arbitration 字段为空 dict。**
+### 第二次运行（当前产物）：裁决完整成功
 
-具体表现：
-- `_call()` 正常执行，`_parse_json()` 也未报错（即 LLM 确实返回了某段文本）
-- 但解析后 `out.get("arbitration", {})` 取到空 dict，说明 LLM 的响应中 `arbitration` key 不存在或对应值为空/非 dict
-- 兜底机制按设计正确触发：全部 32 维度进 gaps，标记 `resolved_by: arbiter_missing`，`selected_realization` 保留 key 但值为空串
+加入 `arbitration_diag` 原始响应留痕后重跑，裁决阶段成功。
 
-**arbitration 返回空的可能原因（单次 LLM 非确定性判断，无法复核）：**
-1. 上下文窗口过长：输入包含 32 个维度 id + 三方各 32 条立场（约 200 行 JSON），可能超出模型有效处理能力
-2. 输出格式遵从失败：模型未能严格按 `{"arbitration":{...}}` 格式输出，可能输出了解释性文字或截断
-3. 单次调用局限：将 32 个维度的三方裁决压缩为单次 LLM 调用，信息量可能超出模型单次可靠输出的边界
+#### 基本数据
 
-这不是框架 bug（兜底机制正确工作），而是**单次 LLM 调用承载量与维度规模的不匹配问题**。
+| 指标 | 数值 |
+|---|---|
+| 合并后维度数 | **35**（UX 15 + UI程序 9 + 美术 13，去重合并后 35） |
+| selected_realization 非空条数 | **35**（35/35，全部有真实设计值） |
+| capability_gaps 总数 | **1**（arbiter_unresolved，非 missing） |
+| arbiter_unresolved 维度 | `hud.collapsibility`（唯一真实未解分歧） |
+| arbiter_missing 维度数 | **0** |
+| LLM 调用次数 | 7（discover×3 + stance×3 + arbitrate×1） |
 
-### 与单专家基线的覆盖对比（dimension_id 精确匹配）
+#### 裁决成功的诊断证据
+
+`arbitration_diag` 记录显示：
+- `arbitration_diag.raw` 长度 **14310 字符**，完整闭合的 ` ```json {"arbitration":{...}} ``` ` 块
+- `out_keys = ["arbitration"]`，35 个维度 id 全部出现
+- 无截断迹象，格式遵从，无 parse 异常
+
+这证明本次裁决调用本身是成功的：模型正确理解了格式要求并输出了完整结构。
+
+#### 语义整合证据（"判同合并"真的发生）
+
+总监并非逐条字符串匹配，而是识别出三方"说法不同但意思相同"并合并为统一表述。两个典型案例：
+
+**案例 1 — `hud.layout_position`**：
+> integration_note: "UX Designer and Art Director align on horizontal bar; UI Programmer's 'top-left corner' is subsumed by the broader horizontal..."
+> final selected: "Top-edge anchored centered horizontal strip with corner extensions"
+
+三方原始立场各有表述差异，总监识别出 UX 与美术语义对齐、UI程序的"左上角"被水平条带方案包含，将三方整合为统一定位描述。
+
+**案例 2 — `hud.current_player_indicator`**：
+三方分别提出色边框+动画、彩色徽章、发光边框三种方案，总监整合为 "Color-coded border/indicator with animated highlight"，提炼了三方共识要素（颜色标识 + 视觉突出）。
+
+这类判断是字符串比较协商版结构上做不到的。
+
+#### 唯一真实未解分歧（arbiter_unresolved）的完整记录
+
+维度：`hud.collapsibility`
+
+| 专家 | 立场 |
+|---|---|
+| UX Designer | 5秒无操作自动折叠，有输入即恢复 |
+| UI Programmer | 可切换折叠 |
+| Art Director | Non-collapsible；always fully visible（关键时刻 HUD 不能消失） |
+
+**总监 integration_note**：美术提出的硬约束（关键时刻 HUD 永远可见）与 UX / UI程序的可折叠主张存在结构性对立；若美术的硬约束不能放松，则此维度 UNRESOLVED。总监仍择优填入了 selected 值，但如实标记为 `arbiter_unresolved` 进入 gaps。
+
+这正是字符串比较协商版发现不了的：该分歧是**跨专业立场**（美术硬约束 vs 交互/工程灵活性），不是拼写差异，必须由具备跨域判断能力的总监才能识别。本次总监正确识别并如实上报，而非静默取中间值或掩盖。
+
+---
+
+### 两次运行对照汇总
+
+| 指标 | 第一次运行 | 第二次运行（当前产物） |
+|---|---|---|
+| 裁决阶段结果 | 返回空 `{}` | 完整，35 维度齐全 |
+| selected 非空条数 | 0 / 32 | 35 / 35 |
+| capability_gaps | 32（arbiter_missing×32） | 1（arbiter_unresolved×1） |
+| 语义整合发生 | 未产出 | 已发生（layout_position / current_player_indicator 等） |
+| 真实分歧识别 | 未产出 | 1 个（collapsibility，跨专业硬约束冲突） |
+| 裁决 raw 留痕 | **无**（真因不可追溯） | 14310 字符完整闭合（已留痕） |
+| LLM 调用次数 | 7 | 7 |
+
+---
+
+### 与协商版的核心差异（第二次运行视角）
+
+协商版（字符串比较）在本试点中的问题是：三专家各自发明维度 id，几乎不重叠，导致"协商"在零冲突状态下直接趋同——从未真正辩论过。
+
+总监裁决版让三专家面向**同一维度全集**表态，然后由中立总监进行语义整合。第二次运行验证了这一结构的两项价值：
+1. **语义判同合并**：识别出表述不同但意思相同的多方立场并统一为连贯 spec（字符串比较做不到）
+2. **诚实暴露真分歧**：识别出 collapsibility 这一跨专业硬约束冲突，如实上报 arbiter_unresolved 而非掩盖（零冲突协商版结构上无法触发此类识别）
+
+但这两项价值建立在**裁决成功返回**的前提上。第一次运行证明这一前提并不稳定。
+
+### 与单专家基线的覆盖对比（dimension_id 精确匹配，基于第二次运行）
 
 运行 `compare_dimension_coverage(arbiter_keys, single_keys)`：
 
-- **only_in_multi（总监版独有）**：32 个
+- **only_in_multi（总监版独有）**：35 个
 - **only_in_single（单专家独有）**：8 个（`hud.cash_feedback`, `hud.dynamic_visibility`, `hud.info_density`, `hud.jail_indicator_style`, `hud.layout_direction`, `hud.player_display_mode`, `hud.position_visibility`, `hud.theme_integration`）
 - **common（两版共有）**：0 个
 
-说明与协商版一致：每次 LLM 运行的维度命名均不同，导致 id 级零交集。这不代表多专家版缺少这 8 个单专家维度所对应的设计考量，仅代表命名体系不同。
+**命名 caveat（与协商版一致）**：id 级零交集主要因每次 LLM 运行的维度命名不同，不等于语义上多覆盖 35 个全新维度。"35 vs 8"更准确的读法是多专家把设计空间切得更细、命名更分散；单专家版的 8 个维度在语义上可能对应总监版中的多个维度，具体净增量需人工语义比对，不能直接用 id 差值替代。
 
-### 总监裁决版 vs 协商版对比
+---
 
-| 维度 | 协商版 | 总监裁决版 |
+### 诚实警示（推广决策必须考量）
+
+1. **非确定性是核心工程风险**：同脚本同规模，一次完全空、一次完整成功——这意味着单次裁决调用的可靠性不足。推广前必须加输出格式校验 + 失败重试（或分批裁决），不能假设每次运行都能成功。
+
+2. **第一次失败的真因至今不可知**：因无 raw 留存，无法区分 call_error / 截断 / 模型空返回 / parse 静默落空。现已加 `arbitration_diag` 留痕，**下次再出现空返回即可凭 raw 与 out_keys 精确判定是 A/B/C/D 哪类失败**，但第一次的真因已不可追溯。
+
+3. **"语义判同"是单模型单次判断**：layout_position / current_player_indicator 的整合结论正确与否无法跨运行复现验证，其准确性取决于模型当次的理解质量，不是确定性结论。
+
+4. **id 级覆盖 caveat**：见上一节，35 vs 8 不等于净增 27 个语义全新维度。
+
+5. **仅单链路，未接 Stage5/6/7**：本试点为离线 spec 生成，未连接 Skill Compiler / Handoff / Orchestrator 下游链路。端到端价值需另立项验证。
+
+---
+
+### 总监裁决版 vs 协商版对比汇总（基于第二次运行）
+
+| 维度 | 协商版 | 总监裁决版（第二次） |
 |---|---|---|
-| 维度覆盖 | 33 个 | 32 个（规模相近） |
+| 维度覆盖 | 33 个 | 35 个（规模相近） |
 | LLM 调用次数 | ~12 次 | 7 次（成本更低） |
-| 有效最终 spec | 33 个有值的 selected | **32 个均为空串**（总监裁决完全失效） |
-| capability_gaps | 0 个 | 32 个（arbiter_missing×32） |
-| 伪收敛/伪分歧问题 | 有（字符串比较零冲突）| 无法评估（裁决阶段未产出结果） |
-| 语义整合连贯性 | 协商版收敛但语义混合 | 未产出 |
+| 有效最终 spec | 33 个有值的 selected | **35 个均有真实设计值** |
+| capability_gaps | 0 个（伪零冲突） | 1 个（arbiter_unresolved，真实分歧） |
+| 语义整合连贯性 | 协商版收敛但基于字符串比较 | **语义判同合并，连贯统一 spec** |
+| 真实分歧识别 | 未触发（各自发明 id，无重叠） | **正确识别 1 个跨专业硬约束冲突** |
+| 机制稳定性 | 两次运行均有效 | **不稳定（一次空、一次成功）** |
+
+---
 
 ### 结论
 
-**总监裁决版本次未能消除协商版的缺陷，原因不同：协商版的缺陷是字符串比较导致伪零冲突（收敛看起来成功但缺乏语义整合），而总监裁决版的缺陷是单次 LLM 调用无法为 32 个维度产出有效裁决，导致整个 spec 为空。**
+**总监裁决的方向（语义整合替代字符串比较）在第二次运行中得到正面验证**：产出连贯统一的 35 维度 spec，识别出协商版发现不了的跨专业硬分歧（collapsibility），语义判同合并真实发生。这是字符串比较协商版结构上无法实现的增益。
 
-架构设计层面，总监裁决的思路（语义整合替代字符串比较）是正确方向，但实现上需要解决：
-1. 维度规模过大时改为分批裁决（而非单次承载全部）
-2. 增加裁决结果的格式验证与重试机制
-3. 推广前须先小规模（≤10 维度）验证裁决输出稳定性
+**但单次裁决调用的稳定性不足是推广前必须解决的工程问题**：第一次运行完全失败（空 arbitration），原因不可追溯；第二次成功，但两次结果截然不同，证明机制当前不可靠。
 
-**本结论基于单次真实 LLM 运行，arbitration 返回空属于本次实测发现，客观记录，不做乐观估计。**
+推广前必须解决：
+1. 增加裁决输出的格式校验与失败重试（或分批裁决）机制
+2. 始终保留 `arbitration_diag.raw` 留痕，以便失败时精确定位 A/B/C/D 类原因
+3. 在更多样本（不同维度规模、不同专家组合）上验证裁决稳定性，而非依赖单次成功推断可靠性
+
+**本节记录两次真实运行，成功与失败均如实呈现，不做乐观估计，不隐瞒第一次失败与真因不可追溯。**
