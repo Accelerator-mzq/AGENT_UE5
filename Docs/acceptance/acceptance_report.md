@@ -491,3 +491,9 @@ python -c "from Plugins.AgentBridge.MCP.tool_definitions import ALL_TOOLS; print
 - **FU-HUDME-01(P2 设计结论)**:试点证明「多专家**并行发现维度**」显著提升覆盖(33 维 vs 单专家 8 维)与专业分工(UX/UI程序/美术视角清晰可辨),此半价值成立。但「**协商辩论收敛分歧**」另一半价值**未被验证**:本次 `round_1_conflicts=0`,因三专家各自发明不重叠的 dimension_id,无人对同一维度持异议,辩论层形同虚设。**Follow-up**:若推广到框架,编排须改为「先合并出**统一维度全集** → 三专家对同一全集各自表态 → 再检测冲突」,否则「各自发现→合并」会稀释冲突、协商空转。
 - **FU-HUDME-02(P3 度量)**:`compare_dimension_coverage` 按 dimension_id 精确匹配,得多/单专家**零 id 交集**——主因是命名体系不同(单专家 `hud.info_density` vs 多专家 `hud.info_hierarchy`),非语义全新。**Follow-up**:维度净增量需人工语义比对或引入维度语义归并,不能直接用 id 差值作覆盖增益结论。
 - **FU-HUDME-03(P3 推广前置)**:推广到框架需另立项——3 专家 prompt 抽为 SkillTemplate persona、改造 `LLMProvider` 支持多 persona 编排、接入 `domain_skill_runtime` 主链、补 Stage 4→5→6→7 端到端回归。本试点结论基于**单次**真实 LLM 运行,未跨运行验证稳定性。
+
+### 附 3.1:HUD 总监裁决版试点 follow-up(2026-05-31 新增,承接 FU-HUDME-01)
+
+由 `Docs/archive/superpowers/specs/2026-05-31-hud-arbiter-design.md` + `plans/2026-05-31-hud-arbiter.md` + 真实 LLM 试点(`ProjectState/Reports/2026-05-31/hud_multiexpert_vs_single_comparison.md` 总监裁决版一节)产出。把协商版的「字符串比较收敛」替换为「中立总监 LLM 语义整合裁决」,仍为**独立脚本、不可 promote**,零改编译主链(domain_skill_runtime / agent_protocol / SkillTemplate / llm_client 均未碰)。
+
+- **FU-HUDME-04(P2 设计结论 + 推广待定)**:总监裁决直接回应 FU-HUDME-01 提出的「协商辩论价值未被验证」缺口——让三专家面向**同一维度全集**表态、再由中立总监语义整合,**消除了协商版按 dimension_id 字符串比较导致的伪零冲突**。成功那次运行(35 维、7 次调用)确实展示了两项真价值:① 语义「判同合并」(如 `hud.layout_position` 把 UI 程序的 "top-left corner" 归并进三方一致的水平条表述);② **诚实暴露真实跨专业分歧**(`hud.collapsibility`:UX/UI 主张可折叠 vs 美术硬约束「始终全显」,如实标 `arbiter_unresolved` 而非伪收敛)。**但有一条不能掩盖的实测缺陷**:**非确定性**——同脚本同规模连跑两次,第一次总监裁决返回空 `{}`(32 维全部 `arbiter_missing`、最终 spec 全空串),第二次才成功。第一次失败因当时未留原始响应**真因不可追溯**(已补 `arbitration_diag` 留痕,后续再空可凭 raw/out_keys 判定 A/B/C/D)。**是否值得作为推广首选方案的结论**:方向正确、优于字符串比较协商版,但**单次裁决稳定性不足是推广前必须解决的工程问题**——须加输出格式校验 + 失败重试,或对大维度集改分批裁决,并跨多次运行验证稳定后方可定为推广首选。本结论基于**单次成功 + 单次失败**两次真实运行,非跨运行统计。
