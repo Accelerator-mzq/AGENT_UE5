@@ -9,7 +9,6 @@
     (锁住"惰性重建+审批门"组合语义,防将来加缓存悄悄回退)
 """
 import importlib.util
-import json
 from pathlib import Path
 
 import pytest
@@ -93,6 +92,9 @@ class TestSkillSynthesis:
         assert len(payload["exemplars"]) >= 1
         assert "property_economy_spec" in payload["family_whitelist"]
         assert payload["gdd_excerpt"].startswith("## 2.4")
+        # Minor: exemplar _dir 必须是相对 templates_root 的路径(载荷不泄露绝对盘符路径)
+        assert not Path(payload["exemplars"][0]["_dir"]).is_absolute(), \
+            f"_dir 应为相对路径,实际: {payload['exemplars'][0]['_dir']}"
 
     def test_sks10_review_checklist_lists_packages(self, tmp_path):
         """SKS-10: 审阅清单列出全部待审包及重点文件。"""
@@ -185,6 +187,138 @@ class TestSkillSynthesis:
                 constraints={},
                 templates_root=PLUGIN_ROOT / "SkillTemplates",
             )
+
+    # ---- Important 2: six_files value 非字符串经 save 不抛异常 ----
+
+    def test_save_non_string_value_rejected_no_crash(self, tmp_path):
+        """agent 经 MCP 透传 dict value 时 save 必须返回 rejected 结构化错误,
+        而非 AttributeError 穿透(实测漏洞)。"""
+        ss = _load("skill_synthesis")
+        package = _legal_package()
+        package["domain_prompt.md"] = {"oops": "agent 传了结构化值"}
+        result = ss.save_synthesized_package(
+            capability_id="gameplay-auction",
+            six_files=package,
+            templates_root=tmp_path,
+            family_whitelist={"property_economy_spec"},
+        )
+        assert result["status"] == "rejected"
+        assert any("domain_prompt.md" in e for e in result["errors"]), \
+            f"期望含文件名的错误,实际: {result['errors']}"
+        assert not (tmp_path / "synthesized").exists()
+
+    # ---- Important 1: save 事务性(temp-then-swap) ----
+
+    def test_save_transactional_no_partial_package_on_io_failure(self, tmp_path, monkeypatch):
+        """第 4 个文件写入抛 IOError 时:最终目录不存在、temp 目录被清理、
+        返回 status=failed 结构化错误(IO/环境错误,与内容性 rejected 区分)。"""
+        ss = _load("skill_synthesis")
+        package = _legal_package()  # monkeypatch 前构造,避免干扰计数
+
+        real_write_text = Path.write_text
+        calls = {"n": 0}
+
+        def flaky_write_text(self, *args, **kwargs):
+            calls["n"] += 1
+            if calls["n"] == 4:
+                raise IOError("磁盘写入失败(模拟)")
+            return real_write_text(self, *args, **kwargs)
+
+        monkeypatch.setattr(Path, "write_text", flaky_write_text)
+        result = ss.save_synthesized_package(
+            capability_id="gameplay-auction",
+            six_files=package,
+            templates_root=tmp_path,
+            family_whitelist={"property_economy_spec"},
+        )
+        assert result["status"] == "failed", f"期望 failed,实际: {result}"
+        assert result["errors"], "期望结构化错误信息"
+        # 半成品零残留:最终目录与 temp 目录均不存在
+        assert not (tmp_path / "synthesized" / "gameplay-auction").exists()
+        assert not (tmp_path / "synthesized" / ".tmp-gameplay-auction").exists()
+
+    def test_crashed_temp_dir_invisible_to_registry_and_review(self, tmp_path):
+        """锁测试:伪造换名前进程被杀的残留 temp 目录(manifest 暂存为 .part),
+        registry_scan 与审阅清单都不应看到它(manifest.yaml 是发现锚点)。"""
+        ss = _load("skill_synthesis")
+        rs = _load("registry_scan")
+        package = _legal_package()
+        temp_dir = tmp_path / "synthesized" / ".tmp-gameplay-auction"
+        temp_dir.mkdir(parents=True)
+        for name, content in package.items():
+            staged = "manifest.yaml.part" if name == "manifest.yaml" else name
+            (temp_dir / staged).write_text(content, encoding="utf-8")
+
+        assert "gameplay-auction" not in rs.scan_capability_registry(tmp_path)
+        path = ss.generate_synthesis_review(tmp_path / "run", templates_root=tmp_path)
+        text = Path(path).read_text(encoding="utf-8")
+        assert ".tmp-gameplay-auction" not in text
+
+    # ---- Important 3: approved 包防覆盖 ----
+
+    def test_save_rejects_overwrite_of_approved_package(self, tmp_path):
+        """已审批包是人审资产:再次 save 同 capability_id 必须 rejected 且内容未变。"""
+        ss = _load("skill_synthesis")
+        ss.save_synthesized_package(
+            capability_id="gameplay-auction",
+            six_files=_legal_package(),
+            templates_root=tmp_path,
+            family_whitelist={"property_economy_spec"},
+        )
+        package_dir = tmp_path / "synthesized" / "gameplay-auction"
+        _approve_on_disk(package_dir)
+        before = (package_dir / "manifest.yaml").read_text(encoding="utf-8")
+
+        result = ss.save_synthesized_package(
+            capability_id="gameplay-auction",
+            six_files=_legal_package(),
+            templates_root=tmp_path,
+            family_whitelist={"property_economy_spec"},
+        )
+        assert result["status"] == "rejected"
+        assert any("已审批" in e for e in result["errors"]), \
+            f"期望'已审批'拒绝文案,实际: {result['errors']}"
+        after = (package_dir / "manifest.yaml").read_text(encoding="utf-8")
+        assert after == before, "approved 包内容不得被覆盖"
+
+    def test_save_allows_overwrite_of_pending_package(self, tmp_path):
+        """pending_review 的现存包允许覆盖(agent 重试语义),内容更新生效。"""
+        ss = _load("skill_synthesis")
+        ss.save_synthesized_package(
+            capability_id="gameplay-auction",
+            six_files=_legal_package(),
+            templates_root=tmp_path,
+            family_whitelist={"property_economy_spec"},
+        )
+        updated = _legal_package()
+        updated["domain_prompt.md"] = "拍卖规则 v2:补充荷兰式拍卖的降价步长设计。"
+        result = ss.save_synthesized_package(
+            capability_id="gameplay-auction",
+            six_files=updated,
+            templates_root=tmp_path,
+            family_whitelist={"property_economy_spec"},
+        )
+        assert result["status"] == "saved"
+        on_disk = (tmp_path / "synthesized" / "gameplay-auction" / "domain_prompt.md") \
+            .read_text(encoding="utf-8")
+        assert on_disk == updated["domain_prompt.md"]
+
+    # ---- Minor 锁测试 ----
+
+    def test_lock_file_spec_matches_validator_required_files(self):
+        """FILE_SPEC(落盘白名单)与 validator.REQUIRED_FILES(校验集)必须恒等,
+        防两边单独演化导致'校验通过但落盘缺文件'或反之。"""
+        ss = _load("skill_synthesis")
+        sv = _load("synthesis_validator")
+        assert set(ss.FILE_SPEC) == sv.REQUIRED_FILES
+
+    def test_lock_load_sibling_returns_cached_single_instance(self):
+        """_load_sibling 同名模块必须返回同一实例(模块级缓存),
+        防每次调用重复 exec_module 的加载开销与实例分裂。"""
+        ss = _load("skill_synthesis")
+        first = ss._load_sibling("synthesis_validator")
+        second = ss._load_sibling("synthesis_validator")
+        assert first is second
 
     # ---- 审查教训 2: 审阅清单对坏 manifest 容错 ----
 

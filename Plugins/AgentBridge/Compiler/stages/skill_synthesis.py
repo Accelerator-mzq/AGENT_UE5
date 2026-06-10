@@ -13,6 +13,8 @@
 from __future__ import annotations
 
 import importlib.util
+import os
+import shutil
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
@@ -35,12 +37,21 @@ FILE_SPEC = {
 }
 
 
+# _load_sibling 的模块级缓存:同名兄弟模块全进程只 exec 一次。
+# 约束:兄弟模块不得引入跨实例类比较(isinstance 跨多次加载会失败)或可变全局态,
+# 否则缓存实例与测试中各自加载的实例之间会出现状态分裂。
+_SIBLING_CACHE: Dict[str, Any] = {}
+
+
 def _load_sibling(name: str):
-    """经 importlib 加载同目录兄弟模块(本目录未安装为包,不能相对导入)。"""
-    spec = importlib.util.spec_from_file_location(name, _STAGES_DIR / f"{name}.py")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+    """经 importlib 加载同目录兄弟模块(本目录未安装为包,不能相对导入);带缓存。"""
+    cached = _SIBLING_CACHE.get(name)
+    if cached is None:
+        spec = importlib.util.spec_from_file_location(name, _STAGES_DIR / f"{name}.py")
+        cached = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cached)
+        _SIBLING_CACHE[name] = cached
+    return cached
 
 
 def _pick_exemplars(templates_root: Path, domain_type: str, limit: int = 2) -> List[Dict[str, str]]:
@@ -51,7 +62,9 @@ def _pick_exemplars(templates_root: Path, domain_type: str, limit: int = 2) -> L
     if not base.is_dir():
         return exemplars
     for manifest_path in sorted(base.rglob("manifest.yaml"))[:limit]:
-        bundle: Dict[str, str] = {"_dir": str(manifest_path.parent)}
+        # _dir 用相对 templates_root 的 POSIX 形式:载荷不泄露绝对盘符路径,跨机器可比
+        relative_dir = manifest_path.parent.relative_to(templates_root).as_posix()
+        bundle: Dict[str, str] = {"_dir": relative_dir}
         for name in FILE_SPEC:
             file_path = manifest_path.parent / name
             bundle[name] = file_path.read_text(encoding="utf-8") if file_path.is_file() else ""
@@ -112,11 +125,22 @@ def save_synthesized_package(
 ) -> Dict[str, Any]:
     """机器校验后落盘合成包;失败返回错误列表且不落盘(agent 重试闭环)。
 
+    返回 status 语义:
+      - "rejected": 内容/契约/状态不合规(含 approved 防覆盖),agent 修正后可重试
+      - "failed":   校验全过但落盘 IO 失败(环境错误,非内容错误),原样重试或人工排查
+      - "saved":    成功落盘 pending_review
+
     落盘安全(对称双侧防线):
       - capability_id 直接用作落盘目录名,入口先做格式校验,非法立即 rejected
         (在任何路径拼接/mkdir 之前;'../../evil' 实测可逃出 synthesized/ 隔离区)
       - six_files 只遍历 FILE_SPEC 的 6 个规范文件名写盘;出现任何额外 key
         (含 '../' 等路径穿越形式)直接 rejected,不触盘
+
+    事务性落盘(temp-then-swap):全部文件先写入 .tmp-<capability_id>/(manifest
+    暂存为 manifest.yaml.part),写完整后换名到最终目录,最后把 .part 改回
+    manifest.yaml。manifest.yaml 是 registry_scan 与审阅清单的发现锚点,temp 区
+    始终没有这个文件名,任何中途失败的半成品对两个消费方都不可见;失败即清理 temp。
+    残余窗口:旧 pending 包 rmtree 与换名之间进程被杀会丢旧包(可重新合成,接受)。
     """
     # ── 入口防线: capability_id 格式校验(单一事实源在 synthesis_validator) ──
     validator = _load_sibling("synthesis_validator")
@@ -125,6 +149,23 @@ def save_synthesized_package(
         return {"status": "rejected", "errors": id_errors, "package_dir": ""}
 
     root = Path(templates_root) if templates_root else DEFAULT_TEMPLATES_ROOT
+    synthesized_root = root / SYNTHESIZED_DIR_NAME
+    package_dir = synthesized_root / capability_id
+
+    # ── approved 防覆盖: 已审批包是人审资产,拒绝静默重写(撤销审批是人的动作) ──
+    # pending_review 现存包允许覆盖(agent 重试语义);manifest 损坏件覆盖即修复
+    existing_manifest = _load_manifest_or_none(package_dir / "manifest.yaml") \
+        if (package_dir / "manifest.yaml").is_file() else None
+    if existing_manifest is not None and existing_manifest.get("review_status") == "approved":
+        return {
+            "status": "rejected",
+            "errors": [
+                f"该包已审批(review_status=approved),拒绝覆盖: {package_dir}。"
+                "如需重合成,请人工先撤销审批(把 review_status 改回 pending_review)。"
+            ],
+            "package_dir": "",
+        }
+
     if family_whitelist is None:
         registry_scan = _load_sibling("registry_scan")
         family_whitelist = registry_scan.execution_family_whitelist(root)
@@ -146,11 +187,31 @@ def save_synthesized_package(
     if errors:
         return {"status": "rejected", "errors": errors, "package_dir": ""}
 
-    # 校验全过才触盘;只写 FILE_SPEC 的 6 个名字(此时 validator 已保证全部存在非空)
-    package_dir = root / "synthesized" / capability_id
-    package_dir.mkdir(parents=True, exist_ok=True)
-    for name in FILE_SPEC:
-        (package_dir / name).write_text(six_files[name], encoding="utf-8")
+    # ── 事务性落盘: temp-then-swap ──
+    # capability_id 格式校验已禁 '.',故 '.tmp-' 前缀目录永不与合法包目录撞名,
+    # rmtree 残留 temp 不可能误删真实包
+    temp_dir = synthesized_root / f".tmp-{capability_id}"
+    try:
+        if temp_dir.exists():
+            shutil.rmtree(temp_dir)  # 清理上次中断的残留
+        temp_dir.mkdir(parents=True)
+        # 只写 FILE_SPEC 的 6 个名字(此时 validator 已保证全部存在且为非空字符串);
+        # manifest 暂存为 .part,保证 temp 区对 rglob("manifest.yaml") 的消费方不可见
+        for name in FILE_SPEC:
+            staged_name = "manifest.yaml.part" if name == "manifest.yaml" else name
+            (temp_dir / staged_name).write_text(six_files[name], encoding="utf-8")
+        if package_dir.exists():
+            shutil.rmtree(package_dir)  # 覆盖 pending 包:换名前移除旧目录(Windows 必需)
+        os.replace(temp_dir, package_dir)
+        # 提交点: manifest.yaml 出现即包完整(此前任何失败,包都不可见)
+        os.replace(package_dir / "manifest.yaml.part", package_dir / "manifest.yaml")
+    except Exception as exc:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        return {
+            "status": "failed",
+            "errors": [f"落盘失败(IO/环境错误,非内容错误,可原样重试): {exc}"],
+            "package_dir": "",
+        }
     return {"status": "saved", "errors": [], "package_dir": str(package_dir)}
 
 

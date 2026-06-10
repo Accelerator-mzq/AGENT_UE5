@@ -161,14 +161,19 @@ def validate_synthesized_package(
     errors: List[str] = []
 
     # =========================================================
-    # 检查点 1: 6 文件齐全且非空
-    #   用 (... or "") 防御 agent 传 None 值导致 .strip() AttributeError
+    # 检查点 1: 6 文件齐全、value 是字符串且非空
+    #   - MCP 透传场景 agent 可能传 dict/list/int 等结构化 value:
+    #     必须给结构化错误而非 AttributeError 穿透(校验器永不抛契约)
+    #   - 用 (... or "") 防御 None 值导致 .strip() AttributeError
     # =========================================================
     for name in sorted(REQUIRED_FILES):
-        if not (package.get(name) or "").strip():
+        value = package.get(name)
+        if value is not None and not isinstance(value, str):
+            errors.append(f"{name} 内容必须是字符串,实际: {type(value).__name__}")
+        elif not (value or "").strip():
             errors.append(f"缺少或为空: {name}")
     if errors:
-        # 文件都不齐,后续检查无意义,提前返回
+        # 文件不齐/类型不对,后续检查无意义,提前返回
         return errors
 
     # =========================================================

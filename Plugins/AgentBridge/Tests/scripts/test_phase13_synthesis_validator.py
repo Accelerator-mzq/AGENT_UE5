@@ -377,6 +377,23 @@ class TestSynthesisValidator:
             f"期望抓到 $defs 内嵌违规,实际: {errors}"
 
 
+class TestNonStringFileValues:
+    """Important 2: MCP 透传场景 agent 可能给文件 value 传 dict/list/int,
+    校验器必须给结构化错误而非 AttributeError 穿透(校验器永不抛契约)。"""
+
+    def test_non_string_values_structured_error_no_crash(self):
+        """value 为 dict/list/int 时各返回含文件名的'必须是字符串'错误,不抛异常。"""
+        sv = _load()
+        for bad_value in ({"a": 1}, ["x"], 7):
+            package = _legal_package()
+            package["domain_prompt.md"] = bad_value
+            errors = sv.validate_synthesized_package(
+                "gameplay-auction", package, WHITELIST
+            )
+            assert any("domain_prompt.md" in e and "必须是字符串" in e for e in errors), \
+                f"期望含文件名的'必须是字符串'错误({type(bad_value).__name__}),实际: {errors}"
+
+
 class TestCapabilityIdFormat:
     """Spec 审查实证漏洞: capability_id 是落盘目录名,必须有格式硬校验
     (单一事实源在 validator,skill_synthesis 的 save/prepare 入口复用)。"""
