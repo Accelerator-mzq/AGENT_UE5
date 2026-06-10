@@ -1,0 +1,725 @@
+{
+  "contract_version": "1.0",
+  "contract_id": "rsc.monopoly.phase11_task14_baseline_template_validation.20260417",
+  "source_gdd": {
+    "file_path": "D:\\UnrealProjects\\Mvpv4TestCodex\\ProjectInputs\\GDD\\GDD_MonopolyGame.md",
+    "scope_summary": "Part A defines Monopoly-like local multiplayer rules; Part B defines UE5 C++ implementation constraints."
+  },
+  "game_identity": {
+    "game_type": "board_strategy",
+    "subgenre": "monopoly_like",
+    "presentation_model": "top_down_3d",
+    "player_count_range": [
+      2,
+      4
+    ],
+    "win_condition": "last_non_bankrupt_player"
+  },
+  "phase_scope": {
+    "current_phase": "phase11_task14_baseline_template_validation",
+    "in_scope": [
+      "local hot-seat multiplayer",
+      "28 tile square-ring board",
+      "2d6 turn loop",
+      "property purchase and rent",
+      "tax, jail, bankruptcy and win condition",
+      "Universal Baseline shell"
+    ],
+    "out_of_scope": [
+      "online multiplayer",
+      "AI opponents",
+      "auction rules",
+      "full card events for Chance and Community"
+    ]
+  },
+  "constraint_fields": {
+    "game.game_type": {
+      "type": "constraint",
+      "value": "board_strategy",
+      "gdd_ref": "GDD 1 游戏类型"
+    },
+    "game.subgenre": {
+      "type": "constraint",
+      "value": "monopoly_like",
+      "gdd_ref": "GDD 1 游戏类型"
+    },
+    "game.player_count_range": {
+      "type": "constraint",
+      "value": [
+        2,
+        4
+      ],
+      "gdd_ref": "GDD 1 玩家人数"
+    },
+    "game.presentation_model": {
+      "type": "constraint",
+      "value": "top_down_3d",
+      "gdd_ref": "GDD 1 视角"
+    },
+    "game.win_condition": {
+      "type": "constraint",
+      "value": "last_non_bankrupt_player",
+      "gdd_ref": "GDD 1 胜利条件"
+    },
+    "game.match_length_minutes": {
+      "type": "constraint",
+      "value": [
+        20,
+        40
+      ],
+      "gdd_ref": "GDD 1 单局时长目标"
+    },
+    "phase.current_scope": {
+      "type": "constraint",
+      "value": "phase1_local_multiplayer",
+      "gdd_ref": "GDD 开发分期"
+    },
+    "board.tile_count": {
+      "type": "constraint",
+      "value": 28,
+      "gdd_ref": "GDD 2.1 棋盘布局"
+    },
+    "board.layout_shape": {
+      "type": "constraint",
+      "value": "square_ring",
+      "gdd_ref": "GDD 2.1 棋盘布局"
+    },
+    "board.movement_direction": {
+      "type": "constraint",
+      "value": "clockwise",
+      "gdd_ref": "GDD 2.1 棋盘布局"
+    },
+    "board.corner_indices": {
+      "type": "constraint",
+      "value": {
+        "start": 0,
+        "jail_visit": 7,
+        "free_parking": 14,
+        "go_to_jail": 21
+      },
+      "gdd_ref": "GDD 2.1 角格"
+    },
+    "economy.starting_cash": {
+      "type": "constraint",
+      "value": 1500,
+      "gdd_ref": "GDD 3.1 游戏流程"
+    },
+    "economy.start_bonus": {
+      "type": "constraint",
+      "value": 200,
+      "gdd_ref": "GDD 3.2 START"
+    },
+    "dice.count": {
+      "type": "constraint",
+      "value": 2,
+      "gdd_ref": "GDD 3.4 骰子规则"
+    },
+    "dice.sides": {
+      "type": "constraint",
+      "value": 6,
+      "gdd_ref": "GDD 3.4 骰子规则"
+    },
+    "dice.doubles_extra_turn": {
+      "type": "constraint",
+      "value": true,
+      "gdd_ref": "GDD 3.4 骰子规则"
+    },
+    "dice.triple_doubles_jail": {
+      "type": "constraint",
+      "value": true,
+      "gdd_ref": "GDD 3.4 骰子规则"
+    },
+    "jail.visit_tile_index": {
+      "type": "constraint",
+      "value": 7,
+      "gdd_ref": "GDD 2.1 角格"
+    },
+    "jail.bail_cost": {
+      "type": "constraint",
+      "value": 50,
+      "gdd_ref": "GDD 3.2 监狱规则"
+    },
+    "jail.max_turns": {
+      "type": "constraint",
+      "value": 3,
+      "gdd_ref": "GDD 3.2 监狱规则"
+    },
+    "property.full_color_group_rent_multiplier": {
+      "type": "constraint",
+      "value": 2,
+      "gdd_ref": "GDD 2.4 颜色组"
+    },
+    "ui.required_hud_fields": {
+      "type": "constraint",
+      "value": [
+        "current_player",
+        "player_cash",
+        "turn_number"
+      ],
+      "gdd_ref": "GDD 4.1 HUD 信息"
+    }
+  },
+  "variant_fields": {
+    "board.world_layout_dimensions": {
+      "type": "variant",
+      "bounds": {
+        "must_satisfy": [
+          "28 个格子在主相机下完整可见",
+          "四个角格可读且玩家移动路径清晰"
+        ],
+        "must_not": [
+          "格子重叠",
+          "HUD 遮挡核心棋盘区域"
+        ]
+      },
+      "gdd_ref": "GDD 2.1 仅锁定环形路线，未锁定世界坐标尺寸"
+    },
+    "board.tile_visual_style": {
+      "type": "variant",
+      "bounds": {
+        "must_satisfy": [
+          "地产、税务、机会、公共基金等类型可区分"
+        ],
+        "must_not": [
+          "视觉样式改变格子类型语义"
+        ]
+      },
+      "gdd_ref": "GDD 2.2 格子类型定义"
+    },
+    "player_token.visual_style": {
+      "type": "variant",
+      "bounds": {
+        "must_satisfy": [
+          "2-4 名玩家在棋盘上可区分"
+        ],
+        "must_not": [
+          "棋子遮挡格子标签"
+        ]
+      },
+      "gdd_ref": "GDD 未锁定棋子模型"
+    },
+    "hud.layout_style": {
+      "type": "variant",
+      "bounds": {
+        "must_satisfy": [
+          "显示当前玩家、全部资金、当前回合数"
+        ],
+        "must_not": [
+          "遮挡购买/租金/监狱弹窗"
+        ]
+      },
+      "gdd_ref": "GDD 4.1 只定义 HUD 信息，不锁定布局"
+    },
+    "popup.presentation_style": {
+      "type": "variant",
+      "bounds": {
+        "must_satisfy": [
+          "覆盖购买、租金、监狱、破产、游戏结束交互"
+        ],
+        "must_not": [
+          "省略 GDD 指定按钮"
+        ]
+      },
+      "gdd_ref": "GDD 4.2 弹出式 UI"
+    },
+    "dice.roll_feedback": {
+      "type": "variant",
+      "bounds": {
+        "must_satisfy": [
+          "显示两颗骰子结果与是否双数"
+        ],
+        "must_not": [
+          "动画延迟阻塞回合节奏"
+        ]
+      },
+      "gdd_ref": "GDD 3.4 未锁定骰子表现"
+    },
+    "audio.feedback_style": {
+      "type": "variant",
+      "bounds": {
+        "must_satisfy": [
+          "基础 BGM/SFX 可被设置页音量控制"
+        ],
+        "must_not": [
+          "音效反馈影响规则判断"
+        ]
+      },
+      "gdd_ref": "Universal Baseline 音频基础"
+    },
+    "frontend.visual_theme": {
+      "type": "variant",
+      "bounds": {
+        "must_satisfy": [
+          "保留 Monopoly-like 棋盘策略识别度"
+        ],
+        "must_not": [
+          "主题风格降低按钮和文字可读性"
+        ]
+      },
+      "gdd_ref": "Universal Baseline 前台壳层"
+    }
+  },
+  "soft_intents": {
+    "gameplay_feel": [
+      "fast simplified Monopoly-like local prototype",
+      "clear feedback for turn, dice, cash and ownership changes"
+    ],
+    "design_tensions": [
+      "traditional board readability vs compact HUD",
+      "simple Phase 1 rules vs enough strategic clarity",
+      "elimination win condition vs avoiding unresolved stalemates"
+    ]
+  },
+  "baseline_capabilities": [
+    {
+      "capability_id": "baseline-start-screen",
+      "category": "startup_entry",
+      "baseline_item": "Start Screen",
+      "activation": "required",
+      "realization_class": "presence_only",
+      "required_elements": [
+        "project_identity_display",
+        "user_interaction_trigger",
+        "navigate_to_main_menu"
+      ],
+      "upgrade_policy": "presence_only_to_realization_eligible_only"
+    },
+    {
+      "capability_id": "baseline-main-menu",
+      "category": "frontend_shell",
+      "baseline_item": "Main Menu",
+      "activation": "required",
+      "realization_class": "presence_only",
+      "required_elements": [
+        "New Game",
+        "Settings",
+        "Quit"
+      ],
+      "upgrade_policy": "presence_only_to_realization_eligible_only"
+    },
+    {
+      "capability_id": "baseline-settings",
+      "category": "settings_configuration",
+      "baseline_item": "Settings",
+      "activation": "required",
+      "realization_class": "presence_only",
+      "required_controls": [
+        "Master Volume",
+        "SFX Volume",
+        "Window Mode",
+        "Resolution",
+        "Apply",
+        "Back"
+      ],
+      "upgrade_policy": "presence_only_to_realization_eligible_only"
+    },
+    {
+      "capability_id": "baseline-pause",
+      "category": "frontend_shell",
+      "baseline_item": "Pause",
+      "activation": "required",
+      "realization_class": "presence_only",
+      "required_elements": [
+        "ESC entry",
+        "Resume",
+        "Settings",
+        "Quit to Menu"
+      ],
+      "upgrade_policy": "presence_only_to_realization_eligible_only"
+    },
+    {
+      "capability_id": "baseline-results",
+      "category": "hud_popup_results",
+      "baseline_item": "Results",
+      "activation": "required",
+      "realization_class": "presence_only",
+      "required_elements": [
+        "winner_info",
+        "Return to Menu"
+      ],
+      "upgrade_policy": "presence_only_to_realization_eligible_only"
+    },
+    {
+      "capability_id": "baseline-hud",
+      "category": "hud_popup_results",
+      "baseline_item": "HUD",
+      "activation": "required",
+      "realization_class": "realization_eligible",
+      "required_elements": [
+        "current_turn",
+        "current_player",
+        "player_cash",
+        "dice_result"
+      ],
+      "upgrade_policy": "presence_only_to_realization_eligible_only",
+      "realization_basis": "HUD 与回合、资金、骰子结果强耦合，进入 Design Space Discovery。"
+    },
+    {
+      "capability_id": "baseline-input-foundation",
+      "category": "input_foundation",
+      "baseline_item": "Input Foundation",
+      "activation": "required",
+      "realization_class": "presence_only",
+      "required_elements": [
+        "menu_confirm",
+        "menu_cancel",
+        "pause_input",
+        "roll_dice_action"
+      ],
+      "upgrade_policy": "presence_only_to_realization_eligible_only"
+    },
+    {
+      "capability_id": "baseline-audio-foundation",
+      "category": "audio_foundation",
+      "baseline_item": "Audio Foundation",
+      "activation": "required",
+      "realization_class": "presence_only",
+      "required_elements": [
+        "bgm_volume_control",
+        "sfx_volume_control",
+        "basic_sfx_playback"
+      ],
+      "upgrade_policy": "presence_only_to_realization_eligible_only"
+    },
+    {
+      "capability_id": "baseline-platform-foundation",
+      "category": "platform_foundation",
+      "baseline_item": "Platform Foundation",
+      "activation": "required",
+      "realization_class": "clarification_gated",
+      "required_elements": [
+        "window_mode",
+        "resolution",
+        "quit_handling"
+      ],
+      "upgrade_policy": "presence_only_to_realization_eligible_only",
+      "clarification_reason": "目标平台与持久化策略会影响输入、分辨率和设置保存边界。"
+    }
+  ],
+  "gameplay_capabilities": [
+    {
+      "capability_id": "gameplay-board-topology",
+      "activation": "required",
+      "allows_design_space_discovery": true
+    },
+    {
+      "capability_id": "gameplay-tile-system",
+      "activation": "required",
+      "allows_design_space_discovery": true
+    },
+    {
+      "capability_id": "gameplay-turn-loop",
+      "activation": "required",
+      "allows_design_space_discovery": true
+    },
+    {
+      "capability_id": "gameplay-dice",
+      "activation": "required",
+      "allows_design_space_discovery": true
+    },
+    {
+      "capability_id": "gameplay-economy",
+      "activation": "required",
+      "allows_design_space_discovery": true
+    },
+    {
+      "capability_id": "gameplay-player-management",
+      "activation": "required",
+      "allows_design_space_discovery": true
+    },
+    {
+      "capability_id": "gameplay-jail",
+      "activation": "required",
+      "allows_design_space_discovery": true
+    },
+    {
+      "capability_id": "gameplay-networking",
+      "activation": "deferred",
+      "allows_design_space_discovery": false
+    },
+    {
+      "capability_id": "gameplay-ai-opponents",
+      "activation": "deferred",
+      "allows_design_space_discovery": false
+    }
+  ],
+  "root_questions": [
+    {
+      "question_id": "q1_constraint_fields",
+      "status": "answered",
+      "answer": "已锁定 22 个硬约束，包括棋盘 28 格、2-4 玩家、初始资金 1500、2D6、顺时针移动和破产胜利条件。"
+    },
+    {
+      "question_id": "q2_soft_intents",
+      "status": "answered",
+      "answer": "目标是本地多人、节奏清晰、规则简化但仍保持 Monopoly-like 策略感。"
+    },
+    {
+      "question_id": "q3_required_capabilities",
+      "status": "answered",
+      "answer": "baseline-start-screen, baseline-main-menu, baseline-settings, baseline-pause, baseline-results, baseline-hud, baseline-input-foundation, baseline-audio-foundation, baseline-platform-foundation, gameplay-board-topology, gameplay-tile-system, gameplay-turn-loop, gameplay-dice, gameplay-economy, gameplay-player-management, gameplay-jail"
+    },
+    {
+      "question_id": "q4_phase_enabled_capabilities",
+      "status": "answered",
+      "answer": "Phase 1 启用本地多人、棋盘、回合、骰子、经济、监狱、HUD 与 Universal Baseline 壳层。"
+    },
+    {
+      "question_id": "q5_deferred_capabilities",
+      "status": "answered",
+      "answer": "gameplay-networking, gameplay-ai-opponents"
+    },
+    {
+      "question_id": "q6_presence_contract_baseline",
+      "status": "answered",
+      "answer": "baseline-start-screen, baseline-main-menu, baseline-settings, baseline-pause, baseline-results, baseline-input-foundation, baseline-audio-foundation"
+    },
+    {
+      "question_id": "q7_realization_eligible_baseline",
+      "status": "answered",
+      "answer": "baseline-hud"
+    },
+    {
+      "question_id": "q8_gameplay_discovery_domains",
+      "status": "answered",
+      "answer": "gameplay-board-topology, gameplay-tile-system, gameplay-turn-loop, gameplay-dice, gameplay-economy, gameplay-player-management, gameplay-jail"
+    },
+    {
+      "question_id": "q9_clarification_required_domains",
+      "status": "clarification_required",
+      "answer": "baseline-platform-foundation；另需 Clarification Gate 确认最大游戏时长/僵局处理。"
+    },
+    {
+      "question_id": "q10_skill_graph_boundary",
+      "status": "answered",
+      "answer": "Skill Graph 只规划 Domain Skill、Baseline Skill、依赖、耦合和收敛顺序；不提前写死 realization 或 Build IR。"
+    }
+  ],
+  "baseline_coverage": {
+    "startup_entry": {
+      "label": "启动与入口",
+      "covered": true,
+      "capability_ids": [
+        "baseline-start-screen"
+      ]
+    },
+    "frontend_shell": {
+      "label": "前台壳层与页面流转",
+      "covered": true,
+      "capability_ids": [
+        "baseline-main-menu",
+        "baseline-pause"
+      ]
+    },
+    "settings_configuration": {
+      "label": "设置与配置",
+      "covered": true,
+      "capability_ids": [
+        "baseline-settings"
+      ]
+    },
+    "input_foundation": {
+      "label": "输入基础",
+      "covered": true,
+      "capability_ids": [
+        "baseline-input-foundation"
+      ]
+    },
+    "hud_popup_results": {
+      "label": "HUD / Popup / 结果表达",
+      "covered": true,
+      "capability_ids": [
+        "baseline-results",
+        "baseline-hud"
+      ]
+    },
+    "audio_foundation": {
+      "label": "音频基础",
+      "covered": true,
+      "capability_ids": [
+        "baseline-audio-foundation"
+      ]
+    },
+    "platform_foundation": {
+      "label": "平台基础",
+      "covered": true,
+      "capability_ids": [
+        "baseline-platform-foundation"
+      ]
+    }
+  },
+  "design_element_classification": [
+    {
+      "field_path": "game.game_type",
+      "classification": "constraint",
+      "basis": "GDD 1 游戏类型"
+    },
+    {
+      "field_path": "game.subgenre",
+      "classification": "constraint",
+      "basis": "GDD 1 游戏类型"
+    },
+    {
+      "field_path": "game.player_count_range",
+      "classification": "constraint",
+      "basis": "GDD 1 玩家人数"
+    },
+    {
+      "field_path": "game.presentation_model",
+      "classification": "constraint",
+      "basis": "GDD 1 视角"
+    },
+    {
+      "field_path": "game.win_condition",
+      "classification": "constraint",
+      "basis": "GDD 1 胜利条件"
+    },
+    {
+      "field_path": "game.match_length_minutes",
+      "classification": "constraint",
+      "basis": "GDD 1 单局时长目标"
+    },
+    {
+      "field_path": "phase.current_scope",
+      "classification": "constraint",
+      "basis": "GDD 开发分期"
+    },
+    {
+      "field_path": "board.tile_count",
+      "classification": "constraint",
+      "basis": "GDD 2.1 棋盘布局"
+    },
+    {
+      "field_path": "board.layout_shape",
+      "classification": "constraint",
+      "basis": "GDD 2.1 棋盘布局"
+    },
+    {
+      "field_path": "board.movement_direction",
+      "classification": "constraint",
+      "basis": "GDD 2.1 棋盘布局"
+    },
+    {
+      "field_path": "board.corner_indices",
+      "classification": "constraint",
+      "basis": "GDD 2.1 角格"
+    },
+    {
+      "field_path": "economy.starting_cash",
+      "classification": "constraint",
+      "basis": "GDD 3.1 游戏流程"
+    },
+    {
+      "field_path": "economy.start_bonus",
+      "classification": "constraint",
+      "basis": "GDD 3.2 START"
+    },
+    {
+      "field_path": "dice.count",
+      "classification": "constraint",
+      "basis": "GDD 3.4 骰子规则"
+    },
+    {
+      "field_path": "dice.sides",
+      "classification": "constraint",
+      "basis": "GDD 3.4 骰子规则"
+    },
+    {
+      "field_path": "dice.doubles_extra_turn",
+      "classification": "constraint",
+      "basis": "GDD 3.4 骰子规则"
+    },
+    {
+      "field_path": "dice.triple_doubles_jail",
+      "classification": "constraint",
+      "basis": "GDD 3.4 骰子规则"
+    },
+    {
+      "field_path": "jail.visit_tile_index",
+      "classification": "constraint",
+      "basis": "GDD 2.1 角格"
+    },
+    {
+      "field_path": "jail.bail_cost",
+      "classification": "constraint",
+      "basis": "GDD 3.2 监狱规则"
+    },
+    {
+      "field_path": "jail.max_turns",
+      "classification": "constraint",
+      "basis": "GDD 3.2 监狱规则"
+    },
+    {
+      "field_path": "property.full_color_group_rent_multiplier",
+      "classification": "constraint",
+      "basis": "GDD 2.4 颜色组"
+    },
+    {
+      "field_path": "ui.required_hud_fields",
+      "classification": "constraint",
+      "basis": "GDD 4.1 HUD 信息"
+    },
+    {
+      "field_path": "board.world_layout_dimensions",
+      "classification": "variant",
+      "basis": "GDD 2.1 仅锁定环形路线，未锁定世界坐标尺寸"
+    },
+    {
+      "field_path": "board.tile_visual_style",
+      "classification": "variant",
+      "basis": "GDD 2.2 格子类型定义"
+    },
+    {
+      "field_path": "player_token.visual_style",
+      "classification": "variant",
+      "basis": "GDD 未锁定棋子模型"
+    },
+    {
+      "field_path": "hud.layout_style",
+      "classification": "variant",
+      "basis": "GDD 4.1 只定义 HUD 信息，不锁定布局"
+    },
+    {
+      "field_path": "popup.presentation_style",
+      "classification": "variant",
+      "basis": "GDD 4.2 弹出式 UI"
+    },
+    {
+      "field_path": "dice.roll_feedback",
+      "classification": "variant",
+      "basis": "GDD 3.4 未锁定骰子表现"
+    },
+    {
+      "field_path": "audio.feedback_style",
+      "classification": "variant",
+      "basis": "Universal Baseline 音频基础"
+    },
+    {
+      "field_path": "frontend.visual_theme",
+      "classification": "variant",
+      "basis": "Universal Baseline 前台壳层"
+    }
+  ],
+  "clarification_markers": [
+    {
+      "item_id": "cg-max-game-length",
+      "field_path": "game.stalemate_or_round_limit",
+      "risk_level": "high",
+      "reason": "GDD gives target match length but does not define a hard stalemate or round limit.",
+      "suggested_decision": "clarification_required"
+    },
+    {
+      "item_id": "cg-platform-persistence",
+      "field_path": "baseline-platform-foundation.persistence_policy",
+      "risk_level": "medium",
+      "reason": "Settings persistence is not locked by GDD and affects platform behavior.",
+      "suggested_decision": "accept_with_safe_default",
+      "provisional_default": "session_only"
+    }
+  ],
+  "metadata": {
+    "generated_at": "2026-04-17T05:14:44.872752+00:00",
+    "generator": "AgentBridge.Compiler.RootSkill.v1",
+    "source_run_id": "run-20260417-051444-a2b8"
+  }
+}

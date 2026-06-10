@@ -3,11 +3,18 @@
 
 输入来源说明:
   Schemas/examples/phase11_root_skill_contract.example.json 仅含 2 个 gameplay + 3 个 baseline
-  能力(共 5 个 required 节点)，明显少于预期的 ~16 节点，因此按计划备选方案:
-  使用 ProjectState/runs/run-20260417-051444-a2b8/ 下的真实成功 run 快照作为确定性输入。
-  该 run 含全量 7 gameplay + 9 baseline = 16 required 能力。
+  能力(共 5 个 required 节点)，明显少于预期的 ~16 节点，因此按计划备选方案改用真实成功
+  run 的快照作输入。原始来源: ProjectState/runs/run-20260417-051444-a2b8/(该目录被
+  .gitignore 忽略，fresh clone 不可用)，已拷贝为 tracked fixture 落在本目录 inputs/ 下:
+    Tests/golden/inputs/root_skill_contract.json      (7 gameplay + 9 baseline = 16 required)
+    Tests/golden/inputs/clarification_gate_report.json
 
 改造前跑一次生成对照组;改造后测试断言输出不变。
+
+注意: 本脚本的 normalize 逻辑必须与
+  Tests/scripts/test_phase13_registry_equivalence.py 的 _normalize 保持一致
+(包括剥离 VOLATILE_METADATA_KEYS 和 capability_gaps)，否则改造后重跑生成会产出
+与测试不等价的 golden。改其中一处时必须同步改另一处。
 """
 import importlib.util
 import json
@@ -17,18 +24,16 @@ from pathlib import Path
 # 插件根目录: Plugins/AgentBridge
 PLUGIN_ROOT = Path(__file__).resolve().parents[2]
 
-# 使用 ProjectState run 快照作为确定性输入(见模块注释)
-RUN_DIR = (
-    Path(__file__).resolve().parents[4]  # 项目根
-    / "ProjectState"
-    / "runs"
-    / "run-20260417-051444-a2b8"
-)
+# tracked fixture 输入目录(原始来源见模块 docstring)
+INPUTS_DIR = Path(__file__).resolve().parent / "inputs"
 
 GOLDEN = Path(__file__).resolve().parent / "skill_graph_baseline_golden.json"
 
 # 需要从输出中剥除的易变字段(时间戳 / run_id)
 VOLATILE_METADATA_KEYS = {"generated_at", "source_run_id"}
+
+# 基线输入下预期的最少节点数;低于该值视为输入异常,拒绝落盘
+MIN_EXPECTED_NODES = 16
 
 
 def load_module(name: str, path: Path):
@@ -40,10 +45,16 @@ def load_module(name: str, path: Path):
 
 
 def normalize(graph: dict) -> dict:
-    """剥离易变字段(时间戳/run_id),其余全保留。"""
+    """剥离易变字段(时间戳/run_id),其余全保留。
+
+    必须与 test_phase13_registry_equivalence.py 的 _normalize 保持一致。
+    """
     out = json.loads(json.dumps(graph, ensure_ascii=False))
     for key in VOLATILE_METADATA_KEYS:
         out.get("metadata", {}).pop(key, None)
+    # capability_gaps 是 Phase 13 改造新增字段,基线输入下必须为空,剥离前先断言
+    gaps = out.get("metadata", {}).pop("capability_gaps", [])
+    assert gaps == [], f"基线输入下 capability_gaps 应为空，实际: {gaps}"
     return out
 
 
@@ -54,15 +65,15 @@ def main():
         PLUGIN_ROOT / "Compiler" / "stages" / "skill_graph_planning.py",
     )
 
-    # 读取确定性输入快照
-    contract_path = RUN_DIR / "root_skill_contract.json"
-    gate_path = RUN_DIR / "clarification_gate_report.json"
+    # 读取 tracked fixture 输入
+    contract_path = INPUTS_DIR / "root_skill_contract.json"
+    gate_path = INPUTS_DIR / "clarification_gate_report.json"
 
     if not contract_path.exists():
-        print(f"ERROR: 找不到 contract 文件: {contract_path}", file=sys.stderr)
+        print(f"ERROR: 找不到 contract fixture: {contract_path}", file=sys.stderr)
         sys.exit(1)
     if not gate_path.exists():
-        print(f"ERROR: 找不到 gate 文件: {gate_path}", file=sys.stderr)
+        print(f"ERROR: 找不到 gate fixture: {gate_path}", file=sys.stderr)
         sys.exit(1)
 
     contract = json.loads(contract_path.read_text(encoding="utf-8"))
@@ -72,14 +83,16 @@ def main():
     graph = planning.create_skill_graph(contract, gate, run_id=None)
     normalized = normalize(graph)
 
-    # 验证节点数
+    # 验证节点数;过少说明输入异常,直接非零退出且不落盘,防止误生成的 golden 被提交
     node_count = len(normalized.get("nodes", []))
     print(f"节点数: {node_count}")
-    if node_count < 10:
+    if node_count < MIN_EXPECTED_NODES:
         print(
-            f"WARNING: 节点数 {node_count} 明显偏少，请检查输入 capability 是否完整。",
+            f"ERROR: 节点数 {node_count} < 预期最少 {MIN_EXPECTED_NODES}，"
+            "输入 capability 不完整，拒绝写入 golden。",
             file=sys.stderr,
         )
+        sys.exit(1)
 
     # 落盘
     GOLDEN.write_text(
