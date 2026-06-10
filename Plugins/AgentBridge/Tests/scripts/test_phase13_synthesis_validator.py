@@ -166,3 +166,81 @@ class TestSynthesisValidator:
         combined = " ".join(errors)
         assert "output_schema" in combined.lower() or "schema" in combined.lower(), \
             f"错误信息不够具体: {errors}"
+
+    # ---- Bug D: 标量字符串逐字符迭代防御 ----
+
+    def test_bugd_families_scalar_string_single_error(self):
+        """can_emit_families 是标量字符串时,应给恰好一条'必须是列表'错误,
+        而非逐字符迭代产生 N 条单字符垃圾错误。"""
+        sv = _load()
+        package = _legal_package()
+        package["manifest.yaml"] = package["manifest.yaml"].replace(
+            "can_emit_families:\n  - property_economy_spec",
+            "can_emit_families: property_economy_spec",
+        )
+        errors = sv.validate_synthesized_package("gameplay-auction", package, WHITELIST)
+        list_errors = [e for e in errors if "必须是列表" in e and "can_emit_families" in e]
+        assert len(list_errors) == 1, f"期望恰好一条'必须是列表'错误,实际: {errors}"
+        # 不应出现逐字符垃圾(单字符越界错误)
+        assert len(errors) == 1, \
+            f"期望总共一条错误,无逐字符垃圾,实际 {len(errors)} 条: {errors}"
+
+    def test_bugd_bindings_scalar_string_single_error(self):
+        """capability_bindings 是标量字符串时,应给恰好一条'必须是列表'错误,
+        而非逐字符迭代产生'必须是 mapping'垃圾错误。"""
+        sv = _load()
+        package = _legal_package()
+        manifest_text = package["manifest.yaml"]
+        # 把整个 capability_bindings 块替换为标量字符串
+        package["manifest.yaml"] = (
+            manifest_text.split("capability_bindings:")[0]
+            + "capability_bindings: bogus_binding"
+        )
+        errors = sv.validate_synthesized_package("gameplay-auction", package, WHITELIST)
+        list_errors = [e for e in errors if "必须是列表" in e and "capability_bindings" in e]
+        assert len(list_errors) == 1, f"期望恰好一条'必须是列表'错误,实际: {errors}"
+        assert len(errors) == 1, \
+            f"期望总共一条错误,无逐字符垃圾,实际 {len(errors)} 条: {errors}"
+
+    # ---- Bug B: anyOf/oneOf/allOf/$defs/definitions 内嵌 object 漏判 ----
+
+    def test_bugb_anyof_nested_object_missing_ap_caught(self):
+        """anyOf 内嵌的 object 节点缺 additionalProperties: false 应被抓到。"""
+        sv = _load()
+        package = _legal_package()
+        schema = json.loads(package["output_schema.json"])
+        # LLM 常见模式: 用 anyOf 做联合类型,其中 object 分支缺 additionalProperties
+        schema["properties"]["payment_rule"] = {
+            "anyOf": [
+                {"type": "string"},
+                {
+                    "type": "object",
+                    # 故意缺 additionalProperties: false
+                    "properties": {"rate": {"type": "number"}},
+                },
+            ]
+        }
+        package["output_schema.json"] = json.dumps(schema)
+        errors = sv.validate_synthesized_package("gameplay-auction", package, WHITELIST)
+        ap_errors = [e for e in errors if "additionalProperties" in e and "anyOf" in e]
+        assert ap_errors, \
+            f"期望抓到 anyOf 内嵌 object 缺 additionalProperties,实际: {errors}"
+
+    def test_bugb_legal_anyof_union_passes(self):
+        """合法的 anyOf 联合(object 分支带 additionalProperties: false)应零错误。"""
+        sv = _load()
+        package = _legal_package()
+        schema = json.loads(package["output_schema.json"])
+        schema["properties"]["payment_rule"] = {
+            "anyOf": [
+                {"type": "string"},
+                {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "properties": {"rate": {"type": "number"}},
+                },
+            ]
+        }
+        package["output_schema.json"] = json.dumps(schema)
+        errors = sv.validate_synthesized_package("gameplay-auction", package, WHITELIST)
+        assert errors == [], f"期望零错误,实际: {errors}"

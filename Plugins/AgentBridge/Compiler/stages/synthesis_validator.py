@@ -52,6 +52,9 @@ def _check_additional_properties(node: Any, path: str, errors: List[str]) -> Non
 
     LLM 合成的 schema 常遗漏嵌套对象的此字段,导致运行时接受不期望的键。
     校验器在此强制要求,错误信息包含 JSON 路径方便 agent 精准修正。
+
+    递归覆盖路径: properties / items / anyOf / oneOf / allOf / $defs / definitions。
+    LLM 爱用 anyOf 做联合类型,嵌在组合器里的 object 同样必须收口。
     """
     if not isinstance(node, dict):
         return
@@ -61,11 +64,29 @@ def _check_additional_properties(node: Any, path: str, errors: List[str]) -> Non
                 f"output_schema {path}: object 节点缺 additionalProperties: false"
             )
         # 递归检查 properties 下每个子节点
-        for key, child in (node.get("properties") or {}).items():
-            _check_additional_properties(child, f"{path}.{key}", errors)
+        properties = node.get("properties")
+        if isinstance(properties, dict):
+            for key, child in properties.items():
+                _check_additional_properties(child, f"{path}.{key}", errors)
     # 处理数组的 items
     if "items" in node:
         _check_additional_properties(node["items"], f"{path}[]", errors)
+    # 组合器: anyOf / oneOf / allOf 是 list of schemas
+    for combinator in ("anyOf", "oneOf", "allOf"):
+        subschemas = node.get(combinator)
+        if isinstance(subschemas, list):
+            for index, sub in enumerate(subschemas):
+                _check_additional_properties(
+                    sub, f"{path}.{combinator}[{index}]", errors
+                )
+    # 定义区: $defs / definitions 是 dict of schemas
+    for defs_key in ("$defs", "definitions"):
+        defs = node.get(defs_key)
+        if isinstance(defs, dict):
+            for name, sub in defs.items():
+                _check_additional_properties(
+                    sub, f"{path}.{defs_key}.{name}", errors
+                )
 
 
 def validate_synthesized_package(
@@ -148,9 +169,17 @@ def validate_synthesized_package(
 
     # =========================================================
     # 检查点 5: capability_bindings 条目完整性
+    #   先做 isinstance 守卫: 标量字符串是 truthy,会绕过 'or []' 被逐字符迭代,
+    #   产生大量单字符垃圾错误掩盖真因——非 list 时给一条明确错误并跳过迭代
     # =========================================================
     bindings = manifest.get("capability_bindings") or []
-    if not bindings:
+    if not isinstance(bindings, list):
+        errors.append(
+            f"capability_bindings 必须是列表,实际: {type(bindings).__name__}。"
+            "请以 '- capability_id: ...' 的 YAML 列表形式书写。"
+        )
+        bindings = []  # 置空以跳过后续所有针对 bindings 的迭代
+    elif not bindings:
         errors.append("capability_bindings 不能为空,至少需要一个绑定条目")
     for index, binding in enumerate(bindings):
         if not isinstance(binding, dict):
@@ -169,13 +198,21 @@ def validate_synthesized_package(
     # =========================================================
     # 检查点 6: family 白名单边界(执行词表硬边界)
     #   can_emit_families 和每个 binding.fragment_family 均须在白名单内
+    #   同样先做 isinstance 守卫,防标量字符串被逐字符迭代
     # =========================================================
-    for family in manifest.get("can_emit_families") or []:
-        if family not in family_whitelist:
-            errors.append(
-                f"can_emit_families 越界: '{family}' 不在执行层白名单内。"
-                f"允许值: {sorted(family_whitelist)}"
-            )
+    families = manifest.get("can_emit_families") or []
+    if not isinstance(families, list):
+        errors.append(
+            f"can_emit_families 必须是列表,实际: {type(families).__name__}。"
+            "请以 '- family_name' 的 YAML 列表形式书写。"
+        )
+    else:
+        for family in families:
+            if family not in family_whitelist:
+                errors.append(
+                    f"can_emit_families 越界: '{family}' 不在执行层白名单内。"
+                    f"允许值: {sorted(family_whitelist)}"
+                )
     for index, binding in enumerate(bindings):
         if not isinstance(binding, dict):
             continue
