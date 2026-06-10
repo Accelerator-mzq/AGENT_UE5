@@ -193,9 +193,109 @@ def compiler_root_skill_prepare(session_path: str) -> dict:
     return _prepare_stage_tool("Root Skill 准备", session_path, 1)
 
 
+def _capabilities_missing_anchor(contract: dict) -> list:
+    """列出 activation=required 但 source_anchor 缺失/为空的 capability_id(排序稳定)。"""
+    missing = []
+    for key in ("gameplay_capabilities", "baseline_capabilities"):
+        for capability in contract.get(key, []):
+            if not isinstance(capability, dict):
+                continue  # 畸形条目交给 schema 校验报错,这里不抢答
+            if capability.get("activation") != "required":
+                continue
+            if not (capability.get("source_anchor") or "").strip():
+                missing.append(capability.get("capability_id", "<unknown>"))
+    return sorted(missing)
+
+
 def compiler_root_skill_save(session_path: str, filled_data: dict[str, Any]) -> dict:
-    """Phase 11 Stage 1 保存：校验并保存 Root Skill Contract。"""
-    return _save_stage_tool("Root Skill 保存", session_path, filled_data, 1)
+    """Phase 11 Stage 1 保存：校验并保存 Root Skill Contract。
+
+    Phase 13 扩展(spec §5.2 兼容化落地):
+      - session.allow_skill_synthesis=True 时,强制所有 required capability
+        携带非空 source_anchor,缺失则整体 failed 且零落盘(合成留痕强制);
+      - 未开启合成时缺 anchor 仅降级 warning(既有等价回归不受影响);
+      - 保存成功后追加 GDD 覆盖矩阵 sidecar(三层保证模型第二层,失败不阻塞)。
+    """
+    target_path = Path(session_path)
+    if not target_path.exists():
+        return _missing_file_response(session_path, "session 文件")
+
+    try:
+        session = _load_session(session_path)
+
+        # anchor 留痕检查放在 save_stage(内含 schema 校验 + 落盘)之前:
+        # 强制失败必须发生在落盘前。代价是 payload 同时缺 anchor 又不合 schema 时
+        # 先报 anchor——两者都走 failed 重提路径,不影响最终一致性。
+        anchor_warnings: list[str] = []
+        missing_anchor = (
+            _capabilities_missing_anchor(filled_data)
+            if isinstance(filled_data, dict) else []
+        )
+        if missing_anchor:
+            # 合成开关读取:CompilerSession.allow_skill_synthesis(Phase 13 最小扩展),
+            # 旧 session 缺字段时 getattr 兜底为 False(降级 warning,不强制)
+            if bool(getattr(session, "allow_skill_synthesis", False)):
+                return _make_response(
+                    "failed",
+                    f"Root Skill 保存失败：{len(missing_anchor)} 个 required capability "
+                    "缺 source_anchor（合成开启时强制留痕）",
+                    data={"capabilities_missing_anchor": missing_anchor},
+                    errors=[
+                        "MISSING_SOURCE_ANCHOR: required capability 缺 source_anchor: "
+                        + ", ".join(missing_anchor)
+                    ],
+                )
+            anchor_warnings.append(
+                f"capability 缺 source_anchor: {', '.join(missing_anchor)}（覆盖矩阵将列为无出处）"
+            )
+
+        result = save_stage(session, 1, filled_data)
+        response = _wrap_save_result("Root Skill 保存", result)
+        response["warnings"].extend(anchor_warnings)
+
+        # GDD 覆盖矩阵 sidecar(JSON + 人读 markdown)——三层保证模型第二层。
+        # 仅在带 capability 列表的 v2 root skill contract 保存成功后生成;
+        # v1 gdd_projection 无这两个键,自然跳过,不污染 v1 产物目录。
+        if response["status"] == "success" and isinstance(filled_data, dict) and (
+            "gameplay_capabilities" in filled_data or "baseline_capabilities" in filled_data
+        ):
+            output_dir = Path(result["output_path"]).parent  # run 目录 = 契约落盘目录
+            # 两段式 try(与 synthesis prepare 的 GDD 摘录同风格):
+            # 模块导入问题与读取/解析问题分开归因,失败均降级 warning 不阻塞保存
+            coverage = None
+            try:
+                from Compiler.stages import gdd_coverage as coverage  # lazy 包导入
+            except ImportError:
+                response["warnings"].append("gdd_coverage 模块缺失，覆盖矩阵未生成")
+            if coverage is not None:
+                try:
+                    import json
+                    gdd_text = Path(session.gdd_path).read_text(encoding="utf-8")
+                    sections = coverage.split_gdd_sections(gdd_text)
+                    all_capabilities = (
+                        filled_data.get("gameplay_capabilities", [])
+                        + filled_data.get("baseline_capabilities", [])
+                    )
+                    matrix = coverage.build_coverage_matrix(sections, all_capabilities)
+                    matrix_path = output_dir / "gdd_coverage_matrix.json"
+                    matrix_path.write_text(
+                        json.dumps(matrix, ensure_ascii=False, indent=2),
+                        encoding="utf-8",
+                    )
+                    (output_dir / "gdd_coverage_matrix.md").write_text(
+                        coverage.render_coverage_markdown(matrix), encoding="utf-8"
+                    )
+                    response["data"]["gdd_coverage_matrix_path"] = str(matrix_path)
+                except Exception as exc:
+                    response["warnings"].append(f"覆盖矩阵生成失败（不阻塞）: {exc}")
+
+        return response
+    except Exception as exc:
+        return _make_response(
+            "failed",
+            "Root Skill 保存失败",
+            errors=[f"TOOL_EXECUTION_FAILED: {str(exc)}"],
+        )
 
 
 def compiler_intake_prepare(session_path: str) -> dict:
@@ -486,12 +586,12 @@ def compiler_skill_synthesis_prepare(session_path: str, capability_id: str) -> d
             warnings.append("root_skill_contract.json 缺失，constraints 为空")
 
         # GDD 摘录：按 gap.source_anchor 提取 session.gdd_path 中对应章节。
-        # gdd_coverage 是 Task 9 才落地的模块——未就绪前兜底为空摘录，
-        # Task 9 落地后本块自然生效，无需回改。
+        # gdd_coverage 已随 Task 9 落地；保留 ImportError 兜底只为模块缺失时
+        # 优雅降级为空摘录（可见失效，不假装工作）。
         gdd_excerpt = ""
         anchor = (gap.get("source_anchor") or "").strip()
         if anchor:
-            # 第一段 try 只管模块加载：缺模块（Task 9 未落地）单独识别为"未就绪"
+            # 第一段 try 只管模块加载：缺模块单独识别为"未就绪"
             coverage = None
             try:
                 from Compiler.stages import gdd_coverage as coverage  # lazy 包导入

@@ -295,6 +295,36 @@ def _is_stage_completion_full(snapshot: dict[str, Any]) -> bool:
     return len(set(completed)) >= expected_count
 
 
+def _synthesized_promote_blockers(run_dir: Path | str) -> list[str]:
+    """Phase 13 promote 守卫(spec §4.1/§4.4)：
+      1) run 消费了 synthesized skill → 不可 promote(试制章,与 heuristic_fallback 同级);
+      2) run 存在未解决 capability_gaps(合成关闭/未完成时 gap 保留)→ 不可 promote(产物不完整)。
+
+    设计决策(已裁决精化)：synthesized 标记只认 skill_graph 节点的 template_source
+    (skill_graph 即 single source of truth)，不在 fragment 另立字段——
+    spec §4.4 的 generator_type 措辞混了"模板来源"与"生成器类型"两轴。
+    skill_graph.json 缺失时返回空：本守卫只管合成轴，阶段完整性由
+    _evaluate_promotable 的 pipeline_stages_completed 检查兜底。
+    """
+    graph_path = Path(run_dir) / "skill_graph.json"
+    if not graph_path.is_file():
+        return []
+    graph = json.loads(graph_path.read_text(encoding="utf-8"))
+    reasons: list[str] = []
+    blocked = [
+        node.get("instance_id", "<unknown>")
+        for node in graph.get("nodes", [])
+        if node.get("template_source") == "synthesized"
+    ]
+    if blocked:
+        reasons.append(f"run 含 synthesized 节点不可 promote（试制）: {', '.join(sorted(blocked))}")
+    gaps = graph.get("metadata", {}).get("capability_gaps", [])
+    if gaps:
+        gap_ids = sorted(g.get("capability_id", "<unknown>") for g in gaps)
+        reasons.append(f"run 存在未解决 capability_gaps 不可 promote（产物不完整）: {', '.join(gap_ids)}")
+    return reasons
+
+
 def _evaluate_promotable(snapshot: dict[str, Any]) -> dict[str, Any]:
     """统一 promotable 判定。"""
     reasons = []
@@ -311,6 +341,10 @@ def _evaluate_promotable(snapshot: dict[str, Any]) -> dict[str, Any]:
         reasons.append("pipeline_stages_completed 不完整")
     if snapshot.get("generator_provider") == "heuristic_fallback":
         reasons.append("heuristic_fallback 产物不可 promote")
+    # Phase 13: synthesized 消费 / 未解决 gap 与 heuristic_fallback 同级拒绝，
+    # promote(evidence_promote_run / evidence_create_batch)与 compare 共用本判定
+    if snapshot.get("run_dir"):
+        reasons.extend(_synthesized_promote_blockers(snapshot["run_dir"]))
     if snapshot.get("metadata_promotable") is False:
         reasons.append("metadata.promotable = false")
 
