@@ -8,7 +8,6 @@ Compiler 前端 MCP 工具适配层。
 
 from __future__ import annotations
 
-import importlib.util
 import sys
 from pathlib import Path
 from typing import Any
@@ -20,6 +19,7 @@ if str(PLUGIN_DIR) not in sys.path:
 from Compiler.pipeline.pipeline_orchestrator import prepare_stage, save_stage
 from Compiler.pipeline.session import CompilerSession, create_session
 from Compiler.stages import domain_skill_runtime as dsr_stage
+from Compiler.stages import skill_synthesis
 
 
 def _make_response(
@@ -436,28 +436,11 @@ def compiler_stage4_node_save(
 
 # ---------------------------------------------------------------------------
 # Phase 13 S3.5: Skill 合成工具对（prepare / save）
+#
+# skill_synthesis 走顶部包导入（与 domain_skill_runtime 同一套加载方式，
+# 不再维护第三套 importlib 缓存）；测试可直接 monkeypatch
+# Compiler.stages.skill_synthesis 实例的 DEFAULT_TEMPLATES_ROOT 等属性做注入。
 # ---------------------------------------------------------------------------
-
-# Compiler/stages 下的单文件模块目录（stages 内部模块未安装为包，需 importlib 加载）
-_STAGES_DIR = PLUGIN_DIR / "Compiler" / "stages"
-# _load_stage_module 的模块级缓存：同名 stages 模块全进程只 exec 一次
-_STAGE_MODULE_CACHE: dict[str, Any] = {}
-
-
-def _load_stage_module(name: str):
-    """经 importlib 加载 Compiler/stages 下的兄弟单文件模块；带模块级缓存。
-
-    测试可经同一缓存实例做 monkeypatch 注入（如把 skill_synthesis 的
-    DEFAULT_TEMPLATES_ROOT 指到 tmp 目录，避免污染真实模板树）。
-    """
-    module = _STAGE_MODULE_CACHE.get(name)
-    if module is None:
-        spec = importlib.util.spec_from_file_location(name, _STAGES_DIR / f"{name}.py")
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        _STAGE_MODULE_CACHE[name] = module
-    return module
-
 
 def compiler_skill_synthesis_prepare(session_path: str, capability_id: str) -> dict:
     """S3.5 合成准备：为指定 capability gap 组装合成载荷。
@@ -503,28 +486,34 @@ def compiler_skill_synthesis_prepare(session_path: str, capability_id: str) -> d
             warnings.append("root_skill_contract.json 缺失，constraints 为空")
 
         # GDD 摘录：按 gap.source_anchor 提取 session.gdd_path 中对应章节。
-        # gdd_coverage 是 Task 9 才落地的模块——未就绪前整块兜底为空摘录，
+        # gdd_coverage 是 Task 9 才落地的模块——未就绪前兜底为空摘录，
         # Task 9 落地后本块自然生效，无需回改。
         gdd_excerpt = ""
         anchor = (gap.get("source_anchor") or "").strip()
         if anchor:
+            # 第一段 try 只管模块加载：缺模块（Task 9 未落地）单独识别为"未就绪"
+            coverage = None
             try:
-                coverage = _load_stage_module("gdd_coverage")
-                gdd_text = Path(session.gdd_path).read_text(encoding="utf-8")
-                for section in coverage.split_gdd_sections(gdd_text):
-                    if section.get("heading") == anchor:
-                        gdd_excerpt = section.get("text", "")
-                        break
-                if not gdd_excerpt:
-                    warnings.append(f"GDD 中未找到 anchor 对应章节: {anchor}，摘录为空")
-            except Exception:
+                from Compiler.stages import gdd_coverage as coverage  # lazy 包导入
+            except ImportError:
                 warnings.append("gdd_coverage 未就绪，摘录为空")
+            # 第二段 try 管读取/解析：异常文本保留进 warning，不与"未就绪"混淆
+            if coverage is not None:
+                try:
+                    gdd_text = Path(session.gdd_path).read_text(encoding="utf-8")
+                    for section in coverage.split_gdd_sections(gdd_text):
+                        if section.get("heading") == anchor:
+                            gdd_excerpt = section.get("text", "")
+                            break
+                    if not gdd_excerpt:
+                        warnings.append(f"GDD 中未找到 anchor 对应章节: {anchor}，摘录为空")
+                except Exception as exc:
+                    warnings.append(f"GDD 摘录失败（不阻塞）: {exc}")
         else:
             warnings.append("gap 无 source_anchor，GDD 摘录为空")
 
-        synthesis = _load_stage_module("skill_synthesis")
         try:
-            payload = synthesis.build_synthesis_prepare_payload(
+            payload = skill_synthesis.build_synthesis_prepare_payload(
                 capability_id=capability_id,
                 gap=gap,
                 gdd_excerpt=gdd_excerpt,
@@ -577,15 +566,15 @@ def compiler_skill_synthesis_save(session_path: str, capability_id: str, six_fil
 
     try:
         session = _load_session(session_path)
-        synthesis = _load_stage_module("skill_synthesis")
 
         # 不传 templates_root / family_whitelist：走插件默认模板树与正式库白名单
-        result = synthesis.save_synthesized_package(
+        result = skill_synthesis.save_synthesized_package(
             capability_id=capability_id,
             six_files=six_files,
         )
+        synthesis_status = result.get("status")
 
-        if result["status"] == "rejected":
+        if synthesis_status == "rejected":
             return _make_response(
                 "failed",
                 f"合成包未通过机器校验（{len(result['errors'])} 项）：按 errors 修正后重提",
@@ -593,7 +582,7 @@ def compiler_skill_synthesis_save(session_path: str, capability_id: str, six_fil
                 errors=result["errors"],
             )
 
-        if result["status"] == "failed":
+        if synthesis_status == "failed":
             return _make_response(
                 "failed",
                 "合成包落盘失败（环境错误，非内容错误）：勿修改内容重试，"
@@ -602,11 +591,20 @@ def compiler_skill_synthesis_save(session_path: str, capability_id: str, six_fil
                 errors=result["errors"],
             )
 
+        # 显式判断 saved：三态契约外的未知值不默认当成功，走 failed（防上游悄悄加态）
+        if synthesis_status != "saved":
+            return _make_response(
+                "failed",
+                f"合成提交失败：save_synthesized_package 返回未知状态 {synthesis_status!r}",
+                data={"synthesis_status": synthesis_status},
+                errors=[f"TOOL_EXECUTION_FAILED: 未知 synthesis status: {synthesis_status!r}"],
+            )
+
         # saved：刷新人审清单（run 目录 = session.output_dir，照抄现行 run 目录推导）
         warnings = ["该包未经人审，Stage 3 暂不可见（人审 approved 后才纳入注册表）"]
         review_path = None
         try:
-            review_path = synthesis.generate_synthesis_review(session.output_dir)
+            review_path = skill_synthesis.generate_synthesis_review(session.output_dir)
             review_note = f"，人审清单已刷新: {review_path}"
         except Exception as review_exc:
             # 包已落盘成功，清单刷新失败只降级为 warning，不掩盖 saved 事实

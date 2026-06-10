@@ -2,9 +2,10 @@
 """SKS-11: MCP 合成工具对注册完整(定义/分发/handler 三处)+ handler 集成测试。
 
 集成测试隔离约束:绝不污染真实 SkillTemplates 模板树——合法包落盘前用
-monkeypatch 把 handler 实际使用的 skill_synthesis 模块实例(经
-compiler_tools._load_stage_module 缓存取得)的 DEFAULT_TEMPLATES_ROOT 指到
-tmp_path;文件末尾的 test_zz_* 守卫断言真实树无 synthesized/ 残留。
+monkeypatch 把 handler 实际使用的 skill_synthesis 模块实例(包导入
+Compiler.stages.skill_synthesis,与 handler 顶部 import 是同一 sys.modules
+实例)的 DEFAULT_TEMPLATES_ROOT 指到 tmp_path;文件末尾的 test_zz_* 守卫
+断言真实树无 synthesized/ 残留。
 
 server.py 的 TOOL_DISPATCH 不在此 import 验证——import server 可能拉起
 Bridge 重依赖,分发登记由任务 Step 4 的 grep 验证。
@@ -51,6 +52,18 @@ def _import_compiler_tools():
         sys.path.insert(0, str(MCP_DIR))
     import compiler_tools
     return compiler_tools
+
+
+def _import_skill_synthesis():
+    """导入 handler 实际使用的 skill_synthesis 包模块实例(monkeypatch 注入用)。
+
+    compiler_tools 顶部 `from Compiler.stages import skill_synthesis`——这里
+    返回的是同一 sys.modules 实例,patch 其属性对 handler 立即生效。
+    """
+    if str(PLUGIN_ROOT) not in sys.path:
+        sys.path.insert(0, str(PLUGIN_ROOT))
+    from Compiler.stages import skill_synthesis
+    return skill_synthesis
 
 
 def _legal_package():
@@ -150,6 +163,9 @@ class TestSynthesisPrepareHandler:
         assert payload["constraints"]["game.max_players"]["value"] == 6
         assert "manifest.yaml" in payload["file_spec"]
         # gdd_coverage 是 Task 9 模块,当前未落地:摘录置空 + warning 提示
+        # 注意:Task 9(gdd_coverage)落地后本断言需翻转为非空摘录
+        # (anchor "2.4 地产拍卖" 应命中 _make_run 写入的 GDD 章节)——
+        # 属预期 break,Task 9 执行者按此修,勿当回归 bug 处理。
         assert payload["gdd_excerpt"] == ""
         assert any("gdd_coverage" in w for w in result["warnings"]), result["warnings"]
         # 白名单来自真实正式库(只读扫描),应含既有 family
@@ -194,7 +210,7 @@ class TestSynthesisSaveHandler:
         session_path, _run_dir = _make_run(tmp_path)
         templates_root = tmp_path / "templates"
         _make_official_manifest(templates_root)
-        synth = ct._load_stage_module("skill_synthesis")
+        synth = _import_skill_synthesis()
         monkeypatch.setattr(synth, "DEFAULT_TEMPLATES_ROOT", templates_root)
 
         bad = _legal_package()
@@ -213,7 +229,7 @@ class TestSynthesisSaveHandler:
         session_path, run_dir = _make_run(tmp_path)
         templates_root = tmp_path / "templates"
         _make_official_manifest(templates_root)
-        synth = ct._load_stage_module("skill_synthesis")
+        synth = _import_skill_synthesis()
         monkeypatch.setattr(synth, "DEFAULT_TEMPLATES_ROOT", templates_root)
 
         result = ct.compiler_skill_synthesis_save(
@@ -249,7 +265,7 @@ class TestSynthesisSaveHandler:
         """环境 failed:summary 与内容 rejected 可区分,synthesis_status 留原始值。"""
         ct = _import_compiler_tools()
         session_path, _run_dir = _make_run(tmp_path)
-        synth = ct._load_stage_module("skill_synthesis")
+        synth = _import_skill_synthesis()
 
         def _fake_save(**_kwargs):
             # 模拟校验全过但落盘 IO 失败(skill_synthesis 的 failed 三态)
@@ -264,6 +280,33 @@ class TestSynthesisSaveHandler:
         assert "环境" in result["summary"]
         assert "修正后重提" not in result["summary"]
         assert result["errors"] == ["落盘失败(模拟 IO)"]
+
+    def test_save_review_refresh_failure_degrades_to_warning(
+        self, tmp_path, monkeypatch
+    ):
+        """人审清单刷新抛异常:包已落盘,saved 仍映射 success,
+        清单失败只降级为 warning(锁降级映射,防回退成整体 failed 掩盖落盘事实)。"""
+        ct = _import_compiler_tools()
+        session_path, _run_dir = _make_run(tmp_path)
+        templates_root = tmp_path / "templates"
+        _make_official_manifest(templates_root)
+        synth = _import_skill_synthesis()
+        monkeypatch.setattr(synth, "DEFAULT_TEMPLATES_ROOT", templates_root)
+
+        def _broken_review(*_args, **_kwargs):
+            raise OSError("清单写盘失败(模拟)")
+
+        monkeypatch.setattr(synth, "generate_synthesis_review", _broken_review)
+        result = ct.compiler_skill_synthesis_save(
+            session_path, "gameplay-auction", _legal_package()
+        )
+        assert result["status"] == "success", result
+        assert result["data"]["synthesis_status"] == "saved"
+        assert result["data"]["review_path"] is None
+        # 包确实已落盘
+        assert (templates_root / "synthesized" / "gameplay-auction" / "manifest.yaml").is_file()
+        assert any("清单" in w for w in result["warnings"]), result["warnings"]
+        assert "人审清单已刷新" not in result["summary"]
 
 
 # ---------------------------------------------------------------------------

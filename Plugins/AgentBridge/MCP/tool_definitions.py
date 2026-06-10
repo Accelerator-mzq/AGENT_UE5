@@ -423,13 +423,13 @@ COMPILER_FRONTEND_TOOLS = {
         "returns": "gap 上下文、file_spec、exemplars、family_whitelist、naming_rules、instructions",
     },
     "compiler_skill_synthesis_save": {
-        "description": "S3.5 合成提交：接收 6 文件内容，机器校验失败返回具体错误供重试（status=rejected）；环境失败 status=failed 不应重试内容；通过则落盘 SkillTemplates/synthesized/<capability_id>/ 并标 review_status=pending_review。",
+        "description": "S3.5 合成提交：接收 6 文件内容，结果三态在 data.synthesis_status——rejected=机器校验失败（返回具体错误，修正内容后重提）；failed=环境失败（不应重试内容，先排查环境）；saved=落盘 SkillTemplates/synthesized/<capability_id>/ 并标 review_status=pending_review。MCP 顶层 status 仅 success/failed。",
         "params": {
             "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
             "capability_id": {"type": "string", "required": True, "description": "目标能力 ID"},
             "six_files": {"type": "object", "required": True, "description": "key=文件名（manifest.yaml 等 6 个），value=完整文件内容字符串"},
         },
-        "returns": "status=saved/rejected/failed、errors[]、package_dir、review 提示",
+        "returns": "data.synthesis_status=saved/rejected/failed、errors[]、package_dir、review 提示（agent 据 data.synthesis_status 决定重提内容还是排查环境）",
     },
 }
 
