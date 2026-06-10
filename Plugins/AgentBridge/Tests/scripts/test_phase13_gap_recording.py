@@ -2,6 +2,7 @@
 """SKS-03: capability gap 显式记录,不再静默丢弃;synthesized 节点带依赖边入图。"""
 import importlib.util
 import json
+import logging
 from pathlib import Path
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[2]
@@ -62,6 +63,8 @@ class TestGapRecording:
         gaps = graph["metadata"]["capability_gaps"]
         gap_ids = {g["capability_id"] for g in gaps}
         assert "gameplay-stock-market" in gap_ids
+        # 反向断言:注册表查得到的能力不应被记 gap(防"全记 gap 也能过")
+        assert "gameplay-board-topology" not in gap_ids
         for gap in gaps:
             assert gap["reason"] == "no_template"
             assert gap["domain_type"] in ("gameplay", "baseline")
@@ -81,5 +84,30 @@ class TestGapRecording:
         assert any(
             e["from"] == "skill-board-topology" and e["to"] == "skill-auction"
             and e["type"] == "dependency"
+            for e in graph["edges"]
+        )
+        # 顺序不变量:边换算必须发生在 _build_relationship_maps 之前,
+        # 否则 edges 还在但节点 dependencies 不会回填
+        assert "skill-board-topology" in nodes["skill-auction"]["dependencies"]
+
+    def test_sks03c_unknown_declared_dependency_warned_not_silently_skipped(self, caplog):
+        """SKS-03c: manifest 声明的依赖名注册表查不到(写错)时显式告警,且不生成边。"""
+        planning = _load_planning()
+        contract, gate = _inputs()
+        contract.setdefault("gameplay_capabilities", []).append(
+            {"capability_id": "gameplay-auction", "activation": "required",
+             "allows_design_space_discovery": True}
+        )
+        # 深拷贝 MINI_REGISTRY,把 auction 的依赖改成不存在的名字(模拟 manifest 错别字)
+        registry = json.loads(json.dumps(MINI_REGISTRY, ensure_ascii=False))
+        registry["gameplay-auction"]["depends_on_capabilities"] = ["gameplay-typo-dep"]
+        with caplog.at_level(logging.WARNING):
+            graph = planning.create_skill_graph(contract, gate, run_id=None, registry=registry)
+        # 告警必须出现,且带写错的依赖名与声明它的节点 instance_id(便于定位 manifest)
+        assert "gameplay-typo-dep" in caplog.text
+        assert "skill-auction" in caplog.text
+        # 写错的依赖不应生成任何指向 skill-auction 的依赖边
+        assert not any(
+            e["to"] == "skill-auction" and e["type"] == "dependency"
             for e in graph["edges"]
         )

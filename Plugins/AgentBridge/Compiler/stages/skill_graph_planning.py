@@ -17,10 +17,12 @@ Phase 13 改造：
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Set
 
+logger = logging.getLogger(__name__)
 
 PLUGIN_DIR = Path(__file__).resolve().parents[2]
 BASELINE_TEMPLATES_ROOT = PLUGIN_DIR / "SkillTemplates" / "baseline"
@@ -551,15 +553,27 @@ def create_skill_graph(
         declared = registry.get(node["capability_id"], {}).get("depends_on_capabilities", [])
         for dep_capability in declared:
             dep_instance = capability_to_instance.get(dep_capability)
-            if dep_instance and dep_instance in node_ids:
-                edges.append(
-                    {
-                        "from": dep_instance,
-                        "to": node["instance_id"],
-                        "type": "dependency",
-                        "reason": f"manifest capability_binding 声明依赖 {dep_capability}。",
-                    }
+            if dep_instance is None:
+                # 依赖名在注册表查不到:大概率是 manifest 写错,显式告警不静默吞掉
+                # (告警惯例对齐 registry_scan._scan_manifest_bindings)
+                logger.warning(
+                    "skill_graph_planning: 节点 %s 声明的依赖能力 %s 在注册表中不存在,"
+                    "疑似 manifest depends_on_capabilities 写错,该依赖边跳过",
+                    node["instance_id"],
+                    dep_capability,
                 )
+                continue
+            if dep_instance not in node_ids:
+                # 依赖能力在注册表中但未入图(activation 过滤),属预期,保持静默
+                continue
+            edges.append(
+                {
+                    "from": dep_instance,
+                    "to": node["instance_id"],
+                    "type": "dependency",
+                    "reason": f"manifest capability_binding 声明依赖 {dep_capability}。",
+                }
+            )
 
     dependency_map, coupling_map = _build_relationship_maps(edges)
     order_map = _ordered_node_ids(nodes)
