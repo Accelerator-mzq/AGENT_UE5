@@ -39,6 +39,7 @@ capability_bindings:
       - cg-player-token-visual-style
     planning_notes:
       - "Player Management 负责玩家顺序、存活状态、淘汰与最终胜者归属。"
+    # 注:fragment_family 是 FRAGMENT_FAMILY_MAP 映射值(节点产出片段族),不要求 ⊆ 宿主 can_emit_families;两字段语义独立,扫描器不做包含校验(Phase 13 架构裁决)
     fragment_family: player_management_spec
   - capability_id: gameplay-jail
     instance_id: skill-jail
