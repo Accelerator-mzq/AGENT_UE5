@@ -14,6 +14,7 @@ import json
 from typing import Any, Dict, List, Optional, Set
 
 import yaml
+from jsonschema import Draft7Validator
 
 # ---- 必需文件集合 ----
 REQUIRED_FILES = {
@@ -47,46 +48,70 @@ REQUIRED_BINDING_FIELDS = {
 }
 
 
-def _check_additional_properties(node: Any, path: str, errors: List[str]) -> None:
+# schema 递归最大深度:超过即报错停止,防恶意/失控嵌套触发 RecursionError
+# (合成重试闭环依赖校验器永不抛异常——异常会被误归因甚至中断闭环)
+_MAX_SCHEMA_DEPTH = 64
+
+# dict-of-schemas 递归区段: value 是 {名字: 子schema} 映射,不受 type 门控
+# (LLM 高频遗漏 type: object 声明,只写 properties——递归不能依赖 type)
+_DICT_OF_SCHEMAS_KEYS = ("properties", "$defs", "definitions")
+
+# list-of-schemas 递归区段: value 是 [子schema, ...] 列表
+# (items 在 draft-07 可为单 schema 或 tuple 形列表,统一包成列表处理)
+_LIST_OF_SCHEMAS_KEYS = ("items", "anyOf", "oneOf", "allOf")
+
+
+def _check_additional_properties(
+    node: Any, path: str, errors: List[str], depth: int = 0
+) -> None:
     """递归检查每个 object 节点均显式声明 additionalProperties: false。
 
     LLM 合成的 schema 常遗漏嵌套对象的此字段,导致运行时接受不期望的键。
     校验器在此强制要求,错误信息包含 JSON 路径方便 agent 精准修正。
 
-    递归覆盖路径: properties / items / anyOf / oneOf / allOf / $defs / definitions。
-    LLM 爱用 anyOf 做联合类型,嵌在组合器里的 object 同样必须收口。
+    递归覆盖路径:
+      - dict-of-schemas: properties / $defs / definitions(不受 type 门控)
+      - list-of-schemas: items(单 schema 自动包成单元素列表)/ anyOf / oneOf / allOf
+    深度超过 _MAX_SCHEMA_DEPTH 时报错并停止,防 RecursionError 逃逸。
     """
     if not isinstance(node, dict):
         return
+    if depth > _MAX_SCHEMA_DEPTH:
+        errors.append(
+            f"output_schema {path}: 嵌套过深(>{_MAX_SCHEMA_DEPTH} 层),请简化结构"
+        )
+        return
+
+    # additionalProperties 检查仅针对显式声明 type: object 的节点
     if node.get("type") == "object":
         if node.get("additionalProperties") is not False:
             errors.append(
                 f"output_schema {path}: object 节点缺 additionalProperties: false"
             )
-        # 递归检查 properties 下每个子节点
-        properties = node.get("properties")
-        if isinstance(properties, dict):
-            for key, child in properties.items():
-                _check_additional_properties(child, f"{path}.{key}", errors)
-    # 处理数组的 items
-    if "items" in node:
-        _check_additional_properties(node["items"], f"{path}[]", errors)
-    # 组合器: anyOf / oneOf / allOf 是 list of schemas
-    for combinator in ("anyOf", "oneOf", "allOf"):
-        subschemas = node.get(combinator)
-        if isinstance(subschemas, list):
-            for index, sub in enumerate(subschemas):
-                _check_additional_properties(
-                    sub, f"{path}.{combinator}[{index}]", errors
+
+    # dict-of-schemas 区段: 不受 type 门控,只要存在就递归
+    for section in _DICT_OF_SCHEMAS_KEYS:
+        children = node.get(section)
+        if isinstance(children, dict):
+            for name, child in children.items():
+                # properties 的路径保持简短(<root>.字段名);定义区带区段前缀
+                child_path = (
+                    f"{path}.{name}" if section == "properties"
+                    else f"{path}.{section}.{name}"
                 )
-    # 定义区: $defs / definitions 是 dict of schemas
-    for defs_key in ("$defs", "definitions"):
-        defs = node.get(defs_key)
-        if isinstance(defs, dict):
-            for name, sub in defs.items():
-                _check_additional_properties(
-                    sub, f"{path}.{defs_key}.{name}", errors
-                )
+                _check_additional_properties(child, child_path, errors, depth + 1)
+
+    # list-of-schemas 区段: items 单 schema 形包成单元素列表统一处理
+    for section in _LIST_OF_SCHEMAS_KEYS:
+        subschemas = node.get(section)
+        if subschemas is None:
+            continue
+        if not isinstance(subschemas, list):
+            subschemas = [subschemas]
+        for index, sub in enumerate(subschemas):
+            _check_additional_properties(
+                sub, f"{path}.{section}[{index}]", errors, depth + 1
+            )
 
 
 def validate_synthesized_package(
@@ -216,8 +241,13 @@ def validate_synthesized_package(
     for index, binding in enumerate(bindings):
         if not isinstance(binding, dict):
             continue
-        family = binding.get("fragment_family", "")
-        if family and family not in family_whitelist:
+        if "fragment_family" not in binding:
+            continue  # 字段缺失已由检查点 5 的必填字段检查报错,此处不重复
+        family = binding.get("fragment_family")
+        if not family:
+            # 空串/None 不得静默绕过白名单(空值既不在白名单内也不该被跳过)
+            errors.append(f"capability_bindings[{index}].fragment_family 不能为空")
+        elif family not in family_whitelist:
             errors.append(
                 f"capability_bindings[{index}].fragment_family 越界: '{family}' 不在执行层白名单内。"
                 f"允许值: {sorted(family_whitelist)}"
@@ -242,8 +272,9 @@ def validate_synthesized_package(
         return errors
 
     # 用 jsonschema 校验 schema 本身是否合法 draft-07
+    # (Draft7Validator 在模块顶部导入: 缺依赖应在加载期立即暴露,
+    #  而非在校验期被 except 吞掉误归因为 agent 的 schema 错误导致重试死循环)
     try:
-        from jsonschema import Draft7Validator  # 延迟导入,减少启动依赖
         Draft7Validator.check_schema(schema)
     except Exception as exc:
         errors.append(f"output_schema 不是合法 draft-07 schema: {exc}")

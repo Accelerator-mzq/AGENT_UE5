@@ -244,3 +244,134 @@ class TestSynthesisValidator:
         package["output_schema.json"] = json.dumps(schema)
         errors = sv.validate_synthesized_package("gameplay-auction", package, WHITELIST)
         assert errors == [], f"期望零错误,实际: {errors}"
+
+    # ---- 审查 #1: 递归深度保护 ----
+
+    def test_review1_deep_schema_no_crash_depth_error(self):
+        """程序化构造深 100 的嵌套 schema:不应 RecursionError 崩溃,
+        应含'嵌套过深'错误(合成重试闭环依赖校验器永不抛异常)。"""
+        sv = _load()
+        package = _legal_package()
+        # 用循环构造 100 层嵌套 object(每层都合法声明 additionalProperties: false)
+        node = {"type": "string"}
+        for level in range(100):
+            node = {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {f"level_{level}": node},
+            }
+        package["output_schema.json"] = json.dumps(node)
+        errors = sv.validate_synthesized_package("gameplay-auction", package, WHITELIST)
+        assert any("嵌套过深" in e for e in errors), \
+            f"期望'嵌套过深'错误,实际: {errors}"
+
+    # ---- 审查 #3: 无 type 的 properties 节点不应整体漏检 ----
+
+    def test_review3_no_type_properties_node_nested_object_caught(self):
+        """外层节点无 type 只有 properties(LLM 高频遗漏 type 声明),
+        内嵌 object 缺 additionalProperties 应被抓到。"""
+        sv = _load()
+        package = _legal_package()
+        schema = json.loads(package["output_schema.json"])
+        schema["properties"]["fee_rule"] = {
+            # 故意不写 type: object
+            "properties": {
+                "inner": {
+                    "type": "object",
+                    # 故意缺 additionalProperties
+                    "properties": {"rate": {"type": "number"}},
+                }
+            }
+        }
+        package["output_schema.json"] = json.dumps(schema)
+        errors = sv.validate_synthesized_package("gameplay-auction", package, WHITELIST)
+        assert any("additionalProperties" in e and "inner" in e for e in errors), \
+            f"期望抓到无 type 节点下内嵌 object 缺 additionalProperties,实际: {errors}"
+
+    # ---- 审查 #4: tuple 形 items(list of schemas)不应跳过 ----
+
+    def test_review4_items_tuple_form_caught(self):
+        """items 为 list(draft-07 tuple validation 形)时,
+        内含 object 缺 additionalProperties 应被抓到。"""
+        sv = _load()
+        package = _legal_package()
+        schema = json.loads(package["output_schema.json"])
+        schema["properties"]["bid_steps"] = {
+            "type": "array",
+            "items": [
+                {"type": "string"},
+                {
+                    "type": "object",
+                    # 故意缺 additionalProperties
+                    "properties": {"amount": {"type": "number"}},
+                },
+            ],
+        }
+        package["output_schema.json"] = json.dumps(schema)
+        errors = sv.validate_synthesized_package("gameplay-auction", package, WHITELIST)
+        assert any("additionalProperties" in e and "items" in e for e in errors), \
+            f"期望抓到 tuple 形 items 内 object 缺 additionalProperties,实际: {errors}"
+
+    # ---- 审查 #7(Minor): 空字符串 fragment_family 不得绕过白名单 ----
+
+    def test_review7_empty_fragment_family_rejected(self):
+        """fragment_family 字段存在但为空串时应报'不能为空',而非静默绕过。"""
+        sv = _load()
+        package = _legal_package()
+        package["manifest.yaml"] = package["manifest.yaml"].replace(
+            "    fragment_family: property_economy_spec",
+            "    fragment_family: \"\"",
+        )
+        errors = sv.validate_synthesized_package("gameplay-auction", package, WHITELIST)
+        assert any("fragment_family" in e and "不能为空" in e for e in errors), \
+            f"期望'fragment_family 不能为空'错误,实际: {errors}"
+
+    # ---- 审查 #11(Minor): oneOf / allOf / $defs 各补一条最小测试 ----
+    #      (definitions 与 $defs 同构,只测 $defs)
+
+    def test_review11_oneof_nested_object_missing_ap_caught(self):
+        """oneOf 内嵌 object 缺 additionalProperties 应被抓到。"""
+        sv = _load()
+        package = _legal_package()
+        schema = json.loads(package["output_schema.json"])
+        schema["properties"]["tax_rule"] = {
+            "oneOf": [
+                {"type": "string"},
+                {"type": "object", "properties": {"pct": {"type": "number"}}},
+            ]
+        }
+        package["output_schema.json"] = json.dumps(schema)
+        errors = sv.validate_synthesized_package("gameplay-auction", package, WHITELIST)
+        assert any("additionalProperties" in e and "oneOf" in e for e in errors), \
+            f"期望抓到 oneOf 内嵌违规,实际: {errors}"
+
+    def test_review11_allof_nested_object_missing_ap_caught(self):
+        """allOf 内嵌 object 缺 additionalProperties 应被抓到。"""
+        sv = _load()
+        package = _legal_package()
+        schema = json.loads(package["output_schema.json"])
+        schema["properties"]["combo_rule"] = {
+            "allOf": [
+                {"type": "object", "properties": {"x": {"type": "number"}}},
+            ]
+        }
+        package["output_schema.json"] = json.dumps(schema)
+        errors = sv.validate_synthesized_package("gameplay-auction", package, WHITELIST)
+        assert any("additionalProperties" in e and "allOf" in e for e in errors), \
+            f"期望抓到 allOf 内嵌违规,实际: {errors}"
+
+    def test_review11_defs_nested_object_missing_ap_caught(self):
+        """$defs 内定义的 object 缺 additionalProperties 应被抓到。"""
+        sv = _load()
+        package = _legal_package()
+        schema = json.loads(package["output_schema.json"])
+        schema["$defs"] = {
+            "shared_rule": {
+                "type": "object",
+                "properties": {"y": {"type": "string"}},
+            }
+        }
+        package["output_schema.json"] = json.dumps(schema)
+        errors = sv.validate_synthesized_package("gameplay-auction", package, WHITELIST)
+        assert any("additionalProperties" in e and "$defs" in e for e in errors), \
+            f"期望抓到 $defs 内嵌违规,实际: {errors}"
