@@ -17,27 +17,21 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 from . import agent_protocol
+from . import registry_scan
 from ..skill_runtime import skill_runtime
 
 
-FRAGMENT_FAMILY_MAP = {
-    "skill-board-topology": "board_topology_spec",
-    "skill-tile-system": "tile_system_spec",
-    "skill-turn-loop": "turn_flow_spec",
-    "skill-dice": "dice_rule_spec",
-    "skill-economy": "property_economy_spec",
-    "skill-player-management": "player_management_spec",
-    "skill-jail": "jail_rule_spec",
-    "skill-baseline-start-screen": "start_screen_spec",
-    "skill-baseline-main-menu": "main_menu_spec",
-    "skill-baseline-settings": "settings_spec",
-    "skill-baseline-pause": "pause_spec",
-    "skill-baseline-results": "results_spec",
-    "skill-baseline-hud": "hud_spec",
-    "skill-baseline-input-foundation": "input_foundation_spec",
-    "skill-baseline-audio-foundation": "audio_foundation_spec",
-    "skill-baseline-platform-foundation": "platform_foundation_spec",
-}
+def _build_fragment_family_map() -> Dict[str, str]:
+    """Phase 13: fragment family 由注册表派生,替代硬编码(数据见各 manifest capability_bindings)。"""
+    registry = registry_scan.scan_capability_registry()
+    return {
+        cfg["instance_id"]: cfg["fragment_family"]
+        for cfg in registry.values()
+        if cfg.get("fragment_family")
+    }
+
+
+FRAGMENT_FAMILY_MAP = _build_fragment_family_map()
 
 MCP_AGENT_SIDECAR_DIR = "stage4_mcp_agent_sidecar"
 
