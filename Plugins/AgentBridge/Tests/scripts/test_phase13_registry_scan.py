@@ -1,13 +1,22 @@
 # -*- coding: utf-8 -*-
 """SKS-02/SKS-08: 注册表扫描与 synthesized 审批过滤。"""
 import importlib.util
+import logging
 from pathlib import Path
 
-import pytest
 import yaml
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[2]
 REAL_TEMPLATES_ROOT = PLUGIN_ROOT / "SkillTemplates"
+
+# SKS-04 锁定的 16 个 fragment_family 值(与原 FRAGMENT_FAMILY_MAP 硬编码一致)
+EXPECTED_16_FAMILIES = {
+    "board_topology_spec", "tile_system_spec", "turn_flow_spec", "dice_rule_spec",
+    "property_economy_spec", "player_management_spec", "jail_rule_spec",
+    "start_screen_spec", "main_menu_spec", "settings_spec", "pause_spec",
+    "results_spec", "hud_spec", "input_foundation_spec", "audio_foundation_spec",
+    "platform_foundation_spec",
+}
 
 
 def _load():
@@ -115,3 +124,67 @@ class TestRegistryScan:
         # 正式库必须获胜,与扫描顺序无关
         assert registry["test-cap"]["instance_id"] == "official-inst"
         assert registry["test-cap"]["template_source"] == "plugin_skill_template"
+
+    def test_binding_missing_required_field_skipped_with_warning(self, tmp_path, caplog):
+        """缺必填字段的 binding 条目应跳过并告警(带文件路径+缺失字段),不崩溃,其余条目正常。"""
+        rs = _load()
+        tpl = tmp_path / "broken_tpl"
+        tpl.mkdir(parents=True)
+        manifest = {
+            "template_id": "official.broken.v1",
+            "capability_bindings": [
+                {  # 缺 convergence_priority → 应跳过并 warning,不得 KeyError
+                    "capability_id": "cap-broken",
+                    "instance_id": "inst-broken",
+                    "fragment_family": "broken_spec",
+                },
+                {  # 完整条目 → 应正常入表
+                    "capability_id": "cap-ok",
+                    "instance_id": "inst-ok",
+                    "convergence_priority": 3,
+                    "fragment_family": "ok_spec",
+                },
+            ],
+        }
+        (tpl / "manifest.yaml").write_text(
+            yaml.safe_dump(manifest, allow_unicode=True), encoding="utf-8"
+        )
+        with caplog.at_level(logging.WARNING):
+            registry = rs.scan_capability_registry(tmp_path)  # 不应抛 KeyError
+        # 缺字段条目不入表,完整条目正常
+        assert "cap-broken" not in registry
+        assert registry["cap-ok"]["instance_id"] == "inst-ok"
+        # 告警须包含文件路径与缺失字段名,便于定位
+        warning_text = " ".join(r.getMessage() for r in caplog.records)
+        assert "convergence_priority" in warning_text
+        assert "manifest.yaml" in warning_text
+
+    def test_family_whitelist_real_tree_covers_all_16(self):
+        """execution_family_whitelist 对真实树:含 player_management_spec 且 16 个 family 全为子集。"""
+        rs = _load()
+        whitelist = rs.execution_family_whitelist(REAL_TEMPLATES_ROOT)
+        assert "player_management_spec" in whitelist
+        assert EXPECTED_16_FAMILIES <= whitelist
+
+    def test_family_whitelist_includes_binding_only_family(self, tmp_path):
+        """只出现在 binding fragment_family、不在宿主 can_emit_families 的 family 也被收录。"""
+        rs = _load()
+        tpl = tmp_path / "host_tpl"
+        tpl.mkdir(parents=True)
+        manifest = {
+            "template_id": "official.host.v1",
+            "can_emit_families": ["host_family_spec"],
+            "capability_bindings": [{
+                "capability_id": "cap-host",
+                "instance_id": "inst-host",
+                "convergence_priority": 1,
+                # binding 专属 family,宿主 can_emit_families 不含它(对应 player_management_spec 场景)
+                "fragment_family": "binding_only_spec",
+            }],
+        }
+        (tpl / "manifest.yaml").write_text(
+            yaml.safe_dump(manifest, allow_unicode=True), encoding="utf-8"
+        )
+        whitelist = rs.execution_family_whitelist(tmp_path)
+        assert "host_family_spec" in whitelist
+        assert "binding_only_spec" in whitelist
