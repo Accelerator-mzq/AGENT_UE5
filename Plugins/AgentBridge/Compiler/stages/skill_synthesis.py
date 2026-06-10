@@ -66,7 +66,18 @@ def build_synthesis_prepare_payload(
     constraints: Dict[str, Any],
     templates_root: str | Path | None = None,
 ) -> Dict[str, Any]:
-    """组装合成 prepare 载荷(MCP 工具直接透传给 agent)。"""
+    """组装合成 prepare 载荷(MCP 工具直接透传给 agent)。
+
+    capability_id 格式非法时抛 ValueError(fail-fast):prepare 的 capability_id
+    来自 skill_graph gaps,正常流程不可能非法,非法即编程错误,不走 agent 重试
+    闭环;同时防止 naming_rules.package_dir 携带穿越路径误导 agent。
+    """
+    # ── 入口防线: capability_id 格式校验(单一事实源在 synthesis_validator) ──
+    validator = _load_sibling("synthesis_validator")
+    id_errors = validator.validate_capability_id(capability_id)
+    if id_errors:
+        raise ValueError(id_errors[0])
+
     root = Path(templates_root) if templates_root else DEFAULT_TEMPLATES_ROOT
     registry_scan = _load_sibling("registry_scan")
     whitelist = sorted(registry_scan.execution_family_whitelist(root))
@@ -101,9 +112,18 @@ def save_synthesized_package(
 ) -> Dict[str, Any]:
     """机器校验后落盘合成包;失败返回错误列表且不落盘(agent 重试闭环)。
 
-    落盘安全:只遍历 FILE_SPEC 的 6 个规范文件名写盘;six_files 中出现的
-    任何额外 key(含 '../' 等路径穿越形式)直接 rejected,不触盘。
+    落盘安全(对称双侧防线):
+      - capability_id 直接用作落盘目录名,入口先做格式校验,非法立即 rejected
+        (在任何路径拼接/mkdir 之前;'../../evil' 实测可逃出 synthesized/ 隔离区)
+      - six_files 只遍历 FILE_SPEC 的 6 个规范文件名写盘;出现任何额外 key
+        (含 '../' 等路径穿越形式)直接 rejected,不触盘
     """
+    # ── 入口防线: capability_id 格式校验(单一事实源在 synthesis_validator) ──
+    validator = _load_sibling("synthesis_validator")
+    id_errors = validator.validate_capability_id(capability_id)
+    if id_errors:
+        return {"status": "rejected", "errors": id_errors, "package_dir": ""}
+
     root = Path(templates_root) if templates_root else DEFAULT_TEMPLATES_ROOT
     if family_whitelist is None:
         registry_scan = _load_sibling("registry_scan")
@@ -120,7 +140,6 @@ def save_synthesized_package(
         )
 
     # ── 第二道防线:内容机器校验(缺件/manifest 契约/schema/family 白名单) ──
-    validator = _load_sibling("synthesis_validator")
     errors.extend(
         validator.validate_synthesized_package(capability_id, six_files, set(family_whitelist))
     )

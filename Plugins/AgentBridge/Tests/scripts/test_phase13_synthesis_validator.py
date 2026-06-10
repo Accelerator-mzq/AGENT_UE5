@@ -375,3 +375,34 @@ class TestSynthesisValidator:
         errors = sv.validate_synthesized_package("gameplay-auction", package, WHITELIST)
         assert any("additionalProperties" in e and "$defs" in e for e in errors), \
             f"期望抓到 $defs 内嵌违规,实际: {errors}"
+
+
+class TestCapabilityIdFormat:
+    """Spec 审查实证漏洞: capability_id 是落盘目录名,必须有格式硬校验
+    (单一事实源在 validator,skill_synthesis 的 save/prepare 入口复用)。"""
+
+    def test_validate_capability_id_illegal_forms_one_error_each(self):
+        """穿越/盘符/反斜杠/空串等非法形式,各恰好返回一条格式错误。"""
+        sv = _load()
+        illegal = ["../../evil", "gameplay/../evil", "C:\\evil", "back\\slash", ""]
+        for bad in illegal:
+            errors = sv.validate_capability_id(bad)
+            assert len(errors) == 1, \
+                f"期望 {bad!r} 恰好一条格式错误,实际: {errors}"
+            assert "capability_id" in errors[0], \
+                f"错误文案应点名 capability_id,实际: {errors[0]}"
+
+    def test_validate_capability_id_legal_passes(self):
+        """合法 id(小写字母/数字/连字符/下划线)零错误。"""
+        sv = _load()
+        assert sv.validate_capability_id("gameplay-auction") == []
+        assert sv.validate_capability_id("ui_hud2") == []
+
+    def test_validate_synthesized_package_illegal_id_early_return(self):
+        """非法 capability_id 时 validate_synthesized_package 直接返回格式错误,
+        不再做 template_id 比对等无意义检查(错误列表恰好一条)。"""
+        sv = _load()
+        errors = sv.validate_synthesized_package("../../evil", _legal_package(), WHITELIST)
+        assert len(errors) == 1, f"期望仅一条格式错误,实际: {errors}"
+        assert "capability_id" in errors[0] and "../../evil" in errors[0], \
+            f"错误文案应含字段名与非法值,实际: {errors[0]}"

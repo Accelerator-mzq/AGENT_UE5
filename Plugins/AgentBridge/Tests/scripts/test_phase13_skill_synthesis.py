@@ -12,6 +12,7 @@ import importlib.util
 import json
 from pathlib import Path
 
+import pytest
 import yaml
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[2]
@@ -143,6 +144,47 @@ class TestSkillSynthesis:
             f"期望错误文案列出非法文件名,实际: {result['errors']}"
         assert not (tmp_path / "synthesized").exists()
         assert not (tmp_path / "evil.yaml").exists()
+
+    def test_save_rejects_traversal_capability_id(self, tmp_path):
+        """Spec 审查实证漏洞: capability_id 为 '../../evil' 时必须 rejected,
+        且任何位置零触盘(此前实测会逃出 synthesized/ 落盘到上两级目录)。
+
+        恶意包 manifest 与穿越 id 自洽(template_id/binding 均替换),
+        确保不是被 template_id 比对碰巧拦下,而是被 capability_id 格式校验拦下。"""
+        ss = _load("skill_synthesis")
+        # 用 tmp_path 的二级子目录做 root,使逃逸目标仍落在 tmp_path 沙箱内可断言
+        root = tmp_path / "a" / "b"
+        root.mkdir(parents=True)
+        evil = _legal_package()
+        evil["manifest.yaml"] = evil["manifest.yaml"].replace(
+            "gameplay-auction", "../../evil"
+        )
+        result = ss.save_synthesized_package(
+            capability_id="../../evil",
+            six_files=evil,
+            templates_root=root,
+            family_whitelist={"property_economy_spec"},
+        )
+        assert result["status"] == "rejected"
+        assert any("capability_id" in e for e in result["errors"]), \
+            f"期望 capability_id 格式错误,实际: {result['errors']}"
+        # root/synthesized/../../evil 规范化后 = tmp_path/a/evil —— 全链路零触盘
+        assert not (root / "synthesized").exists()
+        assert not (tmp_path / "a" / "evil").exists()
+        assert not (tmp_path / "evil").exists()
+
+    def test_prepare_rejects_traversal_capability_id(self):
+        """prepare 的 capability_id 来自 skill_graph gaps,非法即编程错误:
+        立即抛 ValueError(fail-fast),防 naming_rules 带穿越路径误导 agent。"""
+        ss = _load("skill_synthesis")
+        with pytest.raises(ValueError, match="capability_id"):
+            ss.build_synthesis_prepare_payload(
+                capability_id="../../evil",
+                gap={"capability_id": "../../evil", "domain_type": "gameplay"},
+                gdd_excerpt="x",
+                constraints={},
+                templates_root=PLUGIN_ROOT / "SkillTemplates",
+            )
 
     # ---- 审查教训 2: 审阅清单对坏 manifest 容错 ----
 

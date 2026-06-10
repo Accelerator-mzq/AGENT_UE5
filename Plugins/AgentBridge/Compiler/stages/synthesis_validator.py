@@ -6,11 +6,13 @@
 
 公开 API:
     validate_synthesized_package(capability_id, package, family_whitelist) -> List[str]
+    validate_capability_id(capability_id) -> List[str]
     返回错误列表,为空即通过。错误文案直接回给 agent 做修正重试,必须具体可操作。
 """
 from __future__ import annotations
 
 import json
+import re
 from typing import Any, Dict, List, Optional, Set
 
 import yaml
@@ -46,6 +48,25 @@ REQUIRED_BINDING_FIELDS = {
     "convergence_priority",
     "fragment_family",
 }
+
+# capability_id 格式硬约束(单一事实源):仅小写字母/数字/连字符/下划线,
+# 且以字母或数字开头。capability_id 直接用作落盘目录名,放开此约束会引入
+# 路径穿越('../../evil' 实测可逃出 synthesized/ 隔离区落盘到上级目录)。
+CAPABILITY_ID_PATTERN = re.compile(r"[a-z0-9][a-z0-9_-]*\Z")
+
+
+def validate_capability_id(capability_id: Any) -> List[str]:
+    """校验 capability_id 格式;返回错误列表,为空即通过。
+
+    capability_id 是落盘目录名,本校验是路径穿越的第一道防线,
+    save/prepare 入口与 validate_synthesized_package 开头均复用本函数。
+    """
+    if not isinstance(capability_id, str) or not CAPABILITY_ID_PATTERN.match(capability_id):
+        return [
+            "capability_id 格式非法(仅允许小写字母/数字/连字符/下划线,"
+            f"且以字母或数字开头): {capability_id!r}"
+        ]
+    return []
 
 
 # schema 递归最大深度:超过即报错停止,防恶意/失控嵌套触发 RecursionError
@@ -129,6 +150,14 @@ def validate_synthesized_package(
     Returns:
         错误列表;为空表示通过机器 gate。文案直接回给 agent,必须具体可操作。
     """
+    # =========================================================
+    # 检查点 0: capability_id 格式(路径穿越防线)
+    #   非法时直接返回——后续 template_id 比对等检查全部失去意义
+    # =========================================================
+    id_errors = validate_capability_id(capability_id)
+    if id_errors:
+        return id_errors
+
     errors: List[str] = []
 
     # =========================================================
