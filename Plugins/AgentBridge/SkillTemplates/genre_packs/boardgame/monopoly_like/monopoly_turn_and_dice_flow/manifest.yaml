@@ -29,3 +29,22 @@ can_emit_families:
 
 depends_on_templates:
   - monopoly.board_topology.phase1
+
+# Phase 13: 能力绑定(原 skill_graph_planning.GAMEPLAY_NODE_CONFIGS 数据下沉,逐字照抄)
+capability_bindings:
+  - capability_id: gameplay-turn-loop
+    instance_id: skill-turn-loop
+    convergence_priority: 3
+    related_clarification_items:
+      - cg-max-game-length
+    planning_notes:
+      - "Turn Loop 组织掷骰、移动、过起点奖励与回合切换，是 gameplay 主骨架。"
+    fragment_family: turn_flow_spec
+  - capability_id: gameplay-dice
+    instance_id: skill-dice
+    convergence_priority: 2
+    related_clarification_items:
+      - cg-dice-roll-feedback
+    planning_notes:
+      - "Dice 节点单独保留，方便后续把规则语义与表现反馈拆开处理。"
+    fragment_family: dice_rule_spec

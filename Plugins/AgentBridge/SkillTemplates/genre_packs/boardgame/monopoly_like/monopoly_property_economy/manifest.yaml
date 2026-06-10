@@ -28,3 +28,13 @@ can_emit_families:
 depends_on_templates:
   - monopoly.board_topology.phase1
   - monopoly.tile_event_dispatch.phase1
+
+# Phase 13: 能力绑定(原 skill_graph_planning.GAMEPLAY_NODE_CONFIGS 数据下沉,逐字照抄)
+capability_bindings:
+  - capability_id: gameplay-economy
+    instance_id: skill-economy
+    convergence_priority: 4
+    related_clarification_items: []
+    planning_notes:
+      - "Economy 负责购买、租金、支付与颜色组翻倍，不在此阶段选择具体表现方案。"
+    fragment_family: property_economy_spec

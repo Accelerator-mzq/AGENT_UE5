@@ -31,3 +31,13 @@ depends_on_templates:
   - baseline.start_screen.presence_only
 
 priority: medium
+
+# Phase 13: 能力绑定(原 skill_graph_planning.BASELINE_NODE_CONFIGS 数据下沉,逐字照抄)
+capability_bindings:
+  - capability_id: baseline-main-menu
+    instance_id: skill-baseline-main-menu
+    convergence_priority: 6
+    related_clarification_items: []
+    planning_notes:
+      - "Main Menu 保持 presence_only，后续只验证入口流转与必要按钮能力。"
+    fragment_family: main_menu_spec
