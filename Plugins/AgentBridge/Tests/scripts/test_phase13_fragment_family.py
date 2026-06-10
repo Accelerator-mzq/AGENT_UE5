@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-"""SKS-04: FRAGMENT_FAMILY_MAP 由注册表派生,与原 16 条硬编码一致。"""
+"""SKS-04: fragment family 映射由注册表惰性派生,与原 16 条硬编码一致。"""
 import importlib.util
+import sys
 from pathlib import Path
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[2]
@@ -37,3 +38,17 @@ def test_sks04_family_map_derived_equals_legacy():
         for cfg in registry.values() if cfg.get("fragment_family")
     }
     assert derived == EXPECTED_16
+
+
+def test_sks04_module_builder_equals_legacy():
+    """锁被改模块本身:包导入 domain_skill_runtime,断言其惰性构建函数输出与 16 条硬编码一致。"""
+    plugin_root_str = str(PLUGIN_ROOT)
+    inserted = plugin_root_str not in sys.path
+    if inserted:
+        sys.path.insert(0, plugin_root_str)
+    try:
+        from Compiler.stages import domain_skill_runtime as d
+        assert d._build_fragment_family_map() == EXPECTED_16
+    finally:
+        if inserted:
+            sys.path.remove(plugin_root_str)

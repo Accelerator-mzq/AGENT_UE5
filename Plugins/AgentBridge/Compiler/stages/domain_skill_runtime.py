@@ -20,9 +20,16 @@ from . import agent_protocol
 from . import registry_scan
 from ..skill_runtime import skill_runtime
 
+logger = logging.getLogger(__name__)
+
 
 def _build_fragment_family_map() -> Dict[str, str]:
-    """Phase 13: fragment family 由注册表派生,替代硬编码(数据见各 manifest capability_bindings)。"""
+    """Phase 13: fragment family 由注册表派生,替代硬编码(数据见各 manifest capability_bindings)。
+
+    每次调用现扫模板树(约 80ms),与 registry_scan 无缓存契约一致——
+    不做模块级冻结快照,保证 MCP server 等长驻进程里运行期 approve 的
+    synthesized 模板对 Stage 4 立即可见(冻结会导致新模板静默落入 fallback 推导)。
+    """
     registry = registry_scan.scan_capability_registry()
     return {
         cfg["instance_id"]: cfg["fragment_family"]
@@ -30,8 +37,6 @@ def _build_fragment_family_map() -> Dict[str, str]:
         if cfg.get("fragment_family")
     }
 
-
-FRAGMENT_FAMILY_MAP = _build_fragment_family_map()
 
 MCP_AGENT_SIDECAR_DIR = "stage4_mcp_agent_sidecar"
 
@@ -297,11 +302,24 @@ def _resolve_template_prompts(template_id: str) -> Dict[str, str]:
 
 
 def _family_name(node: Dict[str, Any]) -> str:
-    """返回当前节点的 emitted family 名。"""
-    return FRAGMENT_FAMILY_MAP.get(
-        node.get("instance_id", ""),
-        node.get("instance_id", "skill").replace("skill-", "").replace("-", "_") + "_spec",
+    """返回当前节点的 emitted family 名。
+
+    每次现扫注册表(_build_fragment_family_map,约 80ms),不用模块级冻结快照,
+    保证长驻进程(MCP server)里运行期 approve 的 synthesized 模板可见。
+    注册表查不到时回退到 instance_id 命名推导,并 warning 留痕便于排查。
+    """
+    instance_id = node.get("instance_id", "")
+    family = _build_fragment_family_map().get(instance_id)
+    if family is not None:
+        return family
+    fallback = (instance_id or "skill").replace("skill-", "").replace("-", "_") + "_spec"
+    logger.warning(
+        "_family_name: instance_id=%r 在 capability 注册表中无 fragment_family,回退命名推导=%r"
+        "(若为 synthesized 模板请检查 manifest capability_bindings 是否缺 fragment_family)",
+        instance_id,
+        fallback,
     )
+    return fallback
 
 
 def _selected_realization_from_converged(converged_pack: Dict[str, Any] | None) -> Dict[str, Any]:
