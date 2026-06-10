@@ -68,3 +68,50 @@ class TestRegistryScan:
         )
         registry = rs.scan_capability_registry(tmp_path)
         assert registry["gameplay-auction"]["template_source"] == "synthesized"
+
+    def test_sks08b_official_wins_regardless_of_scan_order(self, tmp_path):
+        """SKS-08b: synthesized 目录按 rglob 字母序先被扫到时,正式库同名 capability 仍必须获胜。
+
+        回归场景:synthesized/aaa_cap 字母序排在 zzz_official 之前,
+        单遍扫描的"先扫到的赢"语义会让 approved synthesized 错误压过正式库。
+        """
+        rs = _load()
+        # synthesized 区:approved,字母序在前(aaa_cap)
+        syn = tmp_path / "synthesized" / "aaa_cap"
+        syn.mkdir(parents=True)
+        syn_manifest = {
+            "template_id": "synthesized.test-cap.v1",
+            "review_status": "approved",
+            "capability_bindings": [{
+                "capability_id": "test-cap",
+                "instance_id": "syn-inst",
+                "convergence_priority": 9,
+                "related_clarification_items": [],
+                "planning_notes": ["synthesized 抢跑节点"],
+                "fragment_family": "test_spec",
+            }],
+        }
+        (syn / "manifest.yaml").write_text(
+            yaml.safe_dump(syn_manifest, allow_unicode=True), encoding="utf-8"
+        )
+        # 正式库:无 review_status 字段,字母序在后(zzz_official)
+        official = tmp_path / "zzz_official" / "test_cap"
+        official.mkdir(parents=True)
+        official_manifest = {
+            "template_id": "official.test-cap.v1",
+            "capability_bindings": [{
+                "capability_id": "test-cap",
+                "instance_id": "official-inst",
+                "convergence_priority": 1,
+                "related_clarification_items": [],
+                "planning_notes": ["正式库节点"],
+                "fragment_family": "test_spec",
+            }],
+        }
+        (official / "manifest.yaml").write_text(
+            yaml.safe_dump(official_manifest, allow_unicode=True), encoding="utf-8"
+        )
+        registry = rs.scan_capability_registry(tmp_path)
+        # 正式库必须获胜,与扫描顺序无关
+        assert registry["test-cap"]["instance_id"] == "official-inst"
+        assert registry["test-cap"]["template_source"] == "plugin_skill_template"

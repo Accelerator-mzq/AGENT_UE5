@@ -43,13 +43,50 @@ def _binding_to_config(binding: Dict[str, Any], template_id: str, template_sourc
     }
 
 
+def _scan_manifest_bindings(
+    manifest_path: Path,
+    registry: Dict[str, Dict[str, Any]],
+    template_source: str,
+) -> None:
+    """读取单个 manifest 的 capability_bindings,把 registry 中尚不存在的 capability 填入。
+
+    冲突语义:registry 已有同名 capability 时一律不覆盖。优先级由调用方的分遍
+    扫描顺序保证(正式库一遍在前,synthesized 一遍在后),不依赖目录字母序。
+    """
+    try:
+        manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
+    except Exception:
+        # 损坏的 manifest 静默跳过,不中断整个扫描
+        return
+
+    bindings = manifest.get("capability_bindings") or []
+    if not bindings:
+        # 无 capability_bindings 的 manifest(如纯 UI flow 模板)不参与注册
+        return
+
+    if template_source == "synthesized" and manifest.get("review_status") != APPROVED:
+        # synthesized 区未经审批的模板:对注册表不可见
+        return
+
+    template_id = manifest.get("template_id", "")
+    for binding in bindings:
+        capability_id = binding.get("capability_id", "")
+        if not capability_id or not binding.get("instance_id"):
+            # 不完整的 binding 条目静默跳过
+            continue
+        if capability_id in registry:
+            # 同名 capability 已注册:保留先入条目(本遍内=先扫到的;跨遍=高优先级遍)
+            continue
+        registry[capability_id] = _binding_to_config(binding, template_id, template_source)
+
+
 def scan_capability_registry(templates_root: str | Path | None = None) -> Dict[str, Dict[str, Any]]:
     """扫描模板树,构建 capability_id → 节点配置映射。
 
-    扫描顺序与优先级规则:
-      1. 正式库 manifest(非 synthesized 目录下)最优先,先扫到的同名 capability 保留。
-      2. synthesized 区仅 review_status==approved 才进入候选,且不覆盖正式库同名条目。
-      3. 占位文件(registry_placeholders.yaml)最后处理,只填充正式库与 synthesized 均未提供的条目。
+    三遍扫描保证优先级与 rglob 字母序无关(修复 synthesized 目录名靠前时抢跑正式库的 bug):
+      1. 第一遍只扫正式库 manifest(非 synthesized 目录),正式库内部重复保留先扫到的。
+      2. 第二遍扫 synthesized 区(仅 review_status==approved),只填正式库未占用的 capability。
+      3. 第三遍占位文件(registry_placeholders.yaml),只填前两遍均未提供的条目。
 
     参数:
         templates_root: 模板根目录路径;传 None 时使用 DEFAULT_TEMPLATES_ROOT。
@@ -60,50 +97,21 @@ def scan_capability_registry(templates_root: str | Path | None = None) -> Dict[s
     root = Path(templates_root) if templates_root else DEFAULT_TEMPLATES_ROOT
     registry: Dict[str, Dict[str, Any]] = {}
 
-    # synthesized 隔离区路径,用于判断扫描到的 manifest 是否属于 synthesized 区
+    # synthesized 隔离区路径,用于把 manifest 分流到正式库遍 / synthesized 遍
     synthesized_root = root / SYNTHESIZED_DIR
+    all_manifests = sorted(root.rglob("manifest.yaml"))
+    official_manifests = [p for p in all_manifests if synthesized_root not in p.parents]
+    synthesized_manifests = [p for p in all_manifests if synthesized_root in p.parents]
 
-    # ── 第一遍:扫描所有 manifest.yaml(含 synthesized 区) ──
-    for manifest_path in sorted(root.rglob("manifest.yaml")):
-        try:
-            manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
-        except Exception:
-            # 损坏的 manifest 静默跳过,不中断整个扫描
-            continue
+    # ── 第一遍:正式库 manifest(无 review_status 字段,默认信任,spec §3 第 2 条) ──
+    for manifest_path in official_manifests:
+        _scan_manifest_bindings(manifest_path, registry, "plugin_skill_template")
 
-        bindings = manifest.get("capability_bindings") or []
-        if not bindings:
-            # 无 capability_bindings 的 manifest(如纯 UI flow 模板)不参与注册
-            continue
+    # ── 第二遍:synthesized 隔离区(仅 approved,且不覆盖正式库同名 capability) ──
+    for manifest_path in synthesized_manifests:
+        _scan_manifest_bindings(manifest_path, registry, "synthesized")
 
-        # 判断是否在 synthesized 隔离区
-        is_synthesized = synthesized_root in manifest_path.parents
-
-        if is_synthesized and manifest.get("review_status") != APPROVED:
-            # synthesized 区未经审批的模板:对注册表不可见
-            continue
-
-        template_id = manifest.get("template_id", "")
-        # 正式库模板无 review_status 字段,默认信任(spec §3 第 2 条)
-        template_source = "synthesized" if is_synthesized else "plugin_skill_template"
-
-        for binding in bindings:
-            capability_id = binding.get("capability_id", "")
-            if not capability_id or not binding.get("instance_id"):
-                # 不完整的 binding 条目静默跳过
-                continue
-
-            if capability_id in registry:
-                if not is_synthesized:
-                    # 正式库出现重复绑定:保留先扫到的(按路径排序),后续 Stage 3 可通过 metadata 警告
-                    continue
-                else:
-                    # synthesized 不覆盖正式库条目
-                    continue
-
-            registry[capability_id] = _binding_to_config(binding, template_id, template_source)
-
-    # ── 第二遍:补充占位数据文件中未被 manifest 覆盖的 capability ──
+    # ── 第三遍:补充占位数据文件中未被 manifest 覆盖的 capability ──
     placeholders_path = root / PLACEHOLDERS_FILE
     if placeholders_path.is_file():
         try:
