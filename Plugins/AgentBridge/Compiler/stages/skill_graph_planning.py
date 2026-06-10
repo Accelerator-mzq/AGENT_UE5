@@ -5,6 +5,13 @@ Phase 11 Skill Graph Planning stage.
   - 从 Root Skill Contract 与 Clarification Gate 派生 Skill Graph
   - 规划 Gameplay / Baseline 节点、依赖边、耦合边、收敛顺序边
   - 只输出“谁先做、谁关联、谁收敛优先”，不提前写死 realization 结果
+
+Phase 13 改造：
+  - 原 GAMEPLAY_NODE_CONFIGS / BASELINE_NODE_CONFIGS 两张硬编码表删除，
+    节点配置改由 registry_scan.scan_capability_registry() 数据扫描提供
+  - 注册表查不到模板的 required capability 不再静默丢弃，
+    显式记入 metadata.capability_gaps
+  - manifest capability_binding 声明的 depends_on_capabilities 换算为依赖边
 """
 
 from __future__ import annotations
@@ -27,171 +34,24 @@ STANDARD_TEMPLATE_FILES = {
 }
 
 
-GAMEPLAY_NODE_CONFIGS: Dict[str, Dict[str, Any]] = {
-    "gameplay-board-topology": {
-        "instance_id": "skill-board-topology",
-        "template_id": "monopoly.board_topology.phase1",
-        "convergence_priority": 1,
-        "related_clarification_items": [],
-        "planning_notes": [
-            "棋盘拓扑是 Monopoly 主链的起点，先锁定 28 格、角格索引与移动方向。",
-        ],
-        "template_source": "plugin_skill_template",
-    },
-    "gameplay-tile-system": {
-        "instance_id": "skill-tile-system",
-        "template_id": "monopoly.tile_event_dispatch.phase1",
-        "convergence_priority": 2,
-        "related_clarification_items": ["cg-card-events-phase1"],
-        "planning_notes": [
-            "Tile System 负责格子类型、事件分发矩阵与 Phase 1 留空事件槽位。",
-        ],
-        "template_source": "plugin_skill_template",
-    },
-    "gameplay-turn-loop": {
-        "instance_id": "skill-turn-loop",
-        "template_id": "monopoly.turn_and_dice_flow.phase1",
-        "convergence_priority": 3,
-        "related_clarification_items": ["cg-max-game-length"],
-        "planning_notes": [
-            "Turn Loop 组织掷骰、移动、过起点奖励与回合切换，是 gameplay 主骨架。",
-        ],
-        "template_source": "plugin_skill_template",
-    },
-    "gameplay-dice": {
-        "instance_id": "skill-dice",
-        "template_id": "monopoly.turn_and_dice_flow.phase1",
-        "convergence_priority": 2,
-        "related_clarification_items": ["cg-dice-roll-feedback"],
-        "planning_notes": [
-            "Dice 节点单独保留，方便后续把规则语义与表现反馈拆开处理。",
-        ],
-        "template_source": "plugin_skill_template",
-    },
-    "gameplay-economy": {
-        "instance_id": "skill-economy",
-        "template_id": "monopoly.property_economy.phase1",
-        "convergence_priority": 4,
-        "related_clarification_items": [],
-        "planning_notes": [
-            "Economy 负责购买、租金、支付与颜色组翻倍，不在此阶段选择具体表现方案。",
-        ],
-        "template_source": "plugin_skill_template",
-    },
-    "gameplay-player-management": {
-        "instance_id": "skill-player-management",
-        "template_id": "monopoly.jail_and_bankruptcy.phase1",
-        "convergence_priority": 5,
-        "related_clarification_items": ["cg-max-game-length", "cg-player-token-visual-style"],
-        "planning_notes": [
-            "Player Management 负责玩家顺序、存活状态、淘汰与最终胜者归属。",
-        ],
-        "template_source": "plugin_skill_template",
-    },
-    "gameplay-jail": {
-        "instance_id": "skill-jail",
-        "template_id": "monopoly.jail_and_bankruptcy.phase1",
-        "convergence_priority": 5,
-        "related_clarification_items": [],
-        "planning_notes": [
-            "Jail 作为独立节点保留，便于后续把入狱、出狱与破产关系拆分审查。",
-        ],
-        "template_source": "plugin_skill_template",
-    },
-}
+def _load_registry_scan():
+    """加载 registry_scan:包内相对导入优先,独立加载(测试场景)时按路径回退。
 
-BASELINE_NODE_CONFIGS: Dict[str, Dict[str, Any]] = {
-    "baseline-start-screen": {
-        "instance_id": "skill-baseline-start-screen",
-        "template_id": "baseline.start_screen.presence_only",
-        "convergence_priority": 6,
-        "related_clarification_items": [],
-        "planning_notes": [
-            "Start Screen 只规划入口能力，不在 Skill Graph 中决定具体实现形态。",
-        ],
-        "template_source": "future_baseline_template",
-    },
-    "baseline-main-menu": {
-        "instance_id": "skill-baseline-main-menu",
-        "template_id": "baseline.main_menu.presence_only",
-        "convergence_priority": 6,
-        "related_clarification_items": [],
-        "planning_notes": [
-            "Main Menu 保持 presence_only，后续只验证入口流转与必要按钮能力。",
-        ],
-        "template_source": "future_baseline_template",
-    },
-    "baseline-settings": {
-        "instance_id": "skill-baseline-settings",
-        "template_id": "baseline.settings.presence_only",
-        "convergence_priority": 5,
-        "related_clarification_items": ["cg-platform-persistence", "cg-platform-foundation-boundary"],
-        "planning_notes": [
-            "Settings 必须保留六项最低控件，但不在本阶段决定持久化实现细节。",
-        ],
-        "template_source": "future_baseline_template",
-    },
-    "baseline-pause": {
-        "instance_id": "skill-baseline-pause",
-        "template_id": "baseline.pause.presence_only",
-        "convergence_priority": 5,
-        "related_clarification_items": [],
-        "planning_notes": [
-            "Pause 与 turn loop、input foundation 有耦合，但当前仍只做能力规划。",
-        ],
-        "template_source": "future_baseline_template",
-    },
-    "baseline-results": {
-        "instance_id": "skill-baseline-results",
-        "template_id": "baseline.results.presence_only",
-        "convergence_priority": 6,
-        "related_clarification_items": ["cg-max-game-length"],
-        "planning_notes": [
-            "Results 依赖胜负与淘汰语义，保留与 player management 的强关联。",
-        ],
-        "template_source": "future_baseline_template",
-    },
-    "baseline-hud": {
-        "instance_id": "skill-baseline-hud",
-        "template_id": "baseline.hud.realization_eligible",
-        "convergence_priority": 4,
-        "related_clarification_items": ["cg-hud-layout-style", "cg-dice-roll-feedback"],
-        "planning_notes": [
-            "HUD 是 realization_eligible baseline，允许进入后续 Design Space Discovery。",
-        ],
-        "template_source": "future_baseline_template",
-    },
-    "baseline-input-foundation": {
-        "instance_id": "skill-baseline-input-foundation",
-        "template_id": "baseline.input_foundation.presence_only",
-        "convergence_priority": 5,
-        "related_clarification_items": [],
-        "planning_notes": [
-            "Input Foundation 只提供通用输入底座，不提前决定具体交互映射细节。",
-        ],
-        "template_source": "future_baseline_template",
-    },
-    "baseline-audio-foundation": {
-        "instance_id": "skill-baseline-audio-foundation",
-        "template_id": "baseline.audio_foundation.presence_only",
-        "convergence_priority": 5,
-        "related_clarification_items": [],
-        "planning_notes": [
-            "Audio Foundation 先保证音量控制与基础 SFX/BGM 能力存在。",
-        ],
-        "template_source": "future_baseline_template",
-    },
-    "baseline-platform-foundation": {
-        "instance_id": "skill-baseline-platform-foundation",
-        "template_id": "baseline.platform_foundation.clarification_gated",
-        "convergence_priority": 6,
-        "related_clarification_items": ["cg-platform-foundation-boundary", "cg-platform-persistence"],
-        "planning_notes": [
-            "Platform Foundation 当前受 Clarification Gate 约束，只保留节点与边界，不发散实现。",
-        ],
-        "template_source": "future_baseline_template",
-    },
-}
+    等价回归测试用 importlib 无包上下文加载本模块,裸相对导入会抛
+    ImportError: attempted relative import with no known parent package,
+    因此必须保留按文件路径加载兄弟模块的回退分支。
+    """
+    try:
+        from . import registry_scan  # type: ignore
+        return registry_scan
+    except ImportError:
+        import importlib.util
+        path = Path(__file__).resolve().parent / "registry_scan.py"
+        spec = importlib.util.spec_from_file_location("registry_scan", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
 
 EDGE_BLUEPRINTS: List[Dict[str, str]] = [
     {
@@ -540,8 +400,10 @@ def _annotate_node(
 def _build_gameplay_nodes(
     root_skill_contract: Dict[str, Any],
     clarification_gate_report: Dict[str, Any],
+    registry: Dict[str, Dict[str, Any]],
+    gaps: List[Dict[str, Any]],
 ) -> List[Dict[str, Any]]:
-    """从 Root Skill Contract 派生 Gameplay 节点。"""
+    """从 Root Skill Contract 派生 Gameplay 节点;注册表查不到的能力记入 gaps。"""
     gate_item_map = _index_gate_items(clarification_gate_report)
     retained_clarifications = set(clarification_gate_report.get("retained_clarifications", []))
     nodes: List[Dict[str, Any]] = []
@@ -551,8 +413,17 @@ def _build_gameplay_nodes(
             continue
 
         capability_id = capability.get("capability_id", "")
-        config = GAMEPLAY_NODE_CONFIGS.get(capability_id)
+        config = registry.get(capability_id)
         if not config:
+            # Phase 13: 不再静默丢弃,显式记录 capability gap
+            gaps.append(
+                {
+                    "capability_id": capability_id,
+                    "domain_type": "gameplay",
+                    "reason": "no_template",
+                    "source_anchor": capability.get("source_anchor", ""),
+                }
+            )
             continue
 
         related_item_ids = [item_id for item_id in config.get("related_clarification_items", []) if item_id in gate_item_map]
@@ -585,8 +456,10 @@ def _build_gameplay_nodes(
 def _build_baseline_nodes(
     root_skill_contract: Dict[str, Any],
     clarification_gate_report: Dict[str, Any],
+    registry: Dict[str, Dict[str, Any]],
+    gaps: List[Dict[str, Any]],
 ) -> List[Dict[str, Any]]:
-    """从 Root Skill Contract 派生 Baseline 节点。"""
+    """从 Root Skill Contract 派生 Baseline 节点;注册表查不到的能力记入 gaps。"""
     gate_item_map = _index_gate_items(clarification_gate_report)
     retained_clarifications = set(clarification_gate_report.get("retained_clarifications", []))
     nodes: List[Dict[str, Any]] = []
@@ -596,8 +469,17 @@ def _build_baseline_nodes(
             continue
 
         capability_id = capability.get("capability_id", "")
-        config = BASELINE_NODE_CONFIGS.get(capability_id)
+        config = registry.get(capability_id)
         if not config:
+            # Phase 13: 不再静默丢弃,显式记录 capability gap
+            gaps.append(
+                {
+                    "capability_id": capability_id,
+                    "domain_type": "baseline",
+                    "reason": "no_template",
+                    "source_anchor": capability.get("source_anchor", ""),
+                }
+            )
             continue
 
         related_item_ids = [item_id for item_id in config.get("related_clarification_items", []) if item_id in gate_item_map]
@@ -638,14 +520,47 @@ def create_skill_graph(
     root_skill_contract: Dict[str, Any],
     clarification_gate_report: Dict[str, Any],
     run_id: str | None = None,
+    registry: Dict[str, Dict[str, Any]] | None = None,
 ) -> Dict[str, Any]:
-    """生成 Skill Graph。"""
+    """生成 Skill Graph。
+
+    参数:
+        registry: capability_id → 节点配置映射;缺省时由 registry_scan 数据扫描提供
+            (测试可注入迷你注册表)。
+    """
     generated_at = datetime.now(timezone.utc).isoformat()
-    gameplay_nodes = _build_gameplay_nodes(root_skill_contract, clarification_gate_report)
-    baseline_nodes = _build_baseline_nodes(root_skill_contract, clarification_gate_report)
+    if registry is None:
+        registry = _load_registry_scan().scan_capability_registry()
+
+    capability_gaps: List[Dict[str, Any]] = []
+    gameplay_nodes = _build_gameplay_nodes(
+        root_skill_contract, clarification_gate_report, registry, capability_gaps
+    )
+    baseline_nodes = _build_baseline_nodes(
+        root_skill_contract, clarification_gate_report, registry, capability_gaps
+    )
     nodes = gameplay_nodes + baseline_nodes
     node_ids = {node["instance_id"] for node in nodes}
     edges = _filter_edges(node_ids)
+
+    # Phase 13: manifest capability_binding 声明的依赖换算成 instance 级依赖边。
+    # 必须在 _build_relationship_maps 之前追加,否则新边不会回填到节点 dependencies。
+    # 基线输入下正式库条目 depends_on_capabilities 全空,不产生新边(等价保持)。
+    capability_to_instance = {cid: cfg["instance_id"] for cid, cfg in registry.items()}
+    for node in nodes:
+        declared = registry.get(node["capability_id"], {}).get("depends_on_capabilities", [])
+        for dep_capability in declared:
+            dep_instance = capability_to_instance.get(dep_capability)
+            if dep_instance and dep_instance in node_ids:
+                edges.append(
+                    {
+                        "from": dep_instance,
+                        "to": node["instance_id"],
+                        "type": "dependency",
+                        "reason": f"manifest capability_binding 声明依赖 {dep_capability}。",
+                    }
+                )
+
     dependency_map, coupling_map = _build_relationship_maps(edges)
     order_map = _ordered_node_ids(nodes)
     baseline_template_nodes = [node for node in baseline_nodes if node.get("template_id", "").startswith("baseline.")]
@@ -688,6 +603,7 @@ def create_skill_graph(
                 _missing_baseline_template_warning(template_id)
                 for template_id in missing_baseline_templates
             ],
+            "capability_gaps": capability_gaps,
             "template_boundary_note": (
                 "Skill Graph 只引用 template_id；运行时 Skill Instance 将在 TASK 09 创建，"
                 "不会回写 Plugins/AgentBridge/SkillTemplates/。"

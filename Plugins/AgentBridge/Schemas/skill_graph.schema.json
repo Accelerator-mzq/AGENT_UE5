@@ -70,7 +70,22 @@
         "total_baseline_skills": {"type": "integer", "minimum": 0},
         "total_edges": {"type": "integer", "minimum": 0},
         "generated_at": {"type": "string"},
-        "generator": {"type": "string"}
+        "generator": {"type": "string"},
+        "capability_gaps": {
+          "type": "array",
+          "description": "注册表查不到模板的 required capability 显式记录(Phase 13,替代静默丢弃)",
+          "items": {
+            "type": "object",
+            "properties": {
+              "capability_id": {"type": "string", "description": "缺口能力 ID"},
+              "domain_type": {"type": "string", "enum": ["gameplay", "baseline"], "description": "能力域"},
+              "reason": {"type": "string", "description": "缺口原因,当前固定 no_template"},
+              "source_anchor": {"type": "string", "description": "该能力在 GDD 中的出处锚点(可为空)"}
+            },
+            "required": ["capability_id", "domain_type", "reason"],
+            "additionalProperties": false
+          }
+        }
       }
     }
   }
