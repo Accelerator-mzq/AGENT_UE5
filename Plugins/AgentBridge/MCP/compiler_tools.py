@@ -8,6 +8,7 @@ Compiler 前端 MCP 工具适配层。
 
 from __future__ import annotations
 
+import importlib.util
 import sys
 from pathlib import Path
 from typing import Any
@@ -429,5 +430,203 @@ def compiler_stage4_node_save(
         return _make_response(
             "failed",
             f"Stage 4 节点保存失败: {exc}",
+            errors=[f"TOOL_EXECUTION_FAILED: {str(exc)}"],
+        )
+
+
+# ---------------------------------------------------------------------------
+# Phase 13 S3.5: Skill 合成工具对（prepare / save）
+# ---------------------------------------------------------------------------
+
+# Compiler/stages 下的单文件模块目录（stages 内部模块未安装为包，需 importlib 加载）
+_STAGES_DIR = PLUGIN_DIR / "Compiler" / "stages"
+# _load_stage_module 的模块级缓存：同名 stages 模块全进程只 exec 一次
+_STAGE_MODULE_CACHE: dict[str, Any] = {}
+
+
+def _load_stage_module(name: str):
+    """经 importlib 加载 Compiler/stages 下的兄弟单文件模块；带模块级缓存。
+
+    测试可经同一缓存实例做 monkeypatch 注入（如把 skill_synthesis 的
+    DEFAULT_TEMPLATES_ROOT 指到 tmp 目录，避免污染真实模板树）。
+    """
+    module = _STAGE_MODULE_CACHE.get(name)
+    if module is None:
+        spec = importlib.util.spec_from_file_location(name, _STAGES_DIR / f"{name}.py")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        _STAGE_MODULE_CACHE[name] = module
+    return module
+
+
+def compiler_skill_synthesis_prepare(session_path: str, capability_id: str) -> dict:
+    """S3.5 合成准备：为指定 capability gap 组装合成载荷。
+
+    载荷 = gap 上下文 + GDD 摘录 + 约束 + 6 文件规范 + 范例模板 + family 白名单，
+    经 skill_synthesis.build_synthesis_prepare_payload 组装后透传给 Agent。
+    """
+    target_path = Path(session_path)
+    if not target_path.exists():
+        return _missing_file_response(session_path, "session 文件")
+
+    try:
+        session = _load_session(session_path)
+
+        # Stage 3 Skill Graph 是 capability gap 的事实源（照抄 stage4 工具的产物读取模式）
+        skill_graph = _load_stage_artifact(session, 3)
+        if not skill_graph:
+            return _make_response(
+                "failed",
+                "合成准备失败：Stage 3 Skill Graph 产物不存在，请先完成 Stage 3",
+                errors=["PREREQUISITE_MISSING: skill_graph.json"],
+            )
+
+        gaps = {
+            gap.get("capability_id"): gap
+            for gap in skill_graph.get("metadata", {}).get("capability_gaps", [])
+        }
+        gap = gaps.get(capability_id)
+        if gap is None:
+            return _make_response(
+                "failed",
+                f"合成准备失败：{capability_id} 不在 capability_gaps 中",
+                data={"known_gaps": sorted(key for key in gaps if key)},
+                errors=[f"UNKNOWN_CAPABILITY_GAP: {capability_id}"],
+            )
+
+        warnings: list[str] = []
+
+        # 约束上下文来自 Stage 1 Root Skill Contract；缺失降级为空约束（不阻断合成）
+        root_skill_contract = _load_stage_artifact(session, 1)
+        constraints = root_skill_contract.get("constraint_fields", {}) if root_skill_contract else {}
+        if not root_skill_contract:
+            warnings.append("root_skill_contract.json 缺失，constraints 为空")
+
+        # GDD 摘录：按 gap.source_anchor 提取 session.gdd_path 中对应章节。
+        # gdd_coverage 是 Task 9 才落地的模块——未就绪前整块兜底为空摘录，
+        # Task 9 落地后本块自然生效，无需回改。
+        gdd_excerpt = ""
+        anchor = (gap.get("source_anchor") or "").strip()
+        if anchor:
+            try:
+                coverage = _load_stage_module("gdd_coverage")
+                gdd_text = Path(session.gdd_path).read_text(encoding="utf-8")
+                for section in coverage.split_gdd_sections(gdd_text):
+                    if section.get("heading") == anchor:
+                        gdd_excerpt = section.get("text", "")
+                        break
+                if not gdd_excerpt:
+                    warnings.append(f"GDD 中未找到 anchor 对应章节: {anchor}，摘录为空")
+            except Exception:
+                warnings.append("gdd_coverage 未就绪，摘录为空")
+        else:
+            warnings.append("gap 无 source_anchor，GDD 摘录为空")
+
+        synthesis = _load_stage_module("skill_synthesis")
+        try:
+            payload = synthesis.build_synthesis_prepare_payload(
+                capability_id=capability_id,
+                gap=gap,
+                gdd_excerpt=gdd_excerpt,
+                constraints=constraints,
+            )
+        except ValueError as exc:
+            # 非法 capability_id（fail-fast）：数据/编程错误，不进 agent 重试闭环
+            return _make_response(
+                "failed",
+                f"合成准备失败：capability_id 非法: {capability_id}",
+                errors=[f"INVALID_ARGS: {exc}"],
+            )
+
+        return _make_response(
+            "success",
+            f"合成准备完成: {capability_id}（范例 {len(payload['exemplars'])} 个），"
+            "请按 instructions 现场合成 6 文件包后调用 compiler_skill_synthesis_save 提交",
+            data=payload,
+            warnings=warnings,
+        )
+    except Exception as exc:
+        return _make_response(
+            "failed",
+            f"合成准备失败: {exc}",
+            errors=[f"TOOL_EXECUTION_FAILED: {str(exc)}"],
+        )
+
+
+def compiler_skill_synthesis_save(session_path: str, capability_id: str, six_files: dict) -> dict:
+    """S3.5 合成提交：机器校验后落盘 pending_review 并刷新人审清单。
+
+    三态映射（save_synthesized_package → MCP 统一返回）：
+      - saved    → success（包落盘 + 人审清单刷新；人审 approved 前 Stage 3 不可见）
+      - rejected → failed（内容问题：按 errors 修正后重提，走 agent 重试闭环）
+      - failed   → failed（环境问题：勿修改内容重试，先排查环境）
+    两种 failed 的 summary 措辞可区分，data.synthesis_status 保留原始三态值。
+    """
+    target_path = Path(session_path)
+    if not target_path.exists():
+        return _missing_file_response(session_path, "session 文件")
+
+    # MCP 层可能把 six_files 透传成字符串等非 dict 值：显式拦截，给明确文案
+    if not isinstance(six_files, dict):
+        return _make_response(
+            "failed",
+            "合成提交失败：six_files 必须是 object（key=文件名，value=文件内容字符串），"
+            "请改为结构化对象后重提",
+            errors=[f"INVALID_ARGS: six_files 期望 object，实际 {type(six_files).__name__}"],
+        )
+
+    try:
+        session = _load_session(session_path)
+        synthesis = _load_stage_module("skill_synthesis")
+
+        # 不传 templates_root / family_whitelist：走插件默认模板树与正式库白名单
+        result = synthesis.save_synthesized_package(
+            capability_id=capability_id,
+            six_files=six_files,
+        )
+
+        if result["status"] == "rejected":
+            return _make_response(
+                "failed",
+                f"合成包未通过机器校验（{len(result['errors'])} 项）：按 errors 修正后重提",
+                data={"synthesis_status": "rejected", "package_dir": result.get("package_dir", "")},
+                errors=result["errors"],
+            )
+
+        if result["status"] == "failed":
+            return _make_response(
+                "failed",
+                "合成包落盘失败（环境错误，非内容错误）：勿修改内容重试，"
+                "请先排查环境（磁盘/权限），排查后可原样重提",
+                data={"synthesis_status": "failed", "package_dir": result.get("package_dir", "")},
+                errors=result["errors"],
+            )
+
+        # saved：刷新人审清单（run 目录 = session.output_dir，照抄现行 run 目录推导）
+        warnings = ["该包未经人审，Stage 3 暂不可见（人审 approved 后才纳入注册表）"]
+        review_path = None
+        try:
+            review_path = synthesis.generate_synthesis_review(session.output_dir)
+            review_note = f"，人审清单已刷新: {review_path}"
+        except Exception as review_exc:
+            # 包已落盘成功，清单刷新失败只降级为 warning，不掩盖 saved 事实
+            warnings.append(f"人审清单刷新失败（包已落盘）: {review_exc}")
+            review_note = "，但人审清单刷新失败（见 warnings）"
+
+        return _make_response(
+            "success",
+            f"合成包已落盘 {result['package_dir']}（review_status=pending_review）{review_note}",
+            data={
+                "synthesis_status": "saved",
+                "package_dir": result["package_dir"],
+                "review_path": review_path,
+                "next": "人审通过后把该包 manifest.yaml 的 review_status 改为 approved，再重跑 Stage 3",
+            },
+            warnings=warnings,
+        )
+    except Exception as exc:
+        return _make_response(
+            "failed",
+            f"合成提交失败: {exc}",
             errors=[f"TOOL_EXECUTION_FAILED: {str(exc)}"],
         )

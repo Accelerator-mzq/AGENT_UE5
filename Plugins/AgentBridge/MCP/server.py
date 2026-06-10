@@ -802,6 +802,8 @@ TOOL_DISPATCH.update(
         "compiler_get_session_status": ("compiler", compiler_tools.compiler_get_session_status),
         "compiler_stage4_node_prepare": ("compiler", compiler_tools.compiler_stage4_node_prepare),
         "compiler_stage4_node_save": ("compiler", compiler_tools.compiler_stage4_node_save),
+        "compiler_skill_synthesis_prepare": ("compiler", compiler_tools.compiler_skill_synthesis_prepare),
+        "compiler_skill_synthesis_save": ("compiler", compiler_tools.compiler_skill_synthesis_save),
     }
 )
 TOOL_DISPATCH.update(

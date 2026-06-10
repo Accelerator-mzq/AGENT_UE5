@@ -414,6 +414,23 @@ COMPILER_FRONTEND_TOOLS = {
         },
         "returns": "校验结果、更新后的 node_state、Fragment（convergence 完成时）",
     },
+    "compiler_skill_synthesis_prepare": {
+        "description": "S3.5 合成准备：为指定 capability gap 返回 GDD 上下文、6 文件规范、范例模板与执行 family 白名单，供 Agent 现场合成 SkillTemplate。",
+        "params": {
+            "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
+            "capability_id": {"type": "string", "required": True, "description": "skill_graph metadata.capability_gaps 中的能力 ID"},
+        },
+        "returns": "gap 上下文、file_spec、exemplars、family_whitelist、naming_rules、instructions",
+    },
+    "compiler_skill_synthesis_save": {
+        "description": "S3.5 合成提交：接收 6 文件内容，机器校验失败返回具体错误供重试（status=rejected）；环境失败 status=failed 不应重试内容；通过则落盘 SkillTemplates/synthesized/<capability_id>/ 并标 review_status=pending_review。",
+        "params": {
+            "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
+            "capability_id": {"type": "string", "required": True, "description": "目标能力 ID"},
+            "six_files": {"type": "object", "required": True, "description": "key=文件名（manifest.yaml 等 6 个），value=完整文件内容字符串"},
+        },
+        "returns": "status=saved/rejected/failed、errors[]、package_dir、review 提示",
+    },
 }
 
 
@@ -527,7 +544,7 @@ ALL_TOOLS.update(EVIDENCE_JUDGE_TOOLS)
 
 TOOL_COUNT = len(ALL_TOOLS)
 # 当前 flat alias layout：
-# 7(query) + 6(write) + 5(service) + 9(asset) + 1(fallback) + 12(compiler_frontend) + 11(evidence_backend) = 51
+# 7(query) + 6(write) + 5(service) + 9(asset) + 1(fallback) + 16(compiler_frontend) + 11(evidence_backend) = 55
 
 
 def to_json_schema(tool_def: dict) -> dict:
