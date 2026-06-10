@@ -16,7 +16,11 @@ _HEADING_RE = re.compile(r"^(#{1,6})\s+(.*)$")
 
 
 def split_gdd_sections(gdd_text: str) -> List[Dict[str, Any]]:
-    """按 markdown 标题切分;无任何标题时整篇为一段(优雅降级)。"""
+    """按 markdown 标题切分;无任何标题时整篇为一段(优雅降级)。
+
+    每段字段:heading(标题文本)/ level(标题层级)/ start_line(起始行号)
+    / text(含标题行的原文)/ body(不含标题行的正文;降级段无标题行,body=全文)。
+    """
     lines = gdd_text.splitlines()
     sections: List[Dict[str, Any]] = []
     current: Dict[str, Any] | None = None
@@ -30,17 +34,34 @@ def split_gdd_sections(gdd_text: str) -> List[Dict[str, Any]]:
                 "level": len(match.group(1)),
                 "start_line": line_number,
                 "text": line + "\n",
+                "body": "",
             }
         elif current is not None:
             current["text"] += line + "\n"
+            current["body"] += line + "\n"
     if current is not None:
         sections.append(current)
     if not sections:
         return [{
             "heading": "<整篇文档(未检出 markdown 标题,矩阵降级)>",
-            "level": 0, "start_line": 1, "text": gdd_text,
+            "level": 0, "start_line": 1, "text": gdd_text, "body": gdd_text,
         }]
     return sections
+
+
+def _is_structural_container(
+    section: Dict[str, Any], next_section: Dict[str, Any] | None
+) -> bool:
+    """纯结构容器判定(零语义):自身无正文 且 紧随其后是更深层标题。
+
+    两个条件缺一不可——同级空段/末尾空段没有子段落承接覆盖责任,
+    必须保持 unclaimed 可见,不许借容器身份被静默吞掉。
+    """
+    if next_section is None:
+        return False  # 末尾段:无后继,谈不上"由子段落承担"
+    if (section.get("body") or "").strip():
+        return False  # 有自身正文:正文必须被认领,不许逃逸
+    return next_section["level"] > section["level"]
 
 
 def build_coverage_matrix(
@@ -61,21 +82,12 @@ def build_coverage_matrix(
     rows = []
     for index, section in enumerate(sections):
         claimed_by = sorted(claims.get(section["heading"], []))
-        # 纯结构容器判定(零语义):自身无正文(去掉标题行后为空白)且紧随其后
-        # 是更深层标题——如文档总标题/章标题,覆盖责任由子段落承担,不计入
-        # 无人认领。只看标题层级与正文是否为空,不依赖任何词表。
-        # level == 0 是非 markdown 降级段(无标题行),正文即全文,不剥首行。
-        if section["level"] > 0:
-            own_body = "\n".join(section["text"].splitlines()[1:])
-        else:
-            own_body = section["text"]
-        has_deeper_child = (
-            index + 1 < len(sections)
-            and sections[index + 1]["level"] > section["level"]
-        )
+        # 容器判定见 _is_structural_container:文档总标题/章标题这类
+        # "无正文+紧随更深层标题"的段落,覆盖责任由子段落承担,不计入无人认领
+        next_section = sections[index + 1] if index + 1 < len(sections) else None
         if claimed_by:
-            status = "claimed"
-        elif not own_body.strip() and has_deeper_child:
+            status = "claimed"  # 认领优先:被 anchor 指到的容器也算认领
+        elif _is_structural_container(section, next_section):
             status = "container"
         else:
             status = "unclaimed"
@@ -103,6 +115,10 @@ def render_coverage_markdown(matrix: Dict[str, Any]) -> str:
     lines.append("")
     for row in unclaimed:
         lines.append(f"- L{row['start_line']} {row['heading']}")
+    # 容器段(纯结构标题)被省略必须可审计:标注省略数,区分"被省略"与"渲染漏了"
+    container_count = sum(1 for row in matrix["rows"] if row["status"] == "container")
+    if container_count:
+        lines.append(f"(另有 {container_count} 个纯结构容器标题未列出)")
     lines.append("")
     lines.append("## 已认领段落")
     lines.append("")
