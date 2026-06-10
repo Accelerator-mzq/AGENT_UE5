@@ -81,8 +81,8 @@ def _make_run(tmp_path):
 
     v2.0 session + 手动登记 stage_1/stage_3 产物路径(模拟 Stage 1/3 已完成),
     与 save_stage 的登记方式同构(stage_outputs["stage_N"] = 产物绝对路径)。
-    skill_graph 带一条 capability gap(含 source_anchor,覆盖 gdd_coverage
-    未就绪的兜底路径)。返回 (session_path, run_dir)。
+    skill_graph 带一条 capability gap(source_anchor 指向真实写入的 GDD
+    章节标题,prepare 摘录应命中)。返回 (session_path, run_dir)。
     """
     if str(PLUGIN_ROOT) not in sys.path:
         sys.path.insert(0, str(PLUGIN_ROOT))
@@ -147,7 +147,7 @@ def _make_official_manifest(templates_root: Path) -> None:
 
 class TestSynthesisPrepareHandler:
     def test_prepare_success_payload_fields_complete(self, tmp_path):
-        """合法 gap:success 且载荷字段齐全;gdd_coverage 未就绪时摘录为空 + warning。"""
+        """合法 gap:success 且载荷字段齐全;gdd_coverage 已就绪,anchor 命中即摘录非空。"""
         ct = _import_compiler_tools()
         session_path, _run_dir = _make_run(tmp_path)
         result = ct.compiler_skill_synthesis_prepare(session_path, "gameplay-auction")
@@ -162,12 +162,11 @@ class TestSynthesisPrepareHandler:
         assert payload["gap"]["source_anchor"] == "2.4 地产拍卖"
         assert payload["constraints"]["game.max_players"]["value"] == 6
         assert "manifest.yaml" in payload["file_spec"]
-        # gdd_coverage 是 Task 9 模块,当前未落地:摘录置空 + warning 提示
-        # 注意:Task 9(gdd_coverage)落地后本断言需翻转为非空摘录
-        # (anchor "2.4 地产拍卖" 应命中 _make_run 写入的 GDD 章节)——
-        # 属预期 break,Task 9 执行者按此修,勿当回归 bug 处理。
-        assert payload["gdd_excerpt"] == ""
-        assert any("gdd_coverage" in w for w in result["warnings"]), result["warnings"]
+        # Task 9 已落地:anchor "2.4 地产拍卖" 命中 _make_run 写入的 GDD 章节,
+        # 摘录非空且含该章节正文;"gdd_coverage 未就绪"的 warning 不应再出现。
+        assert payload["gdd_excerpt"], "gdd_coverage 已就绪,anchor 命中时摘录不应为空"
+        assert "玩家拒购时地产进入英式拍卖" in payload["gdd_excerpt"]
+        assert not any("gdd_coverage" in w for w in result["warnings"]), result["warnings"]
         # 白名单来自真实正式库(只读扫描),应含既有 family
         assert "property_economy_spec" in payload["family_whitelist"]
 
