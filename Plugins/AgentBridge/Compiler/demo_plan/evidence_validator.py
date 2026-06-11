@@ -117,10 +117,10 @@ def validate_evidence(story: Dict[str, Any], evidence: Dict[str, Any], project_r
         try:
             report = json.loads((root / str(smoke_rel)).read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError) as exc:
-            report = None
             errors.append(f"smoke_report 不可解析: {exc}")
-        if report is not None:
-            # 合法 JSON 但非对象(如数组/标量)时拒绝而非崩溃,保住重试闭环契约
+        else:
+            # try/except/else 结构,避免 JSON null 与解析失败哨兵撞值导致静默放行
+            # 合法 JSON 但非对象(如 null/数组/标量)时拒绝而非崩溃,保住重试闭环契约
             if not isinstance(report, dict):
                 errors.append(f"smoke_report 格式错误: 期望 JSON 对象,实际 {type(report).__name__}")
             else:

@@ -126,3 +126,12 @@ class TestEvidenceValidator:
         out = ev.validate_evidence(_story("Logic"), evidence, workspace_tmp_path)
         assert out["status"] == "rejected"
         assert any("格式错误" in e for e in out["errors"])
+
+    def test_dmp30b_smoke_report_json_null_rejected(self, workspace_tmp_path):
+        ev = _load("evidence_validator")
+        evidence = {"files_changed": [_touch(workspace_tmp_path, "a.cpp")],
+                    "test_report": _touch(workspace_tmp_path, "t.json", "{}"),
+                    "smoke_report": _touch(workspace_tmp_path, "smoke_report.json", "null")}
+        out = ev.validate_evidence(_story("Logic"), evidence, workspace_tmp_path)
+        assert out["status"] == "rejected"
+        assert any("NoneType" in e for e in out["errors"])
