@@ -124,6 +124,10 @@ EXAMPLE_TO_SCHEMA: Dict[str, str] = {
     # === Phase 13 GDD 覆盖矩阵 ===
     "phase13_gdd_coverage_matrix.example.json":
         "gdd_coverage_matrix.schema.json",
+
+    # === Phase 14 demo-first 增量主链 ===
+    "phase14_demo_plan.example.json": "demo_plan.schema.json",
+    "phase14_demo_story.example.json": "demo_story.schema.json",
 }
 
 # 这些 example 默认跳过自动 schema 校验，仅作为参考样例。

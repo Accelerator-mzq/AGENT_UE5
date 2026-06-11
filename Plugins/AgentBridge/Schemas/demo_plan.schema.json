@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "demo_plan",
+  "description": "Phase 14 demo-first:批次计划。v0 批 = 全部库内绑定节点;每个合成节点一个增量批;批内拓扑序;每批末尾文档 story。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["plan_schema_version", "run_id", "source_graph_id", "manifest_version", "batches"],
+  "properties": {
+    "plan_schema_version": {"type": "string"},
+    "run_id": {"type": "string"},
+    "source_graph_id": {"type": "string", "description": "来源 skill_graph 的 graph_id"},
+    "manifest_version": {"type": "string", "description": "切批时施工规范版本"},
+    "batches": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["batch_id", "story_ids"],
+        "properties": {
+          "batch_id": {"type": "string", "pattern": "^(v0|increment-[0-9]+)$"},
+          "story_ids": {"type": "array", "items": {"type": "string"}, "minItems": 1,
+                        "description": "批内拓扑序,末位恒为文档 story"}
+        }
+      }
+    }
+  }
+}

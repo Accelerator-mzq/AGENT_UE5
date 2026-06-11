@@ -1,0 +1,30 @@
+{
+  "story_schema_version": "1.0.0",
+  "story_id": "story-skill-board-topology",
+  "batch_id": "v0",
+  "story_kind": "capability",
+  "capability_id": "gameplay-board-topology",
+  "instance_id": "skill-board-topology",
+  "evidence_class": "Logic",
+  "depends_on": [],
+  "materials": {
+    "gdd_path": "ProjectInputs/GDD/monopoly_extended_auction_v1.md",
+    "gdd_anchors": ["1. 游戏概述"],
+    "contract_path": "ProjectState/runs/run-20260611-052252-5101/root_skill_contract.json",
+    "skill_graph_path": "ProjectState/runs/run-20260611-052252-5101/skill_graph.json",
+    "template_id": "monopoly.board_topology.phase1",
+    "template_source": "plugin_skill_template",
+    "template_dir": null,
+    "construction_manifest_path": "ProjectInputs/ConstructionManifest/demo_plugin_standards.md",
+    "extra_paths": []
+  },
+  "acceptance_criteria": [
+    "demo plugin 编译通过且既有冒烟用例不破(证据: smoke_report)",
+    "按 evidence_class=Logic 提交全部必交证据并通过机器校验",
+    "实现范围对 GDD 锚点自证: 1. 游戏概述",
+    "设计取舍零提问: 未定点给默认值并记入 provisional_decisions"
+  ],
+  "status": "pending",
+  "attempts": 0,
+  "manifest_version": "1.0.0"
+}

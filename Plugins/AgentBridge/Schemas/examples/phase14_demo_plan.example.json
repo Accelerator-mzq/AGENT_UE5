@@ -1,0 +1,10 @@
+{
+  "plan_schema_version": "1.0.0",
+  "run_id": "run-20260611-052252-5101",
+  "source_graph_id": "graph-20260611-0001",
+  "manifest_version": "1.0.0",
+  "batches": [
+    {"batch_id": "v0", "story_ids": ["story-skill-board-topology", "story-v0-docs"]},
+    {"batch_id": "increment-1", "story_ids": ["story-skill-property-auction", "story-increment-1-docs"]}
+  ]
+}
