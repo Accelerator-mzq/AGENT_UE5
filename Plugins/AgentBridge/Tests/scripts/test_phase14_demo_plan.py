@@ -176,6 +176,11 @@ class TestDemoPlanCli:
         assert plan["run_id"] == "run-cli-test"
         assert (workspace_tmp_path / "stories" / "story-skill-a.json").exists()
 
+    def test_dmp39b_cli_fails_friendly_on_missing_run_dir(self, workspace_tmp_path, project_root):
+        result = self._run_cli(workspace_tmp_path / "nope", project_root)
+        assert result.returncode == 2
+        assert "[FAIL]" in result.stderr and "Traceback" not in result.stderr
+
     def test_dmp39a_cli_fails_closed_on_missing_run_id(self, workspace_tmp_path, project_root):
         import json as _json
         self._seed(workspace_tmp_path)

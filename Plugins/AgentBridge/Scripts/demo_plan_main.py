@@ -22,9 +22,16 @@ PROJECT_ROOT = PLUGIN_ROOT.parents[1]
 
 
 def _load(name):
-    """加载 Compiler/demo_plan 自包含模块(与测试同款 importlib 模式)。"""
-    spec = importlib.util.spec_from_file_location(
-        name, PLUGIN_ROOT / "Compiler" / "demo_plan" / f"{name}.py")
+    """加载 Compiler/demo_plan 自包含模块(与测试同款 importlib 模式)。
+
+    机制模块缺失属安装/环境损坏,统一 [FAIL] 风格 + 退出码 2
+    (选 print+sys.exit 而非抛异常:CLI 自包含,main 不另包 _load,操作者直接看到原因)。
+    """
+    module_path = PLUGIN_ROOT / "Compiler" / "demo_plan" / f"{name}.py"
+    spec = importlib.util.spec_from_file_location(name, module_path)
+    if spec is None or spec.loader is None:
+        print(f"[FAIL] 机制模块缺失: {name}({module_path})", file=sys.stderr)
+        sys.exit(2)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -33,12 +40,21 @@ def _load(name):
 def main() -> int:
     parser = argparse.ArgumentParser(description="Phase 14 demo_plan 生成")
     parser.add_argument("--run-dir", required=True)
-    parser.add_argument("--manifest", default=None, help="施工规范路径(缺省项目层默认位置)")
+    parser.add_argument("--manifest", default=None,
+                        help="施工规范路径(缺省项目层默认位置;相对路径基准为进程 cwd)")
     args = parser.parse_args()
     run_dir = Path(args.run_dir)
 
-    graph = json.loads((run_dir / "skill_graph.json").read_text(encoding="utf-8"))
-    contract = json.loads((run_dir / "root_skill_contract.json").read_text(encoding="utf-8"))
+    # 输入缺件/损坏不许裸 traceback:runbook 操作者要直接看到原因(统一 [FAIL]+退出码 2)
+    try:
+        graph = json.loads((run_dir / "skill_graph.json").read_text(encoding="utf-8"))
+        contract = json.loads((run_dir / "root_skill_contract.json").read_text(encoding="utf-8"))
+    except (FileNotFoundError, OSError) as exc:
+        print(f"[FAIL] run 目录或必需产物不存在: {exc}", file=sys.stderr)
+        return 2
+    except json.JSONDecodeError as exc:
+        print(f"[FAIL] run 产物 JSON 不可解析: {exc}", file=sys.stderr)
+        return 2
 
     gaps = (graph.get("metadata") or {}).get("capability_gaps") or []
     if gaps:
@@ -75,14 +91,19 @@ def main() -> int:
     schemas_dir = PLUGIN_ROOT / "Schemas"
     plan_schema = json.loads((schemas_dir / "demo_plan.schema.json").read_text(encoding="utf-8"))
     story_schema = json.loads((schemas_dir / "demo_story.schema.json").read_text(encoding="utf-8"))
-    jsonschema.validate(out["plan"], plan_schema)
-    for story in out["stories"]:
-        jsonschema.validate(story, story_schema)
+    try:
+        jsonschema.validate(out["plan"], plan_schema)
+        for story in out["stories"]:
+            jsonschema.validate(story, story_schema)
+    except jsonschema.ValidationError as exc:
+        print(f"[FAIL] 产物 schema 校验失败: {exc.message}(路径: {list(exc.path)})", file=sys.stderr)
+        return 2
 
     stories_dir = run_dir / "stories"
     stories_dir.mkdir(exist_ok=True)
 
     def atomic_write(path: Path, data):
+        # 与 story_store 同款事务形状(.part 暂存 + os.replace 原子换名);CLI 自包含故意不抽公共
         tmp = path.with_suffix(".json.part")
         tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
         os.replace(tmp, path)
