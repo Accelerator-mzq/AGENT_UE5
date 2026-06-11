@@ -268,7 +268,7 @@ Codex 驱动,同一 GDD(`monopoly_extended_auction_v1.md`),新开 run:
 | 4b. 重试闭环实战 | ✅ | 故意缺 evaluator_prompt 提交 → `synthesis_status=rejected`,错误"缺少或为空: evaluator_prompt.md";修正重提 saved |
 | 5. 人审 gate | ✅ | 拦截验证:pending 包重跑 Stage 3 gap 仍 2 条、合成节点不入图;msc 审阅 12 文件全文后批准,review_status 改 approved |
 | 6. gap 清空 | ✅ | 重跑 Stage 3:gaps=0,18 节点,skill-property-auction/skill-stock-market 入图且 `template_source=synthesized`,manifest 声明依赖边换算正确 |
-| 7. Stage 4-7 + promote | ✅ | 18 节点 Stage 4 完成(合成节点内容 agent 创作,库内节点 fallback——Phase 11 e2e 同款),Handoff v3:`ProjectState/runs/run-20260611-052252-5101/reviewed_handoff_v3.json`;`evidence_promote_run` → **PROMOTE_REJECTED**(双重拦截:synthesized 节点清单 + metadata.promotable=false) |
+| 7. Stage 4-7 + promote | ✅ | 18 节点 Stage 4 完成(合成节点:**发散维度为 agent 创作且全程留痕**(auction.pass_reentry 等流入 design_space_report 与 decision_log),**收敛选择值落入 fallback 候选命名**(驱动脚本注入的收敛键未被 fragment 组装读到,事后核查披露,不影响本判据——测的是合成链/守卫而非 Stage 4 内容保真);库内节点 fallback——Phase 11 e2e 同款),Handoff v3:`ProjectState/runs/run-20260611-052252-5101/reviewed_handoff_v3.json`;`evidence_promote_run` → **PROMOTE_REJECTED**(双重拦截:synthesized 节点清单 + metadata.promotable=false) |
 | 8. Codex MCP 注册 | ✅ | msc 授权,`~/.codex/config.toml` 加 `[mcp_servers.agentbridge]`(py312 起 server),`codex mcp list` 确认 enabled |
 | 9. Codex 端等价 | ✅ | run_id=`run-20260611-073328-cec6`,gap 集合与 anchor 值逐项一致、四产物 schema 全过、两包过校验(pending_review)、Codex 拍卖包首提缺 realization_class 被拒后自修正重提(独立 agent 重试闭环实证);对比报告:`ProjectState/Reports/2026-06-11/phase13_dual_harness_comparison.md` |
 | 10. 真机 UE 执行 | ⚠️ 部分达成(msc 裁决口径) | Handoff 6 个 widget 步骤真机落地(C++ Subsystem CreateBlueprintChild),元数据验证+SaveNamedAssets 成功;10 个 cpp 步骤按 Phase 11 先例不真机执行;**拍卖/交易所独立面板因 family 级 lowering 合并不可达成**(见发现 1) |
