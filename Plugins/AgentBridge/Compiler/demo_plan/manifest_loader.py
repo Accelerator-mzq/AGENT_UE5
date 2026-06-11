@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Optional, Tuple
 
 DEFAULT_MANIFEST_REL = Path("ProjectInputs") / "ConstructionManifest" / "demo_plugin_standards.md"
-_VERSION_LINE = re.compile(r"^manifest_version:\s*([0-9][0-9.]*)\s*$", re.MULTILINE)
+_VERSION_LINE = re.compile(r"^manifest_version:\s*(\d+\.\d+\.\d+)\s*$", re.MULTILINE)
 
 
 def load_construction_manifest(project_root, path: Optional[Path] = None) -> Tuple[str, str]:

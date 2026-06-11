@@ -32,11 +32,12 @@ manifest_version: 1.0.0
 - 放 `Source/<PluginName>/Private/Tests/`,UE Automation Test 框架,名字空间 `<PluginName>.Smoke`
 - v0 必含:一局从开始驱动到终局(经 GameState API,不走 UI 点击)零报错;widget 创建冒烟
 - v0 经 msc PROCEED 后用例冻结(hash 守门),增量批只许新增用例文件,不许改既有
+- 基线冻结由验收 runbook 在 msc PROCEED 时调用 evidence_validator.freeze_v0_baseline 落盘 v0_smoke_baseline.json,agent 无需自行触发
 
 ## 5. Provisional 决策留痕
 
 - GDD 未规定的设计点:给默认值继续,不许停下提问
-- 每条记入 submit 载荷 provisional_decisions:{"decision": 内容, "rationale": 依据, "scope": 影响面}
+- 每条记入 demo_story_submit 的 evidence.provisional_decisions 数组:{"decision": 内容, "rationale": 依据, "scope": 影响面};story verified 后随 evidence 存档于 story JSON
 
 ## 6. 文档(批末文档 story 产出)
 

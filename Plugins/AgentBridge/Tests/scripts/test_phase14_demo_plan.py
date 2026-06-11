@@ -135,3 +135,11 @@ class TestManifestLoader:
         import pytest
         with pytest.raises(ValueError, match="manifest_version"):
             ml.load_construction_manifest(workspace_tmp_path, path=bad)
+
+    def test_dmp32a_malformed_version_fails_closed(self, workspace_tmp_path):
+        ml = _load("manifest_loader")
+        bad = workspace_tmp_path / "m.md"
+        bad.write_text("manifest_version: 1..\n# x", encoding="utf-8")
+        import pytest
+        with pytest.raises(ValueError, match="manifest_version"):
+            ml.load_construction_manifest(workspace_tmp_path, path=bad)
