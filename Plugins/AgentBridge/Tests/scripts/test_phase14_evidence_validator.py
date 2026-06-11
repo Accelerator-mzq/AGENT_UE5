@@ -117,3 +117,12 @@ class TestEvidenceValidator:
         on_disk = json.loads((workspace_tmp_path / "v0_smoke_baseline.json").read_text(encoding="utf-8"))
         assert on_disk == baseline and rel.replace("\\", "/") in on_disk["files"]
         assert len(list(on_disk["files"].values())[0]) == 64
+
+    def test_dmp30a_smoke_report_non_dict_json_rejected_not_crash(self, workspace_tmp_path):
+        ev = _load("evidence_validator")
+        evidence = {"files_changed": [_touch(workspace_tmp_path, "a.cpp")],
+                    "test_report": _touch(workspace_tmp_path, "t.json", "{}"),
+                    "smoke_report": _touch(workspace_tmp_path, "smoke_report.json", "[1, 2]")}
+        out = ev.validate_evidence(_story("Logic"), evidence, workspace_tmp_path)
+        assert out["status"] == "rejected"
+        assert any("格式错误" in e for e in out["errors"])

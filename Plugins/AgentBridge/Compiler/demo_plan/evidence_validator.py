@@ -120,11 +120,15 @@ def validate_evidence(story: Dict[str, Any], evidence: Dict[str, Any], project_r
             report = None
             errors.append(f"smoke_report 不可解析: {exc}")
         if report is not None:
-            if report.get("status") != "pass":
-                errors.append(f"smoke_report 状态非 pass: {report.get('status')}")
-            # 增量批还须 v0 回归通过
-            if str(story.get("batch_id", "")).startswith("increment") and report.get("v0_regression") != "pass":
-                errors.append(f"增量批要求 v0 回归 pass,实际: {report.get('v0_regression')}")
+            # 合法 JSON 但非对象(如数组/标量)时拒绝而非崩溃,保住重试闭环契约
+            if not isinstance(report, dict):
+                errors.append(f"smoke_report 格式错误: 期望 JSON 对象,实际 {type(report).__name__}")
+            else:
+                if report.get("status") != "pass":
+                    errors.append(f"smoke_report 状态非 pass: {report.get('status')}")
+                # 增量批还须 v0 回归通过
+                if str(story.get("batch_id", "")).startswith("increment") and report.get("v0_regression") != "pass":
+                    errors.append(f"增量批要求 v0 回归 pass,实际: {report.get('v0_regression')}")
 
     # ── 4. 增量批 baseline 检查 ─────────────────────────────────────────────
     if str(story.get("batch_id", "")).startswith("increment"):
