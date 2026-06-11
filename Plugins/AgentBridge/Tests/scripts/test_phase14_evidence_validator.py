@@ -153,3 +153,14 @@ class TestEvidenceValidator:
                                     "story_kind": "capability", "evidence_class": "Bogus"},
                                    {"files_changed": []}, workspace_tmp_path)
         assert out["status"] == "rejected" and any("evidence_class" in e for e in out["errors"])
+
+    def test_dmp30e_doc_reference_matches_ue_api_macro_form(self, workspace_tmp_path):
+        ev = _load("evidence_validator")
+        plugin = workspace_tmp_path / "Plugins" / "DemoX"
+        _touch(workspace_tmp_path, "Plugins/DemoX/Source/DemoX/Core.h",
+               "class DEMOX_API ARealActor : public AActor {};")
+        doc = _touch(workspace_tmp_path, "Plugins/DemoX/Docs/arch.md", "核心类 `ARealActor`。")
+        evidence = {"files_changed": [doc], "doc_paths": [doc]}
+        out = ev.validate_evidence(_story("Config", kind="documentation"), evidence,
+                                   workspace_tmp_path, plugin_root=plugin)
+        assert out["status"] == "verified", out["errors"]

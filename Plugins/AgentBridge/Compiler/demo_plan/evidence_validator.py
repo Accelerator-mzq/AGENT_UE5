@@ -83,8 +83,9 @@ def _check_doc_references(doc_text: str, plugin_root: Path) -> List[str]:
             for f in sorted(source_dir.rglob(ext)):
                 corpus += f.read_text(encoding="utf-8", errors="ignore") + "\n"
     # 检查文档中反引号包裹的 UE 类名是否出现在源码语料(词边界匹配,防前缀子串误放行)
+    # 可选 MODULE_API 宏中缀:UE 导出类惯例为 class DEMOX_API AFoo,不加会大面积误拒
     for cls in sorted(set(_CLASS_TOKEN.findall(doc_text))):
-        pattern = rf"(?:class|struct|enum class)\s+{re.escape(cls)}\b"
+        pattern = rf"(?:class|struct|enum class)\s+(?:[A-Z][A-Z0-9_]*_API\s+)?{re.escape(cls)}\b"
         if not re.search(pattern, corpus):
             errors.append(f"文档引用对账: 类 {cls} 在 plugin Source 中不存在")
     # 检查文档中反引号包裹的资产路径是否在 plugin Content 目录存在
