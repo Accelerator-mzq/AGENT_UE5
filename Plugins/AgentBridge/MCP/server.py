@@ -804,6 +804,8 @@ TOOL_DISPATCH.update(
         "compiler_stage4_node_save": ("compiler", compiler_tools.compiler_stage4_node_save),
         "compiler_skill_synthesis_prepare": ("compiler", compiler_tools.compiler_skill_synthesis_prepare),
         "compiler_skill_synthesis_save": ("compiler", compiler_tools.compiler_skill_synthesis_save),
+        "demo_story_fetch": ("compiler", compiler_tools.demo_story_fetch),
+        "demo_story_submit": ("compiler", compiler_tools.demo_story_submit),
     }
 )
 TOOL_DISPATCH.update(

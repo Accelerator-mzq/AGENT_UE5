@@ -754,3 +754,61 @@ def compiler_skill_synthesis_save(session_path: str, capability_id: str, six_fil
             f"合成提交失败: {exc}",
             errors=[f"TOOL_EXECUTION_FAILED: {str(exc)}"],
         )
+
+
+# ---------------- Phase 14 demo-first:story 工具对 ----------------
+
+from Compiler.demo_plan import story_store, evidence_validator, velocity, manifest_loader  # noqa: E402
+
+
+def _demo_project_root(project_root=None):
+    """project_root 仅测试注入用;生产路径 = 由本文件位置向上三级(MCP → AgentBridge → Plugins → 项目根)。"""
+    return Path(project_root) if project_root else Path(__file__).resolve().parents[3]
+
+
+def demo_story_fetch(session_path: str, story_id: str = None, project_root: str = None) -> dict:
+    """取施工 story 全包:story + 施工规范全文 + 版本对账告警。"""
+    try:
+        import json as _json  # 本文件无文件级 import json,保持既有风格
+        root = _demo_project_root(project_root)
+        store = story_store.StoryStore(session_path)
+        story = store.fetch(story_id)
+        manifest_text, manifest_version = manifest_loader.load_construction_manifest(root)
+        warning = None
+        if story.get("manifest_version") != manifest_version:
+            warning = (f"施工规范版本不符: story 切批于 {story.get('manifest_version')},"
+                       f"当前 {manifest_version},请人工确认差异后再施工")
+        velocity.append_event(session_path, {"kind": "fetch", "story_id": story["story_id"],
+                                             "attempts": story.get("attempts", 0)})
+        return {"success": True, "data": {"story": story, "construction_manifest": manifest_text,
+                                          "manifest_warning": warning}}
+    except (ValueError, OSError, _json.JSONDecodeError) as exc:
+        return {"success": False, "error": f"demo_story_fetch 失败: {exc}"}
+
+
+def demo_story_submit(session_path: str, story_id: str, evidence: dict,
+                      project_root: str = None) -> dict:
+    """提交证据:机器校验 → verified 或回 in_progress + 具体错误清单。"""
+    try:
+        import json as _json  # 本文件无文件级 import json,保持既有风格
+        root = _demo_project_root(project_root)
+        store = story_store.StoryStore(session_path)
+        story = store.load(story_id)
+        baseline = None
+        baseline_path = Path(session_path) / "v0_smoke_baseline.json"
+        if baseline_path.exists():
+            baseline = _json.loads(baseline_path.read_text(encoding="utf-8"))
+        plugin_root = None
+        if evidence.get("plugin_root"):
+            plugin_root = root / str(evidence["plugin_root"])
+        result = evidence_validator.validate_evidence(
+            story, evidence, root, baseline=baseline, plugin_root=plugin_root)
+        updated = store.submit(story_id, evidence, result)
+        velocity.append_event(session_path, {"kind": "submit", "story_id": story_id,
+                                             "result": updated["status"],
+                                             "attempts": updated.get("attempts", 0)})
+        return {"success": True, "data": {"story_status": updated["status"],
+                                          "errors": updated.get("submit_errors", []),
+                                          "attempts": updated.get("attempts", 0)}}
+    except (ValueError, OSError, _json.JSONDecodeError) as exc:
+        return {"success": False, "error": f"demo_story_submit 失败: {exc}"}

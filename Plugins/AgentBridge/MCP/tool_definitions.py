@@ -432,6 +432,23 @@ COMPILER_FRONTEND_TOOLS = {
         },
         "returns": "data.synthesis_status=saved/rejected/failed、errors[]、package_dir、review 提示（agent 据 data.synthesis_status 决定重提内容还是排查环境）",
     },
+    "demo_story_fetch": {
+        "description": "Phase 14 demo-first:取下一个(或指定)施工 story 全包——story JSON、施工规范全文、材料路径清单。in_progress 可幂等重入续作。",
+        "params": {
+            "session_path": {"type": "string", "required": True, "description": "run 目录路径(含 demo_plan.json 与 stories/)"},
+            "story_id": {"type": "string", "required": False, "description": "缺省取计划顺序下一个可发工单"},
+        },
+        "returns": "data.story / data.construction_manifest(全文) / data.manifest_warning(版本不符告警,可为 null)",
+    },
+    "demo_story_submit": {
+        "description": "Phase 14 demo-first:提交 story 完成证据。按 evidence_class 机器校验;失败回 in_progress 并返回具体错误(重试闭环);增量批附加 v0 冒烟 hash 守门。",
+        "params": {
+            "session_path": {"type": "string", "required": True, "description": "run 目录路径"},
+            "story_id": {"type": "string", "required": True, "description": "工单 id"},
+            "evidence": {"type": "object", "required": True, "description": "files_changed/test_report/smoke_report/screenshots/doc_paths/provisional_decisions/plugin_root"},
+        },
+        "returns": "data.story_status(verified|in_progress) / data.errors / data.attempts",
+    },
 }
 
 
@@ -545,7 +562,7 @@ ALL_TOOLS.update(EVIDENCE_JUDGE_TOOLS)
 
 TOOL_COUNT = len(ALL_TOOLS)
 # 当前 flat alias layout：
-# 7(query) + 6(write) + 5(service) + 9(asset) + 1(fallback) + 16(compiler_frontend) + 11(evidence_backend) = 55
+# 7(query) + 6(write) + 5(service) + 9(asset) + 1(fallback) + 18(compiler_frontend) + 11(evidence_backend) = 57
 
 
 def to_json_schema(tool_def: dict) -> dict:
