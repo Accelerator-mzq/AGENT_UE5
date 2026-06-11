@@ -41,10 +41,17 @@ OLD_PATH_RE = re.compile(
 
 # 这些路径是本次重组的 metadata,不属于"待搬迁的旧文档",inventory CSV 也不登记
 # 它们在新文档中出现是设计意图(作为本次重组工作的引用),不算"未映射的链接"
+# 2026-06-11 扩充:当前活阶段(Phase 12/13)的 spec/plan 是活文档而非待搬迁旧文档,
+# 在 L1 文档/task.md/测试脚本中被引用是设计意图;阶段归档搬入 Docs/archive/ 后再从本表移除
 META_PATHS_EXCLUDE_FROM_HITS = {
     'Docs/superpowers/specs/2026-05-26-docs-restructure-for-ue57.md',
     'Docs/superpowers/specs/2026-05-26-ue57-breaking-changes-scan.md',
     'Docs/superpowers/plans/2026-05-26-docs-restructure-for-ue57.md',
+    'Docs/superpowers/specs/2026-05-27-llm-internal-reopen-design.md',
+    'Docs/superpowers/plans/2026-05-27-llm-internal-reopen.md',
+    'Docs/superpowers/specs/2026-05-27-forgeue-real-ue-bridge-design.md',
+    'Docs/superpowers/specs/2026-06-10-phase13-skill-synthesis-design.md',
+    'Docs/superpowers/plans/2026-06-10-phase13-skill-synthesis.md',
 }
 
 # 占位字符串模式(含 N/X 等单大写字母占位,如 taskN_phaseX.md / 0X_Closeout.md)

@@ -1928,6 +1928,8 @@ def _capabilities_missing_anchor(contract: dict) -> list:
 
 并在 save 成功路径追加矩阵落盘(GDD 文本来源:session 元数据里的 gdd 路径;若 session 不记 GDD 路径,扫 `ProjectInputs/GDD/*.md` 取 session 创建时登记的那份——以 `compiler_create_session` 实际记录为准,实施时查该 handler 确认字段名):
 
+> **勘误(2026-06-11 实施期)**:下方片段中的 `_load_stage_module("gdd_coverage")` helper 在实施收尾时已删除,实际实现为标准包导入(统一走 `Compiler.stages` 包路径);本片段仅作规划期记录,以 `Plugins/AgentBridge/MCP/compiler_tools.py` 现行代码为准。
+
 ```python
     # GDD 覆盖矩阵 sidecar(JSON + 人读 markdown)
     try:

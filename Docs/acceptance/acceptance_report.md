@@ -2,7 +2,7 @@
 
 > 版本: v1(2026-05-26,Phase 1.16 初稿)
 > 上游: <code>Docs/Current/18&#95;Phase11&#95;Closeout.md</code>(Phase 4 已搬到 `Docs/archive/current/18_Phase11_Closeout.md`,本文件 §1 是其消化后归宿)+ ProjectState/Reports/2026-04-17/task15_phase11_final_acceptance.md + phase11_feature_coverage_report.md
-> 关联: Docs/FEATURE_INVENTORY.md(105 F-* IDs)+ Docs/testing/test_spec.md(266 case)+ Docs/contracts/{schemas_catalog,mcp_tools_catalog}.md
+> 关联: Docs/FEATURE_INVENTORY.md(108 F-* IDs)+ Docs/testing/test_spec.md(359 case)+ Docs/contracts/{schemas_catalog,mcp_tools_catalog}.md
 > 关联 spec: Docs/superpowers/specs/2026-05-26-docs-restructure-for-ue57.md v1.1 §4.5
 > 状态: §1 / §2 / §4 已基于 Phase 11 as-is 实地化;§3 UE 5.7 验收为空模板,待重构完成后逐项勾选
 
@@ -80,27 +80,27 @@ Defer 治理项与 UE 运行时专项全部落盘,残留风险仅有 `LLM Intern
 
 下列 5 个门禁是 main 主线的回归门禁(原 UE 5.7 重构验收口径),任何一项不通过视为 main 退化:
 
-### 2.1 Schema --strict 26/26
+### 2.1 Schema --strict 28/28
 
 ```bash
 python Plugins/AgentBridge/Scripts/validation/validate_examples.py --strict
 ```
 
-期望:`checked=26, passed=26, failed=0`(对应 Phase 11 收尾 2026-04-17 实测事实)。
-该数字基线意味着 Schema 集合中每个主 schema 至少有一个落地的 example,且每个 example
-能在 `--strict` 严格模式下通过 JSON Schema Draft 校验。
+期望:`checked=28, passed=28, failed=0`(基线演进:Phase 11 收尾 26 → 2026-05-27 ForgeUE +1 → 2026-06-11 Phase 13 +`phase13_gdd_coverage_matrix.example.json` = 28)。
+该数字基线意味着登记进 strict 映射的每个 example 能在 `--strict` 严格模式下通过 JSON Schema Draft 校验。
 详细 schema 与 example 的逐项映射见 [schemas_catalog.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/contracts/schemas_catalog.md) 附录。
 对应 F-SCH-01..06 / F-VAL-02。任何 schema 升级或 example 改动,都必须在本门禁下复测才能合入。
 
-### 2.2 SystemTest 266 case
+### 2.2 SystemTest 359 case
 
 ```bash
 python Plugins/AgentBridge/Tests/run_system_tests.py
 ```
 
-期望:`STAGES TOTAL_CASES = 266`,15 测试类全 pass(允许显式 skip,不允许 fail)。
-15 测试类逐类详情见 [test_spec.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/testing/test_spec.md) §3。
+期望:`STAGES TOTAL_CASES = 359`(基线演进:266 → Phase 12 +LIR 4 = 270 → Phase 13 +SKS 89 = 359),17 测试类全 pass(允许显式 skip,不允许 fail)。
+17 测试类逐类详情见 [test_spec.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/testing/test_spec.md) §3。
 对应 F-TST-04;`--no-editor` 等价分段验证见 task08_orchestrate 内置链路。
+已知预存失败(非 Phase 13 引入,2026-06-11 如实记录):MCP-03/04/05(环境缺 `mcp` 包)、MCP-08/10、P11-09/10/18、CP-44(gitignore 产物 / 历史证据缺失)。
 
 ### 2.3 UE 运行时双路径
 
@@ -115,20 +115,20 @@ Standalone smoke 入口脚本:`Plugins/AgentBridge/Tests/scripts/task14a_phase11
 UE 5.7 升级后,BC-008 EditorScriptingUtilities 与 BC-025 硬编码 `UE_5.5` 路径
 若未处理,该门禁会立即失败。
 
-### 2.4 MCP 工具注册数 53
+### 2.4 MCP 工具注册数 55
 
 ```bash
 python -c "from Plugins.AgentBridge.MCP.tool_definitions import ALL_TOOLS; print(len(ALL_TOOLS))"
 ```
 
-期望输出 `53`(Bridge 28 + Compiler 前端 14 + 后端治理/Evidence 11;含 4 兼容 alias)。
-此为 Phase 11 收尾纠偏后的实现事实,Phase 11 实施前文档中的 `50` 是 planning 口径,不再使用。
-详细工具表(主工具 49 + alias 4)见 [mcp_tools_catalog.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/contracts/mcp_tools_catalog.md)。
-对应 F-MCP-01..13。
+期望输出 `55`(Bridge 28 + Compiler 前端 16 + 后端治理/Evidence 11;含 4 兼容 alias。基线演进:Phase 11 收尾 53 → 2026-06-11 Phase 13 +`compiler_skill_synthesis_prepare/save` = 55)。
+Phase 11 实施前文档中的 `50` 是 planning 口径,不再使用。
+详细工具表(主工具 51 + alias 4)见 [mcp_tools_catalog.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/contracts/mcp_tools_catalog.md)。
+对应 F-MCP-01..13 + F-CMP-25。
 
 ### 2.5 文档体系自检
 
-- [FEATURE_INVENTORY.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/FEATURE_INVENTORY.md) 105 行 F-* IDs 全部有主文档锚点(无 `TBD`,无空白)。
+- [FEATURE_INVENTORY.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/FEATURE_INVENTORY.md) 108 行 F-* IDs 全部有主文档锚点(无 `TBD`,无空白;2026-06-11 Phase 13 +3 行)。
 - [redirects.json](/D:/UnrealProjects/Mvpv4TestCodex/Docs/redirects.json) 108 条 old→new 映射齐(Phase 0.4 已实测 108 条)。
 - [Docs/archive/README.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/archive/README.md) 反向映射表与
   [old-docs-inventory.csv](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/specs/2026-05-26-old-docs-inventory.csv) 完全一致(108 行)。
@@ -483,3 +483,35 @@ python -c "from Plugins.AgentBridge.MCP.tool_definitions import ALL_TOOLS; print
 - **FU-FORGEUE-08(P3 演进)**:~~`run_forgeue_real_smoke.py` magic string 与 schema 强绑定散落~~ **[CLOSED 2026-05-27,commit `1423966`]** 5 个模块级常量(_EVIDENCE_TEST_TYPE / _EVIDENCE_STATUS_PASS / _EVIDENCE_STATUS_FAIL / _PAYLOAD_STATUS_SUCCESS / _PAYLOAD_STATUS_PARTIAL),4 处引用替换,与 evidence_manifest.schema.json 字段值同步演进更易。
 - **FU-FORGEUE-09(P3 DRY)**:~~`_creator_path_material` 4 expression 创建模式重复~~ **[CLOSED 2026-05-27,commit `bafd5b2`]** 抽 `_add_material_constant_expression(material, expression_class, value, output_property, *, set_property_name)` helper,4 个 expression(BaseColor Constant4Vector / Metallic Constant / Roughness Constant / Emissive Constant4Vector)各 1 行 helper 调用;原 try/except 整段 wrap + lib.recompile_material 不变。**真机验证 PASS**(material asset 创建 + 4 expression 连接正确)。
 - **FU-FORGEUE-10(P3 DRY)**:~~`_now_iso_utc()` 两处副本~~ **[CLOSED 2026-05-27,commit `6de6a21`]** 抽 `Plugins/AgentBridge/Scripts/orchestrator/_time_utils.py`(避开 `bridge/` 红线),public API `now_iso_utc()`,importer + run_forgeue_real_smoke.py 删本地副本 + `from _time_utils import now_iso_utc`。
+
+## 附 3:Phase 13 Skill 合成主链(2026-06-11 新增)
+
+### 附 3.1 交付摘要
+
+Phase 13 实施完成(分支 `feat/phase13-skill-synthesis-spec`,实现 commit 范围 7acd860..5911a6b 共 15 个实现 commit),交付:
+
+- **Stage 3 注册表数据化**:`GAMEPLAY_NODE_CONFIGS` / `BASELINE_NODE_CONFIGS` / `FRAGMENT_FAMILY_MAP` 三张硬编码表全删;12 存量模板 manifest 补 `capability_bindings` 块(内容逐字照抄下沉),占位节点落 `SkillTemplates/registry_placeholders.yaml`,`registry_scan` 三遍扫描建映射,fragment family 惰性派生。
+- **capability gap 显式化**:库外 required capability 写入 `skill_graph.metadata.capability_gaps[]`,零静默丢弃;基线 Monopoly GDD 改造前后 skill_graph 等价(golden 守门)。
+- **S3.5 合成链**:`synthesis_validator`(capability_id 格式硬校验 / 递归 `additionalProperties: false` 含组合器 / 深度护栏)+ `skill_synthesis`(prepare 载荷 / save `.part` 事务落盘 / approved 防覆盖 / 审阅清单)+ MCP 工具对 `compiler_skill_synthesis_prepare/save`(工具数 53→55)。
+- **GDD 覆盖矩阵**:`gdd_coverage` 模块(claimed / unclaimed / container 三态,防固化四守则),`gdd_coverage_matrix` schema + example 入 strict(27→28)。
+- **anchor 留痕 + promote 双守卫**:`allow_skill_synthesis` 开启时 Stage 1 强制 `source_anchor`(intake alias 封绕行);synthesized 消费 / 未解决 gap → `PROMOTE_REJECTED`,损坏 graph fail-closed(F-GOV-05)。
+- **测试**:Stage 13 SKS-01~89 登记(系统测试 270→359),9 个 `test_phase13_*.py` 纯 Python。
+
+权威文档:spec [2026-06-10-phase13-skill-synthesis-design.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/specs/2026-06-10-phase13-skill-synthesis-design.md)(顶部含实施期修订记录)/ plan [2026-06-10-phase13-skill-synthesis.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/plans/2026-06-10-phase13-skill-synthesis.md)/ 任务书根 `task.md`。
+
+### 附 3.2 验收状态(runbook 判据)
+
+验收 runbook:[phase13_acceptance_runbook.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-06-11/phase13_acceptance_runbook.md)。
+
+- **判据 1-4 已闭环**(纯 Python 证据):① 等价回归不破现状(golden 等价 + strict 全过);② 缺件被点名 + 覆盖完整(验收 GDD `ProjectInputs/GDD/monopoly_extended_auction_v1.md` 植入拍卖 + 股票市场已知 gap,100% 被识别记 gap);③ 造件闭环(非法包 → save 返回具体校验错误 → 修正重提通过,确定性测试用例验证);④ 人审 gate 生效(未审批包编译器不消费,SKS 系列断言)。
+- **判据 5-12 待执行**(需人工 / 真机 Editor / Codex 端授权):真机 demo 四道关、双端等价(Codex 侧需 `~/.codex/config.toml` 注册 MCP server,项目外改动须用户单独授权)、JRPG stretch(非阻塞)等,执行后证据落 `ProjectState/Reports/` + `ProjectState/Evidence/` 并回填 runbook。
+
+### 附 3.3 Phase 13 backlog(实施期审查累积)
+
+- **P13-BL-01(机制)**:合成 skill 转正机制(synthesized → 正式库,解除 promotable 限制;待跨 run 稳定性数据,spec §1.3 既定 backlog)。
+- **P13-BL-02(质量)**:合成链错误文案统一模板(当前各校验点文案风格不一)。
+- **P13-BL-03(重构)**:`validate_synthesized_package` 函数拆分(单函数承载多类校验,可读性债)。
+- **P13-BL-04(健壮)**:覆盖矩阵 sidecar 原子写(当前直接写盘,极端中断可能留半成品文件)。
+- **P13-BL-05(对账)**:phase13 测试文件名单与 `test_phase13_*.py` glob 对账自动化(防新增文件漏登记)。
+- **P13-BL-06(性能)**:Stage 4 单 run 内 fragment family map 快照优化(当前惰性重建,长 run 可缓存)。
+- **P13-BL-07(验收)**:JRPG stretch(spec 判据 7)未执行,留待判据 5-12 批次。

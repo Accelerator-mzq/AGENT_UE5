@@ -1,10 +1,18 @@
 # Phase 13 — Skill 合成主链设计(GDD 动态 Skill 生成)
 
 > 创建日期:2026-06-10
-> 状态:Design / 待实施(用户已逐节确认,待 writing-plans 出实施 plan)
+> 状态:已实施(2026-06-11 实施完成,验收 runbook 判据 1-4 闭环、5-12 待执行;原状态:Design / 待实施)
 > 关联工作流:Superpowers(brainstorming → writing-plans → executing-plans → verification-before-completion → finishing-a-development-branch)
 > 前序分析:本设计源于 2026-06-10 brainstorming 会话对产品愿景("GDD → agent 发散创造 → N 份 demo → 使用者挑选")与现状的三缺口分析
 > 落地范围:Compiler 插件层(`Plugins/AgentBridge/Compiler/`)+ SkillTemplates + MCP 工具 + 项目层验收资产;不动 Orchestrator/Bridge 稳定核心
+
+## 修订记录(实施期裁决,2026-06-11)
+
+实施期间对照真实代码做出的三条设计精化,以下记录为准、覆盖本文对应原文:
+
+1. **synthesized 试制标记落在节点 `template_source`,非 §4.4 原文的 `generator_type`**——模板来源(谁提供的 SkillTemplate)与生成器类型(Stage 4 哪条 Provider 路径)是两根独立的轴,合成模板节点在 skill_graph 上以 `template_source: synthesized` 标记(单一事实源),promote 守卫只认该字段;`generator_type` 维持 Phase 11 语义不扩枚举。
+2. **覆盖矩阵 status 增加第三态 `container`**——纯结构容器段落(只有子标题、无正文内容的 markdown 节点)既非 claimed 也不应计入 unclaimed 噪音,新增 `container` 态(plan 测试与参考实现矛盾时的裁决产物,边界已钉死:有任何正文内容即不算 container)。
+3. **promote 守卫扩展:未解决 capability_gaps 同样拦截**——§4.1 的"gap 保留 + promotable=false"语义落实为 evidence 层拒绝路径(`PROMOTE_REJECTED`,与 synthesized 消费同一条),并对损坏 / 不可解析的 skill_graph fail-closed。
 
 ---
 

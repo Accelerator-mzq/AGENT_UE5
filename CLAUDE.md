@@ -1,7 +1,7 @@
 # CLAUDE.md — Mvpv4TestCodex 项目
 
 > 本文件供 Claude Code / Codex / 其他 AI Agent 在进入本项目时自动读取。
-> 最后更新：2026-04-17
+> 最后更新：2026-06-11
 
 ## 项目概述
 
@@ -111,7 +111,7 @@ AgentBridge 不只是工具接口插件，而是包含编译前端（Skill Compi
 # Schema 校验（验证现有 MVP 不破坏）
 python Plugins/AgentBridge/Scripts/validation/validate_examples.py --strict
 
-# 系统测试：一键执行全部 10 个 Stage（当前登记 240 条）
+# 系统测试：一键执行全部 13 个 Stage（当前登记 359 条，权威源 run_system_tests.py TOTAL_CASES）
 python Plugins/AgentBridge/Tests/run_system_tests.py
 
 # 系统测试：交互模式（选择 Stage）
@@ -158,8 +158,13 @@ python compiler_main.py
 
 ## 当前阶段
 
+Phase 13 — Skill 合成主链:实施完成(2026-06-11),验收 runbook 判据 1-4 闭环、5-12 待执行
+Phase 13 spec：`Docs/superpowers/specs/2026-06-10-phase13-skill-synthesis-design.md`
+Phase 13 plan：`Docs/superpowers/plans/2026-06-10-phase13-skill-synthesis.md`
+Phase 13 验收 runbook：`ProjectState/Reports/2026-06-11/phase13_acceptance_runbook.md`
+Phase 12 已完成 — LLM Internal Reopen(2026-05-27)
 Phase 11 已完成 — Skill-First Design Compiler Framework
-当前主入口：`task.md`
+当前主入口：`task.md`(Phase 13 任务书)
 当前索引：`Docs/INDEX.md`
 MCP 总口径锚定：`Docs/design/HLD.md#4`
 四层主链定义：`Docs/requirements/SRS.md#4`
