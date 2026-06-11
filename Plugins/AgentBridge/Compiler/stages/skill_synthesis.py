@@ -122,8 +122,15 @@ def save_synthesized_package(
     six_files: Dict[str, str],
     templates_root: str | Path | None = None,
     family_whitelist: Set[str] | None = None,
+    provenance: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """机器校验后落盘合成包;失败返回错误列表且不落盘(agent 重试闭环)。
+
+    provenance(终审 I-2,spec §4.4 溯源戳记):形如
+    {"synthesis_run_id": "...", "synthesized_by": "..."} 的字典;校验通过后、
+    落盘前由本函数注入 manifest 顶层(save 注入而非 agent 自报,agent 无法伪造)。
+    None 时不注入、manifest 原文落盘(向后兼容,不重写不重排)。
+    synthesis_validator 对 manifest 是必填检查而非白名单,多出的戳记键不会被拒。
 
     返回 status 语义:
       - "rejected": 内容/契约/状态不合规(含 approved 防覆盖),agent 修正后可重试
@@ -187,6 +194,16 @@ def save_synthesized_package(
     if errors:
         return {"status": "rejected", "errors": errors, "package_dir": ""}
 
+    # ── provenance 戳记注入(校验通过后、落盘前;在 six_files 副本上操作,不污染调用方) ──
+    # validator 已保证 manifest.yaml 可解析且顶层为 mapping,safe_load 不会再失败
+    files_to_write = dict(six_files)
+    if provenance:
+        manifest_data = yaml.safe_load(files_to_write["manifest.yaml"])
+        manifest_data.update(provenance)
+        files_to_write["manifest.yaml"] = yaml.safe_dump(
+            manifest_data, allow_unicode=True, sort_keys=False
+        )
+
     # ── 事务性落盘: temp-then-swap ──
     # capability_id 格式校验已禁 '.',故 '.tmp-' 前缀目录永不与合法包目录撞名,
     # rmtree 残留 temp 不可能误删真实包
@@ -199,7 +216,7 @@ def save_synthesized_package(
         # manifest 暂存为 .part,保证 temp 区对 rglob("manifest.yaml") 的消费方不可见
         for name in FILE_SPEC:
             staged_name = "manifest.yaml.part" if name == "manifest.yaml" else name
-            (temp_dir / staged_name).write_text(six_files[name], encoding="utf-8")
+            (temp_dir / staged_name).write_text(files_to_write[name], encoding="utf-8")
         if package_dir.exists():
             shutil.rmtree(package_dir)  # 覆盖 pending 包:换名前移除旧目录(Windows 必需)
         os.replace(temp_dir, package_dir)

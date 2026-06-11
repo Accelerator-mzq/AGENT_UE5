@@ -198,15 +198,15 @@ STAGES = {
     },
     13: {
         'name': 'Phase 13 Skill Synthesis（SKS）',
-        'cases': 'SKS-01 ~ SKS-89（9 个 test_phase13_* 文件）',
-        'case_ids': make_case_ids('SKS', 1, 89),
-        'count': 89,
+        'cases': 'SKS-01 ~ SKS-94（9 个 test_phase13_* 文件）',
+        'case_ids': make_case_ids('SKS', 1, 94),
+        'count': 94,
         'requires_editor': False,
         'requires_build': False,
     },
 }
 
-TOTAL_CASES = sum(s['count'] for s in STAGES.values())  # 359 (270 + P13 SKS-01~89 加 89)
+TOTAL_CASES = sum(s['count'] for s in STAGES.values())  # 364 (270 + P13 SKS-01~94 加 94,终审修复 +5)
 CASE_ID_PATTERN = re.compile(
     r'^\|\s*((?:SV|BL|Q|W|CL|UI|CMD|PY|ORC|CP|SS|GA|E2E|MCP|P11|LIR|SKS)-\d{2})\s*\|',
     re.MULTILINE,
@@ -2878,18 +2878,19 @@ def run_stage_12(result, engine_root, completed_results=None):
 
 
 def run_stage_13(result, engine_root, completed_results=None):
-    """Stage 13：Phase 13 Skill Synthesis — SKS-01~89 用例。
+    """Stage 13：Phase 13 Skill Synthesis — SKS-01~94 用例。
 
-    9 个 test_phase13_*.py 文件按 pytest 收集顺序（文件名字母序）连续分段编号：
+    9 个 test_phase13_*.py 文件按 pytest 收集顺序（文件名字母序）连续分段编号
+    （终审修复 +5：gap_recording +1 / mcp_synthesis_tools +1 / skill_synthesis +3）：
       SKS-01~15: test_phase13_anchor_and_promote.py    （anchor 留痕 + promote 守卫）
       SKS-16~17: test_phase13_fragment_family.py       （FRAGMENT_FAMILY_MAP 数据化）
-      SKS-18~20: test_phase13_gap_recording.py         （capability gap 显式化）
-      SKS-21~27: test_phase13_gdd_coverage.py          （GDD 覆盖矩阵）
-      SKS-28~38: test_phase13_mcp_synthesis_tools.py   （MCP 合成工具对 prepare/save）
-      SKS-39~43: test_phase13_registry_equivalence.py  （registry 切换等价门）
-      SKS-44~49: test_phase13_registry_scan.py         （registry 扫描模块）
-      SKS-50~66: test_phase13_skill_synthesis.py       （skill_synthesis 合成主链）
-      SKS-67~89: test_phase13_synthesis_validator.py   （合成校验器）
+      SKS-18~21: test_phase13_gap_recording.py         （capability gap 显式化）
+      SKS-22~28: test_phase13_gdd_coverage.py          （GDD 覆盖矩阵）
+      SKS-29~40: test_phase13_mcp_synthesis_tools.py   （MCP 合成工具对 prepare/save）
+      SKS-41~45: test_phase13_registry_equivalence.py  （registry 切换等价门）
+      SKS-46~51: test_phase13_registry_scan.py         （registry 扫描模块）
+      SKS-52~71: test_phase13_skill_synthesis.py       （skill_synthesis 合成主链）
+      SKS-72~94: test_phase13_synthesis_validator.py   （合成校验器）
     """
     check_map = {}
     runtime_dir = os.path.join(PROJECT_ROOT, 'ProjectState', 'Temp', 'run_system_tests_stage13')
@@ -2900,13 +2901,13 @@ def run_stage_13(result, engine_root, completed_results=None):
     phase13_test_files = [
         ('test_phase13_anchor_and_promote.py', 1, 15),
         ('test_phase13_fragment_family.py', 16, 2),
-        ('test_phase13_gap_recording.py', 18, 3),
-        ('test_phase13_gdd_coverage.py', 21, 7),
-        ('test_phase13_mcp_synthesis_tools.py', 28, 11),
-        ('test_phase13_registry_equivalence.py', 39, 5),
-        ('test_phase13_registry_scan.py', 44, 6),
-        ('test_phase13_skill_synthesis.py', 50, 17),
-        ('test_phase13_synthesis_validator.py', 67, 23),
+        ('test_phase13_gap_recording.py', 18, 4),
+        ('test_phase13_gdd_coverage.py', 22, 7),
+        ('test_phase13_mcp_synthesis_tools.py', 29, 12),
+        ('test_phase13_registry_equivalence.py', 41, 5),
+        ('test_phase13_registry_scan.py', 46, 6),
+        ('test_phase13_skill_synthesis.py', 52, 20),
+        ('test_phase13_synthesis_validator.py', 72, 23),
     ]
 
     file_notes = []

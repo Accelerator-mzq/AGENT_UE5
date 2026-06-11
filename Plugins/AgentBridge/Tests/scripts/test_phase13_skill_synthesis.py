@@ -303,6 +303,67 @@ class TestSkillSynthesis:
             .read_text(encoding="utf-8")
         assert on_disk == updated["domain_prompt.md"]
 
+    # ---- 终审 I-2: provenance 戳记(save 注入,非 agent 自报) ----
+
+    def test_save_with_provenance_stamps_manifest(self, tmp_path):
+        """save 带 provenance:落盘 manifest 顶层含 synthesis_run_id / synthesized_by
+        两键(spec §4.4 承诺的合成溯源戳记),且原有必填字段不受影响。"""
+        ss = _load("skill_synthesis")
+        result = ss.save_synthesized_package(
+            capability_id="gameplay-auction",
+            six_files=_legal_package(),
+            templates_root=tmp_path,
+            family_whitelist={"property_economy_spec"},
+            provenance={
+                "synthesis_run_id": "run-20260611-120000-abcd",
+                "synthesized_by": "mcp_agent",
+            },
+        )
+        assert result["status"] == "saved", result
+        manifest = yaml.safe_load(
+            (tmp_path / "synthesized" / "gameplay-auction" / "manifest.yaml")
+            .read_text(encoding="utf-8")
+        )
+        assert manifest["synthesis_run_id"] == "run-20260611-120000-abcd"
+        assert manifest["synthesized_by"] == "mcp_agent"
+        # 注入不得破坏原有契约字段
+        assert manifest["review_status"] == "pending_review"
+        assert manifest["template_source"] == "synthesized"
+
+    def test_save_without_provenance_manifest_unchanged(self, tmp_path):
+        """save 不带 provenance(向后兼容):落盘 manifest 不含戳记键,
+        且内容与提交的 manifest 字符串逐字节一致(不注入即不重写)。"""
+        ss = _load("skill_synthesis")
+        package = _legal_package()
+        result = ss.save_synthesized_package(
+            capability_id="gameplay-auction",
+            six_files=package,
+            templates_root=tmp_path,
+            family_whitelist={"property_economy_spec"},
+        )
+        assert result["status"] == "saved", result
+        on_disk = (tmp_path / "synthesized" / "gameplay-auction" / "manifest.yaml") \
+            .read_text(encoding="utf-8")
+        assert on_disk == package["manifest.yaml"], "无 provenance 时 manifest 不得被重写"
+        manifest = yaml.safe_load(on_disk)
+        assert "synthesis_run_id" not in manifest
+        assert "synthesized_by" not in manifest
+
+    def test_save_provenance_does_not_mutate_caller_six_files(self, tmp_path):
+        """注入发生在 save 内部副本上,不得反向污染调用方的 six_files 字典。"""
+        ss = _load("skill_synthesis")
+        package = _legal_package()
+        original_manifest = package["manifest.yaml"]
+        ss.save_synthesized_package(
+            capability_id="gameplay-auction",
+            six_files=package,
+            templates_root=tmp_path,
+            family_whitelist={"property_economy_spec"},
+            provenance={"synthesis_run_id": "run-20260611-120000-abcd",
+                        "synthesized_by": "mcp_agent"},
+        )
+        assert package["manifest.yaml"] == original_manifest
+
     # ---- Minor 锁测试 ----
 
     def test_lock_file_spec_matches_validator_required_files(self):

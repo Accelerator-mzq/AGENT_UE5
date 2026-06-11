@@ -684,10 +684,19 @@ def compiler_skill_synthesis_save(session_path: str, capability_id: str, six_fil
     try:
         session = _load_session(session_path)
 
+        # 终审 I-2: provenance 戳记由 save 注入 manifest(spec §4.4 溯源承诺)——
+        # run_id 取自 session(v2.0 自动生成;v1.0 可能为 None,落空字符串保持键形态稳定),
+        # synthesized_by 固定标识 MCP agent 通道,agent 无法自报伪造
+        provenance = {
+            "synthesis_run_id": session.run_id or "",
+            "synthesized_by": "mcp_agent",
+        }
+
         # 不传 templates_root / family_whitelist：走插件默认模板树与正式库白名单
         result = skill_synthesis.save_synthesized_package(
             capability_id=capability_id,
             six_files=six_files,
+            provenance=provenance,
         )
         synthesis_status = result.get("status")
 

@@ -489,14 +489,22 @@ def _build_baseline_nodes(
 
         realization_class = capability.get("realization_class", "presence_only")
         allows_design_space_discovery = realization_class == "realization_eligible"
-        template_source = _resolve_baseline_template_source(config["template_id"])
+        # 终审 I-1: synthesized 模板以注册表声明为准,不走路径启发式——启发式只认
+        # baseline.* 正式库目录,会把 synthesized.<cap>.v1 误判成 future_baseline_template,
+        # 导致 evidence promote 守卫(只认 == "synthesized")被绕过且误报"模板未落地"。
+        # 正式库 baseline 仍走运行时启发式(等价 golden 不变)。
+        if config["template_source"] == "synthesized":
+            template_source = "synthesized"
+        else:
+            template_source = _resolve_baseline_template_source(config["template_id"])
 
         planning_notes = list(config.get("planning_notes", []))
         planning_notes.append(f"baseline_item={capability.get('baseline_item', capability_id)}")
         for item_id in related_item_ids:
             item = gate_item_map[item_id]
             planning_notes.append(f"{item.get('topic', item_id)} -> {item.get('decision', '')}")
-        if template_source != "plugin_skill_template":
+        # "未落地"警告只属于 future_baseline_template(占位模板);synthesized 不该触发
+        if template_source == "future_baseline_template":
             planning_notes.append(_missing_baseline_template_warning(config["template_id"]))
 
         nodes.append(

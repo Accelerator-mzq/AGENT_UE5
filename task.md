@@ -18,7 +18,7 @@
 - 实施 plan:[2026-06-10-phase13-skill-synthesis.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/plans/2026-06-10-phase13-skill-synthesis.md)(14 任务,TDD,等价回归先行)
 - 验收 runbook:[phase13_acceptance_runbook.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-06-11/phase13_acceptance_runbook.md)(判据 1-4 已闭环,5-12 待执行)
 
-## 3. 交付摘要(7acd860..5911a6b,15 个实现 commit)
+## 3. 交付摘要(7acd860..5911a6b,26+ 个实现 commit,含终审修复)
 
 - **Stage 3 注册表数据化**:三张硬编码表删除,12 存量 manifest 补 `capability_bindings`,占位节点落 `registry_placeholders.yaml`,fragment family 由注册表惰性派生(`_build_fragment_family_map`),等价回归 golden 守门(改造前后 skill_graph 等价)。
 - **capability gap 显式化**:required capability 查不到映射 → 记入 `metadata.capability_gaps[]`(capability_id / 来源 anchor / 原因),零静默丢弃。
@@ -28,7 +28,7 @@
 - **promote 双守卫**:run 含 `template_source=synthesized` 节点或存在未解决 `capability_gaps` → `PROMOTE_REJECTED`;skill_graph 损坏 fail-closed。
 - **session**:`compiler_create_session` 增 `allow_skill_synthesis` 开关(默认 false,默认行为与现状一致)。
 
-权威数字(实测):MCP 工具 **55**(Bridge 28 + Compiler 前端 16 + Evidence 后端 11);系统测试 **13 stage / 359 case**(Stage 13 SKS-01~89,9 个 `test_phase13_*.py`);Schema 主 **45**(Phase 13 +`gdd_coverage_matrix`,收尾时补登记 Phase 12 漏录的 `provider_call`/`retry_policy`)/ examples strict **28/28**。
+权威数字(实测):MCP 工具 **55**(Bridge 28 + Compiler 前端 16 + Evidence 后端 11);系统测试 **13 stage / 364 case**(Stage 13 SKS-01~94,9 个 `test_phase13_*.py`,终审修复 +5);Schema 主 **45**(Phase 13 +`gdd_coverage_matrix`,收尾时补登记 Phase 12 漏录的 `provider_call`/`retry_policy`)/ examples strict **28/28**。
 
 ## 4. 验收状态
 
@@ -51,7 +51,7 @@
 
 > 以下为上一版跳转页保留的归档链接,Phase 11 / Phase 12 事实不再改写。
 
-> ⚠️ UE 5.7 重构计划已于 2026-05-27 企汰;BC 知识库 `Docs/superpowers/specs/2026-05-26-ue57-breaking-changes-scan.md` 保留作未来可能的重启资产,不主动维护。
+> ⚠️ UE 5.7 重构计划已于 2026-05-27 弃置;BC 知识库 `Docs/superpowers/specs/2026-05-26-ue57-breaking-changes-scan.md` 保留作未来可能的重启资产,不主动维护。
 >
 > Phase 12 验收报告:[llm_internal_reopen_acceptance.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-05-27/llm_internal_reopen_acceptance.md)
 > Phase 12 实施 plan:[2026-05-27-llm-internal-reopen.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/plans/2026-05-27-llm-internal-reopen.md)

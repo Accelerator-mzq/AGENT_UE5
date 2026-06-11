@@ -63,8 +63,8 @@
 | evidence_export_summary | 后端 Evidence | n/a — 见 tool_definitions.py:468 | Schemas/evidence_manifest.schema.json | RUN_NOT_FOUND, TOOL_EXECUTION_FAILED | 导出验收摘要 |
 | evidence_list_runs | 后端 Evidence | n/a — 见 tool_definitions.py:475 | Schemas/evidence_manifest.schema.json | INVALID_ARGS, TOOL_EXECUTION_FAILED | 枚举所有 run_id |
 | evidence_compare_runs | 后端 Evidence | n/a — 见 tool_definitions.py:482 | Schemas/run_comparison.schema.json | RUN_NOT_FOUND, INVALID_ARGS | 对比两 run 差异 |
-| evidence_create_batch | 后端 Evidence | n/a — 见 tool_definitions.py:491 | Schemas/batch_manifest.schema.json | RUN_NOT_FOUND, PROMOTE_DENIED | 从 run 创建 batch |
-| evidence_promote_run | 后端 Evidence | n/a — 见 tool_definitions.py:501 | Schemas/batch_manifest.schema.json | RUN_NOT_FOUND, PROMOTE_DENIED | promote run 到 baseline |
+| evidence_create_batch | 后端 Evidence | n/a — 见 tool_definitions.py:491 | Schemas/batch_manifest.schema.json | RUN_NOT_FOUND, PROMOTE_REJECTED | 从 run 创建 batch |
+| evidence_promote_run | 后端 Evidence | n/a — 见 tool_definitions.py:501 | Schemas/batch_manifest.schema.json | RUN_NOT_FOUND, PROMOTE_REJECTED | promote run 到 baseline |
 
 ## 行数自检
 
@@ -80,7 +80,7 @@
 - 类别:7 类之一(Bridge L1 查询 / L1 写 / L1 服务 / L2 资产 / L3 兜底 / 前端 Compiler / 后端 Evidence)
 - 输入 Schema:`compiler_*_save` 类工具的 `filled_data` 对应 Stage 主链 Schema;其余多为简单参数,标 `n/a — 见 tool_definitions.py:<line>` 指向源码
 - 输出 Schema:L1 query → `Schemas/feedback/<area>/...response.schema.json`;L1 write / L2 / L3 写操作 → `Schemas/write_feedback/write_operation_feedback.response.schema.json`;前端 Compiler 输出主链 Stage Schema;后端 Evidence 输出 `evidence_manifest` / `run_comparison` / `batch_manifest`
-- 错误码:来自工具 description / params / 错误码列表推断,通用 5 项 = `INVALID_ARGS` / `TIMEOUT` / `PERMISSION_DENIED` / `TOOL_EXECUTION_FAILED` / `UNKNOWN_ERROR`,Compiler/Evidence 特有 `SESSION_NOT_FOUND` / `STAGE_LOCKED` / `RUN_NOT_FOUND` / `MANIFEST_INVALID` / `PROMOTE_DENIED`
+- 错误码:来自工具 description / params / 错误码列表推断,通用 5 项 = `INVALID_ARGS` / `TIMEOUT` / `PERMISSION_DENIED` / `TOOL_EXECUTION_FAILED` / `UNKNOWN_ERROR`,Compiler/Evidence 特有 `SESSION_NOT_FOUND` / `STAGE_LOCKED` / `RUN_NOT_FOUND` / `MANIFEST_INVALID` / `PROMOTE_REJECTED`
 - 使用场景:中文一句话(≤30 字符)
 
 ## 注脚
@@ -88,7 +88,7 @@
 1. **工具数演进口径**:Phase 11 收尾实测 53(Bridge 28 + 前端 14 + 后端 11;历史上 line 530 注释"51"漏算 stage4 节点对,已修);Phase 13(2026-06-11)`COMPILER_FRONTEND_TOOLS` 增 `compiler_skill_synthesis_prepare/save` 合成工具对 → 前端 **16**、合计 **55**。`python -c "from tool_definitions import ALL_TOOLS; print(len(ALL_TOOLS))"` 实测 **55**。**以 `len(ALL_TOOLS)` 实测为准。**
 2. **输入 Schema 列 `n/a`**:大多数工具参数为基本类型(string / boolean / array),无独立 JSON Schema 文件;`compiler_*_save` 类的 `filled_data` 才对应主链 Stage Schema。L1/L2/L3 写操作的统一反馈 Schema 已落 `Schemas/write_feedback/write_operation_feedback.response.schema.json`。合成工具对的产物是 6 文件 SkillTemplate 包(落 `SkillTemplates/synthesized/<capability_id>/`,manifest 初始 `review_status: pending_review`),不对应单一 JSON Schema;save 的校验结果经 `data.synthesis_status` 三态表达(saved / rejected=机器校验失败应修正重提 / failed=环境失败应排查环境)。
 3. **错误码列**:每行 ≥ 1 错误码字符串,部分工具源码已显式列 `error_codes` 字段(`spawn_actor` / `set_actor_transform` / `build_project` / `create_level`),其余按 `tool_contract_v0_1.md §3` 通用错误码族推断。
-   - **错误码权威源**:以 `tool_definitions.py` 模块 docstring (line 13-15) 的 9 项为权威源(`INVALID_ARGS / ACTOR_NOT_FOUND / ASSET_NOT_FOUND / EDITOR_NOT_READY / TOOL_EXECUTION_FAILED / CHANNEL_UNAVAILABLE / PERMISSION_DENIED / TIMEOUT / UNKNOWN_ERROR`),Compiler 前端 / Evidence 后端 特有码(`SESSION_NOT_FOUND` / `STAGE_LOCKED` / `RUN_NOT_FOUND` / `MANIFEST_INVALID` / `PROMOTE_DENIED`)按类别推断。与 `Docs/contracts/tool_contract.md §6.3` 错误码族存在历史口径差,Phase 2 spec 收口时统一。
+   - **错误码权威源**:以 `tool_definitions.py` 模块 docstring (line 13-15) 的 9 项为权威源(`INVALID_ARGS / ACTOR_NOT_FOUND / ASSET_NOT_FOUND / EDITOR_NOT_READY / TOOL_EXECUTION_FAILED / CHANNEL_UNAVAILABLE / PERMISSION_DENIED / TIMEOUT / UNKNOWN_ERROR`),Compiler 前端 / Evidence 后端 特有码(`SESSION_NOT_FOUND` / `STAGE_LOCKED` / `RUN_NOT_FOUND` / `MANIFEST_INVALID` / `PROMOTE_REJECTED`)按类别推断。与 `Docs/contracts/tool_contract.md §6.3` 错误码族存在历史口径差,Phase 2 spec 收口时统一。
 
 ## 关联文档
 

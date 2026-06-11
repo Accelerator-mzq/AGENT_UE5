@@ -8,11 +8,12 @@
 
 ## 修订记录(实施期裁决,2026-06-11)
 
-实施期间对照真实代码做出的三条设计精化,以下记录为准、覆盖本文对应原文:
+实施期间对照真实代码做出的四条设计精化,以下记录为准、覆盖本文对应原文:
 
 1. **synthesized 试制标记落在节点 `template_source`,非 §4.4 原文的 `generator_type`**——模板来源(谁提供的 SkillTemplate)与生成器类型(Stage 4 哪条 Provider 路径)是两根独立的轴,合成模板节点在 skill_graph 上以 `template_source: synthesized` 标记(单一事实源),promote 守卫只认该字段;`generator_type` 维持 Phase 11 语义不扩枚举。
 2. **覆盖矩阵 status 增加第三态 `container`**——纯结构容器段落(只有子标题、无正文内容的 markdown 节点)既非 claimed 也不应计入 unclaimed 噪音,新增 `container` 态(plan 测试与参考实现矛盾时的裁决产物,边界已钉死:有任何正文内容即不算 container)。
 3. **promote 守卫扩展:未解决 capability_gaps 同样拦截**——§4.1 的"gap 保留 + promotable=false"语义落实为 evidence 层拒绝路径(`PROMOTE_REJECTED`,与 synthesized 消费同一条),并对损坏 / 不可解析的 skill_graph fail-closed。
+4. **prepare 的 few-shot exemplar 选取为确定性字母序,非语义相似度**(终审 Minor-3 裁决)——`_pick_exemplars` 按目录名排序取前 2 个,不做"与 gap 最相近模板"的语义检索:相似度选取会把现有模板风格固化进合成产物,违反 §5.3 防固化守则;确定性选取同时保证双端(Claude Code / Codex)载荷可复现。另:§4.4 承诺的合成溯源(run_id / agent 标识)实现为 **save 落盘时注入** manifest 顶层 `synthesis_run_id` / `synthesized_by` 两键(MCP handler 从 session 取 run_id 组装,agent 不自报、无法伪造),`synthesis_validator` 不强制这两个键(必填检查天然兼容)。
 
 ---
 

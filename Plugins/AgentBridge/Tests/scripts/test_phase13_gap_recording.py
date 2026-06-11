@@ -90,6 +90,37 @@ class TestGapRecording:
         # 否则 edges 还在但节点 dependencies 不会回填
         assert "skill-board-topology" in nodes["skill-auction"]["dependencies"]
 
+    def test_sks03d_synthesized_baseline_keeps_template_source(self):
+        """SKS-03d(终审 I-1): synthesized 模板认领 baseline capability 时,
+        路径启发式不得覆盖注册表的 template_source——evidence promote 守卫只认
+        == "synthesized",一旦被覆盖成 future_baseline_template 守卫即被绕过,
+        且会被误列为"模板未落地"。"""
+        planning = _load_planning()
+        contract, gate = _inputs()
+        # 深拷贝 MINI_REGISTRY,追加一条 synthesized 条目认领 fixture 中真实存在的
+        # baseline capability(baseline-hud 在 root_skill_contract.json 中 activation=required)
+        registry = json.loads(json.dumps(MINI_REGISTRY, ensure_ascii=False))
+        registry["baseline-hud"] = {
+            "instance_id": "skill-hud-synth",
+            "template_id": "synthesized.baseline-hud.v1",
+            "convergence_priority": 5,
+            "related_clarification_items": [],
+            "planning_notes": ["合成 baseline 节点"],
+            "template_source": "synthesized",
+            "fragment_family": "ui_widget_spec",
+            "depends_on_capabilities": [],
+        }
+        graph = planning.create_skill_graph(contract, gate, run_id=None, registry=registry)
+        nodes = {n["instance_id"]: n for n in graph["nodes"]}
+        assert "skill-hud-synth" in nodes
+        node = nodes["skill-hud-synth"]
+        # 守卫不变量:注册表声明 synthesized 必须原样进图(spec §4.4 试制章)
+        assert node["template_source"] == "synthesized"
+        # synthesized 不是"未来 baseline 占位模板",不得进 missing_baseline_templates
+        assert "synthesized.baseline-hud.v1" not in graph["metadata"]["missing_baseline_templates"]
+        # planning_notes 不得出现"模板未落地"警告(那是 future_baseline_template 专属)
+        assert not any("未落地" in note for note in node["planning_notes"])
+
     def test_sks03c_unknown_declared_dependency_warned_not_silently_skipped(self, caplog):
         """SKS-03c: manifest 声明的依赖名注册表查不到(写错)时显式告警,且不生成边。"""
         planning = _load_planning()

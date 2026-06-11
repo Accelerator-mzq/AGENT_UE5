@@ -248,6 +248,34 @@ class TestSynthesisSaveHandler:
         assert "人审清单已刷新" in result["summary"]
         assert any("未经人审" in w for w in result["warnings"])
 
+    def test_save_stamps_provenance_from_session(self, tmp_path, monkeypatch):
+        """终审 I-2: handler 落盘的 manifest 必须带 provenance 戳记——
+        synthesis_run_id 取 session.run_id(v2.0 session 必有),
+        synthesized_by 固定 mcp_agent(save 注入,非 agent 自报)。"""
+        import yaml
+        ct = _import_compiler_tools()
+        session_path, _run_dir = _make_run(tmp_path)
+        templates_root = tmp_path / "templates"
+        _make_official_manifest(templates_root)
+        synth = _import_skill_synthesis()
+        monkeypatch.setattr(synth, "DEFAULT_TEMPLATES_ROOT", templates_root)
+
+        result = ct.compiler_skill_synthesis_save(
+            session_path, "gameplay-auction", _legal_package()
+        )
+        assert result["status"] == "success", result
+        manifest = yaml.safe_load(
+            (templates_root / "synthesized" / "gameplay-auction" / "manifest.yaml")
+            .read_text(encoding="utf-8")
+        )
+        # run_id 从 session 读出(与落盘值闭环对照,不只断言"存在")
+        session_run_id = json.loads(
+            Path(session_path).read_text(encoding="utf-8")
+        ).get("run_id")
+        assert session_run_id, "v2.0 session 应自动生成 run_id"
+        assert manifest["synthesis_run_id"] == session_run_id
+        assert manifest["synthesized_by"] == "mcp_agent"
+
     def test_save_six_files_not_dict_failed(self, tmp_path):
         """MCP 层把 six_files 传成字符串:failed + 明确文案,不触盘。"""
         ct = _import_compiler_tools()

@@ -424,7 +424,7 @@ COMPILER_FRONTEND_TOOLS = {
         "returns": "gap 上下文、file_spec、exemplars、family_whitelist、naming_rules、instructions",
     },
     "compiler_skill_synthesis_save": {
-        "description": "S3.5 合成提交：接收 6 文件内容，结果三态在 data.synthesis_status——rejected=机器校验失败（返回具体错误，修正内容后重提）；failed=环境失败（不应重试内容，先排查环境）；saved=落盘 SkillTemplates/synthesized/<capability_id>/ 并标 review_status=pending_review。MCP 顶层 status 仅 success/failed。",
+        "description": "S3.5 合成提交：接收 6 文件内容，结果三态在 data.synthesis_status——rejected=机器校验失败（返回具体错误，修正内容后重提）；failed=环境失败（不应重试内容，先排查环境）；saved=落盘 SkillTemplates/synthesized/<capability_id>/ 并标 review_status=pending_review。MCP 顶层 status 仅 success/failed。该工具不受 allow_skill_synthesis 开关拦截（开关只门控 Stage 1 anchor 强制）；试制隔离由 pending_review+人审+promote 守卫纵深保证。",
         "params": {
             "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
             "capability_id": {"type": "string", "required": True, "description": "目标能力 ID"},
