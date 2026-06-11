@@ -3,7 +3,7 @@
 
 返回形状契约(2026-06-12 审查修订):统一 _make_response 五键
 {"status","summary","data","warnings","errors"}——
-  - 工具调用成功(含 story 被业务拒绝回 in_progress)→ status="ok"
+  - 工具调用成功(含 story 被业务拒绝回 in_progress)→ status="success"(文件惯例词值)
   - 异常 → status="failed"(server.py 据 status=="failed" 置 MCP isError)
   - manifest 版本告警走 warnings[](镜像 Phase 13 save 用 warnings 承载提示的先例)
 """
@@ -70,7 +70,7 @@ class TestMcpDemoTools:
         _seed_run(workspace_tmp_path, workspace_tmp_path)
         out = ct.demo_story_fetch(session_path=str(workspace_tmp_path), story_id=None,
                                   project_root=str(workspace_tmp_path))
-        assert out["status"] == "ok"
+        assert out["status"] == "success"
         assert out["data"]["story"]["story_id"] == "story-a"
         assert "manifest_version: 1.0.0" in out["data"]["construction_manifest"]
         # 版本一致时无告警;告警通道统一为 warnings[],data 不再带 manifest_warning 键
@@ -84,8 +84,8 @@ class TestMcpDemoTools:
                             project_root=str(workspace_tmp_path))
         bad = ct.demo_story_submit(session_path=str(workspace_tmp_path), story_id="story-a",
                                    evidence={}, project_root=str(workspace_tmp_path))
-        # 业务拒绝是重试闭环信号,工具调用本身成功:status 仍为 ok,不触发 MCP isError
-        assert bad["status"] == "ok" and bad["data"]["story_status"] == "in_progress"
+        # 业务拒绝是重试闭环信号,工具调用本身成功:status 仍为 success,不触发 MCP isError
+        assert bad["status"] == "success" and bad["data"]["story_status"] == "in_progress"
         assert bad["data"]["errors"]
         doc = workspace_tmp_path / "Plugins" / "DemoX" / "Docs" / "d.md"
         doc.parent.mkdir(parents=True)
@@ -95,7 +95,7 @@ class TestMcpDemoTools:
                                     evidence={"files_changed": [rel], "doc_paths": [rel],
                                               "plugin_root": "Plugins/DemoX"},
                                     project_root=str(workspace_tmp_path))
-        assert good["status"] == "ok"
+        assert good["status"] == "success"
         assert good["data"]["story_status"] == "verified"
 
     def test_dmp38_fetch_manifest_version_mismatch_warns(self, workspace_tmp_path):
@@ -105,7 +105,7 @@ class TestMcpDemoTools:
         mpath.write_text("manifest_version: 2.0.0\n# 规范\n", encoding="utf-8")
         out = ct.demo_story_fetch(session_path=str(workspace_tmp_path), story_id=None,
                                   project_root=str(workspace_tmp_path))
-        assert out["status"] == "ok"
+        assert out["status"] == "success"
         assert out["warnings"] and any("版本不符" in w for w in out["warnings"])
         assert "manifest_warning" not in out["data"]
 
@@ -118,5 +118,5 @@ class TestMcpDemoTools:
                                    evidence={"files_changed": [], "doc_paths": [],
                                              "plugin_root": "../outside"},
                                    project_root=str(workspace_tmp_path))
-        assert out["status"] == "ok" and out["data"]["story_status"] == "in_progress"
+        assert out["status"] == "success" and out["data"]["story_status"] == "in_progress"
         assert any("越界" in e for e in out["data"]["errors"])

@@ -772,7 +772,7 @@ def demo_story_fetch(session_path: str, story_id: Optional[str] = None,
     """取施工 story 全包:story + 施工规范全文 + 版本对账告警。
 
     返回形状走全项目统一 _make_response 契约:
-      - 取件成功 → status="ok";manifest 版本不符是提示性告警,进 warnings[]
+      - 取件成功 → status="success";manifest 版本不符是提示性告警,进 warnings[]
         (镜像 compiler_skill_synthesis_save 用 warnings 承载非阻断提示的先例)
       - 异常(数据/IO/解析)→ status="failed"(server.py 据此置 MCP isError)
     """
@@ -788,7 +788,7 @@ def demo_story_fetch(session_path: str, story_id: Optional[str] = None,
         velocity.append_event(session_path, {"kind": "fetch", "story_id": story["story_id"],
                                              "attempts": story.get("attempts", 0)})
         return _make_response(
-            "ok",
+            "success",
             f"story 已取出: {story['story_id']}(attempts={story.get('attempts', 0)})",
             data={"story": story, "construction_manifest": manifest_text},
             warnings=warnings,
@@ -806,7 +806,7 @@ def demo_story_submit(session_path: str, story_id: str, evidence: dict,
     """提交证据:机器校验 → verified 或回 in_progress + 具体错误清单。
 
     分层语义(与 fetch 同契约):
-      - 工具调用成功(含校验拒绝回 in_progress)→ status="ok";
+      - 工具调用成功(含校验拒绝回 in_progress)→ status="success";
         拒绝是重试闭环的业务信号,放 data.story_status + data.errors,不触发 MCP isError
       - 异常(数据/IO/解析)→ status="failed"
     """
@@ -838,7 +838,7 @@ def demo_story_submit(session_path: str, story_id: str, evidence: dict,
                                              "result": updated["status"],
                                              "attempts": updated.get("attempts", 0)})
         return _make_response(
-            "ok",
+            "success",
             f"story 提交已处理: {story_id} -> {updated['status']}"
             f"(attempts={updated.get('attempts', 0)})",
             data={"story_status": updated["status"],
