@@ -72,3 +72,12 @@ mcp_tools_catalog ":359"(tool_definitions.py 行号引用,实测仍准)、System
 `link_precheck.py` → 扫描 668 文件 / 0 未映射,exit 0;
 `run_system_tests.py` TOTAL_CASES=364 导入期断言(line 209 实测,INDEX/test_spec 行号引用复核仍准);
 Stage 13 实跑 94/94 PASS(b7bd15f 收尾验证,报告 `Plugins/AgentBridge/reports/2026-06-11/system_test_report_2026-06-11_102217.json`)。
+
+---
+
+## 补充对账 2(验收证据批,2026-06-11)
+
+本批 commits(d02e8bf/9fda34a + 本 commit)为 Phase 13 验收 runbook 执行证据与合成试制数据:
+runbook 执行记录回填、双端对比报告、MCP 驱动器、Evidence 截图与日志、synthesized 三包
+(auction/stock=approved,jrpg=pending_review 隔离)。**不触及 Layer A/B 框架文档,Coverage Map 无变化**;
+验收发现 6 项已在 runbook「验收发现」节登记,正式 backlog 化留待下批 document-release。
