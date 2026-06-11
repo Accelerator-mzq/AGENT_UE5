@@ -308,6 +308,7 @@ COMPILER_FRONTEND_TOOLS = {
             "session_version": {"type": "string", "required": False, "description": "Pipeline 版本，默认 1.0，可选 2.0"},
             "run_id": {"type": "string", "required": False, "description": "Phase 11 run_id，可留空自动生成"},
             "fast_mode": {"type": "boolean", "required": False, "description": "是否启用 fast_mode，默认 false"},
+            "allow_skill_synthesis": {"type": "boolean", "required": False, "description": "Phase 13 Skill 合成开关，默认 false；开启后持久化进 session.json，Stage 1 保存强制 required capability 携带 source_anchor"},
         },
         "returns": "session_id 与 session_path",
     },
@@ -334,7 +335,7 @@ COMPILER_FRONTEND_TOOLS = {
         "returns": "Stage 1 模板、schema 与输入上下文",
     },
     "compiler_intake_save": {
-        "description": "旧名 alias：v1 保存 GDD Projection，v2 等价于 compiler_root_skill_save。",
+        "description": "旧名 alias：转发到 compiler_root_skill_save，与正名工具同享 Phase 13 anchor 强制与覆盖矩阵落盘（v1 保存 GDD Projection 行为不变）。",
         "params": {
             "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
             "filled_data": {"type": "object", "required": True, "description": "已填充完成的 Stage 1 产物"},

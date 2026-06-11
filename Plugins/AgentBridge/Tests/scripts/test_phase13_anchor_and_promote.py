@@ -98,6 +98,46 @@ class TestPromoteGuard:
         finally:
             sys.path.remove(str(PLUGIN_ROOT / "MCP"))
 
+    def test_sks15e_corrupted_graph_fail_closed(self, tmp_path):
+        """SKS-15e: skill_graph.json 损坏时 fail-closed——不可判定即不许 promote,
+        走 PROMOTE_REJECTED 拒绝路径而非 TOOL_EXECUTION_FAILED。"""
+        sys.path.insert(0, str(PLUGIN_ROOT / "MCP"))
+        try:
+            import evidence_tools
+            importlib.reload(evidence_tools)
+            run_dir = tmp_path / "run-broken"
+            run_dir.mkdir()
+            (run_dir / "skill_graph.json").write_text("{损坏的 JSON", encoding="utf-8")
+
+            # 纯函数:返回带路径的拒绝理由,不抛异常
+            reasons = evidence_tools._synthesized_promote_blockers(run_dir)
+            assert reasons and "损坏不可判定" in reasons[0]
+            assert "skill_graph.json" in reasons[0]
+
+            # promote 主流程:同样的早退拒绝路径(零 batch 落盘副作用)
+            snapshot = {
+                "run_id": "run-20260611-000000-abcd",
+                "run_dir": run_dir,
+                "fast_mode": False,
+                "status": "completed",
+                "constraint_violations": 0,
+                "pipeline_stages_completed": [1, 2, 3, 4, 5, 6, 7],
+                "session_version": "2.0",
+                "generator_provider": "llm",
+                "metadata_promotable": True,
+            }
+            result = evidence_tools._create_batch_from_snapshot(
+                snapshot, "pytest", "", False, False
+            )
+            assert result["status"] == "failed"
+            assert any(
+                error.startswith("PROMOTE_REJECTED") and "损坏不可判定" in error
+                for error in result["errors"]
+            ), result["errors"]
+            assert not any("TOOL_EXECUTION_FAILED" in error for error in result["errors"])
+        finally:
+            sys.path.remove(str(PLUGIN_ROOT / "MCP"))
+
     def test_sks15d_guard_wired_into_evaluate_promotable(self, tmp_path):
         """SKS-15d: 守卫接进 _evaluate_promotable(与 fast_mode/heuristic 同一拒绝路径)。"""
         sys.path.insert(0, str(PLUGIN_ROOT / "MCP"))
@@ -258,6 +298,86 @@ class TestRootSkillSaveHandler:
         assert matrix["capabilities_without_anchor"] == []
         assert matrix["dangling_anchors"] == []
         assert matrix["unclaimed_count"] == 0
+
+    def test_matrix_failure_degrades_to_warning(self, tmp_path, monkeypatch):
+        """gdd_path 不可读:保存仍 success,矩阵降级 warning,不落矩阵文件。"""
+        ct = _import_compiler_tools()
+        session_path, run_dir = _make_stage1_session(tmp_path, monkeypatch, True)
+        (tmp_path / "gdd.md").unlink()  # 模拟 GDD 不可读
+        contract = _valid_contract({"gameplay-a": "2.1 棋盘", "baseline-x": "2.2 计分"})
+        result = ct.compiler_root_skill_save(session_path, contract)
+        assert result["status"] == "success", result
+        assert any("覆盖矩阵生成失败" in warning for warning in result["warnings"]), result["warnings"]
+        assert (run_dir / "root_skill_contract.json").is_file(), "矩阵失败不得阻塞契约落盘"
+        assert not (run_dir / "gdd_coverage_matrix.json").exists()
+
+
+class TestIntakeAliasForwarding:
+    def test_alias_enforces_anchor_same_as_root_skill(self, tmp_path, monkeypatch):
+        """I-1: compiler_intake_save(v2)必须与正名工具同享 anchor 强制——
+        合成开启 + 缺 anchor 经 alias 同样 failed 且零落盘(封死绕行通道)。"""
+        ct = _import_compiler_tools()
+        session_path, run_dir = _make_stage1_session(tmp_path, monkeypatch, True)
+        result = ct.compiler_intake_save(session_path, _valid_contract())
+        assert result["status"] == "failed", result
+        assert result["data"]["capabilities_missing_anchor"] == ["baseline-x", "gameplay-a"]
+        assert not (run_dir / "root_skill_contract.json").exists(), "alias 绕行通道未封死"
+        # 文案保留 alias 自己的 action_name(v1 调用方语义不变)
+        assert "Stage 1 保存" in result["summary"], result["summary"]
+
+    def test_alias_full_anchor_saves_matrix_too(self, tmp_path, monkeypatch):
+        """I-1 补充: alias 成功路径同样落盘覆盖矩阵 sidecar。"""
+        ct = _import_compiler_tools()
+        session_path, run_dir = _make_stage1_session(tmp_path, monkeypatch, True)
+        contract = _valid_contract({"gameplay-a": "2.1 棋盘", "baseline-x": "2.2 计分"})
+        result = ct.compiler_intake_save(session_path, contract)
+        assert result["status"] == "success", result
+        assert (run_dir / "gdd_coverage_matrix.json").is_file()
+        assert (run_dir / "gdd_coverage_matrix.md").is_file()
+
+
+class TestCreateSessionSynthesisSwitch:
+    def test_mcp_create_session_switch_persists_and_enforces(self, tmp_path, monkeypatch):
+        """I-2: 经 MCP compiler_create_session 开启开关 → session.json 持久化 true、
+        data 回显,且后续 root_skill_save 强制生效(验收 runbook 第 1 步可经 MCP 完成)。"""
+        ct = _import_compiler_tools()
+        if str(PLUGIN_ROOT) not in sys.path:
+            sys.path.insert(0, str(PLUGIN_ROOT))
+        from Compiler.pipeline import pipeline_orchestrator
+        monkeypatch.setattr(pipeline_orchestrator, "PROJECT_RUNS_DIR", tmp_path / "runs")
+
+        gdd_path = tmp_path / "gdd.md"
+        gdd_path.write_text(GDD_TEXT, encoding="utf-8")
+        created = ct.compiler_create_session(
+            str(gdd_path), "phase13_anchor_test", str(tmp_path / "session_out"),
+            session_version="2.0", allow_skill_synthesis=True,
+        )
+        assert created["status"] == "success", created
+        assert created["data"]["allow_skill_synthesis"] is True
+
+        session_path = created["data"]["session_path"]
+        session_payload = json.loads(Path(session_path).read_text(encoding="utf-8"))
+        assert session_payload.get("allow_skill_synthesis") is True
+
+        result = ct.compiler_root_skill_save(session_path, _valid_contract())
+        assert result["status"] == "failed", "MCP 开启开关后 anchor 强制必须生效"
+        assert result["data"]["capabilities_missing_anchor"] == ["baseline-x", "gameplay-a"]
+
+    def test_mcp_create_session_default_off(self, tmp_path):
+        """I-2 补充: 不传参数默认 False,回显与持久化均为关闭(老调用方不变)。"""
+        ct = _import_compiler_tools()
+        gdd_path = tmp_path / "gdd.md"
+        gdd_path.write_text(GDD_TEXT, encoding="utf-8")
+        created = ct.compiler_create_session(
+            str(gdd_path), "phase13_anchor_test", str(tmp_path / "session_out"),
+            session_version="2.0",
+        )
+        assert created["status"] == "success", created
+        assert created["data"]["allow_skill_synthesis"] is False
+        session_payload = json.loads(
+            Path(created["data"]["session_path"]).read_text(encoding="utf-8")
+        )
+        assert "allow_skill_synthesis" not in session_payload, "默认关闭不序列化,旧 session 字节级不变"
 
 
 def test_zz_real_runs_dir_no_residue():

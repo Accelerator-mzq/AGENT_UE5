@@ -156,8 +156,13 @@ def compiler_create_session(
     session_version: str = "1.0",
     run_id: str | None = None,
     fast_mode: bool = False,
+    allow_skill_synthesis: bool = False,
 ) -> dict:
-    """创建 Compiler Pipeline 会话。"""
+    """创建 Compiler Pipeline 会话。
+
+    allow_skill_synthesis(Phase 13):MCP 侧合成开关入口——开启后持久化进
+    session.json,后续 root_skill_save 的 anchor 强制随之生效。默认 False。
+    """
     try:
         session = create_session(
             gdd_path,
@@ -166,6 +171,7 @@ def compiler_create_session(
             session_version=session_version,
             run_id=run_id,
             fast_mode=fast_mode,
+            allow_skill_synthesis=bool(allow_skill_synthesis),
         )
         session_path = session.save()
         return _make_response(
@@ -178,6 +184,8 @@ def compiler_create_session(
                 "session_version": session.session_version,
                 "run_id": session.run_id,
                 "fast_mode": session.fast_mode,
+                # 回显开关终值(读 session 对象而非入参,所见即所存)
+                "allow_skill_synthesis": session.allow_skill_synthesis,
             },
         )
     except Exception as exc:
@@ -207,7 +215,11 @@ def _capabilities_missing_anchor(contract: dict) -> list:
     return sorted(missing)
 
 
-def compiler_root_skill_save(session_path: str, filled_data: dict[str, Any]) -> dict:
+def compiler_root_skill_save(
+    session_path: str,
+    filled_data: dict[str, Any],
+    action_name: str = "Root Skill",
+) -> dict:
     """Phase 11 Stage 1 保存：校验并保存 Root Skill Contract。
 
     Phase 13 扩展(spec §5.2 兼容化落地):
@@ -215,6 +227,9 @@ def compiler_root_skill_save(session_path: str, filled_data: dict[str, Any]) -> 
         携带非空 source_anchor,缺失则整体 failed 且零落盘(合成留痕强制);
       - 未开启合成时缺 anchor 仅降级 warning(既有等价回归不受影响);
       - 保存成功后追加 GDD 覆盖矩阵 sidecar(三层保证模型第二层,失败不阻塞)。
+
+    action_name 仅供 compiler_intake_save alias 转发时定制文案("Stage 1"),
+    不暴露进 MCP 工具定义——两个工具各自保留调用方语义,行为完全同享。
     """
     target_path = Path(session_path)
     if not target_path.exists():
@@ -237,7 +252,7 @@ def compiler_root_skill_save(session_path: str, filled_data: dict[str, Any]) -> 
             if bool(getattr(session, "allow_skill_synthesis", False)):
                 return _make_response(
                     "failed",
-                    f"Root Skill 保存失败：{len(missing_anchor)} 个 required capability "
+                    f"{action_name} 保存失败：{len(missing_anchor)} 个 required capability "
                     "缺 source_anchor（合成开启时强制留痕）",
                     data={"capabilities_missing_anchor": missing_anchor},
                     errors=[
@@ -250,7 +265,7 @@ def compiler_root_skill_save(session_path: str, filled_data: dict[str, Any]) -> 
             )
 
         result = save_stage(session, 1, filled_data)
-        response = _wrap_save_result("Root Skill 保存", result)
+        response = _wrap_save_result(f"{action_name} 保存", result)
         response["warnings"].extend(anchor_warnings)
 
         # GDD 覆盖矩阵 sidecar(JSON + 人读 markdown)——三层保证模型第二层。
@@ -293,7 +308,7 @@ def compiler_root_skill_save(session_path: str, filled_data: dict[str, Any]) -> 
     except Exception as exc:
         return _make_response(
             "failed",
-            "Root Skill 保存失败",
+            f"{action_name} 保存失败",
             errors=[f"TOOL_EXECUTION_FAILED: {str(exc)}"],
         )
 
@@ -304,8 +319,10 @@ def compiler_intake_prepare(session_path: str) -> dict:
 
 
 def compiler_intake_save(session_path: str, filled_data: dict[str, Any]) -> dict:
-    """旧名 alias：v1 为 Intake，v2 等价于 Root Skill save。"""
-    return _save_stage_tool("Stage 1 保存", session_path, filled_data, 1)
+    """旧名 alias：转发到 compiler_root_skill_save,与正名工具同享 Phase 13
+    anchor 强制与覆盖矩阵落盘(封死绕行通道)。v1 行为无损:gdd_projection
+    无 capability 键,anchor/矩阵块自然 no-op;文案保留 "Stage 1" 语义。"""
+    return compiler_root_skill_save(session_path, filled_data, action_name="Stage 1")
 
 
 def compiler_clarification_prepare(session_path: str) -> dict:

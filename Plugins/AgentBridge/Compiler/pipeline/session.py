@@ -257,8 +257,13 @@ def create_session(
     session_version: str = DEFAULT_SESSION_VERSION,
     run_id: Optional[str] = None,
     fast_mode: bool = False,
+    allow_skill_synthesis: bool = False,
 ) -> CompilerSession:
-    """创建一个新的 CompilerSession。"""
+    """创建一个新的 CompilerSession。
+
+    allow_skill_synthesis(Phase 13):开启后 Stage 1 save 强制 anchor 留痕、
+    Stage 3 gap 可走合成。默认 False,序列化时仅开启才落盘(旧 session 不变)。
+    """
     return CompilerSession(
         session_id=str(uuid.uuid4()),
         created_at=datetime.now(timezone.utc).isoformat(),
@@ -271,4 +276,5 @@ def create_session(
         session_version=session_version,
         run_id=run_id,
         fast_mode=fast_mode,
+        allow_skill_synthesis=allow_skill_synthesis,
     )

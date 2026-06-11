@@ -309,7 +309,12 @@ def _synthesized_promote_blockers(run_dir: Path | str) -> list[str]:
     graph_path = Path(run_dir) / "skill_graph.json"
     if not graph_path.is_file():
         return []
-    graph = json.loads(graph_path.read_text(encoding="utf-8"))
+    # fail-closed:graph 存在但读不出/解析不了 → 不可判定即不许 promote,
+    # 走与 synthesized/gap 同一条 PROMOTE_REJECTED 拒绝路径(而非工具级异常)
+    try:
+        graph = json.loads(graph_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return [f"skill_graph.json 损坏不可判定: {graph_path}"]
     reasons: list[str] = []
     blocked = [
         node.get("instance_id", "<unknown>")
