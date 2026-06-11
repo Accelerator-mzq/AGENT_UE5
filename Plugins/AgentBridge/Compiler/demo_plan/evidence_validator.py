@@ -77,14 +77,18 @@ def _check_doc_references(doc_text: str, plugin_root: Path) -> List[str]:
     corpus = ""
     if source_dir.exists():
         # 扫描插件 Source 目录下所有 .h / .cpp 文件，拼接为语料库
+        # errors="ignore" 容忍编码损坏字节;损坏恰落类名内为可接受的 over-strict(误报不漏报)
+        # 拼接加换行分隔,防止文件 A 尾 + 文件 B 头跨界拼出假声明
         for ext in ("*.h", "*.cpp"):
             for f in sorted(source_dir.rglob(ext)):
-                corpus += f.read_text(encoding="utf-8", errors="ignore")
-    # 检查文档中反引号包裹的 UE 类名是否出现在源码语料
+                corpus += f.read_text(encoding="utf-8", errors="ignore") + "\n"
+    # 检查文档中反引号包裹的 UE 类名是否出现在源码语料(词边界匹配,防前缀子串误放行)
     for cls in sorted(set(_CLASS_TOKEN.findall(doc_text))):
-        if not any(marker + cls in corpus for marker in ("class ", "struct ", "enum class ")):
+        pattern = rf"(?:class|struct|enum class)\s+{re.escape(cls)}\b"
+        if not re.search(pattern, corpus):
             errors.append(f"文档引用对账: 类 {cls} 在 plugin Source 中不存在")
     # 检查文档中反引号包裹的资产路径是否在 plugin Content 目录存在
+    # UE Pkg.Object 点路径形式下 with_suffix 会替换最后一段点后缀,恰好命中包文件本体
     for asset in sorted(set(_ASSET_TOKEN.findall(doc_text))):
         parts = asset.strip("/").split("/")
         rel = Path(*parts[1:]) if len(parts) > 1 else Path(parts[0])
@@ -102,7 +106,12 @@ def validate_evidence(story: Dict[str, Any], evidence: Dict[str, Any], project_r
     errors: List[str] = []
 
     # ── 1. 分级必交字段检查 ──────────────────────────────────────────────────
-    for field in REQUIRED_EVIDENCE[story["evidence_class"]]:
+    # evidence_class 未知/缺失时拒绝而非 KeyError 崩溃(重试闭环契约)
+    required = REQUIRED_EVIDENCE.get(story.get("evidence_class"))
+    if required is None:
+        return {"status": "rejected",
+                "errors": [f"evidence_class 非法或缺失: {story.get('evidence_class')!r}(合法值: {sorted(REQUIRED_EVIDENCE)})"]}
+    for field in required:
         if evidence.get(field) is None:
             errors.append(f"缺少必交证据字段: {field}(evidence_class={story['evidence_class']})")
 

@@ -135,3 +135,21 @@ class TestEvidenceValidator:
         out = ev.validate_evidence(_story("Logic"), evidence, workspace_tmp_path)
         assert out["status"] == "rejected"
         assert any("NoneType" in e for e in out["errors"])
+
+    def test_dmp30c_doc_reference_prefix_substring_not_matched(self, workspace_tmp_path):
+        ev = _load("evidence_validator")
+        plugin = workspace_tmp_path / "Plugins" / "DemoX"
+        _touch(workspace_tmp_path, "Plugins/DemoX/Source/DemoX/Core.h", "class AFooBar {};")
+        doc = _touch(workspace_tmp_path, "Plugins/DemoX/Docs/arch.md", "引用 `AFoo` 与 `AFooBar`。")
+        evidence = {"files_changed": [doc], "doc_paths": [doc]}
+        out = ev.validate_evidence(_story("Config", kind="documentation"), evidence,
+                                   workspace_tmp_path, plugin_root=plugin)
+        assert any("AFoo " in e or "类 AFoo 在" in e for e in out["errors"])
+        assert not any("AFooBar" in e for e in out["errors"])
+
+    def test_dmp30d_unknown_evidence_class_rejected_not_crash(self, workspace_tmp_path):
+        ev = _load("evidence_validator")
+        out = ev.validate_evidence({"story_id": "story-x", "batch_id": "v0",
+                                    "story_kind": "capability", "evidence_class": "Bogus"},
+                                   {"files_changed": []}, workspace_tmp_path)
+        assert out["status"] == "rejected" and any("evidence_class" in e for e in out["errors"])
