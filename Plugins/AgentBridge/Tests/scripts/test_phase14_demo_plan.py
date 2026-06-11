@@ -143,3 +143,53 @@ class TestManifestLoader:
         import pytest
         with pytest.raises(ValueError, match="manifest_version"):
             ml.load_construction_manifest(workspace_tmp_path, path=bad)
+
+
+class TestDemoPlanCli:
+    def _seed(self, tmp, run_id="run-cli-test"):
+        import json as _json
+        graph = {"graph_version": "1.0", "graph_id": "g-1",
+                 "nodes": [{"instance_id": "skill-a", "capability_id": "cap-a",
+                            "template_id": "t.v1", "domain_type": "gameplay",
+                            "template_source": "plugin_skill_template",
+                            "dependencies": [], "coupling": []}],
+                 "edges": [], "metadata": {"source_run_id": run_id, "capability_gaps": []}}
+        contract = {"contract_id": "c-1", "source_gdd": "ProjectInputs/GDD/x.md",
+                    "gameplay_capabilities": [{"capability_id": "cap-a", "activation": "required",
+                                               "source_anchor": "1. 概述"}],
+                    "baseline_capabilities": []}
+        (tmp / "skill_graph.json").write_text(_json.dumps(graph), encoding="utf-8")
+        (tmp / "root_skill_contract.json").write_text(_json.dumps(contract), encoding="utf-8")
+
+    def _run_cli(self, tmp, project_root):
+        import subprocess, sys
+        cli = Path(project_root) / "Plugins" / "AgentBridge" / "Scripts" / "demo_plan_main.py"
+        return subprocess.run([sys.executable, str(cli), "--run-dir", str(tmp)],
+                              capture_output=True, text=True, cwd=project_root)
+
+    def test_dmp39_cli_writes_plan_and_stories(self, workspace_tmp_path, project_root):
+        import json as _json
+        self._seed(workspace_tmp_path)
+        result = self._run_cli(workspace_tmp_path, project_root)
+        assert result.returncode == 0, result.stderr
+        plan = _json.loads((workspace_tmp_path / "demo_plan.json").read_text(encoding="utf-8"))
+        assert plan["run_id"] == "run-cli-test"
+        assert (workspace_tmp_path / "stories" / "story-skill-a.json").exists()
+
+    def test_dmp39a_cli_fails_closed_on_missing_run_id(self, workspace_tmp_path, project_root):
+        import json as _json
+        self._seed(workspace_tmp_path)
+        graph = _json.loads((workspace_tmp_path / "skill_graph.json").read_text(encoding="utf-8"))
+        del graph["metadata"]["source_run_id"]
+        (workspace_tmp_path / "skill_graph.json").write_text(_json.dumps(graph), encoding="utf-8")
+        result = self._run_cli(workspace_tmp_path, project_root)
+        assert result.returncode != 0 and "source_run_id" in (result.stderr + result.stdout)
+
+    def test_dmp40_cli_fails_closed_on_unresolved_gaps(self, workspace_tmp_path, project_root):
+        import json as _json
+        self._seed(workspace_tmp_path)
+        graph = _json.loads((workspace_tmp_path / "skill_graph.json").read_text(encoding="utf-8"))
+        graph["metadata"]["capability_gaps"] = [{"capability_id": "cap-gap", "reason": "x"}]
+        (workspace_tmp_path / "skill_graph.json").write_text(_json.dumps(graph), encoding="utf-8")
+        result = self._run_cli(workspace_tmp_path, project_root)
+        assert result.returncode != 0 and "capability_gaps" in (result.stderr + result.stdout)
