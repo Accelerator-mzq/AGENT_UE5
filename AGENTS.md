@@ -1,6 +1,6 @@
 ![1776348092078](image/AGENTS/1776348092078.png)# AGENTS.md — Mvpv4TestCodex 项目
 
-> 目标引擎版本：UE5.5.4 | 文档版本：v1.5（Phase 11 归档口径）
+> 目标引擎版本：UE5.5.4 | 文档版本：v1.6（Phase 13 任务书口径,2026-06-11）
 >
 > 本文件定义 **本项目** 的 AI Agent 行为规则。
 > 通用的 AgentBridge 插件规则见 → `Plugins/AgentBridge/AGENTS.md`
@@ -77,7 +77,9 @@ Agent 在本项目中需要参考的文档：
 | 项目基线 | `Docs/requirements/SRS.md#1` |
 | 当前阶段目标 | `Docs/acceptance/acceptance_report.md#1` |
 | 实施边界 | `Docs/requirements/SRS.md#6.5` |
-| 当前阶段任务 | 根目录 `task.md`（当前为归档跳转页，指向 Phase 11 历史任务与最终验收） |
+| 当前阶段任务 | 根目录 `task.md`（当前为 Phase 13 Skill 合成主链任务书,实施收尾期） |
+| Phase 13 设计 spec | `Docs/superpowers/specs/2026-06-10-phase13-skill-synthesis-design.md` |
+| Phase 13 验收 runbook | `ProjectState/Reports/2026-06-11/phase13_acceptance_runbook.md` |
 | Phase 11 历史任务 | `Docs/archive/history/Tasks/task11_phase11.md` |
 | MCP 总口径锚定 | `Docs/design/HLD.md#4` |
 | 四层主链定义 | `Docs/requirements/SRS.md#4` |

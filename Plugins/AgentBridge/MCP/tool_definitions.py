@@ -308,6 +308,7 @@ COMPILER_FRONTEND_TOOLS = {
             "session_version": {"type": "string", "required": False, "description": "Pipeline 版本，默认 1.0，可选 2.0"},
             "run_id": {"type": "string", "required": False, "description": "Phase 11 run_id，可留空自动生成"},
             "fast_mode": {"type": "boolean", "required": False, "description": "是否启用 fast_mode，默认 false"},
+            "allow_skill_synthesis": {"type": "boolean", "required": False, "description": "Phase 13 Skill 合成开关，默认 false；开启后持久化进 session.json，Stage 1 保存强制 required capability 携带 source_anchor"},
         },
         "returns": "session_id 与 session_path",
     },
@@ -334,7 +335,7 @@ COMPILER_FRONTEND_TOOLS = {
         "returns": "Stage 1 模板、schema 与输入上下文",
     },
     "compiler_intake_save": {
-        "description": "旧名 alias：v1 保存 GDD Projection，v2 等价于 compiler_root_skill_save。",
+        "description": "旧名 alias：转发到 compiler_root_skill_save，与正名工具同享 Phase 13 anchor 强制与覆盖矩阵落盘（v1 保存 GDD Projection 行为不变）。",
         "params": {
             "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
             "filled_data": {"type": "object", "required": True, "description": "已填充完成的 Stage 1 产物"},
@@ -413,6 +414,23 @@ COMPILER_FRONTEND_TOOLS = {
             "node_state": {"type": "object", "required": False, "description": "前序阶段的 node_state"},
         },
         "returns": "校验结果、更新后的 node_state、Fragment（convergence 完成时）",
+    },
+    "compiler_skill_synthesis_prepare": {
+        "description": "S3.5 合成准备：为指定 capability gap 返回 GDD 上下文、6 文件规范、范例模板与执行 family 白名单，供 Agent 现场合成 SkillTemplate。",
+        "params": {
+            "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
+            "capability_id": {"type": "string", "required": True, "description": "skill_graph metadata.capability_gaps 中的能力 ID"},
+        },
+        "returns": "gap 上下文、file_spec、exemplars、family_whitelist、naming_rules、instructions",
+    },
+    "compiler_skill_synthesis_save": {
+        "description": "S3.5 合成提交：接收 6 文件内容，结果三态在 data.synthesis_status——rejected=机器校验失败（返回具体错误，修正内容后重提）；failed=环境失败（不应重试内容，先排查环境）；saved=落盘 SkillTemplates/synthesized/<capability_id>/ 并标 review_status=pending_review。MCP 顶层 status 仅 success/failed。该工具不受 allow_skill_synthesis 开关拦截（开关只门控 Stage 1 anchor 强制）；试制隔离由 pending_review+人审+promote 守卫纵深保证。",
+        "params": {
+            "session_path": {"type": "string", "required": True, "description": "session.json 路径"},
+            "capability_id": {"type": "string", "required": True, "description": "目标能力 ID"},
+            "six_files": {"type": "object", "required": True, "description": "key=文件名（manifest.yaml 等 6 个），value=完整文件内容字符串"},
+        },
+        "returns": "data.synthesis_status=saved/rejected/failed、errors[]、package_dir、review 提示（agent 据 data.synthesis_status 决定重提内容还是排查环境）",
     },
 }
 
@@ -527,7 +545,7 @@ ALL_TOOLS.update(EVIDENCE_JUDGE_TOOLS)
 
 TOOL_COUNT = len(ALL_TOOLS)
 # 当前 flat alias layout：
-# 7(query) + 6(write) + 5(service) + 9(asset) + 1(fallback) + 12(compiler_frontend) + 11(evidence_backend) = 51
+# 7(query) + 6(write) + 5(service) + 9(asset) + 1(fallback) + 16(compiler_frontend) + 11(evidence_backend) = 55
 
 
 def to_json_schema(tool_def: dict) -> dict:

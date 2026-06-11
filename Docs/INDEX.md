@@ -1,6 +1,6 @@
 # Docs INDEX — Mvpv4TestCodex 文档体系顶层入口
 
-> 版本: v1.0(2026-05-26)
+> 版本: v1.1(2026-06-11,Phase 13 权威数字同步)
 > 关联 spec: `Docs/superpowers/specs/2026-05-26-docs-restructure-for-ue57.md` v1.1
 > 文档定位: **入口型**,新接手 Agent / 开发者必读
 
@@ -8,7 +8,7 @@
 
 ## 1. 项目状态(一句话)
 
-**Phase 12 LLM Internal Reopen 已完成(2026-05-27),Phase 11 已归档,UE 5.5.4 稳定**:Phase 11 (Skill-First Design Compiler Framework) 验收已 closeout(`Docs/acceptance/acceptance_report.md` §1);Phase 12 重开 LLM Internal 路径(`Compiler/providers/` + `observability/` + `runtime/` + `stages/candidates_batch_orchestrator.py`),通过 7/7 真 LLM 验收(`ProjectState/Reports/2026-05-27/llm_internal_reopen_acceptance.md`)。本次文档重组(Phase 0-4)产出本 INDEX 等 22 份新文档,旧文档全量归档到 `Docs/archive/` 反向映射可追溯。**注:UE 5.7 重构计划已企汰**(2026-05-27);`Docs/superpowers/specs/2026-05-26-ue57-breaking-changes-scan.md` 的 BC 知识库内容(P1 6 条 msc 已裁决 + P2/P3 留实测)保留作未来可能的重启资产,LLD/01-07 §UE 5.7 迁移变更点 + HLD §UE 5.7 升级 BC 表 + contracts §UE 5.5.4 → 5.7 升级表仍 anchor 在该 spec,**不主动维护但不删除**。
+**Phase 13 Skill 合成主链实施完成(2026-06-11,验收 runbook 判据 1-4 闭环、5-12 待执行),Phase 12 / Phase 11 已归档,UE 5.5.4 稳定**:Phase 13 落地 Stage 3 注册表数据化(三张硬编码表删除,manifest `capability_bindings` 自描述)+ capability gap 显式化 + S3.5 合成环节(MCP `compiler_skill_synthesis_prepare/save` 双 gate)+ GDD 覆盖矩阵 + synthesized/gap promote 守卫,任务书见根 `task.md`,spec 见 `Docs/superpowers/specs/2026-06-10-phase13-skill-synthesis-design.md`。Phase 11 (Skill-First Design Compiler Framework) 验收已 closeout(`Docs/acceptance/acceptance_report.md` §1);Phase 12 重开 LLM Internal 路径(`Compiler/providers/` + `observability/` + `runtime/` + `stages/candidates_batch_orchestrator.py`),通过 7/7 真 LLM 验收(`ProjectState/Reports/2026-05-27/llm_internal_reopen_acceptance.md`)。2026-05-26 文档重组(Phase 0-4)产出本 INDEX 等 22 份新文档,旧文档全量归档到 `Docs/archive/` 反向映射可追溯。**注:UE 5.7 重构计划已企汰**(2026-05-27);`Docs/superpowers/specs/2026-05-26-ue57-breaking-changes-scan.md` 的 BC 知识库内容(P1 6 条 msc 已裁决 + P2/P3 留实测)保留作未来可能的重启资产,LLD/01-07 §UE 5.7 迁移变更点 + HLD §UE 5.7 升级 BC 表 + contracts §UE 5.5.4 → 5.7 升级表仍 anchor 在该 spec,**不主动维护但不删除**。
 
 ---
 
@@ -23,7 +23,7 @@
    - `task.md` — 当前阶段唯一开发驱动入口
 2. **本文档体系入口**(L1 当前权威):
    - `Docs/INDEX.md`(本文件)
-   - `Docs/FEATURE_INVENTORY.md` — 105 行多源交叉矩阵,验收门禁底座
+   - `Docs/FEATURE_INVENTORY.md` — 108 行多源交叉矩阵,验收门禁底座
    - `Docs/governance.md` — 文档治理与规则索引
 3. **功能规格**(SRS → HLD → LLD):
    - `Docs/requirements/SRS.md` — 系统功能"做什么"(8 章 + 附录,~4000 中文字)
@@ -32,8 +32,8 @@
 4. **契约层**(L2 Canonical):
    - `Docs/contracts/{tool_contract,field_specification,schemas_catalog,mcp_tools_catalog}.md`
 5. **测试与验收**:
-   - `Docs/testing/test_spec.md` — 266 系统测试用例索引
-   - `Docs/acceptance/acceptance_report.md` — Phase 11 基线 + UE 5.7 验收模板
+   - `Docs/testing/test_spec.md` — 364 系统测试用例索引
+   - `Docs/acceptance/acceptance_report.md` — Phase 11 基线 + 回归门禁 + Phase 13 附录
 
 ### Compiler 视角(深入 Phase 11 主链)
 
@@ -54,7 +54,7 @@
 ```
 Docs/
 ├── INDEX.md                                  # 本文件(入口 / 阅读顺序 / 旧→新映射)
-├── FEATURE_INVENTORY.md                      # 105 行多源交叉矩阵 = 验收底座
+├── FEATURE_INVENTORY.md                      # 108 行多源交叉矩阵 = 验收底座
 ├── governance.md                             # 文档治理 / hook / 信任分层
 ├── redirects.json                            # 108 条机器可读 old→new 映射(Phase 0.4 产出)
 ├── requirements/
@@ -71,14 +71,14 @@ Docs/
 │       ├── 06_skills_and_templates.md        # Skill & Template(F-SKL-01..04)
 │       └── 07_runtime_and_evidence.md        # 运行时/证据/测试/Hook/Input/Demo/Validation
 ├── testing/
-│   └── test_spec.md                          # 15 测试类 / 266 case 索引
+│   └── test_spec.md                          # 17 测试类 / 364 case 索引
 ├── acceptance/
 │   └── acceptance_report.md                  # Phase 11 基线 + UE 5.7 验收模板
 ├── contracts/
 │   ├── tool_contract.md                      # L1/L2/L3 工具协议(7 章)
 │   ├── field_specification.md                # 字段命名/单位/Schema 规则(5 章)
-│   ├── schemas_catalog.md                    # 41 主 Schema + 26 examples
-│   └── mcp_tools_catalog.md                  # 53 MCP 工具签名表
+│   ├── schemas_catalog.md                    # 45 主 Schema + 28 examples
+│   └── mcp_tools_catalog.md                  # 55 MCP 工具签名表
 ├── superpowers/
 │   ├── specs/                                # 设计 spec(本次重组 + UE 5.7 scan)
 │   └── plans/                                # 实施 plan
@@ -102,20 +102,20 @@ Docs/
 
 | 硬事实 | 权威文档 | 数字 / 内容 |
 |--------|----------|-------------|
-| MCP 工具数 | `Docs/contracts/mcp_tools_catalog.md` 主表 | **53**(Bridge 28 + 前端 14 + 后端 11)|
-| Schema 数 | `Docs/contracts/schemas_catalog.md` 主表 + 附录 A | **42 主 + 27 examples = 69**(2026-05-27 ForgeUE real-ue milestone 新增 `forgeue_import_evidence` schema + 1 example)|
-| 系统测试用例数 | `Docs/testing/test_spec.md` §3 + `Plugins/AgentBridge/Tests/run_system_tests.py:191 TOTAL_CASES` | **266**(15 测试类)|
-| C++ Automation 测试数 | `Docs/testing/test_spec.md` §1 + `Plugins/AgentBridge/AgentBridgeTests/` | **~26**(独立计数,不计入 266)|
-| 7 阶段主链 | `Docs/requirements/SRS.md §4.1` + `Docs/design/HLD.md §2.1` | Stage 1-7(Root Skill Contract → Reviewed Handoff v3)|
-| Run 治理 | `Docs/requirements/SRS.md §4.3` + `Docs/design/HLD.md §3` | F-GOV-01..04(run_id / fast_mode / generator_provider / compare-promote)|
-| Schema --strict 27/27 | `Docs/testing/test_spec.md §5` + `Docs/acceptance/acceptance_report.md §2.1` | `validate_examples.py --strict`(2026-05-27 26→27,加 `forgeue_import_evidence_example.json`)|
+| MCP 工具数 | `Docs/contracts/mcp_tools_catalog.md` 主表 | **55**(Bridge 28 + 前端 16 + 后端 11;2026-06-11 Phase 13 +`compiler_skill_synthesis_prepare/save`)|
+| Schema 数 | `Docs/contracts/schemas_catalog.md` 主表 + 附录 A | **45 主 + 28 examples = 73**(2026-06-11 Phase 13 新增 `gdd_coverage_matrix` schema + 1 example,同日补登记 Phase 12 漏录的 `provider_call`/`retry_policy`;2026-05-27 ForgeUE +`forgeue_import_evidence`)|
+| 系统测试用例数 | `Docs/testing/test_spec.md` §3 + `Plugins/AgentBridge/Tests/run_system_tests.py:209 TOTAL_CASES` | **364**(17 测试类 / 13 stage;2026-06-11 Phase 13 +Stage 13 SKS-01~94,含终审修复 +5)|
+| C++ Automation 测试数 | `Docs/testing/test_spec.md` §1 + `Plugins/AgentBridge/AgentBridgeTests/` | **~26**(独立计数,不计入 364)|
+| 7 阶段主链 | `Docs/requirements/SRS.md §4.1` + `Docs/design/HLD.md §2.1` | Stage 1-7(Root Skill Contract → Reviewed Handoff v3);Phase 13 起含条件环节 S3.5 Skill Synthesis(capability_gaps 非空且 `allow_skill_synthesis=true` 时)|
+| Run 治理 | `Docs/requirements/SRS.md §4.3` + `Docs/design/HLD.md §3` | F-GOV-01..05(run_id / fast_mode / generator_provider / compare-promote / synthesized+gap promote 守卫)|
+| Schema --strict 28/28 | `Docs/testing/test_spec.md §5` + `Docs/acceptance/acceptance_report.md §2.1` | `validate_examples.py --strict`(2026-06-11 27→28,加 `phase13_gdd_coverage_matrix.example.json`)|
 | UE 引擎目标版本 | `Docs/requirements/SRS.md §1.2` | **UE 5.5.4 稳定**(UE 5.7 重构计划已企汰 2026-05-27,BC 知识库保留)|
 | 项目层 + 插件层分层 | `Docs/design/HLD.md §1.1` | 双层架构 + 进程拓扑 |
 | 4 通道(契约) | `Docs/contracts/tool_contract.md §5.2` | Channel A/B/C/D;代码实际 BridgeChannel 4 值,channel_map 暴露 3 档 |
-| F-* IDs 总数 | `Docs/FEATURE_INVENTORY.md` 主表 | **105 行 × 8 列 / 15 family** |
+| F-* IDs 总数 | `Docs/FEATURE_INVENTORY.md` 主表 | **108 行 × 8 列 / 15 family**(2026-06-11 Phase 13 +F-CMP-25/26 + F-GOV-05)|
 | UE 5.7 Breaking Changes | `Docs/superpowers/specs/2026-05-26-ue57-breaking-changes-scan.md` §3 + §4 | **25 BC**(P1 6 confirmed + 1 false-positive + P2 14 suspected + P3 4 suspected)|
 | 旧文档总数 | `Docs/archive/README.md` + `Docs/superpowers/specs/2026-05-26-old-docs-inventory.csv` | **108 份**(项目层 77 + 插件层 31)|
-| 12 SkillTemplate | `Docs/design/LLD/06_skills_and_templates.md §2.2` | Baseline 6 + Genre Pack Monopoly 6 = 12 × 6 文件 = 72 |
+| 12 SkillTemplate | `Docs/design/LLD/06_skills_and_templates.md §2.2` | Baseline 6 + Genre Pack Monopoly 6 = 12 × 6 文件 = 72;Phase 13 起 manifest 增 `capability_bindings` 块 + `registry_placeholders.yaml` 占位 + `synthesized/` 合成隔离区 |
 | 19 个 Phase 1 新文档 | `Docs/superpowers/plans/2026-05-26-docs-restructure-for-ue57.md` Task 1.1-1.19 | contracts 4 + SRS 1 + HLD 1 + LLD 8 + test 1 + accept 1 + gov 1 + INDEX 1 + FEATURE_INVENTORY 1 |
 
 ---
@@ -146,11 +146,14 @@ Docs/
 ## 6. 常用命令(从旧 <code>Docs/Current/06&#95;Current&#95;Task&#95;List.md</code> 搬迁)
 
 ```bash
-# Schema 校验(--strict 26/26)
+# Schema 校验(--strict 28/28)
 python Plugins/AgentBridge/Scripts/validation/validate_examples.py --strict
 
-# 系统测试:一键全 11 stage / 266 case
+# 系统测试:一键全 13 stage / 364 case
 python Plugins/AgentBridge/Tests/run_system_tests.py
+
+# 系统测试:仅 Phase 13 Skill Synthesis(Stage 13 / SKS-01~94)
+python Plugins/AgentBridge/Tests/run_system_tests.py --stage=13
 
 # 系统测试:交互模式
 python Plugins/AgentBridge/Tests/run_system_tests.py --interactive
@@ -177,7 +180,7 @@ python Plugins/AgentBridge/Tests/scripts/task14a_phase11_standalone_smoke.py
 python Plugins/AgentBridge/Scripts/validation/test_handoff_schema.py
 
 # MCP 工具数实测
-python -c "from Plugins.AgentBridge.MCP.tool_definitions import TOOL_COUNT; print(TOOL_COUNT)"  # → 53
+python -c "from Plugins.AgentBridge.MCP.tool_definitions import TOOL_COUNT; print(TOOL_COUNT)"  # → 55
 ```
 
 ---

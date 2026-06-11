@@ -655,6 +655,7 @@
       "cg-platform-foundation-boundary"
     ],
     "provisional_item_count": 2,
+    "capability_gaps": [],
     "template_boundary_note": "Skill Graph 只引用 template_id；运行时 Skill Instance 将在 TASK 09 创建，不会回写 Plugins/AgentBridge/SkillTemplates/。"
   }
 }

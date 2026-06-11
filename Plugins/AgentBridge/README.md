@@ -44,16 +44,27 @@
 - Stage 4 三路生成策略：`mcp_agent` 主路径、`llm` 内置路径（已接入，高负载验收暂缓）、`heuristic_fallback` 显式后备
 - MCP 前端工具升级：新增 clarification_prepare/save、stage4_node_prepare/save、root_skill_prepare/save、skill_graph_prepare/save
 - MCP 后端新增 Run 治理工具：evidence_create_batch、evidence_compare_runs、evidence_promote_run
-- Phase 11 Schema 集新增/升级 12 个，`validate_examples.py --strict` 为 `26/26` 通过
+- Phase 11 Schema 集新增/升级 12 个，`validate_examples.py --strict` 当时为 `26/26` 通过（当前 `28/28`）
 - Baseline Domain Skill Template 全套（`SkillTemplates/baseline/`）
 - UE 运行时最小可玩性已通过 Editor game 与 staged standalone 双路径验证
-- 当前 MCP 工具总数为 `53`（`49` 正式主工具 + `4` 兼容 alias）
+- Phase 11 收尾时 MCP 工具总数为 `53`（`49` 正式主工具 + `4` 兼容 alias）
 
 关键证据：
 
 - [18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/acceptance/acceptance_report.md#1)
 - [task15_phase11_final_acceptance.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/task15_phase11_final_acceptance.md)
 - [phase11_feature_coverage_report.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-04-17/phase11_feature_coverage_report.md)
+
+### Phase 13 已完成能力（2026-06-11，Skill 合成主链）
+
+- Stage 3 注册表数据化：`GAMEPLAY_NODE_CONFIGS` / `BASELINE_NODE_CONFIGS` / `FRAGMENT_FAMILY_MAP` 三张硬编码表删除，模板 `manifest.yaml` `capability_bindings` 自描述 + `SkillTemplates/registry_placeholders.yaml` 占位 + `Compiler/stages/registry_scan.py` 扫描建映射
+- capability gap 显式化：库外能力写入 `skill_graph.metadata.capability_gaps`，零静默丢弃（基线 Monopoly skill_graph 改造前后等价，golden 守门）
+- S3.5 合成环节：MCP 工具对 `compiler_skill_synthesis_prepare/save` + 机器校验器（`synthesis_validator`）+ 人审 gate（`review_status: approved`）双 gate；合成包落 `SkillTemplates/synthesized/` 隔离区
+- GDD 覆盖矩阵：`Compiler/stages/gdd_coverage.py`，claimed / unclaimed / container 三态 + 防固化四守则
+- promote 双守卫：synthesized 消费 / 未解决 gap → `PROMOTE_REJECTED`，损坏 graph fail-closed
+- 当前 MCP 工具总数为 `55`（`51` 正式主工具 + `4` 兼容 alias）；系统测试 `13 stage / 364 case`（Stage 13 SKS-01~94，含终审修复 +5）；`validate_examples.py --strict` 为 `28/28` 通过
+
+关键文档：spec `Docs/superpowers/specs/2026-06-10-phase13-skill-synthesis-design.md` / 验收 runbook `ProjectState/Reports/2026-06-11/phase13_acceptance_runbook.md`（判据 1-4 闭环，5-12 待执行）
 
 ## 3. 目录结构
 
@@ -90,7 +101,7 @@ AgentBridge/
 ## 5. 常用命令
 
 ```powershell
-# Schema example 严格校验（26/26）
+# Schema example 严格校验（28/28）
 python Plugins/AgentBridge/Scripts/validation/validate_examples.py --strict
 
 # 系统测试：一键执行全部 Stage

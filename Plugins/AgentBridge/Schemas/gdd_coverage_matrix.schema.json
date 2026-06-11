@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GDD 覆盖矩阵",
+  "description": "Phase 13 反向覆盖审计 sidecar:GDD 段落与 capability 认领关系(三层保证模型第二层)。由 Compiler/stages/gdd_coverage.py build_coverage_matrix 生成,schema 必须与实现保持同步。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["rows", "capabilities_without_anchor", "dangling_anchors", "unclaimed_count"],
+  "properties": {
+    "rows": {
+      "type": "array",
+      "description": "逐段认领状态行列表,每行对应 GDD 中一个 markdown 标题段落",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["heading", "start_line", "status", "claimed_by"],
+        "properties": {
+          "heading": {
+            "type": "string",
+            "description": "GDD 段落标题文本(不含 # 前缀)"
+          },
+          "start_line": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "段落标题在 GDD 文件中的起始行号(从 1 计)"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["claimed", "unclaimed", "container"],
+            "description": "认领状态。claimed=被至少一个 capability 的 source_anchor 认领;unclaimed=无任何认领且非容器;container=纯结构容器(无正文且紧随更深层子标题,覆盖责任由子段落承担,不计入 unclaimed_count)"
+          },
+          "claimed_by": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "认领该段落的 capability_id 列表(认领时非空,未认领/容器时为空数组)"
+          }
+        }
+      }
+    },
+    "capabilities_without_anchor": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "source_anchor 为空或缺失的 capability_id 列表(可见,待人裁决是否遗漏 GDD 来源)"
+    },
+    "dangling_anchors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "指向不存在段落标题的 source_anchor 值列表(抽取错误信号,anchor 与 GDD 标题不匹配)"
+    },
+    "unclaimed_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "无人认领段落数(仅统计 status=unclaimed 的行,container 不计入)"
+    }
+  }
+}

@@ -77,6 +77,11 @@
       "type": "string",
       "enum": ["llm", "mcp_agent", "heuristic_fallback"],
       "description": "Stage 4 使用的 Generator Provider 类型。heuristic_fallback 运行不可 promote"
+    },
+    "allow_skill_synthesis": {
+      "type": "boolean",
+      "default": false,
+      "description": "Phase 13 Skill 合成开关。开启时 Stage 1 保存强制 required capability 携带 source_anchor"
     }
   },
   "allOf": [

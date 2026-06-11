@@ -1,7 +1,7 @@
 # AgentBridge 系统测试用例总表
 
 > 来源：`Docs/archive/history/Phase1_MVP/task.md` + `Docs/archive/history/Tasks/task1_phase3.md` + `Docs/archive/history/Tasks/task2_phase4.md` + `Docs/archive/history/Tasks/task3_phase5.md` + `Docs/archive/history/Tasks/task4_phase6.md` + `Docs/archive/history/Tasks/task6_phase7.md` + [task10_phase10.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/archive/history/Tasks/task10_phase10.md) + [17_Phase10_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/archive/current/17_Phase10_Closeout.md) + [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) + [18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/acceptance/acceptance_report.md#1) 中的验收标准与验证步骤
-> 最后更新：2026-04-17
+> 最后更新：2026-06-11
 > 维护者：msc
 
 ---
@@ -25,6 +25,8 @@
 - [14. 端到端集成（E2E）](#14-端到端集成e2e)
 - [15. MCP Server 集成（MCP）](#15-mcp-server-集成mcp)
 - [16. Phase 11 设计编译器框架（P11）](#16-phase-11-设计编译器框架p11)
+- [17. Phase 12 LLM Internal Reopen（LIR）](#17-phase-12-llm-internal-reopenlir)
+- [18. Phase 13 Skill Synthesis（SKS）](#18-phase-13-skill-synthesissks)
 - [附录 A：UE5 Automation Test ID 速查表](#附录-aue5-automation-test-id-速查表)
 - [附录 B：统计摘要](#附录-b统计摘要)
 - [附录 C：自动化工具链](#附录-c自动化工具链)
@@ -49,8 +51,10 @@
 | GA | Gauntlet CI/CD | UE5 + UAT | `RunUAT.bat RunUnreal -test=SmokeTests/AllTests` |
 | E2E | 端到端集成 | 全栈 | 多步流水线（Schema→Cmd→Gauntlet→三通道脚本） |
 | P11 | Phase 11 设计编译器框架 | Python + 报告证据 + 局部 live inventory | `run_system_tests.py --stage=11` / Phase 11 专项脚本 / 证据读回 |
+| LIR | Phase 12 LLM Internal Reopen | Python | `run_system_tests.py --stage=12` / pytest 子集 |
+| SKS | Phase 13 Skill Synthesis | Python | `run_system_tests.py --stage=13` / pytest 全量（9 个 `test_phase13_*.py`） |
 
-> 全部 266 条用例均已登记到当前测试总表。证据目录分层为：`ProjectState/Reports/`（当期执行）+ `Docs/History/reports/AgentBridgeEvidence/`（历史归档）。
+> 全部 364 条用例均已登记到当前测试总表。证据目录分层为：`ProjectState/Reports/`（当期执行）+ `Docs/History/reports/AgentBridgeEvidence/`（历史归档）。
 
 ---
 
@@ -624,6 +628,114 @@
 
 ---
 
+## 18. Phase 13 Skill Synthesis（SKS）
+
+> 来源：[Docs/superpowers/specs/2026-06-10-phase13-skill-synthesis-design.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/specs/2026-06-10-phase13-skill-synthesis-design.md) 验收口径
+> 自动化方式：pytest 全量（9 个 `test_phase13_*.py` 文件，按收集顺序 SKS-01 ~ SKS-94 连续分段编号）
+> 环境要求：Python 3.x；不要求 UE5 Editor
+> 分段：SKS-01~15 anchor_and_promote / SKS-16~17 fragment_family / SKS-18~21 gap_recording / SKS-22~28 gdd_coverage / SKS-29~40 mcp_synthesis_tools / SKS-41~45 registry_equivalence / SKS-46~51 registry_scan / SKS-52~71 skill_synthesis / SKS-72~94 synthesis_validator（终审修复 +5：SKS-20 / SKS-36 / SKS-64~66）
+
+| 编号 | 用例名称 | 测试方式 | 预期结果 |
+|------|---------|---------|---------|
+| SKS-01 | `TestAnchorEnforcement::test_sks14_missing_anchor_listed` | `pytest test_phase13_anchor_and_promote.py` | PASS，失败 0 |
+| SKS-02 | `TestPromoteGuard::test_sks15_synthesized_graph_refused` | `pytest test_phase13_anchor_and_promote.py` | PASS，失败 0 |
+| SKS-03 | `TestPromoteGuard::test_sks15b_unresolved_gaps_refused` | `pytest test_phase13_anchor_and_promote.py` | PASS，失败 0 |
+| SKS-04 | `TestPromoteGuard::test_sks15c_clean_or_missing_graph_not_blocked` | `pytest test_phase13_anchor_and_promote.py` | PASS，失败 0 |
+| SKS-05 | `TestPromoteGuard::test_sks15e_corrupted_graph_fail_closed` | `pytest test_phase13_anchor_and_promote.py` | PASS，失败 0 |
+| SKS-06 | `TestPromoteGuard::test_sks15d_guard_wired_into_evaluate_promotable` | `pytest test_phase13_anchor_and_promote.py` | PASS，失败 0 |
+| SKS-07 | `TestRootSkillSaveHandler::test_synthesis_on_missing_anchor_failed_nothing_saved` | `pytest test_phase13_anchor_and_promote.py` | PASS，失败 0 |
+| SKS-08 | `TestRootSkillSaveHandler::test_synthesis_off_missing_anchor_success_with_warning` | `pytest test_phase13_anchor_and_promote.py` | PASS，失败 0 |
+| SKS-09 | `TestRootSkillSaveHandler::test_full_anchor_success_writes_coverage_matrix` | `pytest test_phase13_anchor_and_promote.py` | PASS，失败 0 |
+| SKS-10 | `TestRootSkillSaveHandler::test_matrix_failure_degrades_to_warning` | `pytest test_phase13_anchor_and_promote.py` | PASS，失败 0 |
+| SKS-11 | `TestIntakeAliasForwarding::test_alias_enforces_anchor_same_as_root_skill` | `pytest test_phase13_anchor_and_promote.py` | PASS，失败 0 |
+| SKS-12 | `TestIntakeAliasForwarding::test_alias_full_anchor_saves_matrix_too` | `pytest test_phase13_anchor_and_promote.py` | PASS，失败 0 |
+| SKS-13 | `TestCreateSessionSynthesisSwitch::test_mcp_create_session_switch_persists_and_enforces` | `pytest test_phase13_anchor_and_promote.py` | PASS，失败 0 |
+| SKS-14 | `TestCreateSessionSynthesisSwitch::test_mcp_create_session_default_off` | `pytest test_phase13_anchor_and_promote.py` | PASS，失败 0 |
+| SKS-15 | `test_zz_real_runs_dir_no_residue` | `pytest test_phase13_anchor_and_promote.py` | PASS，失败 0 |
+| SKS-16 | `test_sks04_family_map_derived_equals_legacy` | `pytest test_phase13_fragment_family.py` | PASS，失败 0 |
+| SKS-17 | `test_sks04_module_builder_equals_legacy` | `pytest test_phase13_fragment_family.py` | PASS，失败 0 |
+| SKS-18 | `TestGapRecording::test_sks03_unmapped_capability_recorded_not_dropped` | `pytest test_phase13_gap_recording.py` | PASS，失败 0 |
+| SKS-19 | `TestGapRecording::test_sks03b_synthesized_node_enters_graph_with_declared_edge` | `pytest test_phase13_gap_recording.py` | PASS，失败 0 |
+| SKS-20 | `TestGapRecording::test_sks03d_synthesized_baseline_keeps_template_source` | `pytest test_phase13_gap_recording.py` | PASS，失败 0 |
+| SKS-21 | `TestGapRecording::test_sks03c_unknown_declared_dependency_warned_not_silently_skipped` | `pytest test_phase13_gap_recording.py` | PASS，失败 0 |
+| SKS-22 | `TestGddCoverage::test_sks12_split_by_structure_only` | `pytest test_phase13_gdd_coverage.py` | PASS，失败 0 |
+| SKS-23 | `TestGddCoverage::test_sks13_matrix_exposes_unclaimed` | `pytest test_phase13_gdd_coverage.py` | PASS，失败 0 |
+| SKS-24 | `TestGddCoverage::test_sks13b_non_markdown_degrades_visibly` | `pytest test_phase13_gdd_coverage.py` | PASS，失败 0 |
+| SKS-25 | `TestGddCoverage::test_sks13c_render_markdown` | `pytest test_phase13_gdd_coverage.py` | PASS，失败 0 |
+| SKS-26 | `TestGddCoverage::test_sks13d_container_rule_boundaries` | `pytest test_phase13_gdd_coverage.py` | PASS，失败 0 |
+| SKS-27 | `TestGddCoverage::test_sks13d2_structural_container_helper_direct` | `pytest test_phase13_gdd_coverage.py` | PASS，失败 0 |
+| SKS-28 | `TestGddCoverageMatrixSchemaAntiDrift::test_real_output_validates_against_schema` | `pytest test_phase13_gdd_coverage.py` | PASS，失败 0 |
+| SKS-29 | `test_sks11_tools_registered` | `pytest test_phase13_mcp_synthesis_tools.py` | PASS，失败 0 |
+| SKS-30 | `TestSynthesisPrepareHandler::test_prepare_success_payload_fields_complete` | `pytest test_phase13_mcp_synthesis_tools.py` | PASS，失败 0 |
+| SKS-31 | `TestSynthesisPrepareHandler::test_prepare_unknown_capability_failed_with_known_gaps` | `pytest test_phase13_mcp_synthesis_tools.py` | PASS，失败 0 |
+| SKS-32 | `TestSynthesisPrepareHandler::test_prepare_missing_session_failed` | `pytest test_phase13_mcp_synthesis_tools.py` | PASS，失败 0 |
+| SKS-33 | `TestSynthesisPrepareHandler::test_prepare_missing_skill_graph_failed` | `pytest test_phase13_mcp_synthesis_tools.py` | PASS，失败 0 |
+| SKS-34 | `TestSynthesisSaveHandler::test_save_rejected_maps_to_failed_with_errors` | `pytest test_phase13_mcp_synthesis_tools.py` | PASS，失败 0 |
+| SKS-35 | `TestSynthesisSaveHandler::test_save_legal_package_success_with_review` | `pytest test_phase13_mcp_synthesis_tools.py` | PASS，失败 0 |
+| SKS-36 | `TestSynthesisSaveHandler::test_save_stamps_provenance_from_session` | `pytest test_phase13_mcp_synthesis_tools.py` | PASS，失败 0 |
+| SKS-37 | `TestSynthesisSaveHandler::test_save_six_files_not_dict_failed` | `pytest test_phase13_mcp_synthesis_tools.py` | PASS，失败 0 |
+| SKS-38 | `TestSynthesisSaveHandler::test_save_environment_failed_distinguishable_from_rejected` | `pytest test_phase13_mcp_synthesis_tools.py` | PASS，失败 0 |
+| SKS-39 | `TestSynthesisSaveHandler::test_save_review_refresh_failure_degrades_to_warning` | `pytest test_phase13_mcp_synthesis_tools.py` | PASS，失败 0 |
+| SKS-40 | `test_zz_real_templates_tree_no_synthesized_residue` | `pytest test_phase13_mcp_synthesis_tools.py` | PASS，失败 0 |
+| SKS-41 | `TestRegistryEquivalence::test_sks01_metadata_equivalent` | `pytest test_phase13_registry_equivalence.py` | PASS，失败 0 |
+| SKS-42 | `TestRegistryEquivalence::test_sks01_edges_equivalent` | `pytest test_phase13_registry_equivalence.py` | PASS，失败 0 |
+| SKS-43 | `TestRegistryEquivalence::test_sks01_node_order_and_ids_equivalent` | `pytest test_phase13_registry_equivalence.py` | PASS，失败 0 |
+| SKS-44 | `TestRegistryEquivalence::test_sks01_each_node_equivalent` | `pytest test_phase13_registry_equivalence.py` | PASS，失败 0 |
+| SKS-45 | `TestRegistryEquivalence::test_sks01_baseline_skill_graph_unchanged` | `pytest test_phase13_registry_equivalence.py` | PASS，失败 0 |
+| SKS-46 | `TestRegistryScan::test_sks02_real_templates_cover_all_16_capabilities` | `pytest test_phase13_registry_scan.py` | PASS，失败 0 |
+| SKS-47 | `TestRegistryScan::test_sks08_synthesized_requires_approved` | `pytest test_phase13_registry_scan.py` | PASS，失败 0 |
+| SKS-48 | `TestRegistryScan::test_sks08b_official_wins_regardless_of_scan_order` | `pytest test_phase13_registry_scan.py` | PASS，失败 0 |
+| SKS-49 | `TestRegistryScan::test_binding_missing_required_field_skipped_with_warning` | `pytest test_phase13_registry_scan.py` | PASS，失败 0 |
+| SKS-50 | `TestRegistryScan::test_family_whitelist_real_tree_covers_all_16` | `pytest test_phase13_registry_scan.py` | PASS，失败 0 |
+| SKS-51 | `TestRegistryScan::test_family_whitelist_includes_binding_only_family` | `pytest test_phase13_registry_scan.py` | PASS，失败 0 |
+| SKS-52 | `TestSkillSynthesis::test_sks09_save_rejects_then_accepts` | `pytest test_phase13_skill_synthesis.py` | PASS，失败 0 |
+| SKS-53 | `TestSkillSynthesis::test_sks09b_prepare_payload_contains_exemplars_and_whitelist` | `pytest test_phase13_skill_synthesis.py` | PASS，失败 0 |
+| SKS-54 | `TestSkillSynthesis::test_sks10_review_checklist_lists_packages` | `pytest test_phase13_skill_synthesis.py` | PASS，失败 0 |
+| SKS-55 | `TestSkillSynthesis::test_save_rejects_extra_keys` | `pytest test_phase13_skill_synthesis.py` | PASS，失败 0 |
+| SKS-56 | `TestSkillSynthesis::test_save_rejects_path_traversal_key` | `pytest test_phase13_skill_synthesis.py` | PASS，失败 0 |
+| SKS-57 | `TestSkillSynthesis::test_save_rejects_traversal_capability_id` | `pytest test_phase13_skill_synthesis.py` | PASS，失败 0 |
+| SKS-58 | `TestSkillSynthesis::test_prepare_rejects_traversal_capability_id` | `pytest test_phase13_skill_synthesis.py` | PASS，失败 0 |
+| SKS-59 | `TestSkillSynthesis::test_save_non_string_value_rejected_no_crash` | `pytest test_phase13_skill_synthesis.py` | PASS，失败 0 |
+| SKS-60 | `TestSkillSynthesis::test_save_transactional_no_partial_package_on_io_failure` | `pytest test_phase13_skill_synthesis.py` | PASS，失败 0 |
+| SKS-61 | `TestSkillSynthesis::test_crashed_temp_dir_invisible_to_registry_and_review` | `pytest test_phase13_skill_synthesis.py` | PASS，失败 0 |
+| SKS-62 | `TestSkillSynthesis::test_save_rejects_overwrite_of_approved_package` | `pytest test_phase13_skill_synthesis.py` | PASS，失败 0 |
+| SKS-63 | `TestSkillSynthesis::test_save_allows_overwrite_of_pending_package` | `pytest test_phase13_skill_synthesis.py` | PASS，失败 0 |
+| SKS-64 | `TestSkillSynthesis::test_save_with_provenance_stamps_manifest` | `pytest test_phase13_skill_synthesis.py` | PASS，失败 0 |
+| SKS-65 | `TestSkillSynthesis::test_save_without_provenance_manifest_unchanged` | `pytest test_phase13_skill_synthesis.py` | PASS，失败 0 |
+| SKS-66 | `TestSkillSynthesis::test_save_provenance_does_not_mutate_caller_six_files` | `pytest test_phase13_skill_synthesis.py` | PASS，失败 0 |
+| SKS-67 | `TestSkillSynthesis::test_lock_file_spec_matches_validator_required_files` | `pytest test_phase13_skill_synthesis.py` | PASS，失败 0 |
+| SKS-68 | `TestSkillSynthesis::test_lock_load_sibling_returns_cached_single_instance` | `pytest test_phase13_skill_synthesis.py` | PASS，失败 0 |
+| SKS-69 | `TestSkillSynthesis::test_review_tolerates_corrupt_manifest` | `pytest test_phase13_skill_synthesis.py` | PASS，失败 0 |
+| SKS-70 | `TestSkillSynthesis::test_review_groups_pending_before_approved` | `pytest test_phase13_skill_synthesis.py` | PASS，失败 0 |
+| SKS-71 | `TestSkillSynthesis::test_t5_lock_approve_immediately_visible_to_registry_scan` | `pytest test_phase13_skill_synthesis.py` | PASS，失败 0 |
+| SKS-72 | `TestSynthesisValidator::test_sks05_legal_package_passes` | `pytest test_phase13_synthesis_validator.py` | PASS，失败 0 |
+| SKS-73 | `TestSynthesisValidator::test_sks05b_missing_file_rejected` | `pytest test_phase13_synthesis_validator.py` | PASS，失败 0 |
+| SKS-74 | `TestSynthesisValidator::test_sks06_schema_missing_additional_properties_rejected` | `pytest test_phase13_synthesis_validator.py` | PASS，失败 0 |
+| SKS-75 | `TestSynthesisValidator::test_sks07_family_outside_whitelist_rejected` | `pytest test_phase13_synthesis_validator.py` | PASS，失败 0 |
+| SKS-76 | `TestSynthesisValidator::test_sks07b_template_id_dir_mismatch_rejected` | `pytest test_phase13_synthesis_validator.py` | PASS，失败 0 |
+| SKS-77 | `TestSynthesisValidator::test_edge_package_value_none_no_crash` | `pytest test_phase13_synthesis_validator.py` | PASS，失败 0 |
+| SKS-78 | `TestSynthesisValidator::test_edge_manifest_is_list_rejected` | `pytest test_phase13_synthesis_validator.py` | PASS，失败 0 |
+| SKS-79 | `TestSynthesisValidator::test_edge_output_schema_not_dict_rejected` | `pytest test_phase13_synthesis_validator.py` | PASS，失败 0 |
+| SKS-80 | `TestSynthesisValidator::test_bugd_families_scalar_string_single_error` | `pytest test_phase13_synthesis_validator.py` | PASS，失败 0 |
+| SKS-81 | `TestSynthesisValidator::test_bugd_bindings_scalar_string_single_error` | `pytest test_phase13_synthesis_validator.py` | PASS，失败 0 |
+| SKS-82 | `TestSynthesisValidator::test_bugb_anyof_nested_object_missing_ap_caught` | `pytest test_phase13_synthesis_validator.py` | PASS，失败 0 |
+| SKS-83 | `TestSynthesisValidator::test_bugb_legal_anyof_union_passes` | `pytest test_phase13_synthesis_validator.py` | PASS，失败 0 |
+| SKS-84 | `TestSynthesisValidator::test_review1_deep_schema_no_crash_depth_error` | `pytest test_phase13_synthesis_validator.py` | PASS，失败 0 |
+| SKS-85 | `TestSynthesisValidator::test_review3_no_type_properties_node_nested_object_caught` | `pytest test_phase13_synthesis_validator.py` | PASS，失败 0 |
+| SKS-86 | `TestSynthesisValidator::test_review4_items_tuple_form_caught` | `pytest test_phase13_synthesis_validator.py` | PASS，失败 0 |
+| SKS-87 | `TestSynthesisValidator::test_review7_empty_fragment_family_rejected` | `pytest test_phase13_synthesis_validator.py` | PASS，失败 0 |
+| SKS-88 | `TestSynthesisValidator::test_review11_oneof_nested_object_missing_ap_caught` | `pytest test_phase13_synthesis_validator.py` | PASS，失败 0 |
+| SKS-89 | `TestSynthesisValidator::test_review11_allof_nested_object_missing_ap_caught` | `pytest test_phase13_synthesis_validator.py` | PASS，失败 0 |
+| SKS-90 | `TestSynthesisValidator::test_review11_defs_nested_object_missing_ap_caught` | `pytest test_phase13_synthesis_validator.py` | PASS，失败 0 |
+| SKS-91 | `TestNonStringFileValues::test_non_string_values_structured_error_no_crash` | `pytest test_phase13_synthesis_validator.py` | PASS，失败 0 |
+| SKS-92 | `TestCapabilityIdFormat::test_validate_capability_id_illegal_forms_one_error_each` | `pytest test_phase13_synthesis_validator.py` | PASS，失败 0 |
+| SKS-93 | `TestCapabilityIdFormat::test_validate_capability_id_legal_passes` | `pytest test_phase13_synthesis_validator.py` | PASS，失败 0 |
+| SKS-94 | `TestCapabilityIdFormat::test_validate_synthesized_package_illegal_id_early_return` | `pytest test_phase13_synthesis_validator.py` | PASS，失败 0 |
+
+> 证据：`ProjectState/Temp/run_system_tests_stage13/phase13_case_checks.json` + 各文件的 `test_phase13_*.py_pytest.log`
+
+---
+
 ## 附录 A：UE5 Automation Test ID 速查表
 
 | Test ID | 全名 | 类型 | 所属分类 |
@@ -674,7 +786,8 @@
 | MCP MCP 集成 | 10 | 🟢 自动+证据 |
 | P11 Phase 11 设计编译器框架 | 18 | 🟢 自动+证据 |
 | LIR Phase 12 LLM Internal Reopen | 4 | 🟢 pytest 子集（含 1 占位 SKIPPED） |
-| **合计** | **270** | **🟢 270 条已登记（含 4 条 LIR-04 占位 SKIPPED）** |
+| SKS Phase 13 Skill Synthesis | 94 | 🟢 pytest 全量（9 个 test_phase13_* 文件） |
+| **合计** | **364** | **🟢 364 条已登记（含 4 条 LIR-04 占位 SKIPPED）** |
 
 ---
 
@@ -707,3 +820,4 @@
 | `python Plugins/AgentBridge/Tests/scripts/task14a_phase11_standalone_smoke.py` | cooked/staged standalone smoke 自动化 | P11-17 |
 | `python Plugins/AgentBridge/Tests/run_system_tests.py --stage=11` | Phase 11 归档前系统测试对账入口 | P11-01 ~ P11-18 |
 | `python Plugins/AgentBridge/Tests/run_system_tests.py --stage=12` | Phase 12 LLM Internal Reopen 系统测试入口（pytest 子集） | LIR-01 ~ LIR-04 |
+| `python Plugins/AgentBridge/Tests/run_system_tests.py --stage=13` | Phase 13 Skill Synthesis 系统测试入口（pytest 全量，9 个 test_phase13_* 文件） | SKS-01 ~ SKS-94 |

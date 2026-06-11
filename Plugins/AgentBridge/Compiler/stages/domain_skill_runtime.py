@@ -11,32 +11,32 @@ Phase 11 Domain Skill Runtime.
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 from . import agent_protocol
+from . import registry_scan
 from ..skill_runtime import skill_runtime
 
+logger = logging.getLogger(__name__)
 
-FRAGMENT_FAMILY_MAP = {
-    "skill-board-topology": "board_topology_spec",
-    "skill-tile-system": "tile_system_spec",
-    "skill-turn-loop": "turn_flow_spec",
-    "skill-dice": "dice_rule_spec",
-    "skill-economy": "property_economy_spec",
-    "skill-player-management": "player_management_spec",
-    "skill-jail": "jail_rule_spec",
-    "skill-baseline-start-screen": "start_screen_spec",
-    "skill-baseline-main-menu": "main_menu_spec",
-    "skill-baseline-settings": "settings_spec",
-    "skill-baseline-pause": "pause_spec",
-    "skill-baseline-results": "results_spec",
-    "skill-baseline-hud": "hud_spec",
-    "skill-baseline-input-foundation": "input_foundation_spec",
-    "skill-baseline-audio-foundation": "audio_foundation_spec",
-    "skill-baseline-platform-foundation": "platform_foundation_spec",
-}
+
+def _build_fragment_family_map() -> Dict[str, str]:
+    """Phase 13: fragment family 由注册表派生,替代硬编码(数据见各 manifest capability_bindings)。
+
+    每次调用现扫模板树(约 80ms),与 registry_scan 无缓存契约一致——
+    不做模块级冻结快照,保证 MCP server 等长驻进程里运行期 approve 的
+    synthesized 模板对 Stage 4 立即可见(冻结会导致新模板静默落入 fallback 推导)。
+    """
+    registry = registry_scan.scan_capability_registry()
+    return {
+        cfg["instance_id"]: cfg["fragment_family"]
+        for cfg in registry.values()
+        if cfg.get("fragment_family")
+    }
+
 
 MCP_AGENT_SIDECAR_DIR = "stage4_mcp_agent_sidecar"
 
@@ -302,11 +302,47 @@ def _resolve_template_prompts(template_id: str) -> Dict[str, str]:
 
 
 def _family_name(node: Dict[str, Any]) -> str:
-    """返回当前节点的 emitted family 名。"""
-    return FRAGMENT_FAMILY_MAP.get(
-        node.get("instance_id", ""),
-        node.get("instance_id", "skill").replace("skill-", "").replace("-", "_") + "_spec",
+    """返回当前节点的 emitted family 名。
+
+    每次现扫注册表(_build_fragment_family_map,约 80ms),不用模块级冻结快照,
+    保证长驻进程(MCP server)里运行期 approve 的 synthesized 模板可见。
+    注册表查不到时回退到 instance_id 命名推导,并 warning 留痕便于排查。
+    """
+    instance_id = node.get("instance_id", "")
+    family = _build_fragment_family_map().get(instance_id)
+    if family is not None:
+        return family
+    fallback = (instance_id or "skill").replace("skill-", "").replace("-", "_") + "_spec"
+    logger.warning(
+        "_family_name: instance_id=%r 在 capability 注册表中无 fragment_family,回退命名推导=%r"
+        "(若为 synthesized 模板请检查 manifest capability_bindings 是否缺 fragment_family)",
+        instance_id,
+        fallback,
     )
+    return fallback
+
+
+def _selected_realization_from_converged(converged_pack: Dict[str, Any] | None) -> Dict[str, Any]:
+    """从 converged_pack 提取 dimension_id -> chosen 候选 的映射。
+
+    兼容 converged_choices / convergence_decisions 两种键，
+    以及 chosen_candidate_name / chosen_candidate / selected_candidate_id 三种候选字段。
+    与 _build_gameplay_spec_fragment 行内逻辑保持一致，供 baseline 复用。
+    当前仅新增、暂不替换 _build_gameplay_spec_fragment 行内块（保持 gameplay 路径不变）；Task 2 起由 baseline 路径调用。
+    """
+    if not converged_pack:
+        return {}
+    convergence_choices = (
+        converged_pack.get("converged_choices")
+        or converged_pack.get("convergence_decisions", [])
+    )
+    return {
+        choice.get("dimension_id", ""): choice.get(
+            "chosen_candidate_name",
+            choice.get("chosen_candidate", choice.get("selected_candidate_id", "")),
+        )
+        for choice in convergence_choices
+    }
 
 
 def _build_gameplay_spec_fragment(
@@ -466,6 +502,7 @@ def _build_baseline_spec_fragment(
     node: Dict[str, Any],
     capability: Dict[str, Any],
     clarification_gate_report: Dict[str, Any],
+    converged_pack: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     """为 baseline 节点构建最小 spec_fragments。"""
     family_name = _family_name(node)
@@ -491,12 +528,17 @@ def _build_baseline_spec_fragment(
         ]
 
     if node.get("instance_id") == "skill-baseline-hud":
-        spec["required_elements"] = capability.get("required_elements", [])
         spec["notes"] = "HUD 为 realization_eligible baseline，后续可结合 gameplay state 细化。"
     if node.get("instance_id") == "skill-baseline-settings":
         spec["persistence"] = "session_only"
     if node.get("instance_id") == "skill-baseline-platform-foundation":
         spec["platform_scope"] = "desktop_local_runtime"
+
+    # realization_eligible baseline 与 gameplay 对称：把发散收敛结果写入 spec。
+    if capability.get("realization_class") == "realization_eligible":
+        selected_realization = _selected_realization_from_converged(converged_pack)
+        if selected_realization:
+            spec["selected_realization"] = selected_realization
 
     return {family_name: spec}
 
@@ -616,11 +658,35 @@ def _build_discovered_fragment(
     """为 gameplay / realization_eligible baseline 节点生成完整 fragment。"""
     is_baseline = node.get("domain_type") == "baseline"
     design_decision_log = _build_converged_decision_log(node, design_space_report, converged_pack)
-    spec_fragments = (
-        _build_baseline_spec_fragment(node, {"baseline_item": "HUD", "realization_class": "realization_eligible", "required_elements": root_skill_contract["constraint_fields"]["ui.required_hud_fields"]["value"]}, clarification_gate_report)
-        if is_baseline
-        else _build_gameplay_spec_fragment(node, root_skill_contract, converged_pack, clarification_gate_report)
-    )
+    # 按 capability_id 动态查 capability，去掉 HUD 硬编码；同时把 converged_pack 传入 baseline 分支
+    if is_baseline:
+        capability = _capability_map(root_skill_contract).get(
+            node.get("capability_id", ""), {}
+        )
+        if not capability:
+            # capability_id 在 contract 中查不到，fragment 将降级为空信息产出，显式告警便于排查
+            logging.getLogger(__name__).warning(
+                "_build_discovered_fragment: baseline capability_id=%r 未在 contract 中找到，fragment 将降级",
+                node.get("capability_id", ""),
+            )
+        # HUD 拥有 GDD 锁定的 required_hud_fields 硬约束，required_elements 以此为准
+        # （保留 Task 3 前语义，避免泛化后静默改变 HUD 产出）；其余 baseline 用 capability 自带值。
+        if node.get("capability_id") == "baseline-hud":
+            hud_required = (
+                root_skill_contract.get("constraint_fields", {})
+                .get("ui.required_hud_fields", {})
+                .get("value")
+            )
+            if hud_required is not None:
+                # 用新 dict 覆盖，避免原地修改 _capability_map 缓存的共享引用
+                capability = {**capability, "required_elements": hud_required}
+        spec_fragments = _build_baseline_spec_fragment(
+            node, capability, clarification_gate_report, converged_pack=converged_pack
+        )
+    else:
+        spec_fragments = _build_gameplay_spec_fragment(
+            node, root_skill_contract, converged_pack, clarification_gate_report
+        )
 
     retained_gate_items = _find_gate_items(
         clarification_gate_report,

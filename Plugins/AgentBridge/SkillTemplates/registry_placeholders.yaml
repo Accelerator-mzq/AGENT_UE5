@@ -1,0 +1,32 @@
+# Phase 13 注册占位数据文件
+# 这 3 个 baseline 能力尚无落地模板目录(template_source 恒为 future_baseline_template),
+# 注册信息无 manifest 可承载,暂存于此。对应模板落地后,应把条目迁入其 manifest 的
+# capability_bindings 并从本文件删除。本文件是数据不是代码,内容逐字照抄原
+# skill_graph_planning.BASELINE_NODE_CONFIGS 对应条目。
+placeholders:
+  - capability_id: baseline-input-foundation
+    instance_id: skill-baseline-input-foundation
+    template_id: baseline.input_foundation.presence_only
+    convergence_priority: 5
+    related_clarification_items: []
+    planning_notes:
+      - "Input Foundation 只提供通用输入底座，不提前决定具体交互映射细节。"
+    fragment_family: input_foundation_spec
+  - capability_id: baseline-audio-foundation
+    instance_id: skill-baseline-audio-foundation
+    template_id: baseline.audio_foundation.presence_only
+    convergence_priority: 5
+    related_clarification_items: []
+    planning_notes:
+      - "Audio Foundation 先保证音量控制与基础 SFX/BGM 能力存在。"
+    fragment_family: audio_foundation_spec
+  - capability_id: baseline-platform-foundation
+    instance_id: skill-baseline-platform-foundation
+    template_id: baseline.platform_foundation.clarification_gated
+    convergence_priority: 6
+    related_clarification_items:
+      - cg-platform-foundation-boundary
+      - cg-platform-persistence
+    planning_notes:
+      - "Platform Foundation 当前受 Clarification Gate 约束，只保留节点与边界，不发散实现。"
+    fragment_family: platform_foundation_spec

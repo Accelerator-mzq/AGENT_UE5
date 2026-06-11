@@ -30,3 +30,13 @@ can_emit_families:
 depends_on_templates: []
 
 priority: medium
+
+# Phase 13: 能力绑定(原 skill_graph_planning.BASELINE_NODE_CONFIGS 数据下沉,逐字照抄)
+capability_bindings:
+  - capability_id: baseline-start-screen
+    instance_id: skill-baseline-start-screen
+    convergence_priority: 6
+    related_clarification_items: []
+    planning_notes:
+      - "Start Screen 只规划入口能力，不在 Skill Graph 中决定具体实现形态。"
+    fragment_family: start_screen_spec

@@ -28,3 +28,13 @@ can_emit_families:
 depends_on_templates: []
 
 priority: high
+
+# Phase 13: 能力绑定(原 skill_graph_planning.GAMEPLAY_NODE_CONFIGS 数据下沉,逐字照抄)
+capability_bindings:
+  - capability_id: gameplay-board-topology
+    instance_id: skill-board-topology
+    convergence_priority: 1
+    related_clarification_items: []
+    planning_notes:
+      - "棋盘拓扑是 Monopoly 主链的起点，先锁定 28 格、角格索引与移动方向。"
+    fragment_family: board_topology_spec

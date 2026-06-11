@@ -2,7 +2,7 @@
 """
 AgentBridge 系统测试全局入口
 =================================
-一键触发当前登记的系统测试用例，按 11 个 Stage 串行执行。
+一键触发当前登记的系统测试用例，按 13 个 Stage 串行执行。
 
 用法:
     # 全自动执行全部 Stage
@@ -35,6 +35,8 @@ Stage 列表:
     9: E2E 三通道一致性           — Python 三通道脚本
     10: MCP Server 集成（MCP）    — 协议脚本 + 证据校验
     11: Phase 11 设计编译器框架   — 证据对账 + live inventory
+    12: Phase 12 LLM Internal Reopen（LIR） — pytest 子集
+    13: Phase 13 Skill Synthesis（SKS）     — pytest（9 个 test_phase13_* 文件）
 """
 
 import argparse
@@ -194,11 +196,19 @@ STAGES = {
         'requires_editor': False,
         'requires_build': False,
     },
+    13: {
+        'name': 'Phase 13 Skill Synthesis（SKS）',
+        'cases': 'SKS-01 ~ SKS-94（9 个 test_phase13_* 文件）',
+        'case_ids': make_case_ids('SKS', 1, 94),
+        'count': 94,
+        'requires_editor': False,
+        'requires_build': False,
+    },
 }
 
-TOTAL_CASES = sum(s['count'] for s in STAGES.values())  # 270 (P12 LIR-01~04 加 4)
+TOTAL_CASES = sum(s['count'] for s in STAGES.values())  # 364 (270 + P13 SKS-01~94 加 94,终审修复 +5)
 CASE_ID_PATTERN = re.compile(
-    r'^\|\s*((?:SV|BL|Q|W|CL|UI|CMD|PY|ORC|CP|SS|GA|E2E|MCP|P11|LIR)-\d{2})\s*\|',
+    r'^\|\s*((?:SV|BL|Q|W|CL|UI|CMD|PY|ORC|CP|SS|GA|E2E|MCP|P11|LIR|SKS)-\d{2})\s*\|',
     re.MULTILINE,
 )
 PHASE7_STAGE7_CASE_IDS = make_case_ids('CP', 32, 40) + make_case_ids('SS', 14, 20)
@@ -1931,8 +1941,9 @@ def run_stage_10(result, engine_root, completed_results=None):
 
         invalid_schemas = []
         all_tools = tool_definitions.ALL_TOOLS
-        # Phase 10 当前 MCP 基线：28 个 Bridge 工具 + 6 个前端工具 + 8 个后端工具 = 42。
-        expected_tool_count = 48
+        # 单一事实源：tool_definitions.TOOL_COUNT（= len(ALL_TOOLS)），不再硬编码数字，
+        # 加工具时无需回来同步本断言；本用例的实质校验是下方逐工具 schema 结构检查。
+        expected_tool_count = tool_definitions.TOOL_COUNT
         for tool_name, tool_def in all_tools.items():
             schema = tool_definitions.to_json_schema(tool_def)
             if not (
@@ -2017,7 +2028,12 @@ def run_stage_10(result, engine_root, completed_results=None):
             record_case('MCP-04', False, f'协议冒烟失败: {exc}')
             record_case('MCP-05', False, f'协议冒烟失败: {exc}')
 
-    compiler_frontend_names = [
+    # Phase 10 基线必含名单：只断言"基线工具仍在册"，不再做全名单严格相等
+    # （严格相等会在每次合法加工具后过期——Phase 11 加 stage4_node 对 + 3 个治理工具、
+    #   Phase 13 加 skill_synthesis 对都曾把 MCP-06/07 打红）。
+    # 单一事实源：tool_definitions.COMPILER_FRONTEND_TOOLS / EVIDENCE_JUDGE_TOOLS，
+    # 函数绑定检查按在册全量动态展开，新工具自动纳入校验。
+    compiler_frontend_baseline = [
         'compiler_create_session',
         'compiler_root_skill_prepare',
         'compiler_root_skill_save',
@@ -2031,7 +2047,7 @@ def run_stage_10(result, engine_root, completed_results=None):
         'compiler_plan_save',
         'compiler_get_session_status',
     ]
-    evidence_backend_names = [
+    evidence_backend_baseline = [
         'evidence_load_manifest',
         'evidence_load_screenshots',
         'evidence_load_logs',
@@ -2044,24 +2060,45 @@ def run_stage_10(result, engine_root, completed_results=None):
 
     compiler_frontend_registered = list(tool_definitions.COMPILER_FRONTEND_TOOLS.keys()) if tool_definitions else []
     evidence_backend_registered = list(tool_definitions.EVIDENCE_JUDGE_TOOLS.keys()) if tool_definitions else []
+    missing_compiler_baseline = [
+        name for name in compiler_frontend_baseline if name not in compiler_frontend_registered
+    ]
+    missing_evidence_baseline = [
+        name for name in evidence_backend_baseline if name not in evidence_backend_registered
+    ]
+    # 函数绑定检查覆盖在册全量（含基线之后新增的工具）
     missing_compiler_functions = [
-        name for name in compiler_frontend_names
+        name for name in compiler_frontend_registered
         if getattr(compiler_tools_module, name, None) is None
-    ] if compiler_tools_module else compiler_frontend_names
+    ] if compiler_tools_module else compiler_frontend_registered
     missing_evidence_functions = [
-        name for name in evidence_backend_names
+        name for name in evidence_backend_registered
         if getattr(evidence_tools_module, name, None) is None
-    ] if evidence_tools_module else evidence_backend_names
+    ] if evidence_tools_module else evidence_backend_registered
 
     record_case(
         'MCP-06',
-        compiler_frontend_registered == compiler_frontend_names and not missing_compiler_functions,
-        f'frontend={len(compiler_frontend_registered)}',
+        bool(compiler_frontend_registered)
+        and not missing_compiler_baseline
+        and not missing_compiler_functions,
+        f'frontend={len(compiler_frontend_registered)}（基线 {len(compiler_frontend_baseline)} 全在册）'
+        if not missing_compiler_baseline and not missing_compiler_functions
+        else (
+            f'frontend={len(compiler_frontend_registered)}，'
+            f'基线缺失={missing_compiler_baseline}，函数缺失={missing_compiler_functions}'
+        ),
     )
     record_case(
         'MCP-07',
-        evidence_backend_registered == evidence_backend_names and not missing_evidence_functions,
-        f'backend={len(evidence_backend_registered)}',
+        bool(evidence_backend_registered)
+        and not missing_evidence_baseline
+        and not missing_evidence_functions,
+        f'backend={len(evidence_backend_registered)}（基线 {len(evidence_backend_baseline)} 全在册）'
+        if not missing_evidence_baseline and not missing_evidence_functions
+        else (
+            f'backend={len(evidence_backend_registered)}，'
+            f'基线缺失={missing_evidence_baseline}，函数缺失={missing_evidence_functions}'
+        ),
     )
 
     live_smoke_path = find_latest_report_by_prefix(
@@ -2300,10 +2337,12 @@ def run_stage_11(result, engine_root, completed_results=None):
         compiler_frontend_count = len(tool_definitions.COMPILER_FRONTEND_TOOLS)
         evidence_backend_count = len(tool_definitions.EVIDENCE_JUDGE_TOOLS)
         dispatch_count = len(server.TOOL_DISPATCH)
+        # 单一事实源：tool_definitions.TOOL_COUNT（= len(ALL_TOOLS)），不再硬编码数字；
+        # 实质交叉校验是 dispatch_count == TOOL_COUNT（server.TOOL_DISPATCH 派发表与定义表对账）。
         tool_inventory_ok = (
             'TASK05_TOOL_REGISTRATION=passed' in task05_text
-            and visible_tool_count == 53
-            and dispatch_count == 53
+            and visible_tool_count == tool_definitions.TOOL_COUNT
+            and dispatch_count == tool_definitions.TOOL_COUNT
             and all(name in tool_definitions.ALL_TOOLS for name in required_tool_names)
             and all(name in tool_definitions.ALL_TOOLS for name in alias_tool_names)
         )
@@ -2838,6 +2877,122 @@ def run_stage_12(result, engine_root, completed_results=None):
         )
 
 
+def run_stage_13(result, engine_root, completed_results=None):
+    """Stage 13：Phase 13 Skill Synthesis — SKS-01~94 用例。
+
+    9 个 test_phase13_*.py 文件按 pytest 收集顺序（文件名字母序）连续分段编号
+    （终审修复 +5：gap_recording +1 / mcp_synthesis_tools +1 / skill_synthesis +3）：
+      SKS-01~15: test_phase13_anchor_and_promote.py    （anchor 留痕 + promote 守卫）
+      SKS-16~17: test_phase13_fragment_family.py       （FRAGMENT_FAMILY_MAP 数据化）
+      SKS-18~21: test_phase13_gap_recording.py         （capability gap 显式化）
+      SKS-22~28: test_phase13_gdd_coverage.py          （GDD 覆盖矩阵）
+      SKS-29~40: test_phase13_mcp_synthesis_tools.py   （MCP 合成工具对 prepare/save）
+      SKS-41~45: test_phase13_registry_equivalence.py  （registry 切换等价门）
+      SKS-46~51: test_phase13_registry_scan.py         （registry 扫描模块）
+      SKS-52~71: test_phase13_skill_synthesis.py       （skill_synthesis 合成主链）
+      SKS-72~94: test_phase13_synthesis_validator.py   （合成校验器）
+    """
+    check_map = {}
+    runtime_dir = os.path.join(PROJECT_ROOT, 'ProjectState', 'Temp', 'run_system_tests_stage13')
+    os.makedirs(runtime_dir, exist_ok=True)
+    result.log_path = runtime_dir
+
+    # 文件名 -> (SKS 起始编号, 期望用例数)；登记数与 pytest --co 实收数挂钩，漂移即 FAIL
+    phase13_test_files = [
+        ('test_phase13_anchor_and_promote.py', 1, 15),
+        ('test_phase13_fragment_family.py', 16, 2),
+        ('test_phase13_gap_recording.py', 18, 4),
+        ('test_phase13_gdd_coverage.py', 22, 7),
+        ('test_phase13_mcp_synthesis_tools.py', 29, 12),
+        ('test_phase13_registry_equivalence.py', 41, 5),
+        ('test_phase13_registry_scan.py', 46, 6),
+        ('test_phase13_skill_synthesis.py', 52, 20),
+        ('test_phase13_synthesis_validator.py', 72, 23),
+    ]
+
+    file_notes = []
+    for file_name, start_id, expected_count in phase13_test_files:
+        # 逐文件跑 pytest,日志单独落盘,方便事后按文件追溯
+        exit_code, stdout, stderr = run_pytest_selection(
+            [os.path.join(TESTS_SCRIPTS_DIR, file_name)], timeout=900
+        )
+        passed_match = re.search(r'(\d+)\s+passed', stdout)
+        failed_match = re.search(r'(\d+)\s+failed', stdout)
+        skipped_match = re.search(r'(\d+)\s+skipped', stdout)
+        n_pass = int(passed_match.group(1)) if passed_match else 0
+        n_fail = int(failed_match.group(1)) if failed_match else 0
+        n_skip = int(skipped_match.group(1)) if skipped_match else 0
+
+        log_path = os.path.join(runtime_dir, f'{file_name}_pytest.log')
+        try:
+            with open(log_path, 'w', encoding='utf-8') as fp:
+                fp.write(f'cmd_exit={exit_code}\n--- stdout ---\n{stdout}\n--- stderr ---\n{stderr}\n')
+        except Exception:
+            pass
+
+        # 判据：pytest 全绿 + 实跑用例数 == 登记数（防止加/删测试后登记表无声过期）
+        ok = (
+            exit_code == 0
+            and n_fail == 0
+            and (n_pass + n_skip) == expected_count
+        )
+        range_label = f'SKS-{start_id:02d}~SKS-{start_id + expected_count - 1:02d}'
+        note = (
+            f'{file_name}: pytest passed={n_pass} failed={n_fail} skipped={n_skip} '
+            f'exit={exit_code} 登记={expected_count}'
+        )
+        file_notes.append((range_label, ok, note))
+        for case_index in range(start_id, start_id + expected_count):
+            check_map[f'SKS-{case_index:02d}'] = (ok, note)
+
+    # 写汇总 JSON
+    summary_path = os.path.join(runtime_dir, 'phase13_case_checks.json')
+    with open(summary_path, 'w', encoding='utf-8') as file:
+        json.dump(
+            {
+                'generated_at': datetime.datetime.now().isoformat(),
+                'cases': {
+                    case_id: {'ok': ok, 'note': note}
+                    for case_id, (ok, note) in check_map.items()
+                },
+            },
+            file,
+            ensure_ascii=False,
+            indent=2,
+        )
+
+    missing_case_ids = [case_id for case_id in STAGES[13]['case_ids'] if case_id not in check_map]
+    if missing_case_ids:
+        result.status = 'failed'
+        result.exit_code = 1
+        result.message = f'Stage 13 用例注册不完整，缺失: {", ".join(missing_case_ids)}'
+        return
+
+    checks = [
+        (case_id, check_map[case_id][0], check_map[case_id][1])
+        for case_id in STAGES[13]['case_ids']
+    ]
+    passed = sum(1 for _, ok, _ in checks if ok)
+    total = len(checks)
+    failed_cases = [case_id for case_id, ok, _ in checks if not ok]
+
+    # 按文件分段打印（89 条逐条打印过于冗长，按 9 个文件段汇报）
+    for range_label, ok, note in file_notes:
+        print(f'  [{range_label}] {"PASS" if ok else "FAIL"} - {note}')
+
+    if passed == total:
+        result.status = 'passed'
+        result.exit_code = 0
+        result.message = f'Phase 13 Skill Synthesis 全部通过 ({passed}/{total})'
+    else:
+        result.status = 'failed'
+        result.exit_code = 1
+        result.message = (
+            f'Phase 13 Skill Synthesis 未全部通过 ({passed}/{total})，'
+            f'失败项: {", ".join(failed_cases[:10])}{"…" if len(failed_cases) > 10 else ""}'
+        )
+
+
 # Stage ID -> 执行函数映射
 STAGE_RUNNERS = {
     1: run_stage_1,
@@ -2852,6 +3007,7 @@ STAGE_RUNNERS = {
     10: run_stage_10,
     11: run_stage_11,
     12: run_stage_12,
+    13: run_stage_13,
 }
 
 

@@ -1,24 +1,24 @@
 # testing/test_spec — 测试体系总览 + 系统测试用例汇总索引
 
-> 版本: v1 (2026-05-26)
-> 范围: 项目级测试体系总览(C++ Automation / Python pytest / Gauntlet / SystemTest 索引层四栈)+ 系统测试 15 测试类 / 266 case 汇总索引(不复述用例详情)。
+> 版本: v1.2 (2026-06-11,Phase 13 终审修复 +5 case 同步,359→364;v1.1: Phase 12 LIR + Phase 13 SKS 同步,266→359)
+> 范围: 项目级测试体系总览(C++ Automation / Python pytest / Gauntlet / SystemTest 索引层四栈)+ 系统测试 17 测试类 / 364 case 汇总索引(不复述用例详情)。
 > 上游: `Docs/design/HLD.md` §6 + `Docs/requirements/SRS.md` §3.7 / §6.1 + `Docs/FEATURE_INVENTORY.md` F-TST-01..04
-> 权威源: `Plugins/AgentBridge/Tests/run_system_tests.py`(11 stage / STAGES dict line 95-189 / TOTAL_CASES=266)+ `Plugins/AgentBridge/Tests/SystemTestCases.md`(266 case 详情,本文不复述)
-> 契约: `Docs/contracts/schemas_catalog.md`(Schema 26/26 严格校验映射)+ `Docs/contracts/tool_contract.md`(L1/L2/L3 工具接口)
+> 权威源: `Plugins/AgentBridge/Tests/run_system_tests.py`(13 stage / STAGES dict 自 line 97 起 / TOTAL_CASES=364 line 209)+ `Plugins/AgentBridge/Tests/SystemTestCases.md`(364 case 详情,本文不复述)
+> 契约: `Docs/contracts/schemas_catalog.md`(Schema 28/28 严格校验映射)+ `Docs/contracts/tool_contract.md`(L1/L2/L3 工具接口)
 > UE 版本: 当前 5.5.4 → 目标 5.7
 
 ## 1. 测试体系架构
 
 本项目测试栈分四层,各层独立计数、独立编排,不互替代:
 
-- **C++ Automation 层(Editor 内)** — 位于 `Plugins/AgentBridge/AgentBridgeTests/Source/AgentBridgeTests/Private/` 共 8 个 cpp:`L1_QueryTests.cpp` / `L1_WriteTests.cpp` / `L1_UIToolTests.cpp`(L1 接口测试 3 份)+ `L2_ClosedLoopSpecs.spec.cpp` / `L2_UIToolClosedLoopSpec.spec.cpp`(L2 闭环 Spec 2 份)+ `L3_FunctionalTestActor.cpp`(L3 关卡级 FunctionalTest)+ `AgentBridgeGauntletController.cpp`(Gauntlet 引擎内"触角")+ `AgentBridgeTestsModule.cpp`(测试模块入口)。基于 `IMPLEMENT_SIMPLE_AUTOMATION_TEST` + `DEFINE_LATENT_AUTOMATION_COMMAND` + Automation Spec 三套宏组合,独立计 ~26 条 C++ Automation test,**不计入 266 系统测试**。
-- **Python pytest 层** — 位于 `Plugins/AgentBridge/Tests/scripts/` 下 `task1X_phase11_*.py` 系列 + `conftest.py`,主要承载 Phase 11 设计编译器框架的脚本侧验证(P11-* 18 case 与 Standalone Smoke 入口)。
+- **C++ Automation 层(Editor 内)** — 位于 `Plugins/AgentBridge/AgentBridgeTests/Source/AgentBridgeTests/Private/` 共 8 个 cpp:`L1_QueryTests.cpp` / `L1_WriteTests.cpp` / `L1_UIToolTests.cpp`(L1 接口测试 3 份)+ `L2_ClosedLoopSpecs.spec.cpp` / `L2_UIToolClosedLoopSpec.spec.cpp`(L2 闭环 Spec 2 份)+ `L3_FunctionalTestActor.cpp`(L3 关卡级 FunctionalTest)+ `AgentBridgeGauntletController.cpp`(Gauntlet 引擎内"触角")+ `AgentBridgeTestsModule.cpp`(测试模块入口)。基于 `IMPLEMENT_SIMPLE_AUTOMATION_TEST` + `DEFINE_LATENT_AUTOMATION_COMMAND` + Automation Spec 三套宏组合,独立计 ~26 条 C++ Automation test,**不计入 364 系统测试**。
+- **Python pytest 层** — 位于 `Plugins/AgentBridge/Tests/scripts/` 下 `task1X_phase11_*.py` 系列 + `test_phase13_*.py` 9 文件 + LLM internal 测试 + `conftest.py`,承载 Phase 11 设计编译器框架(P11-* 18 case 与 Standalone Smoke 入口)、Phase 12 LLM Internal(LIR-01..04)与 Phase 13 Skill 合成主链(SKS-01..94)的脚本侧验证。
 - **Gauntlet CI/CD 层** — `AgentBridgeGauntletController` 在引擎内继承 `UGauntletTestController`,负责 OnTick 轮询 + EndTest 退出码;Gauntlet C# 端在引擎外驱动 Editor 进程启动 / 监控 / 停止。Gauntlet 负责"在什么环境下运行",Orchestrator 负责"运行什么内容",二者职责正交。
-- **SystemTest 索引层(本 LLD 主体)** — `Plugins/AgentBridge/Tests/run_system_tests.py` 编排 11 stage / 15 测试类 / 266 case,STAGES dict 在 line 95-189,`TOTAL_CASES = sum(s['count'] for s in STAGES.values())` 在 line 191 实时计算并 assert 266。
+- **SystemTest 索引层(本 LLD 主体)** — `Plugins/AgentBridge/Tests/run_system_tests.py` 编排 13 stage / 17 测试类 / 364 case,STAGES dict 自 line 97 起,`TOTAL_CASES = sum(s['count'] for s in STAGES.values())` 在 line 209 实时计算并 assert 364。
 
-四栈关系:SystemTest 索引层在 Stage 2/3/8/9 主动调起 C++ Automation(通过 Commandlet `-RunTests=` 或 Gauntlet RunUnreal),在 Stage 11 调起 Python pytest,在 Stage 8 调起 Gauntlet;C++ Automation 和 Python pytest 也可单独跑(不经索引层),用于开发期单点调试。系统测试 266 是"对外承诺的最小回归集",C++ Automation ~26 条是"引擎内 L1/L2/L3 接口级单元测试",二者计数维度不同、不可加总。
+四栈关系:SystemTest 索引层在 Stage 2/3/8/9 主动调起 C++ Automation(通过 Commandlet `-RunTests=` 或 Gauntlet RunUnreal),在 Stage 11/12/13 调起 Python pytest,在 Stage 8 调起 Gauntlet;C++ Automation 和 Python pytest 也可单独跑(不经索引层),用于开发期单点调试。系统测试 364 是"对外承诺的最小回归集",C++ Automation ~26 条是"引擎内 L1/L2/L3 接口级单元测试",二者计数维度不同、不可加总。
 
-记账规则:`run_system_tests.py:191-195` 在导入期 `assert TOTAL_CASES == 266`,并由 `CASE_ID_PATTERN` 正则扫 `SystemTestCases.md` 主表行,二者一致性是导入期硬约束;任何新增 case 必须同步改 STAGES dict 的 `count` 与 `case_ids`,以及 `SystemTestCases.md` 主表行,否则 `run_system_tests.py` 在启动时直接 RuntimeError,这是 266 维持单一来源的关键护栏。
+记账规则:`run_system_tests.py` 在导入期 `assert TOTAL_CASES`(line 209 实时计算,当前 364),并由 `CASE_ID_PATTERN` 正则扫 `SystemTestCases.md` 主表行,二者一致性是导入期硬约束;任何新增 case 必须同步改 STAGES dict 的 `count` 与 `case_ids`,以及 `SystemTestCases.md` 主表行,否则 `run_system_tests.py` 在启动时直接 RuntimeError,这是 364 维持单一来源的关键护栏。
 
 ## 2. 测试分层
 
@@ -29,13 +29,13 @@
 | 单元 | Schema / 字段对齐 / 加载链路 | SV / BL | Python(SV)+ C++(BL Compile/Load) |
 | 集成 | L1/L2/L3 工具闭环、客户端、Commandlet | Q / W / CL / UI / CMD / PY | C++ Automation + Python |
 | E2E | 跨子系统全链路 | ORC / E2E / MCP | Python + Editor + RC HTTP |
-| 回归 | Phase 11 设计编译器框架专项 | CP / SS / GA / P11 | Python pytest + Gauntlet |
+| 回归 | Phase 11/12/13 编译器框架专项 | CP / SS / GA / P11 / LIR / SKS | Python pytest + Gauntlet |
 
-四类分层不是物理隔离,而是按"测试对象的复杂度边界"切分:**单元层** SV / BL 只验证静态结构(JSON Schema 字段、Compile 后 cpp Symbol 是否可加载),不依赖外部进程;**集成层** Q / W / CL / UI / CMD / PY 把 L1 工具的"调用 → 写副作用 → 读回执"三段闭环或 Python 客户端连 Editor 的链路独立测出,每个 case 限定在单一子系统内;**E2E 层** ORC / E2E / MCP 跨 Orchestrator + Bridge + Editor + Schema 验证四件套,覆盖 Plan → Run → Verify → Report 全链路;**回归层** CP / SS / GA / P11 专门跟踪 Phase 11 引入的设计编译器框架,GA 类负责 Gauntlet 环境,CP / SS 负责编译产物与 Skill / Spec 一致性,P11 负责 Phase 11 章节专项验收。
+四类分层不是物理隔离,而是按"测试对象的复杂度边界"切分:**单元层** SV / BL 只验证静态结构(JSON Schema 字段、Compile 后 cpp Symbol 是否可加载),不依赖外部进程;**集成层** Q / W / CL / UI / CMD / PY 把 L1 工具的"调用 → 写副作用 → 读回执"三段闭环或 Python 客户端连 Editor 的链路独立测出,每个 case 限定在单一子系统内;**E2E 层** ORC / E2E / MCP 跨 Orchestrator + Bridge + Editor + Schema 验证四件套,覆盖 Plan → Run → Verify → Report 全链路;**回归层** CP / SS / GA / P11 / LIR / SKS 专门跟踪 Phase 11-13 引入的编译器框架,GA 类负责 Gauntlet 环境,CP / SS 负责编译产物与 Skill / Spec 一致性,P11 负责 Phase 11 章节专项验收,LIR 负责 Phase 12 LLM Internal 专项,SKS 负责 Phase 13 Skill 合成主链(注册表扫描 / gap 显式化 / 合成校验器 / 人审 gate / 覆盖矩阵 / promote 守卫)。
 
 ## 3. 系统测试用例总表
 
-按 15 测试类汇总,每类 1 行 5 字段;**用例描述详情见 `Plugins/AgentBridge/Tests/SystemTestCases.md`,本表不复述**。
+按 17 测试类汇总,每类 1 行 5 字段;**用例描述详情见 `Plugins/AgentBridge/Tests/SystemTestCases.md`,本表不复述**。
 
 | 测试类 | ID 范围 | 入口脚本 | 期望大类 | 当前状态汇总 |
 |---|---|---|---|---|
@@ -54,37 +54,41 @@
 | E2E(端到端集成) | E2E-01..40(40) | `run_system_tests.py --stage=9` | Pass | 见 `ProjectState/Reports/` 最近一轮 |
 | MCP(MCP Server 集成) | MCP-01..10(10) | `run_system_tests.py --stage=10` | Pass | 见 `ProjectState/Reports/` 最近一轮 |
 | P11(Phase 11 设计编译器框架) | P11-01..18(18) | `--stage=11` 或 `Tests/scripts/task1X_phase11_*.py` | Pass | 见 `ProjectState/Reports/` 最近一轮 |
+| LIR(Phase 12 LLM Internal Reopen) | LIR-01..04(4) | `run_system_tests.py --stage=12` / pytest 子集 | Pass | 见 `ProjectState/Reports/` 最近一轮 |
+| SKS(Phase 13 Skill Synthesis) | SKS-01..94(94) | `run_system_tests.py --stage=13` / pytest 全量(9 个 `test_phase13_*.py`) | Pass | 见 `ProjectState/Reports/2026-06-11/phase13_acceptance_runbook.md` |
 
-合计:**15 测试类 / 266 case**,与 `run_system_tests.py:191` `TOTAL_CASES` 实时计算结果一致(10+6+57+8+10+37+64+6+40+10+18 = 266 ✓;Stage 3 合并 Q+W+CL+UI 共 57,Stage 7 合并 CP+SS 共 64)。
+合计:**17 测试类 / 364 case**,与 `run_system_tests.py:209` `TOTAL_CASES` 实时计算结果一致(10+6+57+8+10+37+64+6+40+10+18+4+94 = 364 ✓;Stage 3 合并 Q+W+CL+UI 共 57,Stage 7 合并 CP+SS 共 64)。
 
-附:266 case 的逐条字段(目标 / 前置 / 步骤 / 期望 / 验证点 / 状态)留在权威源 `Plugins/AgentBridge/Tests/SystemTestCases.md`,本文档**不在此处复述**,以避免双源漂移。
+附:364 case 的逐条字段(目标 / 前置 / 步骤 / 期望 / 验证点 / 状态)留在权威源 `Plugins/AgentBridge/Tests/SystemTestCases.md`,本文档**不在此处复述**,以避免双源漂移。
 
 ## 4. 关键测试入口
 
 按调用形态枚举常用入口:
 
-- **全量回归:** `python Plugins/AgentBridge/Tests/run_system_tests.py`(11 stage 顺序跑,Stage 2/3/4/8/9 需要 Editor + Build,Stage 1/5/6/7/10/11 纯 Python)。
+- **全量回归:** `python Plugins/AgentBridge/Tests/run_system_tests.py`(13 stage 顺序跑,Stage 2/3/4/8/9 需要 Editor + Build,Stage 1/5/6/7/10/11/12/13 纯 Python)。
 - **交互模式:** `python Plugins/AgentBridge/Tests/run_system_tests.py --interactive`(逐 stage 选择,适合分段调试)。
 - **无编辑器模式:** `python Plugins/AgentBridge/Tests/run_system_tests.py --no-editor`(Phase 10 后默认 `task08_orchestrate.py` 分段等价验证,跳过所有 `requires_editor=True` 的 stage)。
 - **Standalone Smoke:** `python Plugins/AgentBridge/Tests/scripts/task14a_phase11_standalone_smoke.py`(Phase 11 引入,UAT BuildCookRun + Standalone 启动一次性烟测)。
-- **Schema 严格校验:** `python Plugins/AgentBridge/Scripts/validation/validate_examples.py --strict`(SV-01..10 + Schema/Example 26/26 对齐)。
+- **Schema 严格校验:** `python Plugins/AgentBridge/Scripts/validation/validate_examples.py --strict`(SV-01..10 + Schema/Example 28/28 对齐)。
+- **Phase 13 专项:** `python Plugins/AgentBridge/Tests/run_system_tests.py --stage=13` 或 `python -m pytest Plugins/AgentBridge/Tests/scripts/ -k phase13`(SKS-01..94,9 个 `test_phase13_*.py` 按收集顺序连续分段编号)。
 - **Handoff Schema 校验:** `python Plugins/AgentBridge/Scripts/validation/test_handoff_schema.py`(`reviewed_handoff` / `reviewed_handoff_v2` 双 schema)。
 - **Compiler 单独跑:** `python Plugins/AgentBridge/Scripts/compiler_main.py`(走 Compiler Plane 单元链路,不依赖 Editor)。
 
 入口选择策略:本地开发期优先用 `--interactive` 逐 stage 跑,失败立即定位;CI 与回归用全量;远程无 Editor 节点用 `--no-editor`;Phase 11 单点验收用 `task14a_phase11_standalone_smoke.py` 跑一次冷启动 Standalone。Schema 改动后必须先单独跑 `validate_examples.py --strict`,通过后再跑 `--stage=1`,避免 Stage 2/3 在 Schema 不一致时大量伪 fail。所有入口最终都把日志与产物落到 `ProjectState/Reports/<date>/` 与 `ProjectState/Evidence/<run_id>/`,可通过 Run ID 在两套索引维度回溯。
 
-## 5. Schema 严格校验(`--strict` 26/26 覆盖映射)
+## 5. Schema 严格校验(`--strict` 28/28 覆盖映射)
 
-`validate_examples.py --strict` 严格模式下,**26 个 Example 与 26 个 Schema 一一对应**,且 `additionalProperties: false` 强制启用,任何 example 多余字段直接 fail。覆盖范围按域分组:
+`validate_examples.py --strict` 严格模式下,**28 个 Example 与对应 Schema 一一映射**,且 `additionalProperties: false` 强制启用,任何 example 多余字段直接 fail。覆盖范围按域分组:
 
 - **核心交接物域(8):** `reviewed_handoff` / `reviewed_handoff_v2` / `run_plan` / `gdd_projection` / `planner_output` / `skill_fragment` / `cross_review_report` / `build_ir`。
 - **通用反馈域(common/feedback/write_feedback 子目录,~10):** L1/L2 工具调用统一回执 + 写操作差异回执 + 公共错误码字段。
 - **Compiler / Skills 域(~5):** Compiler 各阶段 IR + Skill Template 元数据 schema。
 - **MCP / Evidence 域(~3):** `evidence_manifest` / `run_comparison` / `batch_manifest`(运行时落盘三件套)。
+- **里程碑增量(2):** `forgeue_import_evidence`(2026-05-27 ForgeUE 真机)+ `gdd_coverage_matrix`(2026-06-11 Phase 13 覆盖矩阵,example 取自实现真实生成产物)。
 
-严格模式三条强约束:(1) `additionalProperties: false` 全开 — example 一旦多出 schema 未定义的字段(如调试期临时塞入的 `_note` / `_debug` 字段)立即 fail;(2) `required` 字段必须出现 — example 不允许"省略默认值"以减少行数,所有 required key 必须显式;(3) `enum` / `pattern` 严格匹配 — 大小写敏感,枚举值不允许新增同义词。SV-01..10 case 在 Stage 1 中分别覆盖:Schema 自身合法性、26 example 顺次校验、跨域引用闭包(`$ref` 不悬空)、字段命名约定、必填字段覆盖、枚举值穷举、reviewed_handoff v1↔v2 字段映射、Compiler IR 链 schema 一致性、Evidence Manifest 与 Run ID 关联、MCP 工具目录字段对齐。
+严格模式三条强约束:(1) `additionalProperties: false` 全开 — example 一旦多出 schema 未定义的字段(如调试期临时塞入的 `_note` / `_debug` 字段)立即 fail;(2) `required` 字段必须出现 — example 不允许"省略默认值"以减少行数,所有 required key 必须显式;(3) `enum` / `pattern` 严格匹配 — 大小写敏感,枚举值不允许新增同义词。SV-01..10 case 在 Stage 1 中分别覆盖:Schema 自身合法性、28 example 顺次校验、跨域引用闭包(`$ref` 不悬空)、字段命名约定、必填字段覆盖、枚举值穷举、reviewed_handoff v1↔v2 字段映射、Compiler IR 链 schema 一致性、Evidence Manifest 与 Run ID 关联、MCP 工具目录字段对齐。
 
-完整 26 项对照表(`Schemas/<...>.schema.json` ↔ `Schemas/examples/*.example.json` 一一行)留在权威源 `Docs/contracts/schemas_catalog.md` 附录 A,本表不复述。每次 Schema 改动后必须重跑 `--strict` 直至 26/26 通过,SV-01..10 case 在 `run_system_tests.py --stage=1` 中已包装此调用。
+完整 28 项对照表(`Schemas/<...>.schema.json` ↔ `Schemas/examples/*.example.json` 一一行)留在权威源 `Docs/contracts/schemas_catalog.md` 附录 A,本表不复述。每次 Schema 改动后必须重跑 `--strict` 直至 28/28 通过,SV-01..10 case 在 `run_system_tests.py --stage=1` 中已包装此调用。
 
 ## 6. CI / Gauntlet 接入
 
@@ -106,4 +110,4 @@
 
 - **BC-019(P2 suspected,pending-msc,源:`Plugins/AgentBridge/MCP/server.py` + `Plugins/AgentBridge/Scripts/bridge/remote_control_client.py` 中 RC HTTP `/remote/object/*` 端点形态):** 间接影响测试 — ORC / E2E / CL 类在 `bridge_mode=bridge_rc_api` 时走 RC HTTP,5.7 是否改 JSON 序列化形态(尤其字段命名 / null 处理)需在 5.7 启动后跑一次 RC 端点 smoke 验证。**严禁标 P1 confirmed**。
 
-- **整体结论:** 本测试子系统对 UE 5.7 迁移**必须先修 BC-025 才能让 `run_system_tests.py` 跑通 5.7**,其余 BC-006 / 019 / 020 都是 P2 suspected,在 P1 修完后通过一次 `run_system_tests.py --stage=1..11` 全套回归 + `validate_examples.py --strict` 26/26 即可确诊。如 BC-006 在 5.7 上 fail,需批量替换 C++ Automation 宏,影响 ~20 条 C++ test 但不影响 266 系统测试 ID 编排。
+- **整体结论:** 本测试子系统对 UE 5.7 迁移**必须先修 BC-025 才能让 `run_system_tests.py` 跑通 5.7**,其余 BC-006 / 019 / 020 都是 P2 suspected,在 P1 修完后通过一次 `run_system_tests.py --stage=1..13` 全套回归 + `validate_examples.py --strict` 28/28 即可确诊。如 BC-006 在 5.7 上 fail,需批量替换 C++ Automation 宏,影响 ~20 条 C++ test 但不影响 364 系统测试 ID 编排。

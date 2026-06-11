@@ -28,3 +28,23 @@ can_emit_families:
 depends_on_templates:
   - monopoly.turn_and_dice_flow.phase1
   - monopoly.property_economy.phase1
+
+# Phase 13: 能力绑定(原 skill_graph_planning.GAMEPLAY_NODE_CONFIGS 数据下沉,逐字照抄)
+capability_bindings:
+  - capability_id: gameplay-player-management
+    instance_id: skill-player-management
+    convergence_priority: 5
+    related_clarification_items:
+      - cg-max-game-length
+      - cg-player-token-visual-style
+    planning_notes:
+      - "Player Management 负责玩家顺序、存活状态、淘汰与最终胜者归属。"
+    # 注:fragment_family 是 FRAGMENT_FAMILY_MAP 映射值(节点产出片段族),不要求 ⊆ 宿主 can_emit_families;两字段语义独立,扫描器不做包含校验(Phase 13 架构裁决)
+    fragment_family: player_management_spec
+  - capability_id: gameplay-jail
+    instance_id: skill-jail
+    convergence_priority: 5
+    related_clarification_items: []
+    planning_notes:
+      - "Jail 作为独立节点保留，便于后续把入狱、出狱与破产关系拆分审查。"
+    fragment_family: jail_rule_spec

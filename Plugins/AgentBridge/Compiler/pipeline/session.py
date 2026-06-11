@@ -117,12 +117,16 @@ class CompilerSession:
     run_id: Optional[str] = None
     fast_mode: bool = False
     generator_provider: Optional[str] = None
+    # Phase 13: Skill 合成开关。开启时 Stage 1 save 强制 required capability
+    # 携带 source_anchor(GDD 出处留痕);默认关闭,既有 run 行为不变。
+    allow_skill_synthesis: bool = False
 
     def __post_init__(self) -> None:
         """基础字段校正与轻量自检。"""
         self.output_dir = str(Path(self.output_dir))
         self.session_version = _normalize_session_version(self.session_version)
         self.fast_mode = bool(self.fast_mode)
+        self.allow_skill_synthesis = bool(self.allow_skill_synthesis)
 
         if self.session_version == "2.0" and not self.run_id:
             self.run_id = generate_run_id()
@@ -218,6 +222,9 @@ class CompilerSession:
             payload["run_id"] = self.run_id
         if self.generator_provider:
             payload["generator_provider"] = self.generator_provider
+        # 仅开启时序列化:旧 session 与 golden 快照保持字节级不变
+        if self.allow_skill_synthesis:
+            payload["allow_skill_synthesis"] = True
         return payload
 
     def save(self, session_path: str | Path | None = None) -> str:
@@ -250,8 +257,13 @@ def create_session(
     session_version: str = DEFAULT_SESSION_VERSION,
     run_id: Optional[str] = None,
     fast_mode: bool = False,
+    allow_skill_synthesis: bool = False,
 ) -> CompilerSession:
-    """创建一个新的 CompilerSession。"""
+    """创建一个新的 CompilerSession。
+
+    allow_skill_synthesis(Phase 13):开启后 Stage 1 save 强制 anchor 留痕、
+    Stage 3 gap 可走合成。默认 False,序列化时仅开启才落盘(旧 session 不变)。
+    """
     return CompilerSession(
         session_id=str(uuid.uuid4()),
         created_at=datetime.now(timezone.utc).isoformat(),
@@ -264,4 +276,5 @@ def create_session(
         session_version=session_version,
         run_id=run_id,
         fast_mode=fast_mode,
+        allow_skill_synthesis=allow_skill_synthesis,
     )

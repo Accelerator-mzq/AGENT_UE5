@@ -1,0 +1,221 @@
+# -*- coding: utf-8 -*-
+"""Phase 13 能力注册表扫描。
+
+把原 skill_graph_planning 两张硬编码表替换为数据扫描:
+  - 各 SkillTemplate manifest.yaml 的 capability_bindings(自描述)
+  - SkillTemplates/registry_placeholders.yaml(无模板占位节点)
+  - SkillTemplates/synthesized/ 隔离区(仅 review_status=approved 纳入)
+
+防固化守则:本模块只做结构扫描,不携带任何游戏领域语义。
+"""
+from __future__ import annotations
+
+import logging
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import yaml
+
+logger = logging.getLogger(__name__)
+
+# 默认模板根目录:相对本文件向上两级到插件根,再进 SkillTemplates
+DEFAULT_TEMPLATES_ROOT = Path(__file__).resolve().parents[2] / "SkillTemplates"
+# 占位数据文件名(存放尚无模板目录的 capability 元数据)
+PLACEHOLDERS_FILE = "registry_placeholders.yaml"
+# synthesized 隔离区子目录名
+SYNTHESIZED_DIR = "synthesized"
+# 只有这个 review_status 值才允许 synthesized 节点进入注册表
+APPROVED = "approved"
+# binding / 占位条目的必填字段:缺任一则跳过该条目并告警(防裸 KeyError 崩掉整个扫描)
+REQUIRED_BINDING_FIELDS = ("capability_id", "instance_id", "convergence_priority")
+
+
+def _load_yaml_or_none(path: Path) -> Optional[Dict[str, Any]]:
+    """读取并解析 YAML 文件;损坏/不可读时返回 None。
+
+    损坏文件静默跳过是有意的:个别文件损坏不应中断整个扫描,
+    由此导致的 capability 缺失由 SKS-02 等价门测试兜底暴露。
+    """
+    try:
+        return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except Exception:
+        return None
+
+
+def _missing_required_fields(entry: Dict[str, Any]) -> List[str]:
+    """返回条目中缺失(或为空值)的必填字段名列表;空列表表示校验通过。"""
+    return [field for field in REQUIRED_BINDING_FIELDS if entry.get(field) in (None, "")]
+
+
+def _binding_to_config(binding: Dict[str, Any], template_id: str, template_source: str) -> Dict[str, Any]:
+    """把一条 capability_binding 转成与原硬编码表同构的节点配置。
+
+    字段对齐原则:所有原 GAMEPLAY_NODE_CONFIGS / BASELINE_NODE_CONFIGS 字段均保留,
+    额外附加 template_source 与 fragment_family 供后续 Stage 使用。
+    前置条件:调用方必须先用 _missing_required_fields 校验通过,本函数不再防缺字段。
+    """
+    return {
+        "instance_id": binding["instance_id"],
+        "template_id": template_id,
+        "convergence_priority": binding["convergence_priority"],
+        "related_clarification_items": list(binding.get("related_clarification_items", [])),
+        "planning_notes": list(binding.get("planning_notes", [])),
+        "template_source": template_source,
+        "fragment_family": binding.get("fragment_family", ""),
+        "depends_on_capabilities": list(binding.get("depends_on_capabilities", [])),
+    }
+
+
+def _scan_manifest_bindings(
+    manifest_path: Path,
+    registry: Dict[str, Dict[str, Any]],
+    template_source: str,
+    require_approved: bool,
+) -> None:
+    """读取单个 manifest 的 capability_bindings,把 registry 中尚不存在的 capability 填入。
+
+    冲突语义:registry 已有同名 capability 时一律不覆盖。优先级由调用方的分遍
+    扫描顺序保证(正式库一遍在前,synthesized 一遍在后),不依赖目录字母序。
+
+    参数:
+        require_approved: True 时仅 review_status==approved 的 manifest 纳入
+            (synthesized 隔离区使用;正式库人写模板无该字段,传 False 默认信任)。
+    """
+    manifest = _load_yaml_or_none(manifest_path)
+    if manifest is None:
+        # 损坏 manifest 静默跳过,缺失由 SKS-02 等价门兜底
+        return
+
+    bindings = manifest.get("capability_bindings") or []
+    if not bindings:
+        # 无 capability_bindings 的 manifest(如纯 UI flow 模板)不参与注册
+        return
+
+    if require_approved and manifest.get("review_status") != APPROVED:
+        # 隔离区未经审批的模板:对注册表不可见
+        return
+
+    template_id = manifest.get("template_id", "")
+    for binding in bindings:
+        missing = _missing_required_fields(binding)
+        if missing:
+            # 必填字段不齐:跳过该条目并显式告警(带文件路径,便于定位是哪个 manifest 写漏)
+            logger.warning(
+                "registry_scan: %s 的 capability_binding 缺必填字段 [%s],该条目跳过",
+                manifest_path,
+                ", ".join(missing),
+            )
+            continue
+        capability_id = binding["capability_id"]
+        if capability_id in registry:
+            # 同名 capability 已注册:保留先入条目(本遍内=先扫到的;跨遍=高优先级遍)
+            continue
+        registry[capability_id] = _binding_to_config(binding, template_id, template_source)
+
+
+def scan_capability_registry(templates_root: str | Path | None = None) -> Dict[str, Dict[str, Any]]:
+    """扫描模板树,构建 capability_id → 节点配置映射。
+
+    三遍扫描保证优先级与 rglob 字母序无关(修复 synthesized 目录名靠前时抢跑正式库的 bug):
+      1. 第一遍只扫正式库 manifest(非 synthesized 目录),正式库内部重复保留先扫到的。
+      2. 第二遍扫 synthesized 区(仅 review_status==approved),只填正式库未占用的 capability。
+      3. 第三遍占位文件(registry_placeholders.yaml),只填前两遍均未提供的条目。
+
+    无缓存是有意的:模板树在合成流程运行期可变(synthesized 区会新增/审批模板),
+    本函数保持无状态,每次调用都重扫,确保看到最新审批结果。
+
+    参数:
+        templates_root: 模板根目录路径;传 None 时使用 DEFAULT_TEMPLATES_ROOT。
+
+    返回:
+        capability_id → 节点配置字典的映射。
+    """
+    root = Path(templates_root) if templates_root else DEFAULT_TEMPLATES_ROOT
+    registry: Dict[str, Dict[str, Any]] = {}
+
+    # synthesized 隔离区路径,用于把 manifest 分流到正式库遍 / synthesized 遍
+    synthesized_root = root / SYNTHESIZED_DIR
+    all_manifests = sorted(root.rglob("manifest.yaml"))
+    official_manifests = [p for p in all_manifests if synthesized_root not in p.parents]
+    synthesized_manifests = [p for p in all_manifests if synthesized_root in p.parents]
+
+    # ── 第一遍:正式库 manifest(无 review_status 字段,默认信任,spec §3 第 2 条) ──
+    for manifest_path in official_manifests:
+        _scan_manifest_bindings(
+            manifest_path, registry, "plugin_skill_template", require_approved=False
+        )
+
+    # ── 第二遍:synthesized 隔离区(仅 approved,且不覆盖正式库同名 capability) ──
+    for manifest_path in synthesized_manifests:
+        _scan_manifest_bindings(
+            manifest_path, registry, "synthesized", require_approved=True
+        )
+
+    # ── 第三遍:补充占位数据文件中未被 manifest 覆盖的 capability ──
+    placeholders_path = root / PLACEHOLDERS_FILE
+    if placeholders_path.is_file():
+        # 损坏时按空数据处理,缺失由 SKS-02 等价门兜底
+        data = _load_yaml_or_none(placeholders_path) or {}
+
+        for entry in data.get("placeholders", []):
+            missing = _missing_required_fields(entry)
+            if missing:
+                # 占位条目同样走必填校验,缺字段跳过并告警
+                logger.warning(
+                    "registry_scan: %s 的占位条目缺必填字段 [%s],该条目跳过",
+                    placeholders_path,
+                    ", ".join(missing),
+                )
+                continue
+            capability_id = entry["capability_id"]
+            if capability_id in registry:
+                # 已被 manifest 覆盖:跳过(manifest 优先)
+                continue
+            registry[capability_id] = _binding_to_config(
+                entry,
+                entry.get("template_id", ""),  # 占位节点的 template_id 直接从条目读取
+                "future_baseline_template",      # 占位节点的来源标记
+            )
+
+    return registry
+
+
+def execution_family_whitelist(templates_root: str | Path | None = None) -> set[str]:
+    """执行层 family 白名单 = 正式库(非 synthesized)manifest can_emit_families 的并集。
+
+    同时收录 capability_bindings 里的 fragment_family 与占位节点的 fragment_family,
+    确保 player_management_spec 等"仅出现在 binding、不在宿主 can_emit_families"的词汇也被纳入。
+
+    数据驱动,不维护硬编码清单(防固化守则)。
+    """
+    root = Path(templates_root) if templates_root else DEFAULT_TEMPLATES_ROOT
+    synthesized_root = root / SYNTHESIZED_DIR
+    families: set[str] = set()
+
+    # 扫描正式库 manifest(跳过 synthesized 区)
+    for manifest_path in root.rglob("manifest.yaml"):
+        if synthesized_root in manifest_path.parents:
+            continue
+        manifest = _load_yaml_or_none(manifest_path)
+        if manifest is None:
+            # 损坏 manifest 静默跳过,缺失由 SKS-02 等价门兜底
+            continue
+
+        # 模板自身宣告的 can_emit_families
+        families.update(manifest.get("can_emit_families") or [])
+
+        # capability_bindings 里的 fragment_family(节点产出片段族,语义独立于 can_emit_families)
+        for binding in manifest.get("capability_bindings") or []:
+            if binding.get("fragment_family"):
+                families.add(binding["fragment_family"])
+
+    # 占位节点的 fragment_family 也属于执行层既有词表
+    placeholders_path = root / PLACEHOLDERS_FILE
+    if placeholders_path.is_file():
+        # 损坏时按空数据处理,缺失由 SKS-02 等价门兜底
+        data = _load_yaml_or_none(placeholders_path) or {}
+        for entry in data.get("placeholders", []):
+            if entry.get("fragment_family"):
+                families.add(entry["fragment_family"])
+
+    return families

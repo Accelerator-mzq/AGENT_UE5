@@ -36,3 +36,15 @@ gameplay_coupling:
   - jail_and_bankruptcy
 
 priority: medium
+
+# Phase 13: 能力绑定(原 skill_graph_planning.BASELINE_NODE_CONFIGS 数据下沉,逐字照抄)
+capability_bindings:
+  - capability_id: baseline-hud
+    instance_id: skill-baseline-hud
+    convergence_priority: 4
+    related_clarification_items:
+      - cg-hud-layout-style
+      - cg-dice-roll-feedback
+    planning_notes:
+      - "HUD 是 realization_eligible baseline，允许进入后续 Design Space Discovery。"
+    fragment_family: hud_spec
