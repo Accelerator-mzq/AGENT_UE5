@@ -120,6 +120,10 @@ EXAMPLE_TO_SCHEMA: Dict[str, str] = {
     # === ForgeUE Real-UE Bridge (Task 2) ===
     "forgeue_import_evidence_example.json":
         "forgeue_import_evidence.schema.json",
+
+    # === Phase 13 GDD 覆盖矩阵 ===
+    "phase13_gdd_coverage_matrix.example.json":
+        "gdd_coverage_matrix.schema.json",
 }
 
 # 这些 example 默认跳过自动 schema 校验，仅作为参考样例。

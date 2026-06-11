@@ -98,13 +98,15 @@ class TestPromoteGuard:
         finally:
             sys.path.remove(str(PLUGIN_ROOT / "MCP"))
 
-    def test_sks15e_corrupted_graph_fail_closed(self, tmp_path):
+    def test_sks15e_corrupted_graph_fail_closed(self, tmp_path, monkeypatch):
         """SKS-15e: skill_graph.json 损坏时 fail-closed——不可判定即不许 promote,
         走 PROMOTE_REJECTED 拒绝路径而非 TOOL_EXECUTION_FAILED。"""
         sys.path.insert(0, str(PLUGIN_ROOT / "MCP"))
         try:
             import evidence_tools
             importlib.reload(evidence_tools)
+            # 防止 _create_batch_from_snapshot 污染真实 ProjectState/batches/
+            monkeypatch.setattr(evidence_tools, "BATCHES_ROOT", tmp_path / "batches")
             run_dir = tmp_path / "run-broken"
             run_dir.mkdir()
             (run_dir / "skill_graph.json").write_text("{损坏的 JSON", encoding="utf-8")

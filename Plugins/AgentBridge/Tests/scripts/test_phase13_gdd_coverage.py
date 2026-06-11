@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """SKS-12/13: GDD 结构切分与反向覆盖矩阵(无人认领可见)。"""
 import importlib.util
+import json
 from pathlib import Path
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[2]
@@ -136,3 +137,65 @@ class TestGddCoverage:
         # 有正文 + 下一段更深层 → 非容器(正文必须被认领,不许借容器身份逃逸)
         prosy = gc.split_gdd_sections("# 带正文的总标题\n概述正文。\n\n## 子段\n内容。\n")
         assert gc._is_structural_container(prosy[0], prosy[1]) is False
+
+
+class TestGddCoverageMatrixSchemaAntiDrift:
+    """SKS-13-schema: 真实 build_coverage_matrix 输出须通过 gdd_coverage_matrix schema 校验。
+
+    此测试锁住 schema 与实现不漂移——若 gdd_coverage.py 改动了输出字段,
+    此测试变红,要求同步更新 schema 和 example。
+    """
+
+    def test_real_output_validates_against_schema(self):
+        """用覆盖三态(claimed/unclaimed/container)的真实输出对 schema 做正向校验。"""
+        try:
+            import jsonschema
+        except ImportError:
+            import pytest
+            pytest.skip("jsonschema 未安装,跳过 schema 防漂移测试")
+
+        gc = _load()
+
+        # 构造覆盖三态的输入:# 总标题(container)+ ## 2.1(claimed)+ ## 2.2(unclaimed)
+        gdd_text = (
+            "# 设计文档\n"
+            "\n"
+            "## 2.1 棋盘系统\n"
+            "40 格环形棋盘,支持地产购买与地租收取。\n"
+            "\n"
+            "## 2.2 计分规则\n"
+            "胜负以持有净资产判定,零资产时破产。\n"
+        )
+        sections = gc.split_gdd_sections(gdd_text)
+        capabilities = [
+            # anchor 认领 → claimed
+            {"capability_id": "gameplay-board-topology", "source_anchor": "2.1 棋盘系统"},
+            # 空 anchor → capabilities_without_anchor
+            {"capability_id": "baseline-audio-placeholder", "source_anchor": ""},
+            # 指向不存在段落 → dangling_anchors
+            {"capability_id": "gameplay-auction", "source_anchor": "3.1 不存在的段落"},
+        ]
+        matrix = gc.build_coverage_matrix(sections, capabilities)
+
+        # 加载 schema 文件
+        schema_path = PLUGIN_ROOT / "Schemas" / "gdd_coverage_matrix.schema.json"
+        assert schema_path.exists(), f"schema 文件不存在: {schema_path}"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+
+        # 校验真实输出对 schema 全过(如有违规则打印详细错误)
+        validator = jsonschema.Draft7Validator(schema)
+        errors = list(validator.iter_errors(matrix))
+        assert not errors, (
+            f"真实 build_coverage_matrix 输出不满足 schema,字段可能已漂移:\n"
+            + "\n".join(f"  {e.json_path}: {e.message}" for e in errors)
+        )
+
+        # 进一步确认三态覆盖到
+        statuses = {row["status"] for row in matrix["rows"]}
+        assert "container" in statuses, "测试输入应包含 container 段落"
+        assert "claimed" in statuses, "测试输入应包含 claimed 段落"
+        assert "unclaimed" in statuses, "测试输入应包含 unclaimed 段落"
+
+        # capabilities_without_anchor / dangling_anchors 均非空
+        assert matrix["capabilities_without_anchor"], "测试输入应包含无 anchor 的 capability"
+        assert matrix["dangling_anchors"], "测试输入应包含 dangling anchor"

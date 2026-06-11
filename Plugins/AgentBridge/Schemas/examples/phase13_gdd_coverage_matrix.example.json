@@ -1,0 +1,31 @@
+{
+  "rows": [
+    {
+      "heading": "设计文档",
+      "start_line": 1,
+      "status": "container",
+      "claimed_by": []
+    },
+    {
+      "heading": "2.1 棋盘系统",
+      "start_line": 3,
+      "status": "claimed",
+      "claimed_by": [
+        "gameplay-board-topology"
+      ]
+    },
+    {
+      "heading": "2.2 计分规则",
+      "start_line": 6,
+      "status": "unclaimed",
+      "claimed_by": []
+    }
+  ],
+  "capabilities_without_anchor": [
+    "baseline-audio-placeholder"
+  ],
+  "dangling_anchors": [
+    "3.1 不存在的段落"
+  ],
+  "unclaimed_count": 1
+}
