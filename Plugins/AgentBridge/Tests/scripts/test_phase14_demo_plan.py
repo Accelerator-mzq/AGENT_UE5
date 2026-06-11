@@ -120,3 +120,18 @@ class TestDemoPlanner:
         out = p.build_demo_plan(_graph([_node("skill-a", "cap-a")]), _contract([("cap-a", "1")]), "9.9.9", _PATHS)
         assert out["plan"]["manifest_version"] == "9.9.9"
         assert all(s["manifest_version"] == "9.9.9" for s in out["stories"])
+
+
+class TestManifestLoader:
+    def test_dmp31_load_manifest_text_and_version(self, project_root):
+        ml = _load("manifest_loader")
+        text, version = ml.load_construction_manifest(project_root)
+        assert version == "1.0.0" and "Plugin 骨架" in text
+
+    def test_dmp32_missing_version_line_fails_closed(self, workspace_tmp_path):
+        ml = _load("manifest_loader")
+        bad = workspace_tmp_path / "m.md"
+        bad.write_text("# 无版本行", encoding="utf-8")
+        import pytest
+        with pytest.raises(ValueError, match="manifest_version"):
+            ml.load_construction_manifest(workspace_tmp_path, path=bad)
