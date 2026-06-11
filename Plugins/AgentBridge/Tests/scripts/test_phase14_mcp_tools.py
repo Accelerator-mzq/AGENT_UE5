@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
-"""DMP-33~38: MCP 工具对——注册三处齐全、fetch 载荷、submit 校验闭环、工具数 57。"""
+"""DMP-33~38a: MCP 工具对——注册三处齐全、fetch 载荷、submit 校验闭环、工具数 57。
+
+返回形状契约(2026-06-12 审查修订):统一 _make_response 五键
+{"status","summary","data","warnings","errors"}——
+  - 工具调用成功(含 story 被业务拒绝回 in_progress)→ status="ok"
+  - 异常 → status="failed"(server.py 据 status=="failed" 置 MCP isError)
+  - manifest 版本告警走 warnings[](镜像 Phase 13 save 用 warnings 承载提示的先例)
+"""
 import importlib.util
 import json
 import sys
@@ -63,10 +70,12 @@ class TestMcpDemoTools:
         _seed_run(workspace_tmp_path, workspace_tmp_path)
         out = ct.demo_story_fetch(session_path=str(workspace_tmp_path), story_id=None,
                                   project_root=str(workspace_tmp_path))
-        assert out["success"] is True
+        assert out["status"] == "ok"
         assert out["data"]["story"]["story_id"] == "story-a"
         assert "manifest_version: 1.0.0" in out["data"]["construction_manifest"]
-        assert out["data"]["manifest_warning"] is None
+        # 版本一致时无告警;告警通道统一为 warnings[],data 不再带 manifest_warning 键
+        assert out["warnings"] == []
+        assert "manifest_warning" not in out["data"]
 
     def test_dmp37_submit_reject_then_pass_loop(self, workspace_tmp_path):
         ct = _import_mcp("compiler_tools")
@@ -75,7 +84,8 @@ class TestMcpDemoTools:
                             project_root=str(workspace_tmp_path))
         bad = ct.demo_story_submit(session_path=str(workspace_tmp_path), story_id="story-a",
                                    evidence={}, project_root=str(workspace_tmp_path))
-        assert bad["success"] is True and bad["data"]["story_status"] == "in_progress"
+        # 业务拒绝是重试闭环信号,工具调用本身成功:status 仍为 ok,不触发 MCP isError
+        assert bad["status"] == "ok" and bad["data"]["story_status"] == "in_progress"
         assert bad["data"]["errors"]
         doc = workspace_tmp_path / "Plugins" / "DemoX" / "Docs" / "d.md"
         doc.parent.mkdir(parents=True)
@@ -85,6 +95,7 @@ class TestMcpDemoTools:
                                     evidence={"files_changed": [rel], "doc_paths": [rel],
                                               "plugin_root": "Plugins/DemoX"},
                                     project_root=str(workspace_tmp_path))
+        assert good["status"] == "ok"
         assert good["data"]["story_status"] == "verified"
 
     def test_dmp38_fetch_manifest_version_mismatch_warns(self, workspace_tmp_path):
@@ -94,4 +105,18 @@ class TestMcpDemoTools:
         mpath.write_text("manifest_version: 2.0.0\n# 规范\n", encoding="utf-8")
         out = ct.demo_story_fetch(session_path=str(workspace_tmp_path), story_id=None,
                                   project_root=str(workspace_tmp_path))
-        assert out["data"]["manifest_warning"] is not None
+        assert out["status"] == "ok"
+        assert out["warnings"] and any("版本不符" in w for w in out["warnings"])
+        assert "manifest_warning" not in out["data"]
+
+    def test_dmp38a_plugin_root_escape_rejected(self, workspace_tmp_path):
+        ct = _import_mcp("compiler_tools")
+        _seed_run(workspace_tmp_path, workspace_tmp_path)
+        ct.demo_story_fetch(session_path=str(workspace_tmp_path), story_id=None,
+                            project_root=str(workspace_tmp_path))
+        out = ct.demo_story_submit(session_path=str(workspace_tmp_path), story_id="story-a",
+                                   evidence={"files_changed": [], "doc_paths": [],
+                                             "plugin_root": "../outside"},
+                                   project_root=str(workspace_tmp_path))
+        assert out["status"] == "ok" and out["data"]["story_status"] == "in_progress"
+        assert any("越界" in e for e in out["data"]["errors"])

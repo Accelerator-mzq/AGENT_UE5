@@ -438,7 +438,7 @@ COMPILER_FRONTEND_TOOLS = {
             "session_path": {"type": "string", "required": True, "description": "run 目录路径(含 demo_plan.json 与 stories/)"},
             "story_id": {"type": "string", "required": False, "description": "缺省取计划顺序下一个可发工单"},
         },
-        "returns": "data.story / data.construction_manifest(全文) / data.manifest_warning(版本不符告警,可为 null)",
+        "returns": "data.story / data.construction_manifest(全文);manifest 版本不符告警在 warnings[];status=ok/failed(failed 仅环境/数据异常,触发 MCP isError)",
     },
     "demo_story_submit": {
         "description": "Phase 14 demo-first:提交 story 完成证据。按 evidence_class 机器校验;失败回 in_progress 并返回具体错误(重试闭环);增量批附加 v0 冒烟 hash 守门。",
@@ -447,7 +447,7 @@ COMPILER_FRONTEND_TOOLS = {
             "story_id": {"type": "string", "required": True, "description": "工单 id"},
             "evidence": {"type": "object", "required": True, "description": "files_changed/test_report/smoke_report/screenshots/doc_paths/provisional_decisions/plugin_root"},
         },
-        "returns": "data.story_status(verified|in_progress) / data.errors / data.attempts",
+        "returns": "data.story_status(verified|in_progress) / data.errors / data.attempts;校验拒绝是业务信号,status 仍为 ok(failed 仅环境/数据异常,触发 MCP isError)",
     },
 }
 

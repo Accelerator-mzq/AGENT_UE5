@@ -4,6 +4,10 @@
 
 **Goal:** 落地 demo_plan 切批环节 + story 状态机 + 证据校验 + 2 个 MCP 工具(55→57)+ 施工规范层 + 冒烟 runner + Stage 14 测试登记,使"GDD→可玩 v0→增量"主链具备无人值守执行的全部机制。
 
+## 实施期修订记录
+
+- 2026-06-12 Task 7:plan 参考实现的 `{"success":...}` 返回形状与全项目 `_make_response` 契约矛盾(审查发现 isError 恒 False),实施按统一契约修正;manifest 告警移 warnings[]。
+
 **Architecture:** 纯新增:`Plugins/AgentBridge/Compiler/demo_plan/` 四个自包含模块(planner/story_store/evidence_validator/velocity + manifest_loader),MCP 层组合它们暴露 `demo_story_fetch/submit` 两工具;Stage 1-7 既有代码零改动。切批确定性零 LLM,机制代码零游戏领域语义(测试守门)。
 
 **Tech Stack:** Python 3.x + jsonschema + pytest;MCP server(既有);UE5.5 Automation commandlet(冒烟 runner)。
