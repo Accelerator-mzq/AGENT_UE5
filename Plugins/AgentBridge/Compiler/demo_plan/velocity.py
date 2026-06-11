@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-"""velocity log:逐 story、逐自修轮的时间戳事件流(Phase 15 扇出成本估算的实测依据)。"""
+"""velocity log:逐 story、逐自修轮的时间戳事件流(Phase 15 扇出成本估算的实测依据)。
+假设单写者顺序执行;并发 fetch/append 不保证唯一性与不丢事件(本期单驱动器场景)。
+"""
 import json
 import os
 from datetime import datetime, timezone

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""story 状态机:pending → in_progress → submitted → verified;被拒回 in_progress。
+"""story 状态机:pending → in_progress → (verified | 校验失败回 in_progress)。
+schema enum 中的 submitted 预留给 MCP 层在途态,store 不落盘该状态(submit 守卫容忍它属防御)。
 
 落盘约定:每个 story 一个 JSON(ProjectState/runs/<run_id>/stories/<story_id>.json),
 写入一律 .part 临时文件 + os.replace 原子替换(Phase 13 合成链同款事务形状)。
@@ -12,6 +13,8 @@ from typing import Any, Dict, List, Optional
 
 
 class StoryStore:
+    """story 状态机的落盘存取器。假设单写者顺序执行;并发 fetch/append 不保证唯一性与不丢事件(本期单驱动器场景)。"""
+
     def __init__(self, run_dir) -> None:
         self.run_dir = Path(run_dir)
         self.stories_dir = self.run_dir / "stories"
