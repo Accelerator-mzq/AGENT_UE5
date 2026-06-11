@@ -1,0 +1,147 @@
+# -*- coding: utf-8 -*-
+"""证据校验器:evidence_class 分级必交、路径存在、冒烟 pass、增量 hash 守门、文档引用对账。
+
+机制分离:本模块只产出 {"status","errors"},状态流转归 story_store。
+零游戏领域语义;自包含(不 import 包内其他模块)。
+假设单写者顺序执行(与 story_store 同口径)。
+"""
+import hashlib
+import json
+import os
+import re
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+# evidence_class → 必交证据字段(spec §4.2/§4.3)
+REQUIRED_EVIDENCE = {
+    "Logic": ("files_changed", "test_report", "smoke_report"),
+    "Integration": ("files_changed", "smoke_report"),
+    "Visual": ("files_changed", "screenshots"),
+    "Config": ("files_changed", "doc_paths"),
+}
+
+# 路径型证据字段(逐一检查相对 project_root 存在)
+_PATH_FIELDS = ("files_changed", "test_report", "smoke_report", "screenshots", "doc_paths")
+
+# 文档引用对账:反引号包裹的 UE 类名(A/U/F/E 前缀大驼峰)与资产路径
+_CLASS_TOKEN = re.compile(r"`([AUFE][A-Z][A-Za-z0-9_]{2,})`")
+_ASSET_TOKEN = re.compile(r"`(/[A-Za-z0-9_]+(?:/[A-Za-z0-9_.]+)+)`")
+
+
+def _iter_paths(evidence: Dict[str, Any]):
+    """遍历 evidence 中所有路径型字段，逐一 yield (field, 路径字符串)。"""
+    for field in _PATH_FIELDS:
+        value = evidence.get(field)
+        if value is None:
+            continue
+        for item in (value if isinstance(value, list) else [value]):
+            yield field, str(item)
+
+
+def _sha256(path: Path) -> str:
+    """计算文件的 SHA-256 十六进制摘要。"""
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def freeze_v0_baseline(project_root, run_dir, smoke_file_rel_paths: List[str]) -> Dict[str, Any]:
+    """v0 PROCEED 后冻结冒烟用例 hash 基线,落盘 run 目录(人审窗口 1 的 runbook 步骤调用)。"""
+    root = Path(project_root)
+    # Windows 反斜杠统一转正斜杠，保证跨平台 key 一致
+    files = {str(rel).replace("\\", "/"): _sha256(root / rel) for rel in smoke_file_rel_paths}
+    baseline = {"files": files, "frozen_at": datetime.now(timezone.utc).isoformat()}
+    path = Path(run_dir) / "v0_smoke_baseline.json"
+    # 原子写入：先写临时文件再 replace，防止并发读到半写文件
+    tmp = path.with_suffix(".json.part")
+    tmp.write_text(json.dumps(baseline, ensure_ascii=False, indent=2), encoding="utf-8")
+    os.replace(tmp, path)
+    return baseline
+
+
+def _check_baseline(project_root: Path, baseline: Dict[str, Any]) -> List[str]:
+    """对比现有文件 hash 与 v0 冻结基线，返回篡改/缺失错误列表。"""
+    errors = []
+    for rel, expected in baseline.get("files", {}).items():
+        target = project_root / rel
+        if not target.exists():
+            errors.append(f"hash 守门: 基线文件缺失 {rel}")
+        elif _sha256(target) != expected:
+            errors.append(f"hash 守门: 基线文件被修改 {rel}(v0 冒烟用例 PROCEED 后冻结,不许动)")
+    return errors
+
+
+def _check_doc_references(doc_text: str, plugin_root: Path) -> List[str]:
+    """文档提到的类/资产必须真实存在(spec §4.7 引用对账)。"""
+    errors: List[str] = []
+    source_dir = plugin_root / "Source"
+    corpus = ""
+    if source_dir.exists():
+        # 扫描插件 Source 目录下所有 .h / .cpp 文件，拼接为语料库
+        for ext in ("*.h", "*.cpp"):
+            for f in sorted(source_dir.rglob(ext)):
+                corpus += f.read_text(encoding="utf-8", errors="ignore")
+    # 检查文档中反引号包裹的 UE 类名是否出现在源码语料
+    for cls in sorted(set(_CLASS_TOKEN.findall(doc_text))):
+        if not any(marker + cls in corpus for marker in ("class ", "struct ", "enum class ")):
+            errors.append(f"文档引用对账: 类 {cls} 在 plugin Source 中不存在")
+    # 检查文档中反引号包裹的资产路径是否在 plugin Content 目录存在
+    for asset in sorted(set(_ASSET_TOKEN.findall(doc_text))):
+        parts = asset.strip("/").split("/")
+        rel = Path(*parts[1:]) if len(parts) > 1 else Path(parts[0])
+        candidates = [(plugin_root / "Content" / rel).with_suffix(suffix) for suffix in (".uasset", ".umap")]
+        if not any(c.exists() for c in candidates):
+            errors.append(f"文档引用对账: 资产 {asset} 在 plugin Content 中不存在")
+    return errors
+
+
+def validate_evidence(story: Dict[str, Any], evidence: Dict[str, Any], project_root,
+                      baseline: Optional[Dict[str, Any]] = None,
+                      plugin_root=None) -> Dict[str, Any]:
+    """返回 {"status": "verified"|"rejected", "errors": [...]};错误信息具体可执行(重试闭环)。"""
+    root = Path(project_root)
+    errors: List[str] = []
+
+    # ── 1. 分级必交字段检查 ──────────────────────────────────────────────────
+    for field in REQUIRED_EVIDENCE[story["evidence_class"]]:
+        if evidence.get(field) is None:
+            errors.append(f"缺少必交证据字段: {field}(evidence_class={story['evidence_class']})")
+
+    # ── 2. 路径存在检查 ─────────────────────────────────────────────────────
+    for field, rel in _iter_paths(evidence):
+        if not (root / rel).exists():
+            errors.append(f"证据路径不存在: {field} -> {rel}")
+
+    # ── 3. smoke_report 状态检查 ────────────────────────────────────────────
+    smoke_rel = evidence.get("smoke_report")
+    if smoke_rel and (root / str(smoke_rel)).exists():
+        try:
+            report = json.loads((root / str(smoke_rel)).read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError) as exc:
+            report = None
+            errors.append(f"smoke_report 不可解析: {exc}")
+        if report is not None:
+            if report.get("status") != "pass":
+                errors.append(f"smoke_report 状态非 pass: {report.get('status')}")
+            # 增量批还须 v0 回归通过
+            if str(story.get("batch_id", "")).startswith("increment") and report.get("v0_regression") != "pass":
+                errors.append(f"增量批要求 v0 回归 pass,实际: {report.get('v0_regression')}")
+
+    # ── 4. 增量批 baseline 检查 ─────────────────────────────────────────────
+    if str(story.get("batch_id", "")).startswith("increment"):
+        if baseline is None:
+            errors.append("增量批必须提供 v0 baseline(先在人审窗口 1 冻结)")
+        else:
+            errors.extend(_check_baseline(root, baseline))
+
+    # ── 5. 文档 story 引用对账 ──────────────────────────────────────────────
+    if story.get("story_kind") == "documentation":
+        if plugin_root is None:
+            errors.append("文档 story 校验需要 plugin_root")
+        else:
+            for rel in evidence.get("doc_paths") or []:
+                doc_path = root / str(rel)
+                if doc_path.exists():
+                    errors.extend(_check_doc_references(
+                        doc_path.read_text(encoding="utf-8", errors="ignore"), Path(plugin_root)))
+
+    return {"status": "verified" if not errors else "rejected", "errors": errors}
