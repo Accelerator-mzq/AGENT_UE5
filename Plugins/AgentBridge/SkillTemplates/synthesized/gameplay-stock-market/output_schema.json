@@ -1,0 +1,154 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "股票市场机制 spec fragment 输出",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "exchange_tile",
+    "stocks",
+    "trading_rule",
+    "price_fluctuation",
+    "bankruptcy_valuation",
+    "ui_requirements"
+  ],
+  "properties": {
+    "exchange_tile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "count",
+        "placement_note"
+      ],
+      "properties": {
+        "count": {
+          "type": "integer",
+          "enum": [
+            1
+          ],
+          "description": "交易所格数,GDD 锁定 1"
+        },
+        "placement_note": {
+          "type": "string",
+          "description": "格位需求(角格,具体由 board_topology 裁定)"
+        }
+      }
+    },
+    "stocks": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "description": "3 支股票定义,GDD 锁定数量",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "stock_id",
+          "initial_price"
+        ],
+        "properties": {
+          "stock_id": {
+            "type": "string",
+            "description": "股票标识"
+          },
+          "display_name": {
+            "type": "string",
+            "description": "展示名"
+          },
+          "initial_price": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "初始价(整数)"
+          }
+        }
+      }
+    },
+    "trading_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trigger",
+        "actions"
+      ],
+      "properties": {
+        "trigger": {
+          "type": "string",
+          "description": "交易时机(途经或落在交易所)"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "可执行操作(买入/卖出)"
+        },
+        "per_visit_limit_note": {
+          "type": "string",
+          "description": "单次到访交易限制说明"
+        }
+      }
+    },
+    "price_fluctuation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "timing",
+        "magnitude",
+        "direction_mapping"
+      ],
+      "properties": {
+        "timing": {
+          "type": "string",
+          "description": "波动时机(每回合开始)"
+        },
+        "magnitude": {
+          "type": "string",
+          "description": "波动幅度(±10%,GDD 锁定)"
+        },
+        "direction_mapping": {
+          "type": "string",
+          "description": "掷骰结果到涨跌方向的映射(收敛决策,标 provisional)"
+        }
+      }
+    },
+    "bankruptcy_valuation": {
+      "type": "string",
+      "description": "破产折算规则(持仓按现价折算入总资产)"
+    },
+    "ui_requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "panel_displays",
+        "panel_actions",
+        "hud_persistent"
+      ],
+      "properties": {
+        "panel_displays": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "交易所面板展示项"
+        },
+        "panel_actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "面板操作项"
+        },
+        "hud_persistent": {
+          "type": "string",
+          "description": "HUD 常驻显示需求(持仓市值)"
+        }
+      }
+    },
+    "provisional_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "基于未确认信息的决策留痕"
+    }
+  }
+}

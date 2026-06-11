@@ -1,0 +1,150 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "地产拍卖机制 spec fragment 输出",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "auction_type",
+    "trigger",
+    "starting_bid_rule",
+    "bid_increment",
+    "bidding_order",
+    "failed_auction_outcome",
+    "settlement",
+    "ui_requirements"
+  ],
+  "properties": {
+    "auction_type": {
+      "type": "string",
+      "enum": [
+        "english_open_ascending"
+      ],
+      "description": "拍卖形式,GDD 锁定为英式增价"
+    },
+    "trigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "condition"
+      ],
+      "properties": {
+        "condition": {
+          "type": "string",
+          "description": "触发条件描述"
+        },
+        "immediate": {
+          "type": "boolean",
+          "description": "是否落地立即触发"
+        }
+      }
+    },
+    "starting_bid_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "basis",
+        "percentage"
+      ],
+      "properties": {
+        "basis": {
+          "type": "string",
+          "enum": [
+            "property_price"
+          ],
+          "description": "起拍价基准"
+        },
+        "percentage": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "description": "基准百分比,GDD 锁定 50"
+        }
+      }
+    },
+    "bid_increment": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "加价步长,GDD 锁定 10"
+    },
+    "bidding_order": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "eligible",
+        "rotation"
+      ],
+      "properties": {
+        "eligible": {
+          "type": "string",
+          "description": "出价资格(未破产玩家)"
+        },
+        "rotation": {
+          "type": "string",
+          "description": "轮转顺序规则"
+        },
+        "pass_reentry_allowed": {
+          "type": "boolean",
+          "description": "弃权后可否重新入场(设计空间收敛项)"
+        }
+      }
+    },
+    "failed_auction_outcome": {
+      "type": "string",
+      "description": "流拍处理,GDD 锁定为地产保持无主"
+    },
+    "settlement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "payment_path",
+        "ownership_transfer"
+      ],
+      "properties": {
+        "payment_path": {
+          "type": "string",
+          "description": "支付路径(复用 property_economy)"
+        },
+        "ownership_transfer": {
+          "type": "string",
+          "description": "地契转移语义"
+        }
+      }
+    },
+    "ui_requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "panel_type",
+        "displays",
+        "actions"
+      ],
+      "properties": {
+        "panel_type": {
+          "type": "string",
+          "description": "面板形态(屏幕中央弹出层)"
+        },
+        "displays": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "须展示的信息项"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "玩家可执行操作"
+        }
+      }
+    },
+    "provisional_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "基于未确认信息的决策留痕"
+    }
+  }
+}

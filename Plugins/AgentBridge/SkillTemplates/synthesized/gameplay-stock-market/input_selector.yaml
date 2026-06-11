@@ -1,0 +1,8 @@
+include_sections:
+  - economy
+  - turn_loop
+  - board_topology
+  - extension_stock_market
+exclude_sections:
+  - audio
+  - networking

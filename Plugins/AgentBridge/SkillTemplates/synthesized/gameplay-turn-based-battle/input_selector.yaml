@@ -1,0 +1,5 @@
+include_sections:
+  - core_gameplay
+  - party_setup
+exclude_sections:
+  - audio

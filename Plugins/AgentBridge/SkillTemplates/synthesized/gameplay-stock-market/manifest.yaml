@@ -1,0 +1,37 @@
+template_id: synthesized.gameplay-stock-market.v1
+display_name: 股票市场(合成)
+template_kind: genre_skill
+genre: monopoly_like
+template_version: 1.0.0
+schema_version: 1.0.0
+evaluator_version: 1.0.0
+description: '股票市场(合成)。Phase 13 合成试制件,依据 monopoly_extended_auction_v1.md 扩展玩法章节生成。
+
+  '
+template_source: synthesized
+review_status: approved
+realization_class: realization_eligible
+phase_scope:
+- phase1_local_multiplayer
+can_emit_families:
+- property_economy_spec
+- ui_flow_spec
+depends_on_templates: []
+gameplay_coupling:
+- property_economy
+- turn_and_dice_flow
+priority: medium
+capability_bindings:
+- capability_id: gameplay-stock-market
+  instance_id: skill-stock-market
+  convergence_priority: 5
+  related_clarification_items: []
+  planning_notes:
+  - 股票市场由 agent 合成,Phase 13 试制;交易所角格 + 3 支股票随回合波动。
+  fragment_family: property_economy_spec
+  depends_on_capabilities:
+  - gameplay-economy
+  - gameplay-turn-loop
+  - gameplay-board-topology
+synthesis_run_id: run-20260611-052252-5101
+synthesized_by: mcp_agent

@@ -1,0 +1,31 @@
+template_id: synthesized.gameplay-turn-based-battle.v1
+display_name: 回合制战斗(合成)
+template_kind: genre_skill
+genre: jrpg_turn_based
+template_version: 1.0.0
+schema_version: 1.0.0
+evaluator_version: 1.0.0
+description: '回合制战斗(合成)。Phase 13 stretch 试制件,依据 jrpg_turn_based_v1.md 核心玩法章节生成。
+
+  '
+template_source: synthesized
+review_status: pending_review
+realization_class: realization_eligible
+phase_scope:
+- phase1_local_multiplayer
+can_emit_families:
+- turn_flow_spec
+- ui_flow_spec
+depends_on_templates: []
+gameplay_coupling: []
+priority: medium
+capability_bindings:
+- capability_id: gameplay-turn-based-battle
+  instance_id: skill-turn-based-battle
+  convergence_priority: 1
+  related_clarification_items: []
+  planning_notes:
+  - 回合制战斗由 agent 合成,Phase 13 stretch;主角与敌人交替行动,命令菜单 Attack/Skill/Defend。
+  fragment_family: turn_flow_spec
+synthesis_run_id: run-20260611-103302-8f43
+synthesized_by: mcp_agent

@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "回合制战斗 spec fragment 输出",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "turn_order",
+    "command_menu",
+    "victory_condition",
+    "defeat_condition",
+    "ui_requirements"
+  ],
+  "properties": {
+    "turn_order": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "description": "行动顺序(主角与敌人交替)"
+        },
+        "tie_break": {
+          "type": "string",
+          "description": "同速处理(设计空间)"
+        }
+      }
+    },
+    "command_menu": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "description": "命令菜单,GDD 锁定 Attack/Skill/Defend 三项",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "command_id"
+        ],
+        "properties": {
+          "command_id": {
+            "type": "string",
+            "enum": [
+              "attack",
+              "skill",
+              "defend"
+            ],
+            "description": "命令标识"
+          },
+          "effect_note": {
+            "type": "string",
+            "description": "效果说明"
+          }
+        }
+      }
+    },
+    "victory_condition": {
+      "type": "string",
+      "description": "胜利条件,GDD 锁定:击败全部敌人"
+    },
+    "defeat_condition": {
+      "type": "string",
+      "description": "失败条件(全队倒下,设计空间标注)"
+    },
+    "ui_requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "battle_hud"
+      ],
+      "properties": {
+        "battle_hud": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "战斗 HUD 要素"
+        },
+        "command_panel": {
+          "type": "string",
+          "description": "命令面板形态"
+        }
+      }
+    },
+    "provisional_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "未锁定决策留痕"
+    }
+  }
+}

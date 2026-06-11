@@ -4,6 +4,9 @@
 > (`Docs/superpowers/specs/2026-06-10-phase13-skill-synthesis-design.md`)。
 > 每条做完勾选并贴证据路径。已知预存失败清单见附录,验收时如实跳过不算 Phase 13 缺陷。
 >
+> **执行状态(2026-06-11):步骤 1-12 已全部执行完毕,逐步执行记录与最终判定见文末
+> 「验收执行记录(2026-06-11)」一节;判据 5 按 msc 裁决以执行词表边界口径部分达成。**
+>
 > 验收 GDD:`ProjectInputs/GDD/monopoly_extended_auction_v1.md`
 > 已知标准答案:本 GDD 应产生且仅产生 **2 个 capability gap**
 > (gameplay-auction 类 + gameplay-stock-market 类)。
@@ -249,6 +252,45 @@ Codex 驱动,同一 GDD(`monopoly_extended_auction_v1.md`),新开 run:
 - [ ] 尝试结果(成败皆可,如实记录):______________________________
 - [ ] 与 `Docs/archive/history/Proposals/jrpg_genre_pack_design.md` 人工对照,质量评估:
   ______________________________
+
+---
+
+## 验收执行记录(2026-06-11,执行者:Claude Code,裁决:msc)
+
+### 逐步执行结果
+
+| 步骤 | 结果 | 关键证据 |
+|---|---|---|
+| 1. 建合成 session | ✅ | run_id=`run-20260611-052252-5101`,`allow_skill_synthesis=true`,经真 MCP stdio 协议(驱动器 `ProjectState/Reports/2026-06-11/mcp_driver.py`) |
+| 2. Stage 1 + 覆盖矩阵 | ✅ | 16+2 required capability 全带 source_anchor(save 零 warning);矩阵 5 个无人认领段落经 msc 裁决:L1 标题/L12 PART A=非功能,3.1/3.2/4.2=表现层细节已被两扩展能力实质覆盖,不打回 |
+| 3. gap 标准答案断言 | ✅ | capability_gaps **恰 2 条**:gameplay-property-auction(anchor=2.1 地产拍卖)+ gameplay-stock-market(anchor=2.2 股票市场),零其他 gap |
+| 4a. 合成 prepare/save | ✅ | prepare 含 GDD 摘录(anchor 精准命中 §2.1)/6 文件规范/2 范例/21 family 白名单;两包 saved,provenance 戳 `synthesis_run_id` + `synthesized_by: mcp_agent` |
+| 4b. 重试闭环实战 | ✅ | 故意缺 evaluator_prompt 提交 → `synthesis_status=rejected`,错误"缺少或为空: evaluator_prompt.md";修正重提 saved |
+| 5. 人审 gate | ✅ | 拦截验证:pending 包重跑 Stage 3 gap 仍 2 条、合成节点不入图;msc 审阅 12 文件全文后批准,review_status 改 approved |
+| 6. gap 清空 | ✅ | 重跑 Stage 3:gaps=0,18 节点,skill-property-auction/skill-stock-market 入图且 `template_source=synthesized`,manifest 声明依赖边换算正确 |
+| 7. Stage 4-7 + promote | ✅ | 18 节点 Stage 4 完成(合成节点内容 agent 创作,库内节点 fallback——Phase 11 e2e 同款),Handoff v3:`ProjectState/runs/run-20260611-052252-5101/reviewed_handoff_v3.json`;`evidence_promote_run` → **PROMOTE_REJECTED**(双重拦截:synthesized 节点清单 + metadata.promotable=false) |
+| 8. Codex MCP 注册 | ✅ | msc 授权,`~/.codex/config.toml` 加 `[mcp_servers.agentbridge]`(py312 起 server),`codex mcp list` 确认 enabled |
+| 9. Codex 端等价 | ✅ | run_id=`run-20260611-073328-cec6`,gap 集合与 anchor 值逐项一致、四产物 schema 全过、两包过校验(pending_review)、Codex 拍卖包首提缺 realization_class 被拒后自修正重提(独立 agent 重试闭环实证);对比报告:`ProjectState/Reports/2026-06-11/phase13_dual_harness_comparison.md` |
+| 10. 真机 UE 执行 | ⚠️ 部分达成(msc 裁决口径) | Handoff 6 个 widget 步骤真机落地(C++ Subsystem CreateBlueprintChild),元数据验证+SaveNamedAssets 成功;10 个 cpp 步骤按 Phase 11 先例不真机执行;**拍卖/交易所独立面板因 family 级 lowering 合并不可达成**(见发现 1) |
+| 11. 证据落盘 | ✅ | `ProjectState/Evidence/phase13_editor_widgets_2026-06-11.png`(Editor 前台截图)+ `phase13_true_machine_2026-06-11.log`(执行日志)+ `Content/Generated/Phase13Acceptance/*.uasset` 6 件 |
+| 12. JRPG stretch | ✅(部分执行,机制验证通过) | run_id=`run-20260611-103302-8f43`:4 个 JRPG gameplay capability 全部成 gap(跨类型 gap 机制正常);合成 1/4 包(回合制战斗)saved,跨类型合成闭环实证;与 `jrpg_genre_pack_design.md` 对照:单技能粒度忠实 GDD,全 genre pack 广度需逐 gap 合成 |
+
+### 验收发现(进 backlog / Phase 14 输入)
+
+1. **family 级 lowering 合并(Phase 14 关键输入)**:economy+拍卖+股票三个同 family fragment 合并为单一 build 步骤,合成能力在契约/fragment/handoff 层留痕完整但 build_ir 层失去独立呈现——"几份 demo 供挑选"必须先细化 lowering 粒度。
+2. **SkillTemplates 树内目录默认信任**:备份目录放树内即被当正式库扫描(绕过审批门),实证于 Codex 第四跑 gap=0 事故;建议 registry_scan 加目录白名单或告警。
+3. **bridge 缺陷**:`create_blueprint_child` 分发链缺 CPP_PLUGIN 分支(C++ 实现存在不可达);L2 资产工具依赖的 RC python 路由 404;UE 内部截图队列后台不消费。
+4. **Stage 1 启发式模板 Monopoly 固化**:JRPG GDD 仍产出 Monopoly 契约,跨类型全靠 agent 重写(MCP agent 路径可承载,LLM Internal 路径跨类型质量未测)。
+5. **词表硬边界的语义挤压**:JRPG 战斗被迫映射到 turn_flow_spec(21 个既有 family 中最近),全新 genre 的忠实呈现需要新 family(执行层扩词表,Phase 14+)。
+6. **codex exec 非交互 MCP 审批**:`approval_policy=never` 不放行 MCP 工具调用,需 `--dangerously-bypass-approvals-and-sandbox`(受控场景);另 stdin 非 TTY 时需管道喂提示词。
+
+### 最终判定
+
+- **判据 1-4(机器)**:✅ 全过(此前已闭环)
+- **判据 2/3/4(实战)**:✅ 全过(步骤 1-7)
+- **判据 6(双端等价)**:✅ 全过(步骤 8-9)
+- **判据 5(真机)**:⚠️ 按词表边界口径部分达成(msc 裁决,2026-06-11)——执行通路与 widget 步骤实证,合成能力独立真机呈现留 Phase 14
+- **判据 7(stretch)**:✅ 非阻塞目标达成(跨类型机制验证)
 
 ---
 

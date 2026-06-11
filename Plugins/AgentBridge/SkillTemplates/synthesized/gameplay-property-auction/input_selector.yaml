@@ -1,0 +1,7 @@
+include_sections:
+  - economy
+  - tile_system
+  - extension_auction
+exclude_sections:
+  - audio
+  - networking

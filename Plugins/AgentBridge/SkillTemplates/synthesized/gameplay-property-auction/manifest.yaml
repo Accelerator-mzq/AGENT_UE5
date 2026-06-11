@@ -1,0 +1,36 @@
+template_id: synthesized.gameplay-property-auction.v1
+display_name: 地产拍卖(合成)
+template_kind: genre_skill
+genre: monopoly_like
+template_version: 1.0.0
+schema_version: 1.0.0
+evaluator_version: 1.0.0
+description: '地产拍卖(合成)。Phase 13 合成试制件,依据 monopoly_extended_auction_v1.md 扩展玩法章节生成。
+
+  '
+template_source: synthesized
+review_status: approved
+realization_class: realization_eligible
+phase_scope:
+- phase1_local_multiplayer
+can_emit_families:
+- property_economy_spec
+- ui_flow_spec
+depends_on_templates: []
+gameplay_coupling:
+- property_economy
+- turn_and_dice_flow
+priority: medium
+capability_bindings:
+- capability_id: gameplay-property-auction
+  instance_id: skill-property-auction
+  convergence_priority: 5
+  related_clarification_items: []
+  planning_notes:
+  - 拍卖机制由 agent 合成,Phase 13 试制;玩家拒购无主地产时触发英式拍卖。
+  fragment_family: property_economy_spec
+  depends_on_capabilities:
+  - gameplay-economy
+  - gameplay-tile-system
+synthesis_run_id: run-20260611-052252-5101
+synthesized_by: mcp_agent

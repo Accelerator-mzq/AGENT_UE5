@@ -1,0 +1,45 @@
+# Phase 13 验收判据 5:真机 UE 执行证据日志
+
+日期:2026-06-11
+环境:UE 5.5.4 Editor 在线(PID 33008,关卡 /Game/Maps/L_MonopolyBoard)+ Remote Control HTTP 30010
+执行范围裁决(msc,2026-06-11):按执行词表边界执行——widget 步骤真机落地,cpp 步骤不真机执行(Phase 11 先例同口径)
+
+## 执行记录
+
+### Handoff 来源
+- reviewed_handoff_v3:ProjectState/runs/run-20260611-052252-5101/reviewed_handoff_v3.json
+- build_ir 共 16 步:10 create_cpp_class + 6 create_widget_blueprint
+
+### 真机执行:6 个 create_widget_blueprint 步骤(全部成功)
+
+通路:MCP 链路验证(get_current_project_state 实时返回真机状态)+ RC object-call
+C++ AgentBridgeSubsystem.CreateBlueprintChild(ParentClass=/Script/UMG.UserWidget)
+
+| build_ir 步骤 | 目标 | 真机资产 | 元数据验证 |
+|---|---|---|---|
+| bir_004_hud_spec | UMonopolyHUDWidget | /Game/Generated/Phase13Acceptance/UMonopolyHUDWidget | success |
+| bir_007_main_menu_spec | UMonopolyMainMenuWidget | 同目录 | success |
+| bir_008_pause_spec | UMonopolyPauseMenuWidget | 同目录 | success |
+| bir_012_results_spec | UMonopolyResultsWidget | 同目录 | success |
+| bir_013_settings_spec | UMonopolySettingsWidget | 同目录 | success |
+| bir_014_start_screen_spec | UMonopolyStartScreenWidget | 同目录 | success |
+
+- SaveNamedAssets:success("Saved 6 assets")
+- uasset 落盘:Content/Generated/Phase13Acceptance/*.uasset 共 6 件(2026-06-11 16:47 实时写入)
+- 截图:ProjectState/Evidence/phase13_editor_widgets_2026-06-11.png(Editor 前台,L_MonopolyBoard 打开,大纲 4 Actor)
+
+### 未真机执行(按裁决与先例)
+
+- 10 个 create_cpp_class 步骤:需 C++ 编译循环,Phase 11 先例即不真机执行(P11-10 为结构校验);目标类(AMonopolyBoard 等)为脚手架名,与既有 M* 运行时类(MBoardManager 等)并存
+- runbook 步骤 10 的"拍卖面板/交易所面板"独立呈现:受 family 级 lowering 限制不可达成(见下)
+
+## 关键发现(进 backlog)
+
+1. **family 级 lowering 合并**:skill-economy + skill-property-auction + skill-stock-market 三个 fragment(同 fragment_family=property_economy_spec)被 Stage 6 合并为单一步骤 bir_011(归属 skill-stock-market,类名 AMonopolyEconomy)。合成能力在 contract/fragment/handoff 层留痕完整,但 build_ir 层失去独立呈现——Phase 14"几份 demo 供挑选"必须先细化 lowering 粒度。
+2. **bridge 缺陷:create_blueprint_child 分发链缺 CPP_PLUGIN 分支**(write_tools.py),C++ 端 CreateBlueprintChild 实现存在且实测可用(本次即经 object-call 直调成功),封装层却不可达;RC 分支显式"不支持"。
+3. **L2 资产工具的 RC python 路由 404**:create_widget_blueprint 等依赖的 Python Editor Scripting RC 路由在当前 editor 配置不存在(ForgeUE 当时为此造了 forgeue_rc_endpoint.py 旁路,仅覆盖 import op);PythonScriptLibrary 被 RC 访问控制拦截。
+4. **UE 内部截图队列在后台 Editor 不消费**:CaptureViewportScreenshot 请求 success 但文件不落盘(Slate 节流 + 焦点),即使 Slate.bAllowThrottling 0 + 前台化后仍未消费;最终证据采用 Windows 层截屏(SetForegroundWindow + CopyFromScreen)。
+
+## 判据 5 结论
+
+**部分达成(按词表边界口径)**:Editor 在线执行通路实证(widget 步骤 6/6 真机落地 + 资产验证 + 截图);合成能力的真机独立呈现(拍卖/交易所面板)受 Phase 11 执行词表与 family 级 lowering 限制,留 Phase 14。
