@@ -35,13 +35,24 @@ def precheck(editor_cmd, uproject) -> dict:
 
 
 def run_automation(editor_cmd, uproject, test_filter: str, report_dir, log_path) -> None:
-    """启动 UE Automation commandlet(同步阻塞);真机参数微调记 runbook,不改报告契约。"""
+    """启动 UE Automation commandlet(同步阻塞);真机参数微调记 runbook,不改报告契约。
+
+    Raises:
+        EnvironmentFault: commandlet 超时(shader 编译/卡死等)按环境故障归因,不计自修轮。
+    """
+    index = Path(report_dir) / "index.json"
+    if index.exists():
+        index.unlink()  # 复跑残留会掩盖"报告未产出"的环境故障,先清
+    Path(report_dir).mkdir(parents=True, exist_ok=True)
     cmd = [str(editor_cmd), str(uproject),
            f"-ExecCmds=Automation RunTests {test_filter}; Quit",
            "-unattended", "-nopause", "-nosplash",
            f"-ReportExportPath={report_dir}", f"-abslog={log_path}"]
     # check=False:UE 进程非零退出不抛异常,由 build_smoke_report 解析报告判定通过/失败
-    subprocess.run(cmd, check=False, timeout=1800)
+    try:
+        subprocess.run(cmd, check=False, timeout=1800)
+    except subprocess.TimeoutExpired as exc:
+        raise EnvironmentFault(f"UE commandlet 超时(1800s),按环境故障归因(shader 编译/卡死等): {exc}") from exc
 
 
 def build_smoke_report(report_dir, v0_regression: str, screenshots: list,
@@ -119,10 +130,11 @@ def main() -> int:
         print(f"[ENV] {exc}", file=sys.stderr)
         return 3
 
-    # 写报告 JSON
+    # 写报告 JSON;v0 回归破同样判失败(计自修轮),打印与退出码同步看 v0_state
     out_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"[{'OK' if report['status'] == 'pass' else 'FAIL'}] 冒烟报告 → {out_path}")
-    return 0 if report["status"] == "pass" else 1
+    overall_pass = report["status"] == "pass" and v0_state != "fail"
+    print(f"[{'OK' if overall_pass else 'FAIL'}] 冒烟报告 → {out_path}")
+    return 0 if overall_pass else 1
 
 
 if __name__ == "__main__":
