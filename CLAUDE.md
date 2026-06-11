@@ -111,7 +111,7 @@ AgentBridge 不只是工具接口插件，而是包含编译前端（Skill Compi
 # Schema 校验（验证现有 MVP 不破坏）
 python Plugins/AgentBridge/Scripts/validation/validate_examples.py --strict
 
-# 系统测试：一键执行全部 13 个 Stage（当前登记 364 条，权威源 run_system_tests.py TOTAL_CASES）
+# 系统测试：一键执行全部 14 个 Stage（当前登记 420 条，权威源 run_system_tests.py TOTAL_CASES）
 python Plugins/AgentBridge/Tests/run_system_tests.py
 
 # 系统测试：交互模式（选择 Stage）

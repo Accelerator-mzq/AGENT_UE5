@@ -37,6 +37,7 @@ Stage 列表:
     11: Phase 11 设计编译器框架   — 证据对账 + live inventory
     12: Phase 12 LLM Internal Reopen（LIR） — pytest 子集
     13: Phase 13 Skill Synthesis（SKS）     — pytest（9 个 test_phase13_* 文件）
+    14: Phase 14 Demo Plan（DMP）           — pytest（6 个 test_phase14_* 文件）
 """
 
 import argparse
@@ -204,11 +205,19 @@ STAGES = {
         'requires_editor': False,
         'requires_build': False,
     },
+    14: {
+        'name': 'Phase 14 Demo Plan（DMP）',
+        'cases': 'DMP-01 ~ DMP-56（6 个 test_phase14_* 文件）',
+        'case_ids': make_case_ids('DMP', 1, 56),
+        'count': 56,
+        'requires_editor': False,
+        'requires_build': False,
+    },
 }
 
-TOTAL_CASES = sum(s['count'] for s in STAGES.values())  # 364 (270 + P13 SKS-01~94 加 94,终审修复 +5)
+TOTAL_CASES = sum(s['count'] for s in STAGES.values())  # 420 (364 + P14 DMP-01~56 加 56)
 CASE_ID_PATTERN = re.compile(
-    r'^\|\s*((?:SV|BL|Q|W|CL|UI|CMD|PY|ORC|CP|SS|GA|E2E|MCP|P11|LIR|SKS)-\d{2})\s*\|',
+    r'^\|\s*((?:SV|BL|Q|W|CL|UI|CMD|PY|ORC|CP|SS|GA|E2E|MCP|P11|LIR|SKS|DMP)-\d{2})\s*\|',
     re.MULTILINE,
 )
 PHASE7_STAGE7_CASE_IDS = make_case_ids('CP', 32, 40) + make_case_ids('SS', 14, 20)
@@ -2993,6 +3002,118 @@ def run_stage_13(result, engine_root, completed_results=None):
         )
 
 
+def run_stage_14(result, engine_root, completed_results=None):
+    """Stage 14：Phase 14 Demo Plan — DMP-01~56 用例。
+
+    6 个 test_phase14_*.py 文件按 pytest 收集顺序（文件名字母序）连续编号：
+      DMP-01~17: test_phase14_demo_plan.py          （planner 批次/顺序/CLI）
+      DMP-18~32: test_phase14_evidence_validator.py （证据校验器）
+      DMP-33~39: test_phase14_mcp_tools.py          （MCP 工具对）
+      DMP-40~41: test_phase14_no_domain_semantics.py（无领域语义扫描）
+      DMP-42~48: test_phase14_smoke_runner.py        （冒烟 runner）
+      DMP-49~56: test_phase14_story_store.py         （story store + velocity）
+
+    注：测试函数内部编号（test_dmpXX）为功能分组编号，不与上述文件段连续编号对应；
+    此处用于系统测试注册的 DMP-01~56 为文件段顺序登记编号（共 56 条）。
+    """
+    check_map = {}
+    runtime_dir = os.path.join(PROJECT_ROOT, 'ProjectState', 'Temp', 'run_system_tests_stage14')
+    os.makedirs(runtime_dir, exist_ok=True)
+    result.log_path = runtime_dir
+
+    # 文件名 -> (DMP 起始编号, 期望用例数)；登记数与 pytest --co 实收数挂钩，漂移即 FAIL
+    phase14_test_files = [
+        ('test_phase14_demo_plan.py', 1, 17),
+        ('test_phase14_evidence_validator.py', 18, 15),
+        ('test_phase14_mcp_tools.py', 33, 7),
+        ('test_phase14_no_domain_semantics.py', 40, 2),
+        ('test_phase14_smoke_runner.py', 42, 7),
+        ('test_phase14_story_store.py', 49, 8),
+    ]
+
+    file_notes = []
+    for file_name, start_id, expected_count in phase14_test_files:
+        # 逐文件跑 pytest，日志单独落盘，方便事后按文件追溯
+        exit_code, stdout, stderr = run_pytest_selection(
+            [os.path.join(TESTS_SCRIPTS_DIR, file_name)], timeout=900
+        )
+        passed_match = re.search(r'(\d+)\s+passed', stdout)
+        failed_match = re.search(r'(\d+)\s+failed', stdout)
+        skipped_match = re.search(r'(\d+)\s+skipped', stdout)
+        n_pass = int(passed_match.group(1)) if passed_match else 0
+        n_fail = int(failed_match.group(1)) if failed_match else 0
+        n_skip = int(skipped_match.group(1)) if skipped_match else 0
+
+        log_path = os.path.join(runtime_dir, f'{file_name}_pytest.log')
+        try:
+            with open(log_path, 'w', encoding='utf-8') as fp:
+                fp.write(f'cmd_exit={exit_code}\n--- stdout ---\n{stdout}\n--- stderr ---\n{stderr}\n')
+        except Exception:
+            pass
+
+        # 判据：pytest 全绿 + 实跑用例数 == 登记数（防止加/删测试后登记表无声过期）
+        ok = (
+            exit_code == 0
+            and n_fail == 0
+            and (n_pass + n_skip) == expected_count
+        )
+        range_label = f'DMP-{start_id:02d}~DMP-{start_id + expected_count - 1:02d}'
+        note = (
+            f'{file_name}: pytest passed={n_pass} failed={n_fail} skipped={n_skip} '
+            f'exit={exit_code} 登记={expected_count}'
+        )
+        file_notes.append((range_label, ok, note))
+        for case_index in range(start_id, start_id + expected_count):
+            check_map[f'DMP-{case_index:02d}'] = (ok, note)
+
+    # 写汇总 JSON
+    summary_path = os.path.join(runtime_dir, 'phase14_case_checks.json')
+    with open(summary_path, 'w', encoding='utf-8') as file:
+        json.dump(
+            {
+                'generated_at': datetime.datetime.now().isoformat(),
+                'cases': {
+                    case_id: {'ok': ok, 'note': note}
+                    for case_id, (ok, note) in check_map.items()
+                },
+            },
+            file,
+            ensure_ascii=False,
+            indent=2,
+        )
+
+    missing_case_ids = [case_id for case_id in STAGES[14]['case_ids'] if case_id not in check_map]
+    if missing_case_ids:
+        result.status = 'failed'
+        result.exit_code = 1
+        result.message = f'Stage 14 用例注册不完整，缺失: {", ".join(missing_case_ids)}'
+        return
+
+    checks = [
+        (case_id, check_map[case_id][0], check_map[case_id][1])
+        for case_id in STAGES[14]['case_ids']
+    ]
+    passed = sum(1 for _, ok, _ in checks if ok)
+    total = len(checks)
+    failed_cases = [case_id for case_id, ok, _ in checks if not ok]
+
+    # 按文件分段打印（56 条逐条打印过于冗长，按 6 个文件段汇报）
+    for range_label, ok, note in file_notes:
+        print(f'  [{range_label}] {"PASS" if ok else "FAIL"} - {note}')
+
+    if passed == total:
+        result.status = 'passed'
+        result.exit_code = 0
+        result.message = f'Phase 14 Demo Plan 全部通过 ({passed}/{total})'
+    else:
+        result.status = 'failed'
+        result.exit_code = 1
+        result.message = (
+            f'Phase 14 Demo Plan 未全部通过 ({passed}/{total})，'
+            f'失败项: {", ".join(failed_cases[:10])}{"…" if len(failed_cases) > 10 else ""}'
+        )
+
+
 # Stage ID -> 执行函数映射
 STAGE_RUNNERS = {
     1: run_stage_1,
@@ -3008,6 +3129,7 @@ STAGE_RUNNERS = {
     11: run_stage_11,
     12: run_stage_12,
     13: run_stage_13,
+    14: run_stage_14,
 }
 
 
