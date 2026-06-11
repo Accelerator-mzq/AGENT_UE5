@@ -32,7 +32,7 @@
 4. **契约层**(L2 Canonical):
    - `Docs/contracts/{tool_contract,field_specification,schemas_catalog,mcp_tools_catalog}.md`
 5. **测试与验收**:
-   - `Docs/testing/test_spec.md` — 359 系统测试用例索引
+   - `Docs/testing/test_spec.md` — 364 系统测试用例索引
    - `Docs/acceptance/acceptance_report.md` — Phase 11 基线 + 回归门禁 + Phase 13 附录
 
 ### Compiler 视角(深入 Phase 11 主链)
@@ -71,7 +71,7 @@ Docs/
 │       ├── 06_skills_and_templates.md        # Skill & Template(F-SKL-01..04)
 │       └── 07_runtime_and_evidence.md        # 运行时/证据/测试/Hook/Input/Demo/Validation
 ├── testing/
-│   └── test_spec.md                          # 17 测试类 / 359 case 索引
+│   └── test_spec.md                          # 17 测试类 / 364 case 索引
 ├── acceptance/
 │   └── acceptance_report.md                  # Phase 11 基线 + UE 5.7 验收模板
 ├── contracts/
@@ -104,8 +104,8 @@ Docs/
 |--------|----------|-------------|
 | MCP 工具数 | `Docs/contracts/mcp_tools_catalog.md` 主表 | **55**(Bridge 28 + 前端 16 + 后端 11;2026-06-11 Phase 13 +`compiler_skill_synthesis_prepare/save`)|
 | Schema 数 | `Docs/contracts/schemas_catalog.md` 主表 + 附录 A | **45 主 + 28 examples = 73**(2026-06-11 Phase 13 新增 `gdd_coverage_matrix` schema + 1 example,同日补登记 Phase 12 漏录的 `provider_call`/`retry_policy`;2026-05-27 ForgeUE +`forgeue_import_evidence`)|
-| 系统测试用例数 | `Docs/testing/test_spec.md` §3 + `Plugins/AgentBridge/Tests/run_system_tests.py:209 TOTAL_CASES` | **359**(17 测试类 / 13 stage;2026-06-11 Phase 13 +Stage 13 SKS-01~89)|
-| C++ Automation 测试数 | `Docs/testing/test_spec.md` §1 + `Plugins/AgentBridge/AgentBridgeTests/` | **~26**(独立计数,不计入 359)|
+| 系统测试用例数 | `Docs/testing/test_spec.md` §3 + `Plugins/AgentBridge/Tests/run_system_tests.py:209 TOTAL_CASES` | **364**(17 测试类 / 13 stage;2026-06-11 Phase 13 +Stage 13 SKS-01~94,含终审修复 +5)|
+| C++ Automation 测试数 | `Docs/testing/test_spec.md` §1 + `Plugins/AgentBridge/AgentBridgeTests/` | **~26**(独立计数,不计入 364)|
 | 7 阶段主链 | `Docs/requirements/SRS.md §4.1` + `Docs/design/HLD.md §2.1` | Stage 1-7(Root Skill Contract → Reviewed Handoff v3);Phase 13 起含条件环节 S3.5 Skill Synthesis(capability_gaps 非空且 `allow_skill_synthesis=true` 时)|
 | Run 治理 | `Docs/requirements/SRS.md §4.3` + `Docs/design/HLD.md §3` | F-GOV-01..05(run_id / fast_mode / generator_provider / compare-promote / synthesized+gap promote 守卫)|
 | Schema --strict 28/28 | `Docs/testing/test_spec.md §5` + `Docs/acceptance/acceptance_report.md §2.1` | `validate_examples.py --strict`(2026-06-11 27→28,加 `phase13_gdd_coverage_matrix.example.json`)|
@@ -149,10 +149,10 @@ Docs/
 # Schema 校验(--strict 28/28)
 python Plugins/AgentBridge/Scripts/validation/validate_examples.py --strict
 
-# 系统测试:一键全 13 stage / 359 case
+# 系统测试:一键全 13 stage / 364 case
 python Plugins/AgentBridge/Tests/run_system_tests.py
 
-# 系统测试:仅 Phase 13 Skill Synthesis(Stage 13 / SKS-01~89)
+# 系统测试:仅 Phase 13 Skill Synthesis(Stage 13 / SKS-01~94)
 python Plugins/AgentBridge/Tests/run_system_tests.py --stage=13
 
 # 系统测试:交互模式

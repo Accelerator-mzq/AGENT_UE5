@@ -62,7 +62,7 @@
 - S3.5 合成环节：MCP 工具对 `compiler_skill_synthesis_prepare/save` + 机器校验器（`synthesis_validator`）+ 人审 gate（`review_status: approved`）双 gate；合成包落 `SkillTemplates/synthesized/` 隔离区
 - GDD 覆盖矩阵：`Compiler/stages/gdd_coverage.py`，claimed / unclaimed / container 三态 + 防固化四守则
 - promote 双守卫：synthesized 消费 / 未解决 gap → `PROMOTE_REJECTED`，损坏 graph fail-closed
-- 当前 MCP 工具总数为 `55`（`51` 正式主工具 + `4` 兼容 alias）；系统测试 `13 stage / 359 case`（Stage 13 SKS-01~89）；`validate_examples.py --strict` 为 `28/28` 通过
+- 当前 MCP 工具总数为 `55`（`51` 正式主工具 + `4` 兼容 alias）；系统测试 `13 stage / 364 case`（Stage 13 SKS-01~94，含终审修复 +5）；`validate_examples.py --strict` 为 `28/28` 通过
 
 关键文档：spec `Docs/superpowers/specs/2026-06-10-phase13-skill-synthesis-design.md` / 验收 runbook `ProjectState/Reports/2026-06-11/phase13_acceptance_runbook.md`（判据 1-4 闭环，5-12 待执行）
 

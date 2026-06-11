@@ -35,7 +35,7 @@ GDD -> Root Skill Contract -> Clarification Gate -> Skill Graph Planning
 - capability gap 显式化:库外能力写入 `skill_graph.metadata.capability_gaps`,零静默丢弃
 - S3.5 合成环节:MCP 工具对 `compiler_skill_synthesis_prepare/save`(工具数 53→`55`)+ 机器校验 + 人审双 gate,合成包落 `SkillTemplates/synthesized/` 隔离区
 - GDD 覆盖矩阵 + anchor 留痕 + promote 双守卫(synthesized 消费 / 未解决 gap → `PROMOTE_REJECTED`)
-- 系统测试 `13 stage / 359 case`(Stage 13 SKS-01~89);`validate_examples.py --strict` 为 `28/28` 通过
+- 系统测试 `13 stage / 364 case`(Stage 13 SKS-01~94,含终审修复 +5);`validate_examples.py --strict` 为 `28/28` 通过
 - 验收状态:runbook 判据 1-4 已闭环,5-12(真机 / 双端 / stretch)待执行,详见 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md)
 
 ## Phase 11 完成结果

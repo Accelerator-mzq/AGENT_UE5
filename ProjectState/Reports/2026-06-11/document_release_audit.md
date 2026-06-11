@@ -37,3 +37,38 @@
 - 验证实测(2026-06-11):`validate_examples.py --strict` → Checked 28 / Passed 28 / Failed 0;`pytest -k phase13 -q` → 89 passed;`pytest test_phase13_registry_equivalence.py -q` → 5 passed;`link_precheck.py` → 0 未映射,exit 0(改前预存 24 处);`TOOL_COUNT` 实测 55(Bridge 28+前端 16+后端 11);`run_system_tests.py` STAGES=13 / TOTAL_CASES=359 导入期断言;主 schema `find` 实测 45、examples 28;FEATURE_INVENTORY F-* 行 grep 实测 108;mcp_tools_catalog 数据行实测 55。
 - 已知预存失败(非本次引入,如实记录): MCP-03/04/05(环境缺 mcp 包)、MCP-08/10、P11-09/10/18、CP-44(gitignore 产物/历史证据缺失)——已写入 acceptance_report.md §2.2。
 - 发现的预存文档欠债(本次顺带清偿): ① Phase 12 的 provider_call/retry_policy schema 从未登记 schemas_catalog(已补 2 行并修正各处合计为 45);② test_spec.md 自 Phase 12 起未同步(仍 266/11 stage,已一次性同步到 359/13 stage);③ link_precheck 预存 24 处未映射(活阶段 spec/plan 被误判为旧路径,已按脚本自身 META 机制扩表归零)。
+
+---
+
+## 补充对账(同日第二段,b7bd15f 终审修复后 359→364 全文档同步)
+
+> 运行时间: 2026-06-11(Task 14 收尾第二段,document-release 补充对账,67b3abc 的延续)
+> 比较基准: 67b3abc(上一次 document-release marker 时点)
+> 触发事件: commit(终审修复 b7bd15f 新增 5 条测试后的数字对账,不带 [skip-doc])
+
+终审修复 commit b7bd15f([skip-doc],I-1 baseline 域 synthesized 守卫绕过 + I-2 provenance 戳记)新增 5 条测试
+(gap_recording +1 / mcp_synthesis_tools +1 / skill_synthesis +3),权威源(run_system_tests.py TOTAL_CASES 359→364、
+SystemTestCases.md SKS 表 89→94 行、task.md)已随 b7bd15f 同步;本段把其余 L0/L1 活文档面的 359/SKS-89 类引用逐处对账到 364/SKS-94:
+
+| 文件 | 改动点 |
+|---|---|
+| README.md | Phase 13 段权威数字行: 359→364 / SKS-01~89→94(1 处) |
+| Plugins/AgentBridge/README.md | §2 权威数字行: 359→364 / SKS-01~89→94(1 处) |
+| Docs/INDEX.md | §1 阅读顺序 / §3 目录树注 / §4 权威数字表 2 行 / §6 命令注 2 处: 359→364、SKS-01~89→94(共 6 处) |
+| Docs/requirements/SRS.md | §6.1 门禁: 登记 359→364、不计入 359→364(1 行 2 处) |
+| Docs/design/HLD.md | §6 测试架构: 17 类 359→364 条 + F-TST-04 段 359→364(2 处) |
+| Docs/testing/test_spec.md | 版本块升 v1.2(359→364 演进注)/ 范围 / 权威源 / §1 四栈(SKS-01..94 + 364 ×3 + 预存 266 残留同修)/ 记账规则 ×2 / §3 SKS 行(94)/ 合计算式(+94=364)/ 附注 / §4 命令注(SKS-01..94)/ §5 BC 结论(共 12 处,含 1 处 v1.0 预存 266 残留) |
+| Docs/FEATURE_INVENTORY.md | F-TST-04 行(359→364、SKS 89→94)+ F-CMP-25/26、F-GOV-05 三行 SKS(89→94 case)+ 验收门禁表测试用例行(共 5 处) |
+| Docs/acceptance/acceptance_report.md | 头部关联(364 case)/ §2.2 标题与期望(TOTAL_CASES=364,基线演进追加"→ 终审修复 +SKS 5 = 364")/ 附 3 测试行(SKS-01~94,270→364,注明 +5 构成)(共 4 处) |
+| CLAUDE.md | 常用命令注: 当前登记 359→364 条(1 处) |
+
+刻意保留(演进史/巧合数字,非漂移):acceptance_report §2.2 基线演进式中的"+SKS 89 = 359"(历史节点)、
+test_spec.md 版本块"266→359"(v1.1 历史注)、LLD/07 "phase7_governance_audit.py (359 行)"(脚本行数)、
+mcp_tools_catalog ":359"(tool_definitions.py 行号引用,实测仍准)、SystemTestCases.md "| SKS-89 |"(新表第 89 号用例行)。
+
+证据收编:doc_release_skipped.log 追加的 b7bd15f skip 留痕行随本段提交入库(沿既有入库先例)。
+
+验证实测(本段,2026-06-11):`validate_examples.py --strict` → 28/28 Passed,exit 0;
+`link_precheck.py` → 扫描 668 文件 / 0 未映射,exit 0;
+`run_system_tests.py` TOTAL_CASES=364 导入期断言(line 209 实测,INDEX/test_spec 行号引用复核仍准);
+Stage 13 实跑 94/94 PASS(b7bd15f 收尾验证,报告 `Plugins/AgentBridge/reports/2026-06-11/system_test_report_2026-06-11_102217.json`)。
