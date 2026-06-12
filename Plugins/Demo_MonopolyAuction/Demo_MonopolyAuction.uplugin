@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1.0",
+	"FriendlyName": "Demo_MonopolyAuction",
+	"Description": "Phase 14 v0 自包含可玩 Monopoly-like demo(拍卖+股票扩展)。本地热座多人原型,含 authored 启动关卡与键盘可玩入口。",
+	"Category": "Demo",
+	"CreatedBy": "Phase14 v0 attempt2 coding agent",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "Demo_MonopolyAuction",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}

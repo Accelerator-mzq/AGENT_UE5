@@ -1,12 +1,12 @@
-# MCP Tools Catalog — 55 工具字段级签名表
+# MCP Tools Catalog — 57 工具字段级签名表
 
-> 版本: v1.1(2026-06-11,Phase 13 新增 `compiler_skill_synthesis_prepare/save` 合成工具对,53→55)
-> 关联 spec: Docs/superpowers/specs/2026-05-26-docs-restructure-for-ue57.md v1.1 + Docs/superpowers/specs/2026-06-10-phase13-skill-synthesis-design.md §4.2
+> 版本: v1.2(2026-06-12,Phase 14 新增 `demo_story_fetch/submit` demo story 工具对,55→57;2026-06-11 Phase 13 新增 `compiler_skill_synthesis_prepare/save` 合成工具对,53→55)
+> 关联 spec: Docs/superpowers/specs/2026-05-26-docs-restructure-for-ue57.md v1.1 + Docs/superpowers/specs/2026-06-10-phase13-skill-synthesis-design.md §4.2 + Docs/superpowers/specs/2026-06-11-phase14-demo-first-design.md
 > 关联 FEATURE_INVENTORY: Docs/FEATURE_INVENTORY.md F-MCP-* + F-BRG-* + F-CMP-25 族
-> 权威源: Plugins/AgentBridge/MCP/tool_definitions.py(`len(ALL_TOOLS) == 55`,Python 实测)
-> 数字注脚: **Python `len()` 实测 55**(Bridge 28 + 前端 16 + 后端 11),以 `len()` 实测为准;tool_definitions.py:548 分类合计注释已与实测一致
+> 权威源: Plugins/AgentBridge/MCP/tool_definitions.py(`len(ALL_TOOLS) == 57`,Python 实测)
+> 数字注脚: **Python `len()` 实测 57**(Bridge 28 + 前端 18 + 后端 11;demo 工具对注册在 `COMPILER_FRONTEND_TOOLS` 内,16→18),以 `len()` 实测为准;tool_definitions.py:565 分类合计注释已与实测一致
 
-## 主表(55 工具)
+## 主表(57 工具)
 
 | 工具名 | 类别 | 输入 Schema | 输出 Schema | 错误码 | 使用场景 |
 |--------|------|-------------|-------------|--------|----------|
@@ -54,6 +54,8 @@
 | compiler_stage4_node_save | 前端 Compiler | Schemas/skill_fragment.schema.json | Schemas/skill_fragment.schema.json | INVALID_ARGS, SESSION_NOT_FOUND, STAGE_LOCKED | Stage4 节点保存+Fragment |
 | compiler_skill_synthesis_prepare | 前端 Compiler | n/a — 见 tool_definitions.py:418 | n/a — 合成载荷(gap 上下文+6 文件规范+范例+family 白名单) | SESSION_NOT_FOUND, INVALID_ARGS, TOOL_EXECUTION_FAILED | S3.5 合成准备(per gap) |
 | compiler_skill_synthesis_save | 前端 Compiler | n/a — 见 tool_definitions.py:426(six_files 6 文件内容) | n/a — data.synthesis_status 三态(saved/rejected/failed)+ errors[] | SESSION_NOT_FOUND, INVALID_ARGS, TOOL_EXECUTION_FAILED | S3.5 合成提交+机器校验 |
+| demo_story_fetch | 前端 Compiler | n/a — 见 tool_definitions.py:435(session_path 必填 run 目录;story_id 选填,缺省取计划顺序下一个可发工单) | n/a — data.story(符合 Schemas/demo_story.schema.json)+ data.construction_manifest 全文;manifest 版本不符告警在 warnings[] | INVALID_ARGS, TOOL_EXECUTION_FAILED | P14 取施工 story 全包 |
+| demo_story_submit | 前端 Compiler | n/a — 见 tool_definitions.py:443(session_path / story_id / evidence 对象:files_changed/test_report/smoke_report/screenshots/doc_paths/provisional_decisions/plugin_root) | n/a — data.story_status(verified/in_progress)+ data.errors + data.attempts;校验拒绝是业务信号 status 仍 success(failed 仅环境/数据异常触发 MCP isError) | INVALID_ARGS, TOOL_EXECUTION_FAILED | P14 提交 story 证据+守门 |
 | evidence_load_manifest | 后端 Evidence | n/a — 见 tool_definitions.py:425 | Schemas/evidence_manifest.schema.json | RUN_NOT_FOUND, MANIFEST_INVALID | 读 evidence manifest |
 | evidence_load_screenshots | 后端 Evidence | n/a — 见 tool_definitions.py:432 | Schemas/evidence_manifest.schema.json | RUN_NOT_FOUND, INVALID_ARGS | 读取截图证据 |
 | evidence_load_logs | 后端 Evidence | n/a — 见 tool_definitions.py:439 | Schemas/evidence_manifest.schema.json | RUN_NOT_FOUND, INVALID_ARGS | 读取日志证据 |
@@ -68,11 +70,11 @@
 
 ## 行数自检
 
-- 主表实测行数: 55
-- 类别分布:Bridge L1 查询 7 / L1 写 6 / L1 服务 5 / L2 资产 9 / L3 兜底 1 / 前端 16 / 后端 11 = 55 ✓
+- 主表实测行数: 57
+- 类别分布:Bridge L1 查询 7 / L1 写 6 / L1 服务 5 / L2 资产 9 / L3 兜底 1 / 前端 18 / 后端 11 = 57 ✓
 - 自检命令:`awk -F'|' 'NF != 8 && /^\|/ && !/^\| 工具名/ && !/^\| ---/' Docs/contracts/mcp_tools_catalog.md`(应空)
-- Python 实测命令:`python -c "from tool_definitions import ALL_TOOLS; print(len(ALL_TOOLS))"` → `55`
-- 口径历史:Phase 11 收尾实测 53(曾与 line 530 注释"51"冲突,源码注释已修);Phase 13(2026-06-11)新增合成工具对后实测 **55**,tool_definitions.py:548 分类合计注释与实测一致;**以 `len(ALL_TOOLS)` 实测为准**
+- Python 实测命令:`python -c "from tool_definitions import ALL_TOOLS; print(len(ALL_TOOLS))"` → `57`
+- 口径历史:Phase 11 收尾实测 53(曾与 line 530 注释"51"冲突,源码注释已修);Phase 13(2026-06-11)新增合成工具对后实测 55;Phase 14(2026-06-12)`COMPILER_FRONTEND_TOOLS` 增 `demo_story_fetch/submit` 工具对后实测 **57**,tool_definitions.py:565 分类合计注释与实测一致;**以 `len(ALL_TOOLS)` 实测为准**
 
 ## 字段约定
 
@@ -85,7 +87,8 @@
 
 ## 注脚
 
-1. **工具数演进口径**:Phase 11 收尾实测 53(Bridge 28 + 前端 14 + 后端 11;历史上 line 530 注释"51"漏算 stage4 节点对,已修);Phase 13(2026-06-11)`COMPILER_FRONTEND_TOOLS` 增 `compiler_skill_synthesis_prepare/save` 合成工具对 → 前端 **16**、合计 **55**。`python -c "from tool_definitions import ALL_TOOLS; print(len(ALL_TOOLS))"` 实测 **55**。**以 `len(ALL_TOOLS)` 实测为准。**
+1. **工具数演进口径**:Phase 11 收尾实测 53(Bridge 28 + 前端 14 + 后端 11;历史上 line 530 注释"51"漏算 stage4 节点对,已修);Phase 13(2026-06-11)`COMPILER_FRONTEND_TOOLS` 增 `compiler_skill_synthesis_prepare/save` 合成工具对 → 前端 16、合计 55;Phase 14(2026-06-12)`COMPILER_FRONTEND_TOOLS` 增 `demo_story_fetch/submit` demo story 工具对 → 前端 **18**、合计 **57**。`python -c "from tool_definitions import ALL_TOOLS; print(len(ALL_TOOLS))"` 实测 **57**。**以 `len(ALL_TOOLS)` 实测为准。**
+   - **demo 工具对契约要点**(Phase 14):两工具统一走 `_make_response` 契约,顶层 `status` 仅 success/failed(failed 仅环境/数据异常,触发 MCP isError;submit 的证据校验拒绝是业务信号,story 回 in_progress 并返回具体错误,status 仍 success);submit 的 `evidence.plugin_root` 经锚定校验(resolve 后必须落在项目内白名单),增量批附加 v0 冒烟 hash 守门。
 2. **输入 Schema 列 `n/a`**:大多数工具参数为基本类型(string / boolean / array),无独立 JSON Schema 文件;`compiler_*_save` 类的 `filled_data` 才对应主链 Stage Schema。L1/L2/L3 写操作的统一反馈 Schema 已落 `Schemas/write_feedback/write_operation_feedback.response.schema.json`。合成工具对的产物是 6 文件 SkillTemplate 包(落 `SkillTemplates/synthesized/<capability_id>/`,manifest 初始 `review_status: pending_review`),不对应单一 JSON Schema;save 的校验结果经 `data.synthesis_status` 三态表达(saved / rejected=机器校验失败应修正重提 / failed=环境失败应排查环境)。
 3. **错误码列**:每行 ≥ 1 错误码字符串,部分工具源码已显式列 `error_codes` 字段(`spawn_actor` / `set_actor_transform` / `build_project` / `create_level`),其余按 `tool_contract_v0_1.md §3` 通用错误码族推断。
    - **错误码权威源**:以 `tool_definitions.py` 模块 docstring (line 13-15) 的 9 项为权威源(`INVALID_ARGS / ACTOR_NOT_FOUND / ASSET_NOT_FOUND / EDITOR_NOT_READY / TOOL_EXECUTION_FAILED / CHANNEL_UNAVAILABLE / PERMISSION_DENIED / TIMEOUT / UNKNOWN_ERROR`),Compiler 前端 / Evidence 后端 特有码(`SESSION_NOT_FOUND` / `STAGE_LOCKED` / `RUN_NOT_FOUND` / `MANIFEST_INVALID` / `PROMOTE_REJECTED`)按类别推断。与 `Docs/contracts/tool_contract.md §6.3` 错误码族存在历史口径差,Phase 2 spec 收口时统一。
@@ -96,4 +99,4 @@
 - `Docs/contracts/schemas_catalog.md` — Schemas 目录与主链 Stage 映射
 - `Docs/contracts/field_specification.md` — 字段级签名规范
 - `Plugins/AgentBridge/MCP/tool_definitions.py` — 权威工具定义源码
-- `Plugins/AgentBridge/Schemas/` — 55 工具的输入/输出 Schema 实体
+- `Plugins/AgentBridge/Schemas/` — 57 工具的输入/输出 Schema 实体

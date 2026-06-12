@@ -1,24 +1,24 @@
 # testing/test_spec — 测试体系总览 + 系统测试用例汇总索引
 
-> 版本: v1.2 (2026-06-11,Phase 13 终审修复 +5 case 同步,359→364;v1.1: Phase 12 LIR + Phase 13 SKS 同步,266→359)
-> 范围: 项目级测试体系总览(C++ Automation / Python pytest / Gauntlet / SystemTest 索引层四栈)+ 系统测试 17 测试类 / 364 case 汇总索引(不复述用例详情)。
+> 版本: v1.3 (2026-06-12,Phase 14 Stage 14 DMP +56 case 同步,364→420;v1.2: Phase 13 终审修复 +5 case 同步,359→364;v1.1: Phase 12 LIR + Phase 13 SKS 同步,266→359)
+> 范围: 项目级测试体系总览(C++ Automation / Python pytest / Gauntlet / SystemTest 索引层四栈)+ 系统测试 18 测试类 / 420 case 汇总索引(不复述用例详情)。
 > 上游: `Docs/design/HLD.md` §6 + `Docs/requirements/SRS.md` §3.7 / §6.1 + `Docs/FEATURE_INVENTORY.md` F-TST-01..04
-> 权威源: `Plugins/AgentBridge/Tests/run_system_tests.py`(13 stage / STAGES dict 自 line 97 起 / TOTAL_CASES=364 line 209)+ `Plugins/AgentBridge/Tests/SystemTestCases.md`(364 case 详情,本文不复述)
-> 契约: `Docs/contracts/schemas_catalog.md`(Schema 28/28 严格校验映射)+ `Docs/contracts/tool_contract.md`(L1/L2/L3 工具接口)
+> 权威源: `Plugins/AgentBridge/Tests/run_system_tests.py`(14 stage / STAGES dict 自 line 98 起 / TOTAL_CASES=420 line 218)+ `Plugins/AgentBridge/Tests/SystemTestCases.md`(420 case 详情,本文不复述)
+> 契约: `Docs/contracts/schemas_catalog.md`(Schema 30/30 严格校验映射)+ `Docs/contracts/tool_contract.md`(L1/L2/L3 工具接口)
 > UE 版本: 当前 5.5.4 → 目标 5.7
 
 ## 1. 测试体系架构
 
 本项目测试栈分四层,各层独立计数、独立编排,不互替代:
 
-- **C++ Automation 层(Editor 内)** — 位于 `Plugins/AgentBridge/AgentBridgeTests/Source/AgentBridgeTests/Private/` 共 8 个 cpp:`L1_QueryTests.cpp` / `L1_WriteTests.cpp` / `L1_UIToolTests.cpp`(L1 接口测试 3 份)+ `L2_ClosedLoopSpecs.spec.cpp` / `L2_UIToolClosedLoopSpec.spec.cpp`(L2 闭环 Spec 2 份)+ `L3_FunctionalTestActor.cpp`(L3 关卡级 FunctionalTest)+ `AgentBridgeGauntletController.cpp`(Gauntlet 引擎内"触角")+ `AgentBridgeTestsModule.cpp`(测试模块入口)。基于 `IMPLEMENT_SIMPLE_AUTOMATION_TEST` + `DEFINE_LATENT_AUTOMATION_COMMAND` + Automation Spec 三套宏组合,独立计 ~26 条 C++ Automation test,**不计入 364 系统测试**。
-- **Python pytest 层** — 位于 `Plugins/AgentBridge/Tests/scripts/` 下 `task1X_phase11_*.py` 系列 + `test_phase13_*.py` 9 文件 + LLM internal 测试 + `conftest.py`,承载 Phase 11 设计编译器框架(P11-* 18 case 与 Standalone Smoke 入口)、Phase 12 LLM Internal(LIR-01..04)与 Phase 13 Skill 合成主链(SKS-01..94)的脚本侧验证。
+- **C++ Automation 层(Editor 内)** — 位于 `Plugins/AgentBridge/AgentBridgeTests/Source/AgentBridgeTests/Private/` 共 8 个 cpp:`L1_QueryTests.cpp` / `L1_WriteTests.cpp` / `L1_UIToolTests.cpp`(L1 接口测试 3 份)+ `L2_ClosedLoopSpecs.spec.cpp` / `L2_UIToolClosedLoopSpec.spec.cpp`(L2 闭环 Spec 2 份)+ `L3_FunctionalTestActor.cpp`(L3 关卡级 FunctionalTest)+ `AgentBridgeGauntletController.cpp`(Gauntlet 引擎内"触角")+ `AgentBridgeTestsModule.cpp`(测试模块入口)。基于 `IMPLEMENT_SIMPLE_AUTOMATION_TEST` + `DEFINE_LATENT_AUTOMATION_COMMAND` + Automation Spec 三套宏组合,独立计 ~26 条 C++ Automation test,**不计入 420 系统测试**。(注:Phase 14 可玩 demo `Plugins/Demo_MonopolyAuction/` 自带 C++ Automation 冒烟用例,属项目层 demo 产物,不计入本表任何栈。)
+- **Python pytest 层** — 位于 `Plugins/AgentBridge/Tests/scripts/` 下 `task1X_phase11_*.py` 系列 + `test_phase13_*.py` 9 文件 + `test_phase14_*.py` 6 文件 + LLM internal 测试 + `conftest.py`,承载 Phase 11 设计编译器框架(P11-* 18 case 与 Standalone Smoke 入口)、Phase 12 LLM Internal(LIR-01..04)、Phase 13 Skill 合成主链(SKS-01..94)与 Phase 14 Demo Plan(DMP-01..56)的脚本侧验证。
 - **Gauntlet CI/CD 层** — `AgentBridgeGauntletController` 在引擎内继承 `UGauntletTestController`,负责 OnTick 轮询 + EndTest 退出码;Gauntlet C# 端在引擎外驱动 Editor 进程启动 / 监控 / 停止。Gauntlet 负责"在什么环境下运行",Orchestrator 负责"运行什么内容",二者职责正交。
-- **SystemTest 索引层(本 LLD 主体)** — `Plugins/AgentBridge/Tests/run_system_tests.py` 编排 13 stage / 17 测试类 / 364 case,STAGES dict 自 line 97 起,`TOTAL_CASES = sum(s['count'] for s in STAGES.values())` 在 line 209 实时计算并 assert 364。
+- **SystemTest 索引层(本 LLD 主体)** — `Plugins/AgentBridge/Tests/run_system_tests.py` 编排 14 stage / 18 测试类 / 420 case,STAGES dict 自 line 98 起,`TOTAL_CASES = sum(s['count'] for s in STAGES.values())` 在 line 218 实时计算并 assert 420。
 
-四栈关系:SystemTest 索引层在 Stage 2/3/8/9 主动调起 C++ Automation(通过 Commandlet `-RunTests=` 或 Gauntlet RunUnreal),在 Stage 11/12/13 调起 Python pytest,在 Stage 8 调起 Gauntlet;C++ Automation 和 Python pytest 也可单独跑(不经索引层),用于开发期单点调试。系统测试 364 是"对外承诺的最小回归集",C++ Automation ~26 条是"引擎内 L1/L2/L3 接口级单元测试",二者计数维度不同、不可加总。
+四栈关系:SystemTest 索引层在 Stage 2/3/8/9 主动调起 C++ Automation(通过 Commandlet `-RunTests=` 或 Gauntlet RunUnreal),在 Stage 11/12/13/14 调起 Python pytest,在 Stage 8 调起 Gauntlet;C++ Automation 和 Python pytest 也可单独跑(不经索引层),用于开发期单点调试。系统测试 420 是"对外承诺的最小回归集",C++ Automation ~26 条是"引擎内 L1/L2/L3 接口级单元测试",二者计数维度不同、不可加总。
 
-记账规则:`run_system_tests.py` 在导入期 `assert TOTAL_CASES`(line 209 实时计算,当前 364),并由 `CASE_ID_PATTERN` 正则扫 `SystemTestCases.md` 主表行,二者一致性是导入期硬约束;任何新增 case 必须同步改 STAGES dict 的 `count` 与 `case_ids`,以及 `SystemTestCases.md` 主表行,否则 `run_system_tests.py` 在启动时直接 RuntimeError,这是 364 维持单一来源的关键护栏。
+记账规则:`run_system_tests.py` 在导入期 `assert TOTAL_CASES`(line 218 实时计算,当前 420),并由 `CASE_ID_PATTERN` 正则扫 `SystemTestCases.md` 主表行,二者一致性是导入期硬约束;任何新增 case 必须同步改 STAGES dict 的 `count` 与 `case_ids`,以及 `SystemTestCases.md` 主表行,否则 `run_system_tests.py` 在启动时直接 RuntimeError,这是 420 维持单一来源的关键护栏。
 
 ## 2. 测试分层
 
@@ -35,7 +35,7 @@
 
 ## 3. 系统测试用例总表
 
-按 17 测试类汇总,每类 1 行 5 字段;**用例描述详情见 `Plugins/AgentBridge/Tests/SystemTestCases.md`,本表不复述**。
+按 18 测试类汇总,每类 1 行 5 字段;**用例描述详情见 `Plugins/AgentBridge/Tests/SystemTestCases.md`,本表不复述**。
 
 | 测试类 | ID 范围 | 入口脚本 | 期望大类 | 当前状态汇总 |
 |---|---|---|---|---|
@@ -56,16 +56,17 @@
 | P11(Phase 11 设计编译器框架) | P11-01..18(18) | `--stage=11` 或 `Tests/scripts/task1X_phase11_*.py` | Pass | 见 `ProjectState/Reports/` 最近一轮 |
 | LIR(Phase 12 LLM Internal Reopen) | LIR-01..04(4) | `run_system_tests.py --stage=12` / pytest 子集 | Pass | 见 `ProjectState/Reports/` 最近一轮 |
 | SKS(Phase 13 Skill Synthesis) | SKS-01..94(94) | `run_system_tests.py --stage=13` / pytest 全量(9 个 `test_phase13_*.py`) | Pass | 见 `ProjectState/Reports/2026-06-11/phase13_acceptance_runbook.md` |
+| DMP(Phase 14 Demo Plan) | DMP-01..56(56) | `run_system_tests.py --stage=14` / pytest 全量(6 个 `test_phase14_*.py`) | Pass | 见 `ProjectState/Reports/2026-06-12/phase14_acceptance_runbook.md` |
 
-合计:**17 测试类 / 364 case**,与 `run_system_tests.py:209` `TOTAL_CASES` 实时计算结果一致(10+6+57+8+10+37+64+6+40+10+18+4+94 = 364 ✓;Stage 3 合并 Q+W+CL+UI 共 57,Stage 7 合并 CP+SS 共 64)。
+合计:**18 测试类 / 420 case**,与 `run_system_tests.py:218` `TOTAL_CASES` 实时计算结果一致(10+6+57+8+10+37+64+6+40+10+18+4+94+56 = 420 ✓;Stage 3 合并 Q+W+CL+UI 共 57,Stage 7 合并 CP+SS 共 64)。
 
-附:364 case 的逐条字段(目标 / 前置 / 步骤 / 期望 / 验证点 / 状态)留在权威源 `Plugins/AgentBridge/Tests/SystemTestCases.md`,本文档**不在此处复述**,以避免双源漂移。
+附:420 case 的逐条字段(目标 / 前置 / 步骤 / 期望 / 验证点 / 状态)留在权威源 `Plugins/AgentBridge/Tests/SystemTestCases.md`,本文档**不在此处复述**,以避免双源漂移。
 
 ## 4. 关键测试入口
 
 按调用形态枚举常用入口:
 
-- **全量回归:** `python Plugins/AgentBridge/Tests/run_system_tests.py`(13 stage 顺序跑,Stage 2/3/4/8/9 需要 Editor + Build,Stage 1/5/6/7/10/11/12/13 纯 Python)。
+- **全量回归:** `python Plugins/AgentBridge/Tests/run_system_tests.py`(14 stage 顺序跑,Stage 2/3/4/8/9 需要 Editor + Build,Stage 1/5/6/7/10/11/12/13/14 纯 Python)。
 - **交互模式:** `python Plugins/AgentBridge/Tests/run_system_tests.py --interactive`(逐 stage 选择,适合分段调试)。
 - **无编辑器模式:** `python Plugins/AgentBridge/Tests/run_system_tests.py --no-editor`(Phase 10 后默认 `task08_orchestrate.py` 分段等价验证,跳过所有 `requires_editor=True` 的 stage)。
 - **Standalone Smoke:** `python Plugins/AgentBridge/Tests/scripts/task14a_phase11_standalone_smoke.py`(Phase 11 引入,UAT BuildCookRun + Standalone 启动一次性烟测)。

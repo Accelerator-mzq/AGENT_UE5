@@ -8,9 +8,10 @@ Compiler 前端 MCP 工具适配层。
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 PLUGIN_DIR = Path(__file__).resolve().parents[1]
 if str(PLUGIN_DIR) not in sys.path:
@@ -753,4 +754,100 @@ def compiler_skill_synthesis_save(session_path: str, capability_id: str, six_fil
             "failed",
             f"合成提交失败: {exc}",
             errors=[f"TOOL_EXECUTION_FAILED: {str(exc)}"],
+        )
+
+
+# ---------------- Phase 14 demo-first:story 工具对 ----------------
+
+from Compiler.demo_plan import story_store, evidence_validator, velocity, manifest_loader  # noqa: E402
+
+
+def _demo_project_root(project_root=None):
+    """project_root 仅测试注入用;生产路径 = 由本文件位置向上三级(MCP → AgentBridge → Plugins → 项目根)。"""
+    return Path(project_root) if project_root else Path(__file__).resolve().parents[3]
+
+
+def demo_story_fetch(session_path: str, story_id: Optional[str] = None,
+                     project_root: Optional[str] = None) -> dict:
+    """取施工 story 全包:story + 施工规范全文 + 版本对账告警。
+
+    返回形状走全项目统一 _make_response 契约:
+      - 取件成功 → status="success";manifest 版本不符是提示性告警,进 warnings[]
+        (镜像 compiler_skill_synthesis_save 用 warnings 承载非阻断提示的先例)
+      - 异常(数据/IO/解析)→ status="failed"(server.py 据此置 MCP isError)
+    """
+    try:
+        root = _demo_project_root(project_root)
+        store = story_store.StoryStore(session_path)
+        story = store.fetch(story_id)
+        manifest_text, manifest_version = manifest_loader.load_construction_manifest(root)
+        warnings: list[str] = []
+        if story.get("manifest_version") != manifest_version:
+            warnings.append(f"施工规范版本不符: story 切批于 {story.get('manifest_version')},"
+                            f"当前 {manifest_version},请人工确认差异后再施工")
+        velocity.append_event(session_path, {"kind": "fetch", "story_id": story["story_id"],
+                                             "attempts": story.get("attempts", 0)})
+        return _make_response(
+            "success",
+            f"story 已取出: {story['story_id']}(attempts={story.get('attempts', 0)})",
+            data={"story": story, "construction_manifest": manifest_text},
+            warnings=warnings,
+        )
+    except (ValueError, OSError, json.JSONDecodeError) as exc:
+        return _make_response(
+            "failed",
+            f"demo_story_fetch 失败: {exc}",
+            errors=[f"TOOL_EXECUTION_FAILED: {exc}"],
+        )
+
+
+def demo_story_submit(session_path: str, story_id: str, evidence: dict,
+                      project_root: Optional[str] = None) -> dict:
+    """提交证据:机器校验 → verified 或回 in_progress + 具体错误清单。
+
+    分层语义(与 fetch 同契约):
+      - 工具调用成功(含校验拒绝回 in_progress)→ status="success";
+        拒绝是重试闭环的业务信号,放 data.story_status + data.errors,不触发 MCP isError
+      - 异常(数据/IO/解析)→ status="failed"
+    """
+    try:
+        root = _demo_project_root(project_root)
+        store = story_store.StoryStore(session_path)
+        story = store.load(story_id)
+        # plugin_root 锚定校验:resolve 后必须仍在项目根内。越界时不进 validator
+        # (空 doc_paths + 域外目录会让文档对账空转直接 verified),按拒绝处理,
+        # 与正常校验结果走同一条 submit → velocity → 返回链路
+        plugin_root = None
+        result = None
+        if evidence.get("plugin_root"):
+            candidate = (root / str(evidence["plugin_root"])).resolve()
+            if not candidate.is_relative_to(root.resolve()):
+                result = {"status": "rejected",
+                          "errors": [f"plugin_root 越界: {evidence['plugin_root']} 不在项目根内"]}
+            else:
+                plugin_root = candidate
+        if result is None:
+            baseline = None
+            baseline_path = Path(session_path) / "v0_smoke_baseline.json"
+            if baseline_path.exists():
+                baseline = json.loads(baseline_path.read_text(encoding="utf-8"))
+            result = evidence_validator.validate_evidence(
+                story, evidence, root, baseline=baseline, plugin_root=plugin_root)
+        updated = store.submit(story_id, evidence, result)
+        velocity.append_event(session_path, {"kind": "submit", "story_id": story_id,
+                                             "result": updated["status"],
+                                             "attempts": updated.get("attempts", 0)})
+        return _make_response(
+            "success",
+            f"story 提交已处理: {story_id} -> {updated['status']}"
+            f"(attempts={updated.get('attempts', 0)})",
+            data={"story_status": updated["status"],
+                  "errors": updated.get("submit_errors", []),
+                  "attempts": updated.get("attempts", 0)},
+        )
+    except (ValueError, OSError, json.JSONDecodeError) as exc:
+        return _make_response(
+            "failed",
+            f"demo_story_submit 失败: {exc}",
+            errors=[f"TOOL_EXECUTION_FAILED: {exc}"],
         )

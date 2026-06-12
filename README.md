@@ -1,8 +1,8 @@
 # Mvpv4TestCodex
 
 > 目标引擎版本：UE5.5.4
-> 当前状态：Phase 13 Skill 合成主链实施完成(2026-06-11,验收判据 1-4 闭环、5-12 待执行);Phase 12 / Phase 11 已归档
-> 当前正式口径：根 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md)(Phase 13 任务书) + [18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/acceptance/acceptance_report.md#1) + [llm_internal_reopen_acceptance.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-05-27/llm_internal_reopen_acceptance.md)
+> 当前状态：Phase 14 Demo-First 增量主链实施 + 验收全部完成(2026-06-12,C1-C6 全闭环,msc v1 终裁通过);Phase 13 / 12 / 11 已归档
+> 当前正式口径：根 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md)(Phase 14 任务书) + [phase14_acceptance_runbook.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-06-12/phase14_acceptance_runbook.md) + [18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/acceptance/acceptance_report.md#1)
 
 ## 项目简介
 
@@ -19,8 +19,10 @@ GDD -> Root Skill Contract -> Clarification Gate -> Skill Graph Planning
 
 ## 当前入口
 
-- 当前阶段任务书(Phase 13):[task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md)
+- 当前阶段任务书(Phase 14,已完成):[task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md)
 - 当前阶段索引:[00_Index.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/INDEX.md)
+- Phase 14 设计 spec:[2026-06-11-phase14-demo-first-design.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/specs/2026-06-11-phase14-demo-first-design.md)
+- Phase 14 验收 runbook:[phase14_acceptance_runbook.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-06-12/phase14_acceptance_runbook.md)
 - Phase 13 设计 spec:[2026-06-10-phase13-skill-synthesis-design.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/specs/2026-06-10-phase13-skill-synthesis-design.md)
 - Phase 13 验收 runbook:[phase13_acceptance_runbook.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-06-11/phase13_acceptance_runbook.md)
 - Phase 11 收尾总览:[18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/acceptance/acceptance_report.md#1)
@@ -29,14 +31,22 @@ GDD -> Root Skill Contract -> Clarification Gate -> Skill Graph Planning
 - 插件入口:[Plugins/AgentBridge/README.md](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/README.md)
 - 系统测试总表:[SystemTestCases.md](/D:/UnrealProjects/Mvpv4TestCodex/Plugins/AgentBridge/Tests/SystemTestCases.md)
 
+## Phase 14 完成结果(Demo-First 增量主链,2026-06-12)
+
+- demo_plan 切批机制:`Plugins/AgentBridge/Compiler/demo_plan/` 五模块(planner 拓扑序切批 / story_store 状态机 / evidence_validator 证据门含 hash 守门 / velocity / manifest_loader)
+- MCP 工具对 `demo_story_fetch/submit`(工具数 55→`57`)+ `demo_plan`/`demo_story` Schema(strict `30/30`)+ CLI `demo_plan_main.py` + 冒烟 runner(退出码 0/1/3 归因分离)
+- 可玩 demo:`Plugins/Demo_MonopolyAuction/`(authored 关卡 + 键盘可玩 + 拍卖增量,**项目层产物,不属 AgentBridge 框架**);施工规范 `ProjectInputs/ConstructionManifest/demo_plugin_standards.md` 1.1.0
+- 系统测试 `14 stage / 420 case`(Stage 14 DMP-01~56)
+- 验收状态:C1-C6 全闭环,经 1 次 PIVOT(可玩定义缝)+ 1 次试玩反馈修复轮,msc v1 终裁**通过**;详见 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) 与 [phase14_acceptance_runbook.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-06-12/phase14_acceptance_runbook.md)
+
 ## Phase 13 完成结果(Skill 合成主链,2026-06-11)
 
 - Stage 3 注册表数据化:三张硬编码表删除,模板 `manifest.yaml` `capability_bindings` 自描述,`registry_scan` 扫描建映射
 - capability gap 显式化:库外能力写入 `skill_graph.metadata.capability_gaps`,零静默丢弃
 - S3.5 合成环节:MCP 工具对 `compiler_skill_synthesis_prepare/save`(工具数 53→`55`)+ 机器校验 + 人审双 gate,合成包落 `SkillTemplates/synthesized/` 隔离区
 - GDD 覆盖矩阵 + anchor 留痕 + promote 双守卫(synthesized 消费 / 未解决 gap → `PROMOTE_REJECTED`)
-- 系统测试 `13 stage / 364 case`(Stage 13 SKS-01~94,含终审修复 +5);`validate_examples.py --strict` 为 `28/28` 通过
-- 验收状态:runbook 判据 1-4 已闭环,5-12(真机 / 双端 / stretch)待执行,详见 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md)
+- 系统测试当时为 `13 stage / 364 case`(Stage 13 SKS-01~94,含终审修复 +5);`--strict` 当时为 `28/28`(当前为 `14 stage / 420`、`30/30`,见上方 Phase 14 完成结果)
+- 验收状态:runbook 判据 1-12 已全部闭环(2026-06-11,含真机 / 双端 / JRPG stretch),详见 [phase13_acceptance_runbook.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-06-11/phase13_acceptance_runbook.md)
 
 ## Phase 11 完成结果
 
@@ -67,7 +77,7 @@ GDD -> Root Skill Contract -> Clarification Gate -> Skill Graph Planning
 ## 常用命令
 
 ```powershell
-# Schema example 严格校验（28/28）
+# Schema example 严格校验（30/30）
 python Plugins/AgentBridge/Scripts/validation/validate_examples.py --strict
 
 # 系统测试：一键执行全部 Stage
@@ -86,6 +96,6 @@ python Plugins/AgentBridge/MCP/server.py
 ## 当前约定
 
 - `Docs/INDEX.md` 及其指向的 L1 文档体系(SRS / HLD / LLD / contracts / testing / acceptance)是当前项目口径的最高优先级。
-- 根目录 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) 现在是 Phase 13 任务书(实施收尾期),是当前阶段唯一开发驱动入口。
+- 根目录 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) 现在是 Phase 14 任务书(已完成),是当前阶段唯一开发驱动入口。
 - Phase 11 的正式完成口径以 [18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/acceptance/acceptance_report.md#1) 和 [task11_phase11.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/archive/history/Tasks/task11_phase11.md) 为准。
-- MCP 当前可见工具注册数为 `55`，其中 `51` 个为正式主工具、`4` 个为兼容 alias。
+- MCP 当前可见工具注册数为 `57`，其中 `53` 个为正式主工具、`4` 个为兼容 alias(2026-06-12 Phase 14 +`demo_story_fetch/submit`)。

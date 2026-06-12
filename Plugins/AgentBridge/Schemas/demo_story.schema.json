@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "demo_story",
+  "description": "Phase 14 demo-first:单条施工工单。materials 全部为路径指针(agent 读全文,零语义压缩)。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["story_schema_version", "story_id", "batch_id", "story_kind", "evidence_class",
+               "depends_on", "materials", "acceptance_criteria", "status", "attempts", "manifest_version"],
+  "properties": {
+    "story_schema_version": {"const": "1.0.0", "description": "schema 版本(当前钉死 1.0.0)"},
+    "story_id": {"type": "string", "pattern": "^story-[a-z0-9-]+$", "description": "工单 id"},
+    "batch_id": {"type": "string", "pattern": "^(v0|increment-[1-9][0-9]*)$", "description": "所属批次"},
+    "story_kind": {"enum": ["capability", "documentation"], "description": "功能工单 / 批末文档工单"},
+    "capability_id": {"type": "string", "description": "功能工单对应 capability(文档工单缺省)"},
+    "instance_id": {"type": "string", "description": "skill graph 节点 id(功能工单)"},
+    "evidence_class": {"enum": ["Logic", "Integration", "Visual", "Config"],
+                       "description": "证据分级:决定 submit 必交证据"},
+    "depends_on": {"type": "array", "items": {"type": "string", "pattern": "^story-[a-z0-9-]+$"}, "description": "前置 story id(verified 后方可 fetch)"},
+    "materials": {
+      "type": "object", "additionalProperties": false,
+      "required": ["gdd_path", "gdd_anchors", "contract_path", "skill_graph_path", "construction_manifest_path"],
+      "properties": {
+        "gdd_path": {"type": "string", "description": "GDD 原文路径"},
+        "gdd_anchors": {"type": "array", "items": {"type": "string"}, "description": "本工单相关 GDD 锚点标题"},
+        "contract_path": {"type": "string", "description": "root_skill_contract.json 路径"},
+        "skill_graph_path": {"type": "string", "description": "skill_graph.json 路径"},
+        "template_id": {"type": ["string", "null"], "description": "绑定模板 id(文档工单为 null)"},
+        "template_source": {"enum": ["plugin_skill_template", "future_baseline_template", "synthesized", null], "description": "节点模板来源(null 仅文档工单)"},
+        "template_dir": {"type": ["string", "null"], "description": "合成包目录(仅 synthesized 预解析,其余 null)"},
+        "construction_manifest_path": {"type": "string", "description": "施工规范路径"},
+        "extra_paths": {"type": "array", "items": {"type": "string"}, "description": "附加材料(文档工单:plan/velocity 等)"}
+      }
+    },
+    "acceptance_criteria": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "status": {"enum": ["pending", "in_progress", "submitted", "verified"]},
+    "attempts": {"type": "integer", "minimum": 0, "description": "自修轮次(submit 被拒 +1)"},
+    "manifest_version": {"type": "string", "description": "切批时施工规范版本(fetch 时对账)"},
+    "submit_errors": {"type": "array", "items": {"type": "string"}, "description": "最近一次被拒的错误清单"},
+    "evidence": {"type": "object", "description": "verified 时的最终证据载荷(透传存档)"}
+  },
+  "if": {"properties": {"story_kind": {"const": "capability"}}, "required": ["story_kind"]},
+  "then": {"required": ["capability_id", "instance_id"]}
+}

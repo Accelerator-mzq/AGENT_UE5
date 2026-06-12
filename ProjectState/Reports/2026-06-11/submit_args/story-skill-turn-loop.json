@@ -1,0 +1,51 @@
+{
+  "session_path": "ProjectState/runs/run-20260611-052252-5101",
+  "story_id": "story-skill-turn-loop",
+  "evidence": {
+    "files_changed": [
+      "Plugins/Demo_MonopolyAuction/Demo_MonopolyAuction.uplugin",
+      "Plugins/Demo_MonopolyAuction/README.md",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Demo_MonopolyAuction.Build.cs",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/Demo_MonopolyAuctionModule.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/MADemoBoardDataAsset.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/MADemoFoundations.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/MADemoFrontendWidgets.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/MADemoGameMode.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/MADemoGameState.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/MADemoHUDWidget.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/MADemoPlayerController.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/MADemoPlayerData.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/MADemoRulesDataAsset.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/MADemoStockMarket.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/Tests/MADemoSmokeTests.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/Tests/MADemoVisualDumpTest.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Public/Demo_MonopolyAuctionModule.h",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Public/MADemoBoardDataAsset.h",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Public/MADemoFoundations.h",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Public/MADemoFrontendWidgets.h",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Public/MADemoGameMode.h",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Public/MADemoGameState.h",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Public/MADemoHUDWidget.h",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Public/MADemoPlayerController.h",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Public/MADemoPlayerData.h",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Public/MADemoRulesDataAsset.h",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Public/MADemoStockMarket.h",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Public/MADemoTypes.h"
+    ],
+    "plugin_root": "Plugins/Demo_MonopolyAuction",
+    "provisional_decisions": [
+      {
+        "decision": "僵局回合上限默认 200,达上限按净资产判最高者胜",
+        "rationale": "契约 cg-max-game-length 高风险未决点;GDD 只给目标时长30-60min未给硬上限,给可收敛默认值",
+        "scope": "回合上限与僵局收敛"
+      },
+      {
+        "decision": "双数额外回合每玩家最多连掷10次保护",
+        "rationale": "防御性上限,避免理论死循环;GDD 仅规定三连双入狱",
+        "scope": "回合内重掷上限"
+      }
+    ],
+    "test_report": "ProjectState/Evidence/phase14_v0_smoke_report.json",
+    "smoke_report": "ProjectState/Evidence/phase14_v0_smoke_report.json"
+  }
+}

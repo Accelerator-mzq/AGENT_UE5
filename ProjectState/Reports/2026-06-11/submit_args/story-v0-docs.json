@@ -1,0 +1,31 @@
+{
+  "session_path": "ProjectState/runs/run-20260611-052252-5101",
+  "story_id": "story-v0-docs",
+  "evidence": {
+    "files_changed": [
+      "Plugins/Demo_MonopolyAuction/Docs/design.md",
+      "Plugins/Demo_MonopolyAuction/Docs/architecture.md",
+      "Plugins/Demo_MonopolyAuction/Docs/changelog.md",
+      "Plugins/Demo_MonopolyAuction/README.md"
+    ],
+    "doc_paths": [
+      "Plugins/Demo_MonopolyAuction/Docs/design.md",
+      "Plugins/Demo_MonopolyAuction/Docs/architecture.md",
+      "Plugins/Demo_MonopolyAuction/Docs/changelog.md",
+      "Plugins/Demo_MonopolyAuction/README.md"
+    ],
+    "plugin_root": "Plugins/Demo_MonopolyAuction",
+    "provisional_decisions": [
+      {
+        "decision": "文档包落 Docs/ 三件(design/architecture/changelog)+ 插件根 README",
+        "rationale": "施工规范 §6 要求;文档头标注生成物口径,类名用反引号包裹供机器引用对账",
+        "scope": "v0 文档 story"
+      },
+      {
+        "decision": "文档不引用任何 Content 资产路径(反引号),仅引用已存在的 C++ 类名",
+        "rationale": "v0 为代码骨架,Content/ 无 authored .uasset/.umap;避免引用对账失败",
+        "scope": "文档引用约定"
+      }
+    ]
+  }
+}

@@ -27,6 +27,7 @@
 - [16. Phase 11 设计编译器框架（P11）](#16-phase-11-设计编译器框架p11)
 - [17. Phase 12 LLM Internal Reopen（LIR）](#17-phase-12-llm-internal-reopenlir)
 - [18. Phase 13 Skill Synthesis（SKS）](#18-phase-13-skill-synthesissks)
+- [19. Phase 14 Demo Plan（DMP）](#19-phase-14-demo-plandmp)
 - [附录 A：UE5 Automation Test ID 速查表](#附录-aue5-automation-test-id-速查表)
 - [附录 B：统计摘要](#附录-b统计摘要)
 - [附录 C：自动化工具链](#附录-c自动化工具链)
@@ -53,8 +54,9 @@
 | P11 | Phase 11 设计编译器框架 | Python + 报告证据 + 局部 live inventory | `run_system_tests.py --stage=11` / Phase 11 专项脚本 / 证据读回 |
 | LIR | Phase 12 LLM Internal Reopen | Python | `run_system_tests.py --stage=12` / pytest 子集 |
 | SKS | Phase 13 Skill Synthesis | Python | `run_system_tests.py --stage=13` / pytest 全量（9 个 `test_phase13_*.py`） |
+| DMP | Phase 14 Demo Plan | Python | `run_system_tests.py --stage=14` / pytest 全量（6 个 `test_phase14_*.py`） |
 
-> 全部 364 条用例均已登记到当前测试总表。证据目录分层为：`ProjectState/Reports/`（当期执行）+ `Docs/History/reports/AgentBridgeEvidence/`（历史归档）。
+> 全部 420 条用例均已登记到当前测试总表。证据目录分层为：`ProjectState/Reports/`（当期执行）+ `Docs/History/reports/AgentBridgeEvidence/`（历史归档）。
 
 ---
 
@@ -736,6 +738,76 @@
 
 ---
 
+## 19. Phase 14 Demo Plan（DMP）
+
+> 来源：[Docs/superpowers/specs/2026-06-10-phase14-demo-first-spec.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/specs/2026-06-10-phase14-demo-first-spec.md) 验收口径
+> 自动化方式：pytest 全量（6 个 `test_phase14_*.py` 文件，按收集顺序 DMP-01 ~ DMP-56 连续分段编号）
+> 环境要求：Python 3.x；不要求 UE5 Editor
+> 分段：DMP-01~17 demo_plan / DMP-18~32 evidence_validator / DMP-33~39 mcp_tools / DMP-40~41 no_domain_semantics / DMP-42~48 smoke_runner / DMP-49~56 story_store
+
+| 编号 | 用例名称 | 测试方式 | 预期结果 |
+|------|---------|---------|---------|
+| DMP-01 | `TestDemoPlanner::test_dmp01_v0_batch_contains_all_library_nodes` | `pytest test_phase14_demo_plan.py` | PASS，失败 0 |
+| DMP-02 | `TestDemoPlanner::test_dmp02_each_synthesized_node_gets_own_increment_batch` | `pytest test_phase14_demo_plan.py` | PASS，失败 0 |
+| DMP-03 | `TestDemoPlanner::test_dmp03_batch_inner_topological_order` | `pytest test_phase14_demo_plan.py` | PASS，失败 0 |
+| DMP-04 | `TestDemoPlanner::test_dmp04_doc_story_appended_last_per_batch` | `pytest test_phase14_demo_plan.py` | PASS，失败 0 |
+| DMP-05 | `TestDemoPlanner::test_dmp05_evidence_class_mapped_from_domain_type_only` | `pytest test_phase14_demo_plan.py` | PASS，失败 0 |
+| DMP-06 | `TestDemoPlanner::test_dmp06_anchor_from_contract_into_materials` | `pytest test_phase14_demo_plan.py` | PASS，失败 0 |
+| DMP-07 | `TestDemoPlanner::test_dmp07_synthesized_template_dir_preresolved` | `pytest test_phase14_demo_plan.py` | PASS，失败 0 |
+| DMP-08 | `TestDemoPlanner::test_dmp08_deterministic_same_input_same_output` | `pytest test_phase14_demo_plan.py` | PASS，失败 0 |
+| DMP-09 | `TestDemoPlanner::test_dmp09_cycle_fails_closed` | `pytest test_phase14_demo_plan.py` | PASS，失败 0 |
+| DMP-10 | `TestDemoPlanner::test_dmp10_manifest_version_stamped_on_plan_and_stories` | `pytest test_phase14_demo_plan.py` | PASS，失败 0 |
+| DMP-11 | `TestManifestLoader::test_dmp31_load_manifest_text_and_version` | `pytest test_phase14_demo_plan.py` | PASS，失败 0 |
+| DMP-12 | `TestManifestLoader::test_dmp32_missing_version_line_fails_closed` | `pytest test_phase14_demo_plan.py` | PASS，失败 0 |
+| DMP-13 | `TestManifestLoader::test_dmp32a_malformed_version_fails_closed` | `pytest test_phase14_demo_plan.py` | PASS，失败 0 |
+| DMP-14 | `TestDemoPlanCli::test_dmp39_cli_writes_plan_and_stories` | `pytest test_phase14_demo_plan.py` | PASS，失败 0 |
+| DMP-15 | `TestDemoPlanCli::test_dmp39b_cli_fails_friendly_on_missing_run_dir` | `pytest test_phase14_demo_plan.py` | PASS，失败 0 |
+| DMP-16 | `TestDemoPlanCli::test_dmp39a_cli_fails_closed_on_missing_run_id` | `pytest test_phase14_demo_plan.py` | PASS，失败 0 |
+| DMP-17 | `TestDemoPlanCli::test_dmp40_cli_fails_closed_on_unresolved_gaps` | `pytest test_phase14_demo_plan.py` | PASS，失败 0 |
+| DMP-18 | `TestEvidenceValidator::test_dmp21_logic_requires_test_and_smoke` | `pytest test_phase14_evidence_validator.py` | PASS，失败 0 |
+| DMP-19 | `TestEvidenceValidator::test_dmp22_visual_requires_screenshots` | `pytest test_phase14_evidence_validator.py` | PASS，失败 0 |
+| DMP-20 | `TestEvidenceValidator::test_dmp23_referenced_paths_must_exist` | `pytest test_phase14_evidence_validator.py` | PASS，失败 0 |
+| DMP-21 | `TestEvidenceValidator::test_dmp24_smoke_report_must_be_pass` | `pytest test_phase14_evidence_validator.py` | PASS，失败 0 |
+| DMP-22 | `TestEvidenceValidator::test_dmp25_logic_happy_path_verified` | `pytest test_phase14_evidence_validator.py` | PASS，失败 0 |
+| DMP-23 | `TestEvidenceValidator::test_dmp26_increment_requires_baseline` | `pytest test_phase14_evidence_validator.py` | PASS，失败 0 |
+| DMP-24 | `TestEvidenceValidator::test_dmp27_increment_hash_guard_detects_tampering` | `pytest test_phase14_evidence_validator.py` | PASS，失败 0 |
+| DMP-25 | `TestEvidenceValidator::test_dmp28_increment_requires_v0_regression_pass` | `pytest test_phase14_evidence_validator.py` | PASS，失败 0 |
+| DMP-26 | `TestEvidenceValidator::test_dmp29_doc_story_reference_check` | `pytest test_phase14_evidence_validator.py` | PASS，失败 0 |
+| DMP-27 | `TestEvidenceValidator::test_dmp30_freeze_baseline_writes_sha256_file` | `pytest test_phase14_evidence_validator.py` | PASS，失败 0 |
+| DMP-28 | `TestEvidenceValidator::test_dmp30a_smoke_report_non_dict_json_rejected_not_crash` | `pytest test_phase14_evidence_validator.py` | PASS，失败 0 |
+| DMP-29 | `TestEvidenceValidator::test_dmp30b_smoke_report_json_null_rejected` | `pytest test_phase14_evidence_validator.py` | PASS，失败 0 |
+| DMP-30 | `TestEvidenceValidator::test_dmp30c_doc_reference_prefix_substring_not_matched` | `pytest test_phase14_evidence_validator.py` | PASS，失败 0 |
+| DMP-31 | `TestEvidenceValidator::test_dmp30d_unknown_evidence_class_rejected_not_crash` | `pytest test_phase14_evidence_validator.py` | PASS，失败 0 |
+| DMP-32 | `TestEvidenceValidator::test_dmp30e_doc_reference_matches_ue_api_macro_form` | `pytest test_phase14_evidence_validator.py` | PASS，失败 0 |
+| DMP-33 | `TestMcpDemoTools::test_dmp33_tool_definitions_registered` | `pytest test_phase14_mcp_tools.py` | PASS，失败 0 |
+| DMP-34 | `TestMcpDemoTools::test_dmp34_tool_count_is_57` | `pytest test_phase14_mcp_tools.py` | PASS，失败 0 |
+| DMP-35 | `TestMcpDemoTools::test_dmp35_server_dispatch_has_both` | `pytest test_phase14_mcp_tools.py` | PASS，失败 0 |
+| DMP-36 | `TestMcpDemoTools::test_dmp36_fetch_returns_story_and_manifest` | `pytest test_phase14_mcp_tools.py` | PASS，失败 0 |
+| DMP-37 | `TestMcpDemoTools::test_dmp37_submit_reject_then_pass_loop` | `pytest test_phase14_mcp_tools.py` | PASS，失败 0 |
+| DMP-38 | `TestMcpDemoTools::test_dmp38_fetch_manifest_version_mismatch_warns` | `pytest test_phase14_mcp_tools.py` | PASS，失败 0 |
+| DMP-39 | `TestMcpDemoTools::test_dmp38a_plugin_root_escape_rejected` | `pytest test_phase14_mcp_tools.py` | PASS，失败 0 |
+| DMP-40 | `TestNoDomainSemantics::test_dmp11_demo_plan_modules_free_of_domain_words` | `pytest test_phase14_no_domain_semantics.py` | PASS，失败 0 |
+| DMP-41 | `TestNoDomainSemantics::test_dmp12_mcp_demo_tool_impl_free_of_domain_words` | `pytest test_phase14_no_domain_semantics.py` | PASS，失败 0 |
+| DMP-42 | `TestSmokeRunner::test_dmp41_precheck_missing_editor_is_env_error` | `pytest test_phase14_smoke_runner.py` | PASS，失败 0 |
+| DMP-43 | `TestSmokeRunner::test_dmp42_parse_ue_report_pass` | `pytest test_phase14_smoke_runner.py` | PASS，失败 0 |
+| DMP-44 | `TestSmokeRunner::test_dmp43_parse_ue_report_fail` | `pytest test_phase14_smoke_runner.py` | PASS，失败 0 |
+| DMP-45 | `TestSmokeRunner::test_dmp44_missing_index_json_is_env_error_not_fail` | `pytest test_phase14_smoke_runner.py` | PASS，失败 0 |
+| DMP-46 | `TestSmokeRunner::test_dmp45_run_automation_timeout_is_env_fault_main_exit3` | `pytest test_phase14_smoke_runner.py` | PASS，失败 0 |
+| DMP-47 | `TestSmokeRunner::test_dmp46_v0_fail_main_pass_exits_1` | `pytest test_phase14_smoke_runner.py` | PASS，失败 0 |
+| DMP-48 | `TestSmokeRunner::test_dmp47_both_pass_exit0_and_report_v0_pass` | `pytest test_phase14_smoke_runner.py` | PASS，失败 0 |
+| DMP-49 | `TestStoryStore::test_dmp13_fetch_next_respects_plan_order_and_deps` | `pytest test_phase14_story_store.py` | PASS，失败 0 |
+| DMP-50 | `TestStoryStore::test_dmp14_dependent_story_blocked_until_dep_verified` | `pytest test_phase14_story_store.py` | PASS，失败 0 |
+| DMP-51 | `TestStoryStore::test_dmp15_fetch_in_progress_is_idempotent_reentry` | `pytest test_phase14_story_store.py` | PASS，失败 0 |
+| DMP-52 | `TestStoryStore::test_dmp16_submit_pass_marks_verified_and_archives_evidence` | `pytest test_phase14_story_store.py` | PASS，失败 0 |
+| DMP-53 | `TestStoryStore::test_dmp17_submit_reject_returns_in_progress_and_bumps_attempts` | `pytest test_phase14_story_store.py` | PASS，失败 0 |
+| DMP-54 | `TestStoryStore::test_dmp18_verified_unlocks_dependent` | `pytest test_phase14_story_store.py` | PASS，失败 0 |
+| DMP-55 | `TestStoryStore::test_dmp19_atomic_write_no_part_residue` | `pytest test_phase14_story_store.py` | PASS，失败 0 |
+| DMP-56 | `TestStoryStore::test_dmp20_velocity_appends_fetch_and_submit_events` | `pytest test_phase14_story_store.py` | PASS，失败 0 |
+
+> 证据：`ProjectState/Temp/run_system_tests_stage14/phase14_case_checks.json` + 各文件的 `test_phase14_*.py_pytest.log`
+
+---
+
 ## 附录 A：UE5 Automation Test ID 速查表
 
 | Test ID | 全名 | 类型 | 所属分类 |
@@ -821,3 +893,4 @@
 | `python Plugins/AgentBridge/Tests/run_system_tests.py --stage=11` | Phase 11 归档前系统测试对账入口 | P11-01 ~ P11-18 |
 | `python Plugins/AgentBridge/Tests/run_system_tests.py --stage=12` | Phase 12 LLM Internal Reopen 系统测试入口（pytest 子集） | LIR-01 ~ LIR-04 |
 | `python Plugins/AgentBridge/Tests/run_system_tests.py --stage=13` | Phase 13 Skill Synthesis 系统测试入口（pytest 全量，9 个 test_phase13_* 文件） | SKS-01 ~ SKS-94 |
+| `python Plugins/AgentBridge/Tests/run_system_tests.py --stage=14` | Phase 14 Demo Plan 系统测试入口（pytest 全量，6 个 test_phase14_* 文件） | DMP-01 ~ DMP-56 |

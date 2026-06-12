@@ -44,7 +44,7 @@
 - Stage 4 三路生成策略：`mcp_agent` 主路径、`llm` 内置路径（已接入，高负载验收暂缓）、`heuristic_fallback` 显式后备
 - MCP 前端工具升级：新增 clarification_prepare/save、stage4_node_prepare/save、root_skill_prepare/save、skill_graph_prepare/save
 - MCP 后端新增 Run 治理工具：evidence_create_batch、evidence_compare_runs、evidence_promote_run
-- Phase 11 Schema 集新增/升级 12 个，`validate_examples.py --strict` 当时为 `26/26` 通过（当前 `28/28`）
+- Phase 11 Schema 集新增/升级 12 个，`validate_examples.py --strict` 当时为 `26/26` 通过（当前 `30/30`）
 - Baseline Domain Skill Template 全套（`SkillTemplates/baseline/`）
 - UE 运行时最小可玩性已通过 Editor game 与 staged standalone 双路径验证
 - Phase 11 收尾时 MCP 工具总数为 `53`（`49` 正式主工具 + `4` 兼容 alias）
@@ -62,9 +62,20 @@
 - S3.5 合成环节：MCP 工具对 `compiler_skill_synthesis_prepare/save` + 机器校验器（`synthesis_validator`）+ 人审 gate（`review_status: approved`）双 gate；合成包落 `SkillTemplates/synthesized/` 隔离区
 - GDD 覆盖矩阵：`Compiler/stages/gdd_coverage.py`，claimed / unclaimed / container 三态 + 防固化四守则
 - promote 双守卫：synthesized 消费 / 未解决 gap → `PROMOTE_REJECTED`，损坏 graph fail-closed
-- 当前 MCP 工具总数为 `55`（`51` 正式主工具 + `4` 兼容 alias）；系统测试 `13 stage / 364 case`（Stage 13 SKS-01~94，含终审修复 +5）；`validate_examples.py --strict` 为 `28/28` 通过
+- MCP 工具总数当时为 `55`；系统测试当时为 `13 stage / 364 case`（Stage 13 SKS-01~94，含终审修复 +5）；`--strict` 当时为 `28/28`（当前数字见下方 Phase 14 区块）
 
-关键文档：spec `Docs/superpowers/specs/2026-06-10-phase13-skill-synthesis-design.md` / 验收 runbook `ProjectState/Reports/2026-06-11/phase13_acceptance_runbook.md`（判据 1-4 闭环，5-12 待执行）
+关键文档：spec `Docs/superpowers/specs/2026-06-10-phase13-skill-synthesis-design.md` / 验收 runbook `ProjectState/Reports/2026-06-11/phase13_acceptance_runbook.md`（判据 1-12 已全部闭环，2026-06-11）
+
+### Phase 14 已完成能力（2026-06-12，Demo-First 增量主链）
+
+- demo_plan 切批机制：`Compiler/demo_plan/` 五模块——planner（拓扑序切批：v0 批 = 全部库内绑定节点 / 每合成节点一增量批 / 每批末尾文档 story）/ story_store（状态机：依赖门 / 幂等重入 / `.part` 事务）/ evidence_validator（分级必交 / v0 冒烟 hash 守门 / 文档引用对账）/ velocity / manifest_loader（施工规范版本对账 fail-closed）
+- MCP 工具对 `demo_story_fetch/submit`：统一 `_make_response` 契约 + `plugin_root` 锚定校验；注册于 `COMPILER_FRONTEND_TOOLS`（16→18），工具总数 `55→57`
+- Schema：`demo_plan.schema.json` + `demo_story.schema.json` + 2 examples 入 strict（`28→30`）
+- CLI 与冒烟 runner：`Scripts/demo_plan_main.py`（gap/run_id fail-closed + schema 自校验落盘）+ `Scripts/demo_smoke/runner.py`（环境自检 / 报告契约 / 归因分离退出码 0/1/3）
+- 当前 MCP 工具总数为 `57`（`53` 正式主工具 + `4` 兼容 alias）；系统测试 `14 stage / 420 case`（Stage 14 DMP-01~56）；`validate_examples.py --strict` 为 `30/30` 通过
+- 注：可玩 demo `Plugins/Demo_MonopolyAuction/` 与施工规范 `ProjectInputs/ConstructionManifest/demo_plugin_standards.md` 为**项目层产物**，不属本插件框架
+
+关键文档：spec `Docs/superpowers/specs/2026-06-11-phase14-demo-first-design.md` / 验收 runbook `ProjectState/Reports/2026-06-12/phase14_acceptance_runbook.md`（C1-C6 全闭环，msc v1 终裁通过）
 
 ## 3. 目录结构
 
