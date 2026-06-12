@@ -6,16 +6,22 @@
 #include "MADemoDataAssets.h"
 #include "MADemoPlayerController.h"
 #include "UI/MADemoHUDWidget.h"
+#include "UI/MADemoHUD.h"
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 #include "Engine/World.h"
+#include "Engine/GameViewportClient.h"
+#include "UnrealClient.h"
+#include "Misc/Paths.h"
 
 AMADemoGameMode::AMADemoGameMode()
 {
-	// 绑定本 demo 的 GameState 与 PlayerController。
+	// 绑定本 demo 的 GameState / PlayerController / HUD。
 	GameStateClass = AMADemoGameState::StaticClass();
 	PlayerControllerClass = AMADemoPlayerController::StaticClass();
+	// Canvas HUD:保证 -game 画面与截图里 HUD 真实可见。
+	HUDClass = AMADemoHUD::StaticClass();
 	PrimaryActorTick.bCanEverTick = false;
 }
 
@@ -31,34 +37,69 @@ void AMADemoGameMode::BeginPlay()
 	const int32 Seed = 20260612;
 	InitializeGame(4, Seed);
 
-	// 创建 HUD widget 并加入视口(C++ CreateWidget 兜底,无需 WBP)。
-	if (UWorld* World = GetWorld())
-	{
-		if (APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0))
-		{
-			HUDWidget = CreateWidget<UMADemoHUDWidget>(PC, UMADemoHUDWidget::StaticClass());
-			if (HUDWidget)
-			{
-				HUDWidget->AddToViewport();
-				HUDWidget->BindGameState(CachedGameState);
-			}
-		}
-	}
-
 	StartTurn();
-	RefreshHUD();
 
-	// 若启动参数请求自动驾驶演示,起定时器逐回合自动推进。
+	// 延迟创建 HUD:确保 PlayerController/LocalPlayer/GameViewport 已就绪后再 CreateWidget+AddToViewport。
+	// BeginPlay 时机 PC 可能尚未具备 LocalPlayer,直接建 widget 会拿不到有效 player context 而不渲染。
+	FTimerHandle HUDHandle;
+	GetWorldTimerManager().SetTimer(HUDHandle, this, &AMADemoGameMode::CreateHUDDeferred, 0.3f, false);
+
+	// 若启动参数请求自动驾驶演示,起定时器逐回合自动推进(首发延迟 1.5s,确保 HUD 已上屏)。
 	if (AutoPlayTurns > 0)
 	{
 		GetWorldTimerManager().SetTimer(AutoPlayTimerHandle, this,
-			&AMADemoGameMode::AutoPlayTick, 0.8f, true, 1.0f);
+			&AMADemoGameMode::AutoPlayTick, 0.8f, true, 1.5f);
 	}
+	else if (bAutoShotAndExit)
+	{
+		// 静态面板截图路径(无对局推进):延迟截图后退出,确保 HUD/面板已上屏。
+		FTimerHandle StaticShotHandle;
+		GetWorldTimerManager().SetTimer(StaticShotHandle, [this]()
+		{
+			RequestViewportScreenshot(AutoShotPath);
+			GetWorldTimerManager().SetTimer(QuitTimerHandle, this,
+				&AMADemoGameMode::FinishAutoShot, 3.0f, false);
+		}, 2.0f, false);
+	}
+}
+
+void AMADemoGameMode::CreateHUDDeferred()
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+	APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0);
+	if (!PC)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Demo_MonopolyAuction] CreateHUDDeferred: 无 PlayerController,重试"));
+		FTimerHandle Retry;
+		GetWorldTimerManager().SetTimer(Retry, this, &AMADemoGameMode::CreateHUDDeferred, 0.3f, false);
+		return;
+	}
+	HUDWidget = CreateWidget<UMADemoHUDWidget>(PC, UMADemoHUDWidget::StaticClass());
+	if (HUDWidget)
+	{
+		HUDWidget->AddToViewport(100);
+		HUDWidget->BindGameState(CachedGameState);
+		HUDWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+		UE_LOG(LogTemp, Log, TEXT("[Demo_MonopolyAuction] HUD 已创建并加入视口(玩家数=%d)"),
+			CachedGameState ? CachedGameState->Players.Num() : 0);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("[Demo_MonopolyAuction] HUD CreateWidget 失败"));
+	}
+	RefreshHUD();
 }
 
 void AMADemoGameMode::ParseLaunchArgs()
 {
-	// 解析自动驾驶参数:-MADemoAutoPlay=N 自动推进 N 回合;-MADemoAutoShot 演示完截图退出。
+	// 解析自动驾驶参数:
+	//   -MADemoAutoPlay=N   自动推进 N 回合
+	//   -MADemoAutoShot     演示完截图退出
+	//   -MADemoShotPath=... 截图输出绝对路径(.png)
 	const TCHAR* CmdLine = FCommandLine::Get();
 	int32 Turns = 0;
 	if (FParse::Value(CmdLine, TEXT("MADemoAutoPlay="), Turns))
@@ -69,6 +110,38 @@ void AMADemoGameMode::ParseLaunchArgs()
 	{
 		bAutoShotAndExit = true;
 	}
+	FString ShotPath;
+	if (FParse::Value(CmdLine, TEXT("MADemoShotPath="), ShotPath))
+	{
+		AutoShotPath = ShotPath;
+	}
+}
+
+void AMADemoGameMode::RequestViewportScreenshot(const FString& OutPath)
+{
+	// 关键:请求"带 UI 的后台缓冲截图"(非 HighResShot)。
+	// 普通 back-buffer 截图会把 Slate/UMG(HUD)合成进画面,从而真实呈现 HUD;
+	// HighResShot 走离屏渲染管线,不含 UI 合成且场景缓冲可能为黑,故不能用于 HUD 截图。
+	if (UWorld* World = GetWorld())
+	{
+		if (UGameViewportClient* VP = World->GetGameViewport())
+		{
+			if (!OutPath.IsEmpty())
+			{
+				// 指定绝对路径文件名,不加后缀(可重入覆盖)。
+				FScreenshotRequest::RequestScreenshot(OutPath, /*bShowUI=*/true, /*bAddFilenameSuffix=*/false);
+			}
+			else
+			{
+				FScreenshotRequest::RequestScreenshot(/*bShowUI=*/true);
+			}
+		}
+	}
+}
+
+void AMADemoGameMode::FinishAutoShot()
+{
+	FGenericPlatformMisc::RequestExit(false);
 }
 
 AMADemoGameState* AMADemoGameMode::GetDemoGameState() const
@@ -575,16 +648,10 @@ void AMADemoGameMode::AutoPlayTick()
 		GetWorldTimerManager().ClearTimer(AutoPlayTimerHandle);
 		if (bAutoShotAndExit)
 		{
-			// 触发高分辨率截图后短延迟退出(留给截图落盘时间)。
-			if (UWorld* World = GetWorld())
-			{
-				GEngine->Exec(World, TEXT("HighResShot 1280x720"));
-				FTimerHandle QuitHandle;
-				World->GetTimerManager().SetTimer(QuitHandle, []()
-				{
-					FGenericPlatformMisc::RequestExit(false);
-				}, 2.0f, false);
-			}
+			// 先请求截图(带 UI),再延迟退出,给截图异步落盘留足时间。
+			RequestViewportScreenshot(AutoShotPath);
+			GetWorldTimerManager().SetTimer(QuitTimerHandle, this,
+				&AMADemoGameMode::FinishAutoShot, 3.0f, false);
 		}
 	}
 }

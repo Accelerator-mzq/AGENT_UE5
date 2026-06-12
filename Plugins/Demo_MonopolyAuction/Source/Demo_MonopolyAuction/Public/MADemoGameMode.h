@@ -114,6 +114,9 @@ protected:
 	// 刷新 HUD(人玩模式)。
 	void RefreshHUD();
 
+	// 延迟创建 HUD(确保 PC/视口就绪)。
+	void CreateHUDDeferred();
+
 private:
 	// 缓存 GameState 指针。
 	UPROPERTY()
@@ -131,12 +134,24 @@ private:
 	// 已自动推进的回合计数。
 	int32 AutoPlayedTurns = 0;
 
+	// 截图输出绝对路径(启动参数 -MADemoShotPath= 指定;留空则用默认 Saved 目录)。
+	FString AutoShotPath;
+
 	// 解析启动参数(自动驾驶演示用)。
 	void ParseLaunchArgs();
 
 	// 自动驾驶定时器回调。
 	void AutoPlayTick();
 
+	// 请求一次带 UI 的视口截图到指定路径。
+	void RequestViewportScreenshot(const FString& OutPath);
+
+	// 截图后退出的延迟回调。
+	void FinishAutoShot();
+
 	// 自动驾驶定时器句柄。
 	FTimerHandle AutoPlayTimerHandle;
+
+	// 退出延迟句柄。
+	FTimerHandle QuitTimerHandle;
 };
