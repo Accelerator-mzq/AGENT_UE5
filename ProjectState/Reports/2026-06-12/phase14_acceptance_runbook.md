@@ -63,14 +63,10 @@
       ⑤ 冒烟新增 `InteractionSemantics` 用例钉死四条交互语义回归,Dice 用例适配,**8/8 全绿**(`ProjectState/Evidence/phase14_v0_attempt2/smoke_report.json`);
       ⑥ 受影响截图重截:`hud_gameplay.png`(动态提示)+ `pause.png`(**真实 Escape 按键注入路径**,`-MADemoAutoPauseShot` 走完整输入管线,日志 `logs/fix_pause_shot.log` 显示 注入→暂停切换→截图 链路);
       自修 0 轮(编译/冒烟均一次过);story 状态不动(试玩反馈回流 story 无机制通道,主会话记 backlog)。
-- [ ] attempt 2(修复轮后):msc 无引导玩一局,裁决 PROCEED / PIVOT / KILL:____________(留痕路径:______________________)
-- [ ] PROCEED 时冻结 v0 冒烟基线(`<run_id>` 与插件名按实际填):
-
-  ```bash
-  python -c "import importlib.util; spec=importlib.util.spec_from_file_location('ev','Plugins/AgentBridge/Compiler/demo_plan/evidence_validator.py'); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); import glob; m.freeze_v0_baseline('.', 'ProjectState/runs/<run_id>', [p.replace('\\','/') for p in glob.glob('Plugins/<派生名>/Source/*/Private/Tests/*.cpp')])"
-  ```
-
-- [ ] 批拍卖合成包(manifest review_status: pending_review → approved;Phase 13 原 gate 原位)
+- [x] **attempt 2(修复轮后)裁决:PROCEED**(msc,2026-06-12,本节即留痕)
+      msc 试玩结论:"功能没问题";图形页面缺失经裁决归 Phase 15(呈现增量轴+扇出分化维度,非 v0 缺陷——README/changelog 已声明边界);v0 按"逻辑完整可玩骨架"口径达标。
+- [x] PROCEED 冻结 v0 冒烟基线:**已执行(2026-06-12T05:41:53Z)**——`ProjectState/runs/run-20260611-052252-5101/v0_smoke_baseline.json`,冻结 `MADemoSmokeTests.cpp`(sha256 前缀 30c4585ed137e757);增量批 submit 起 hash 守门生效
+- [x] 批拍卖合成包:`SkillTemplates/synthesized/gameplay-property-auction/manifest.yaml` review_status=**approved**(Phase 13 验收步骤 5 msc 已批,审批仍有效,Phase 13 原 gate 原位)
 - [ ] PIVOT 时:写 pivot note → 删除整个 demo plugin → 重跑 v0(连续同因 PIVOT 升级 KILL 评估)
 - [ ] KILL 时:失败归档(归因+可复用残值+教训),Phase 14 以"实证失败"收尾(合法产出)
 
