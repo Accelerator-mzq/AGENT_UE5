@@ -57,6 +57,20 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Demo|Flow")
 	bool AutoAdvanceOneTurn();
 
+	// --- 暂停(Esc 意图,试玩反馈修复轮)---
+
+	// 切换暂停态(Esc)。暂停时掷骰/结束回合意图被拒。
+	UFUNCTION(BlueprintCallable, Category = "Demo|Flow")
+	void TogglePauseState();
+
+	// 直接设暂停态(冒烟用例直驱用)。
+	UFUNCTION(BlueprintCallable, Category = "Demo|Flow")
+	void SetPauseState(bool bNewPaused);
+
+	// 当前是否暂停。
+	UFUNCTION(BlueprintCallable, Category = "Demo|Flow")
+	bool IsPaused() const;
+
 protected:
 	// 棋盘数据资产类(默认用代码兜底资产)。
 	UPROPERTY(EditDefaultsOnly, Category = "Demo|Config")
@@ -136,6 +150,12 @@ private:
 
 	// 截图输出绝对路径(启动参数 -MADemoShotPath= 指定;留空则用默认 Saved 目录)。
 	FString AutoShotPath;
+
+	// 真实 Esc 路径截图:-MADemoAutoPauseShot 时延迟注入 Escape 按键事件(走输入管线)再截图退出。
+	bool bAutoPauseShot = false;
+
+	// 注入 Escape 按键事件(真实输入管线 → IntentPause → TogglePauseState)。
+	void InjectEscapeKey();
 
 	// 解析启动参数(自动驾驶演示用)。
 	void ParseLaunchArgs();

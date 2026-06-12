@@ -68,6 +68,10 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Demo|State")
 	bool bGameOver = false;
 
+	// 是否暂停中(Esc 切换;暂停时掷骰/结束回合意图被拒)。改写只经 GameMode 入口。
+	UPROPERTY(BlueprintReadOnly, Category = "Demo|State")
+	bool bPaused = false;
+
 	// 胜者玩家索引(-1=未定)。
 	UPROPERTY(BlueprintReadOnly, Category = "Demo|State")
 	int32 WinnerIndex = -1;

@@ -33,6 +33,16 @@ void AMADemoHUD::DrawHUD()
 		return;
 	}
 	DrawSelectedPanel();
+
+	// 真实暂停面板覆盖层:Esc → IntentPause → TogglePauseState → 此处渲染(再 Esc 恢复)。
+	// 非面板演示产物:仅在 GameState.bPaused 为真时出现,与人按物理 Esc 同一状态源。
+	const AMADemoGameState* PauseGS = GetDemoGameState();
+	if (PauseGS && PauseGS->bPaused)
+	{
+		DrawShellPanel(TEXT("已暂停 (PAUSED)"),
+			{ TEXT("[Esc] 继续 (Resume)"), TEXT("暂停期间 Space/Enter 不响应"),
+			  TEXT("Alt+F4 退出 (Quit)") });
+	}
 }
 
 void AMADemoHUD::DrawSelectedPanel()
@@ -54,11 +64,7 @@ void AMADemoHUD::DrawSelectedPanel()
 			{ TEXT("Master Volume"), TEXT("SFX Volume"), TEXT("Window Mode"),
 			  TEXT("Resolution"), TEXT("Apply"), TEXT("Back") });
 	}
-	else if (PanelMode == TEXT("pause"))
-	{
-		DrawShellPanel(TEXT("暂停 (ESC)"),
-			{ TEXT("Resume"), TEXT("Settings"), TEXT("Quit to Menu") });
-	}
+	// (原 -MADemoPanel=pause 演示分支已删除:暂停面板改由真实 Esc → bPaused 路径渲染,见 DrawHUD)
 	else if (PanelMode == TEXT("results"))
 	{
 		const AMADemoGameState* GS = GetDemoGameState();
@@ -198,8 +204,32 @@ void AMADemoHUD::DrawGameHUD()
 		Y += 26.f;
 	}
 
-	DrawLine(TEXT("[Space] 掷骰推进   [Enter] 结束回合   [Esc] 暂停"),
-		X, Y, FLinearColor(0.7f, 1.f, 0.7f));
+	// 键位提示按真实行为分阶段(宣称对齐,试玩反馈修复轮):
+	// 等待掷骰提示 Space,回合结束提示 Enter;暂停时由暂停面板提示 Esc。
+	FString Hint;
+	if (GS->bPaused)
+	{
+		Hint = TEXT("已暂停 — [Esc] 继续");
+	}
+	else
+	{
+		switch (GS->TurnPhase)
+		{
+		case EMADemoTurnPhase::WaitingForRoll:
+			Hint = TEXT("[Space] 掷骰   [Esc] 暂停");
+			break;
+		case EMADemoTurnPhase::TurnEnd:
+			Hint = TEXT("[Enter] 结束回合   [Esc] 暂停");
+			break;
+		case EMADemoTurnPhase::GameOver:
+			Hint = TEXT("对局已结束");
+			break;
+		default:
+			Hint = TEXT("[Esc] 暂停");
+			break;
+		}
+	}
+	DrawLine(Hint, X, Y, FLinearColor(0.7f, 1.f, 0.7f));
 
 	if (GS->bGameOver && GS->WinnerIndex >= 0)
 	{

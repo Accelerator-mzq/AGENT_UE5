@@ -54,7 +54,16 @@
       纠偏:施工规范 1.0.1→1.1.0(新增 §0 v0 可玩硬判据 / §1 authored 启动关卡必含 / §4 关卡加载冒烟 / §7 无人值守资产创建通路);
       插件整体删除;story 全量重置 pending(manifest 戳 1.1.0);attempt-1 证据归档 `ProjectState/Evidence/phase14_v0_attempt1/`。
 - [x] **attempt 2 主会话独立复证(2026-06-12)**:17/17 verified(attempts=0,manifest 戳 1.1.0,增量批未触碰);机制与主模块零触碰;9 张截图逐一查验内容真实各异;**亲跑冒烟 7/7**(`ProjectState/Evidence/phase14_v0_attempt2/smoke_report_recheck.json`,exit 0);**亲自驱动一局**(autoplay 80 回合上限,exit 0,推进至回合 21+,玩家资金/股市状态独立演化,日志 `my_playthrough.log`,截图 `Saved/Screenshots/WindowsEditor/ScreenShot00000.png`)——可玩硬判据经主会话实证
-- [ ] attempt 2:msc 无引导玩一局,裁决 PROCEED / PIVOT / KILL:____________(留痕路径:______________________)
+- [x] **attempt 2 试玩反馈修复轮(2026-06-12,msc 裁决:缺陷修复,不算 PIVOT,v0 未冻结)**:
+      发现(msc 试玩+代码诊断):Enter/Esc 空操作,HUD/README 宣称与行为不符(掷骰自动切人,Enter 无事可做;Esc 仅日志)。
+      修复:① `RequestRollAndResolve` 正常结算停 TurnEnd 不自动切人,Enter 在 TurnEnd 时 `AdvanceToNextPlayer`,TurnEnd 阶段 Space 被拒(监狱蹲守/三连双入狱同停 TurnEnd、破产者系统自动跳过——记 provisional);
+      ② 自动模式(冒烟 FullGameLoop / `-MADemoAutoPlay`)在 TurnEnd 由驱动逻辑代按 Enter,不挂等键;
+      ③ Esc 实做暂停:`bPaused` 入 GameState,Esc 切换,暂停期间 Space/Enter 双层守卫拒绝,Canvas HUD 渲染真实暂停面板,再 Esc 恢复;
+      ④ 宣称对齐:HUD 键位提示分阶段(WaitingForRoll→Space/TurnEnd→Enter/暂停→Esc 继续),README 键位表+一局流程同步;
+      ⑤ 冒烟新增 `InteractionSemantics` 用例钉死四条交互语义回归,Dice 用例适配,**8/8 全绿**(`ProjectState/Evidence/phase14_v0_attempt2/smoke_report.json`);
+      ⑥ 受影响截图重截:`hud_gameplay.png`(动态提示)+ `pause.png`(**真实 Escape 按键注入路径**,`-MADemoAutoPauseShot` 走完整输入管线,日志 `logs/fix_pause_shot.log` 显示 注入→暂停切换→截图 链路);
+      自修 0 轮(编译/冒烟均一次过);story 状态不动(试玩反馈回流 story 无机制通道,主会话记 backlog)。
+- [ ] attempt 2(修复轮后):msc 无引导玩一局,裁决 PROCEED / PIVOT / KILL:____________(留痕路径:______________________)
 - [ ] PROCEED 时冻结 v0 冒烟基线(`<run_id>` 与插件名按实际填):
 
   ```bash

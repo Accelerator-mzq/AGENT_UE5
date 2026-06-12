@@ -14,6 +14,8 @@
 #include "Engine/GameViewportClient.h"
 #include "UnrealClient.h"
 #include "Misc/Paths.h"
+#include "GameFramework/PlayerInput.h"
+#include "InputCoreTypes.h"
 
 AMADemoGameMode::AMADemoGameMode()
 {
@@ -49,6 +51,20 @@ void AMADemoGameMode::BeginPlay()
 	{
 		GetWorldTimerManager().SetTimer(AutoPlayTimerHandle, this,
 			&AMADemoGameMode::AutoPlayTick, 0.8f, true, 1.5f);
+	}
+	else if (bAutoPauseShot)
+	{
+		// 真实 Esc 路径截图:2s 注入 Escape(暂停面板经真实输入管线上屏)→ 3.5s 截图 → 退出。
+		FTimerHandle EscHandle;
+		GetWorldTimerManager().SetTimer(EscHandle, this,
+			&AMADemoGameMode::InjectEscapeKey, 2.0f, false);
+		FTimerHandle PauseShotHandle;
+		GetWorldTimerManager().SetTimer(PauseShotHandle, [this]()
+		{
+			RequestViewportScreenshot(AutoShotPath);
+			GetWorldTimerManager().SetTimer(QuitTimerHandle, this,
+				&AMADemoGameMode::FinishAutoShot, 3.0f, false);
+		}, 3.5f, false);
 	}
 	else if (bAutoShotAndExit)
 	{
@@ -114,6 +130,26 @@ void AMADemoGameMode::ParseLaunchArgs()
 	if (FParse::Value(CmdLine, TEXT("MADemoShotPath="), ShotPath))
 	{
 		AutoShotPath = ShotPath;
+	}
+	// 真实 Esc 路径截图:注入 Escape 按键事件(非面板演示),用于 pause 截图证据。
+	if (FParse::Param(CmdLine, TEXT("MADemoAutoPauseShot")))
+	{
+		bAutoPauseShot = true;
+	}
+}
+
+void AMADemoGameMode::InjectEscapeKey()
+{
+	// 注入真实 Escape 按键事件:走 PlayerInput → InputComponent BindKey → IntentPause
+	// 的完整输入管线,与人按物理 Esc 同一代码路径(非直接调 TogglePauseState)。
+	if (UWorld* World = GetWorld())
+	{
+		if (APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0))
+		{
+			FInputKeyParams Params(EKeys::Escape, IE_Pressed, 1.0);
+			PC->InputKey(Params);
+			UE_LOG(LogTemp, Log, TEXT("[Demo_MonopolyAuction] 已注入 Escape 按键事件(真实输入管线)"));
+		}
 	}
 }
 
@@ -245,18 +281,28 @@ void AMADemoGameMode::RequestRollAndResolve()
 	{
 		return;
 	}
+	// 暂停时掷骰意图被拒(试玩反馈修复轮;冒烟 InteractionSemantics 钉死此回归)。
+	if (GS->bPaused)
+	{
+		return;
+	}
+	// TurnEnd 阶段 Space 无效:回合节奏还给玩家,结算后须按 Enter 结束回合。
+	if (GS->TurnPhase == EMADemoTurnPhase::TurnEnd)
+	{
+		return;
+	}
 	UMADemoPlayerData* P = GS->GetPlayer(GS->CurrentPlayerIndex);
 	if (!P || P->bIsBankrupt)
 	{
+		// 破产跳过:系统纠偏路径,保留自动切人(玩家对已退场者无操作空间,provisional)。
 		AdvanceToNextPlayer();
 		return;
 	}
 
-	// 监狱中且本回合未出狱:不移动,直接结束回合(出狱判定在 StartTurn 已做)。
+	// 监狱中且本回合未出狱:不移动,停 TurnEnd 让玩家看到蹲守反馈后按 Enter(provisional)。
 	if (P->bIsInJail)
 	{
 		GS->TurnPhase = EMADemoTurnPhase::TurnEnd;
-		AdvanceToNextPlayer();
 		return;
 	}
 
@@ -272,8 +318,8 @@ void AMADemoGameMode::RequestRollAndResolve()
 		{
 			HandleGoToJail();
 			ConsecutiveDoubles = 0;
+			// 三连双入狱:停 TurnEnd 让玩家看清入狱事件再按 Enter(provisional)。
 			GS->TurnPhase = EMADemoTurnPhase::TurnEnd;
-			AdvanceToNextPlayer();
 			return;
 		}
 	}
@@ -292,8 +338,8 @@ void AMADemoGameMode::RequestRollAndResolve()
 		return;
 	}
 
+	// 正常路径:结算完停 TurnEnd,等玩家 Enter(IntentEndTurn → AdvanceToNextPlayer)。
 	GS->TurnPhase = EMADemoTurnPhase::TurnEnd;
-	AdvanceToNextPlayer();
 }
 
 void AMADemoGameMode::MoveCurrentPlayer(int32 Steps)
@@ -581,12 +627,20 @@ int32 AMADemoGameMode::RunFullGameToCompletion(int32 NumPlayers, int32 Seed)
 	AMADemoGameState* GS = CachedGameState;
 	StartTurn();
 
-	// 硬上限保护:防止任何逻辑缺陷死循环(回合上限 ×玩家数 ×双数追加余量)。
-	const int32 HardCap = (GS->RulesData->MaxGameRounds + 10) * NumPlayers * 4;
+	// 硬上限保护:防止任何逻辑缺陷死循环(回合上限 ×玩家数 ×双数+TurnEnd 两步余量)。
+	const int32 HardCap = (GS->RulesData->MaxGameRounds + 10) * NumPlayers * 6;
 	int32 Steps = 0;
 	while (!GS->bGameOver && Steps < HardCap)
 	{
-		RequestRollAndResolve();
+		// 自动直驱代按 Enter:TurnEnd 阶段切人,否则掷骰结算(人玩节奏由 Intent 驱动,自动模式由此驱动)。
+		if (GS->TurnPhase == EMADemoTurnPhase::TurnEnd)
+		{
+			AdvanceToNextPlayer();
+		}
+		else
+		{
+			RequestRollAndResolve();
+		}
 		++Steps;
 	}
 	// 若达保护上限仍未结束,强制收敛。
@@ -615,16 +669,45 @@ bool AMADemoGameMode::AutoAdvanceOneTurn()
 	{
 		return false;
 	}
-	// 推进当前玩家:可能因双数多次掷,这里推进到切玩家或结束为止。
+	// 推进当前玩家到切人或终局:TurnEnd 时自动代按 Enter(AdvanceToNextPlayer),
+	// 否则掷骰结算;双数追加掷会多迭代几次,Guard 兜底。
 	const int32 PlayerBefore = GS->CurrentPlayerIndex;
 	int32 Guard = 0;
 	do
 	{
-		RequestRollAndResolve();
+		if (GS->TurnPhase == EMADemoTurnPhase::TurnEnd)
+		{
+			AdvanceToNextPlayer();
+		}
+		else
+		{
+			RequestRollAndResolve();
+		}
 		++Guard;
 	}
-	while (!GS->bGameOver && GS->CurrentPlayerIndex == PlayerBefore && Guard < 10);
+	while (!GS->bGameOver && GS->CurrentPlayerIndex == PlayerBefore && Guard < 12);
 	return !GS->bGameOver;
+}
+
+void AMADemoGameMode::TogglePauseState()
+{
+	if (CachedGameState && !CachedGameState->bGameOver)
+	{
+		CachedGameState->bPaused = !CachedGameState->bPaused;
+	}
+}
+
+void AMADemoGameMode::SetPauseState(bool bNewPaused)
+{
+	if (CachedGameState)
+	{
+		CachedGameState->bPaused = bNewPaused;
+	}
+}
+
+bool AMADemoGameMode::IsPaused() const
+{
+	return CachedGameState ? CachedGameState->bPaused : false;
 }
 
 void AMADemoGameMode::RefreshHUD()

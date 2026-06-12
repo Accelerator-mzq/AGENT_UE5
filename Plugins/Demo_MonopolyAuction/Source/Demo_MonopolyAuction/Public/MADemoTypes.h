@@ -186,4 +186,12 @@ struct FMADemoHUDSnapshot
 	// 当前回合阶段文本。
 	UPROPERTY(BlueprintReadOnly, Category = "Demo|HUD")
 	FString PhaseText;
+
+	// 当前回合阶段(原始枚举,供键位提示按真实行为切换)。
+	UPROPERTY(BlueprintReadOnly, Category = "Demo|HUD")
+	EMADemoTurnPhase TurnPhase = EMADemoTurnPhase::NotStarted;
+
+	// 是否暂停中。
+	UPROPERTY(BlueprintReadOnly, Category = "Demo|HUD")
+	bool bPaused = false;
 };

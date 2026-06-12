@@ -31,10 +31,13 @@ void AMADemoPlayerController::IntentRollDice()
 {
 	if (AMADemoGameMode* GM = GetWorld() ? GetWorld()->GetAuthGameMode<AMADemoGameMode>() : nullptr)
 	{
-		// 掷骰并推进一步;GameMode 内部处理移动/落点/双数/切玩家。
+		// 暂停时掷骰意图被拒(GameMode 内亦有守卫,双保险)。
+		if (GM->IsPaused())
+		{
+			return;
+		}
+		// 掷骰并结算;结算完停 TurnEnd 等 Enter(回合节奏归玩家,试玩反馈修复轮)。
 		GM->RequestRollAndResolve();
-		// 刷新 HUD 经 GameMode 公有重载入口不可直达,这里通过再次掷骰前的 BeginPlay HUD 自刷。
-		// HUD 自身在每次按键后由 GameMode 的 RefreshHUD() 经 widget tick 兜底刷新(见 widget)。
 	}
 }
 
@@ -42,6 +45,11 @@ void AMADemoPlayerController::IntentEndTurn()
 {
 	if (AMADemoGameMode* GM = GetWorld() ? GetWorld()->GetAuthGameMode<AMADemoGameMode>() : nullptr)
 	{
+		// 暂停时结束回合意图被拒。
+		if (GM->IsPaused())
+		{
+			return;
+		}
 		AMADemoGameState* GS = GM->GetDemoGameState();
 		if (GS && GS->TurnPhase == EMADemoTurnPhase::TurnEnd)
 		{
@@ -52,6 +60,11 @@ void AMADemoPlayerController::IntentEndTurn()
 
 void AMADemoPlayerController::IntentPause()
 {
-	// v0:暂停意图记录(暂停 widget 的呈现由 HUD 层处理),不阻塞主链。
-	UE_LOG(LogTemp, Log, TEXT("[Demo_MonopolyAuction] 暂停意图(Esc)"));
+	// Esc 切换暂停态:暂停面板由 Canvas HUD 按 GameState.bPaused 渲染;再按 Esc 恢复。
+	if (AMADemoGameMode* GM = GetWorld() ? GetWorld()->GetAuthGameMode<AMADemoGameMode>() : nullptr)
+	{
+		GM->TogglePauseState();
+		UE_LOG(LogTemp, Log, TEXT("[Demo_MonopolyAuction] 暂停切换(Esc)→ %s"),
+			GM->IsPaused() ? TEXT("已暂停") : TEXT("已恢复"));
+	}
 }

@@ -130,6 +130,9 @@ FMADemoHUDSnapshot UMADemoHUDWidget::BuildSnapshot() const
 	case EMADemoTurnPhase::TurnEnd:        Snap.PhaseText = TEXT("回合结束"); break;
 	case EMADemoTurnPhase::GameOver:       Snap.PhaseText = TEXT("游戏结束"); break;
 	}
+	// 原始阶段与暂停态(键位提示按真实行为切换用)。
+	Snap.TurnPhase = GS->TurnPhase;
+	Snap.bPaused = GS->bPaused;
 	return Snap;
 }
 
@@ -157,6 +160,26 @@ void UMADemoHUDWidget::ApplySnapshotToText(const FMADemoHUDSnapshot& Snap)
 	if (StockText)
 	{
 		StockText->SetText(FText::FromString(FString::Printf(TEXT("股市  %s"), *Snap.StockSummary)));
+	}
+	if (HintText)
+	{
+		// 键位提示按真实行为分阶段(宣称对齐,与 Canvas HUD 同步)。
+		FString Hint;
+		if (Snap.bPaused)
+		{
+			Hint = TEXT("已暂停 — [Esc] 继续");
+		}
+		else
+		{
+			switch (Snap.TurnPhase)
+			{
+			case EMADemoTurnPhase::WaitingForRoll: Hint = TEXT("[Space] 掷骰   [Esc] 暂停"); break;
+			case EMADemoTurnPhase::TurnEnd:        Hint = TEXT("[Enter] 结束回合   [Esc] 暂停"); break;
+			case EMADemoTurnPhase::GameOver:       Hint = TEXT("对局已结束"); break;
+			default:                               Hint = TEXT("[Esc] 暂停"); break;
+			}
+		}
+		HintText->SetText(FText::FromString(Hint));
 	}
 }
 

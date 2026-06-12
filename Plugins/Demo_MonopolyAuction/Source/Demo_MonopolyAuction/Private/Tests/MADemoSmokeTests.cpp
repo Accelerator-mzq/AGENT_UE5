@@ -50,10 +50,16 @@ bool FMADemoDiceTest::RunTest(const FString& Parameters)
 	AMADemoGameMode* GM = NewObject<AMADemoGameMode>();
 	GM->InitializeGame(2, 12345);
 	// 多次掷骰检查范围与双数一致性。
+	// 适配试玩反馈修复轮:结算后停 TurnEnd,直驱循环代按 Enter(AdvanceToNextPlayer)再继续掷。
 	for (int32 i = 0; i < 200; ++i)
 	{
+		AMADemoGameState* GS = GM->GetDemoGameState();
+		if (GS->TurnPhase == EMADemoTurnPhase::TurnEnd)
+		{
+			GM->AdvanceToNextPlayer();
+			continue;
+		}
 		GM->RequestRollAndResolve();
-		const AMADemoGameState* GS = GM->GetDemoGameState();
 		const FMADemoDiceResult& D = GS->LastDice;
 		if (D.Die1 > 0)
 		{
@@ -212,6 +218,56 @@ bool FMADemoEntryMapLoadTest::RunTest(const FString& Parameters)
 	// HUD 可在关卡上下文创建(经 NewObject 校验类型合法;视口创建在 -game 路径验证)。
 	UMADemoHUDWidget* HUD = NewObject<UMADemoHUDWidget>(MapWorld);
 	TestNotNull(TEXT("HUD 可在关卡上下文创建"), HUD);
+	return true;
+}
+
+// 用例 8:交互语义(试玩反馈修复轮,把 Enter/Esc 空操作缺陷钉死成回归)。
+// 断言:掷骰结算后停 TurnEnd 且未自动切人;TurnEnd 阶段掷骰被拒;
+// AdvanceToNextPlayer(Enter)推进玩家;暂停态下掷骰被拒。
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMADemoInteractionSemanticsTest,
+	"Demo_MonopolyAuction.Smoke.InteractionSemantics",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMADemoInteractionSemanticsTest::RunTest(const FString& Parameters)
+{
+	AMADemoGameMode* GM = NewObject<AMADemoGameMode>();
+	GM->InitializeGame(2, 42);
+	GM->StartTurn();
+	AMADemoGameState* GS = GM->GetDemoGameState();
+	const int32 PlayerBefore = GS->CurrentPlayerIndex;
+
+	// 1. 掷骰结算后停 TurnEnd 且未切人(双数追加掷时继续掷;三连双入狱亦停 TurnEnd)。
+	int32 Guard = 0;
+	while (GS->TurnPhase != EMADemoTurnPhase::TurnEnd && !GS->bGameOver && Guard < 10)
+	{
+		GM->RequestRollAndResolve();
+		++Guard;
+	}
+	TestEqual(TEXT("结算后停 TurnEnd"), (int32)GS->TurnPhase, (int32)EMADemoTurnPhase::TurnEnd);
+	TestEqual(TEXT("结算后未自动切人(回合节奏归玩家)"), GS->CurrentPlayerIndex, PlayerBefore);
+
+	// 2. TurnEnd 阶段掷骰(Space)无效:骰子与阶段都不变。
+	const FMADemoDiceResult DiceAtTurnEnd = GS->LastDice;
+	GM->RequestRollAndResolve();
+	TestEqual(TEXT("TurnEnd 阶段掷骰被拒(Die1 未变)"), GS->LastDice.Die1, DiceAtTurnEnd.Die1);
+	TestEqual(TEXT("TurnEnd 阶段掷骰被拒(Die2 未变)"), GS->LastDice.Die2, DiceAtTurnEnd.Die2);
+	TestEqual(TEXT("阶段仍为 TurnEnd"), (int32)GS->TurnPhase, (int32)EMADemoTurnPhase::TurnEnd);
+
+	// 3. AdvanceToNextPlayer(Enter 意图)推进玩家索引并回到等待掷骰。
+	GM->AdvanceToNextPlayer();
+	TestEqual(TEXT("Enter 后切到下一玩家"), GS->CurrentPlayerIndex, (PlayerBefore + 1) % 2);
+	TestEqual(TEXT("新回合等待掷骰"), (int32)GS->TurnPhase, (int32)EMADemoTurnPhase::WaitingForRoll);
+
+	// 4. 暂停态下掷骰被拒:骰子与阶段都不变;恢复后解除。
+	GM->SetPauseState(true);
+	TestTrue(TEXT("已进入暂停态"), GM->IsPaused());
+	const FMADemoDiceResult DicePaused = GS->LastDice;
+	const EMADemoTurnPhase PhasePaused = GS->TurnPhase;
+	GM->RequestRollAndResolve();
+	TestEqual(TEXT("暂停时掷骰被拒(Die1 未变)"), GS->LastDice.Die1, DicePaused.Die1);
+	TestEqual(TEXT("暂停时掷骰被拒(Die2 未变)"), GS->LastDice.Die2, DicePaused.Die2);
+	TestEqual(TEXT("暂停时阶段不变"), (int32)GS->TurnPhase, (int32)PhasePaused);
+	GM->SetPauseState(false);
+	TestFalse(TEXT("恢复后退出暂停态"), GM->IsPaused());
 	return true;
 }
 

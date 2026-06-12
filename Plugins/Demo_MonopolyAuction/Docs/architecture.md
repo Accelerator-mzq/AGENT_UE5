@@ -21,8 +21,10 @@ Core / CoreUObject / Engine / InputCore(public)与 UMG / Slate / SlateCore(priva
 ### 2.1 裁决与状态
 
 - `AMADemoGameMode`:回合驱动核心。对外 API:`InitializeGame`、`StartTurn`、
-  `RequestRollAndResolve`(掷骰+移动+落点结算+双数处理一体)、`AdvanceToNextPlayer`、
-  `RunFullGameToCompletion`(冒烟主入口)、`AutoAdvanceOneTurn`(自动驾驶推进一回合)。
+  `RequestRollAndResolve`(掷骰+移动+落点结算+双数处理;**正常结算后停 TurnEnd 等 Enter**,
+  暂停/TurnEnd 阶段调用被拒——试玩反馈修复轮)、`AdvanceToNextPlayer`(Enter 意图落点)、
+  `RunFullGameToCompletion`(冒烟主入口,TurnEnd 时代按 Enter)、`AutoAdvanceOneTurn`
+  (自动驾驶推进一回合,同样代按 Enter)、`TogglePauseState`/`SetPauseState`/`IsPaused`(暂停)。
   内部裁决:`MoveCurrentPlayer`、`OnPlayerLanded`、`HandlePropertyTile`、`HandleTaxTile`、
   `HandleGoToJail`、`HandleJailTurnStart`、`ProcessPayment`、`EliminatePlayer`、
   `CheckGameOver`、`AutoBuyPolicy`。
@@ -89,3 +91,4 @@ InitializeGame(N, seed)
 | FullGameLoop | 5 个种子各驱动整局到终局零报错、胜者合法非破产 |
 | JailBankruptcy | 监狱标记与存活计数语义 |
 | WidgetCreation | HUD 快照 + 全部前台 widget + 三底座创建 |
+| InteractionSemantics | 试玩反馈修复轮回归:结算停 TurnEnd 未切人 / TurnEnd 掷骰被拒 / Enter 推进玩家 / 暂停态掷骰被拒 |
