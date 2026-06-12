@@ -1,7 +1,7 @@
 # CLAUDE.md — Mvpv4TestCodex 项目
 
 > 本文件供 Claude Code / Codex / 其他 AI Agent 在进入本项目时自动读取。
-> 最后更新：2026-06-11
+> 最后更新：2026-06-12
 
 ## 项目概述
 
@@ -158,13 +158,14 @@ python compiler_main.py
 
 ## 当前阶段
 
-Phase 13 — Skill 合成主链:实施完成(2026-06-11),验收 runbook 判据 1-4 闭环、5-12 待执行
-Phase 13 spec：`Docs/superpowers/specs/2026-06-10-phase13-skill-synthesis-design.md`
-Phase 13 plan：`Docs/superpowers/plans/2026-06-10-phase13-skill-synthesis.md`
-Phase 13 验收 runbook：`ProjectState/Reports/2026-06-11/phase13_acceptance_runbook.md`
+Phase 14 — Demo-First 增量主链:实施 + 验收全部完成(2026-06-12),demo-first 增量主链,msc v1 终裁通过
+Phase 14 spec：`Docs/superpowers/specs/2026-06-11-phase14-demo-first-design.md`
+Phase 14 plan：`Docs/superpowers/plans/2026-06-11-phase14-demo-first.md`
+Phase 14 验收 runbook：`ProjectState/Reports/2026-06-12/phase14_acceptance_runbook.md`
+Phase 13 已完成 — Skill 合成主链(2026-06-11)
 Phase 12 已完成 — LLM Internal Reopen(2026-05-27)
 Phase 11 已完成 — Skill-First Design Compiler Framework
-当前主入口：`task.md`(Phase 13 任务书)
+当前主入口：`task.md`(Phase 14 任务书)
 当前索引：`Docs/INDEX.md`
 MCP 总口径锚定：`Docs/design/HLD.md#4`
 四层主链定义：`Docs/requirements/SRS.md#4`
