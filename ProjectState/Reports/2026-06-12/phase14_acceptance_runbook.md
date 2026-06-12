@@ -76,8 +76,25 @@
 - [x] submit 机器守门:**hash 守门实证生效**——冻结文件 `MADemoSmokeTests.cpp` sha256 对账 OK 零改动;冒烟 `--v0-filter "Demo_MonopolyAuction.Smoke"`(冻结 8 用例)→ **v0_regression: pass**;全量 14/14(v0 8 + Inc1 6,含 PausedFrozen/FullGameWithAuction)
 - [x] **主会话独立复证(2026-06-12)**:亲跑冒烟 14/14 + v0_regression pass(`ProjectState/Evidence/phase14_v0_attempt2/inc1_smoke_recheck.json`,exit 0);19/21 story 状态盘点一致;hash 基线亲手对账 OK;拍卖面板截图亲眼验真;机制与主模块零触碰
 - [x] 实施 agent 诚实披露(留档):首版+一轮调参后拍卖 120 玩家回合零触发(地产售罄窗口问题),经真实对局日志暴露并以数据资产调参修复(购买/竞价缓冲 1200/100 拆分,30 回合 6 场拍卖),自修 2/5 轮;AutoBuyPolicy 语义使中高价地产多经拍卖通道分配(记 provisional,可回调数据值)
-- [ ] msc 试玩 v1 终裁:____________
+- [x] msc 试玩 v1 终裁:**通过**(msc,2026-06-12,本节即留痕)
 - [x] 增量失败不毁 v0:本批未触发(2/2 过);机制上 v0 基线与回归门已实证可独立守护
+
+---
+
+## 最终判定(2026-06-12,执行:Claude Code 主会话 + v0-builder agent;裁决:msc)
+
+| 判据 | 结果 |
+|---|---|
+| C1 机器(pytest 56 / Stage 14 / 全量等价 / strict 30) | ✅ 全过(主会话亲跑) |
+| C2 切批标准答案(3 批/21 story/拓扑序) | ✅ 全中(含机器断言) |
+| C3 v0 无人值守 | ✅ **经 1 次 PIVOT + 1 次试玩反馈修复轮后达成**——attempt 2:17/17 verified(attempts=0),authored 关卡+键盘可玩+真实截图,自修 A1/B0/C3 轮均未超限;主会话亲驱一局复证 |
+| C4 人审窗口 1 | ✅ attempt 1 PIVOT(可玩定义缝,规范升 1.1.0)→ attempt 2 修复轮(Enter/Esc)→ **PROCEED**(msc:"功能没问题";图形归 Phase 15) |
+| C5 增量批 1(拍卖) | ✅ 2/2 verified;hash 守门+v0 回归实证生效;拍卖入可玩循环;**msc 试玩 v1 终裁通过** |
+| C6 接口中立 | ✅ 真实 MCP stdio 实测 57 工具,fetch/submit 可见 |
+
+- 范围说明:increment-2(股票市场)按 spec §2 留批不执行(计划在册,Phase 14 范围 = v0 + 一次增量)。
+- demo-first 模型核心主张双实证:**agent 无人值守写出可玩 v0**(经定义纠偏)+ **增量不破可玩**(hash 守门+回归门)。
+- PIVOT 纠偏循环、试玩反馈修复轮、零造假纪律、环境故障归因分离在本验收中全部经过实战。
 
 ## C6 接口中立
 
