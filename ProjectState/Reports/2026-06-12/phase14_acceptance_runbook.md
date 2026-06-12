@@ -10,26 +10,33 @@
 
 ## C1 机器判据
 
-- [ ] `python -m pytest Plugins/AgentBridge/Tests/scripts/ -k phase14 -v` 全绿(登记 56 条)
-- [ ] `python Plugins/AgentBridge/Tests/run_system_tests.py --no-editor --stage 14` → PASS (56/56)
-- [ ] `python Plugins/AgentBridge/Tests/run_system_tests.py --no-editor` 全量等价:除附录预存失败外零新增 FAIL
-- [ ] `python Plugins/AgentBridge/Scripts/validation/validate_examples.py --strict` → 30/30
+- [x] `python -m pytest Plugins/AgentBridge/Tests/scripts/ -k phase14 -v` 全绿(登记 56 条)
+      **已闭环(2026-06-12 执行)**:`56 passed, 369 deselected in 4.89s`
+- [x] `python Plugins/AgentBridge/Tests/run_system_tests.py --no-editor --stage 14` → PASS (56/56)
+      **已闭环**:exit 0,报告 `Plugins/AgentBridge/reports/2026-06-12/system_test_report_2026-06-12_080700.json`
+- [x] `python Plugins/AgentBridge/Tests/run_system_tests.py --no-editor` 全量等价:除附录预存失败外零新增 FAIL
+      **已闭环**:6 passed / 4 failed / 4 skipped(723.5s),失败集 = 附录 A 清单(Stage 7 CP-44 / Stage 10 MCP×5 / Stage 11 P11×3 / Stage 13 SKS 残留 4 条段传播),零新增。报告 `Plugins/AgentBridge/reports/2026-06-12/system_test_report_2026-06-12_081947.json`。
+      执行注:本次跑通前清理了 2026-06-11 07:56 遗留的 headless UE Editor(PID 33008,Phase 13 验收残留,挂起 Stage 4 commandlet 通路),见附录 B。
+- [x] `python Plugins/AgentBridge/Scripts/validation/validate_examples.py --strict` → 30/30
+      **已闭环**:Checked 30 / Passed 30 / Failed 0
 
 ## C2 实战:切批标准答案
 
-- [ ] 复用 Phase 13 流程产出 gap=0 的 run(Stage 1-3;两个合成包 review_status=approved 后重跑 Stage 3)
-- [ ] `python Plugins/AgentBridge/Scripts/demo_plan_main.py --run-dir ProjectState/runs/<run_id>`
-- [ ] 标准答案断言:恰好 3 批 / 21 story——
-  - v0:17 story(16 库内 capability = 13 plugin_skill_template + 3 future_baseline_template,+ story-v0-docs 居末)
-  - increment-1:2 story(拍卖 capability + 文档 story)
-  - increment-2:2 story(股票 capability + 文档 story)
-  - 批内拓扑序正确(依赖在前)
-  - run_id:______________________ demo_plan 路径:______________________
+- [x] 复用 Phase 13 流程产出 gap=0 的 run:`run-20260611-052252-5101`(Phase 13 验收 run,步骤 6 后 gaps=0、两合成包 approved,直接复用)
+- [x] `python Plugins/AgentBridge/Scripts/demo_plan_main.py --run-dir ProjectState/runs/run-20260611-052252-5101`
+      **已闭环(2026-06-12 执行)**:`[OK] demo_plan 落盘: 3 批 / 21 story`,exit 0
+- [x] 标准答案断言:**恰好 3 批 / 21 story 全中**——
+  - v0:17 story(末位 story-v0-docs)✓
+  - increment-1:story-skill-property-auction + story-increment-1-docs ✓
+  - increment-2:story-skill-stock-market + story-increment-2-docs ✓
+  - 批内拓扑序机器断言 PASS(批内依赖全部排序在前;增量批跨批依赖落更早批)✓
+  - manifest_version=1.0.1(命名派生澄清修订,commit 65e447a)
+  - run_id:`run-20260611-052252-5101` demo_plan 路径:`ProjectState/runs/run-20260611-052252-5101/demo_plan.json`(stories/ 21 文件,全 pending)
 
 ## C3 v0 无人值守实证(最大赌注,如实记录)
 
 - [ ] 驱动器就位(headless 会话或 driver 脚本;无人值守窗口从首次 demo_story_fetch 起算)
-- [ ] coding agent 按施工规范(`ProjectInputs/ConstructionManifest/demo_plugin_standards.md` v1.0.0)
+- [ ] coding agent 按施工规范(`ProjectInputs/ConstructionManifest/demo_plugin_standards.md` v1.0.1)
       在 `Plugins/<派生名>/` 完成 v0 全部 17 story:
   - 编译通过;冒烟:一局从开始驱动到终局零报错(GameState API 直驱)+ widget 创建冒烟
   - 冒烟 runner:`python Plugins/AgentBridge/Scripts/demo_smoke/runner.py --filter "<PluginName>.Smoke" --out ProjectState/Evidence/phase14_v0_smoke_report.json`
