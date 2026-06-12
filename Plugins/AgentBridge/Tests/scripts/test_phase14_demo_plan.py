@@ -126,7 +126,9 @@ class TestManifestLoader:
     def test_dmp31_load_manifest_text_and_version(self, project_root):
         ml = _load("manifest_loader")
         text, version = ml.load_construction_manifest(project_root)
-        assert version == "1.0.0" and "Plugin 骨架" in text
+        # 只锚定语义化三段格式,不钉具体值——规范文本修订(如 1.0.1 命名派生澄清)不应破坏机制测试
+        import re as _re
+        assert _re.fullmatch(r"\d+\.\d+\.\d+", version) and "Plugin 骨架" in text
 
     def test_dmp32_missing_version_line_fails_closed(self, workspace_tmp_path):
         ml = _load("manifest_loader")

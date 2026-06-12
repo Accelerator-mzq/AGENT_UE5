@@ -1,4 +1,4 @@
-manifest_version: 1.0.0
+manifest_version: 1.0.1
 
 # Demo Plugin 施工规范(construction manifest)v1
 
@@ -7,7 +7,7 @@ manifest_version: 1.0.0
 
 ## 1. Plugin 骨架
 
-- 每个 demo = 一个自包含 runtime plugin:`Plugins/<PluginName>/`(名称由 demo_plan 派生,见 story 材料)
+- 每个 demo = 一个自包含 runtime plugin:`Plugins/<PluginName>/`;名称由实施 agent 从契约 game_identity/contract_id 派生(Demo_ 前缀 + 大驼峰,如 Demo_MonopolyAuction),并记入首个 story 的 provisional_decisions
 - 必含:`<PluginName>.uplugin`(Type=Runtime)、`Source/<PluginName>/`(模块同名)、`Content/`、`Docs/`、`README.md`
 - Build.cs 依赖白名单:Core、CoreUObject、Engine、InputCore、UMG、Slate、SlateCore;新增依赖须在 provisional_decisions 留痕
 - **禁止依赖**:`Source/Mvpv4TestCodex` 主模块的任何类(MMonopoly*、MBoardManager、MDice 等)——include 或模块依赖均算违规
