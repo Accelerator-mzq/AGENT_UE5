@@ -49,9 +49,10 @@
 ## 5. 下一步(Phase 15 输入)
 
 1. **呈现 / 图形增量轴**(msc 试玩诉求):demo 当前只有文字 HUD,capability 切批机制缺呈现升级轴;Phase 15 需把"呈现/图形"作为增量分化维度。
-2. **扇出 N demo + 挑选会话层**(原 Phase 14 定义遗留):产品愿景"N 份 demo + 使用者挑选"的会话层尚未实现。
-3. **词表扩展 / Stage 1 模板固化**(Phase 13 遗留)。
-4. Phase 14 实施期 backlog(P14-BL-01~06,含安全/机制/性能/可观测/门禁/机制缺口)见 `Docs/acceptance/acceptance_report.md` 附 4。
+2. **词表扩展 / Stage 1 模板固化**(Phase 13 遗留)。
+3. Phase 14 实施期 backlog(P14-BL-01~06,含安全/机制/性能/可观测/门禁/机制缺口)见 `Docs/acceptance/acceptance_report.md` 附 4。
+
+> 范围裁决(msc,2026-06-12):原列项"扇出 N demo + 挑选会话层"自 Phase 15 范围去除,恢复需 msc 主动提出;"N 份 demo + 使用者挑选"保持为产品长期方向,不进近期阶段规划。
 
 ---
 
