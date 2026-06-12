@@ -68,3 +68,9 @@
   - `README.md` + `AGENTS.md` + `Plugins/AgentBridge/README.md`: Updated — **诚实披露:上轮报告"README/AGENTS 无当前阶段声明"为假阴性**(bash grep 中文 pattern 因 GBK 编码静默失配)。本轮用 Grep 工具复查发现并修复:README 头部状态/当前入口/新增 Phase 14 完成结果区块/Phase 13 区块改"当时为"标注+验收状态修正(判据 1-12 已闭环)/常用命令 30/30/当前约定工具数 57(53 主+4 alias);AGENTS.md v1.6→v1.7、入口表 +Phase 14 spec/runbook 两行;插件 README +Phase 14 已完成能力区块、Phase 13 区块改"当时为"、line 47 当前 strict 30/30。
 - 验证:awk 列自检空;主表 57/47/30 行数实测吻合;Grep 终扫仅剩刻意"当时为/当前为"历史标注;strict 30/30 为本会话实测(本轮改动 doc-only,未触碰 schema 本体,未重跑)。
 - 边界:`Plugins/AgentBridge/AGENTS.md` 只读未动;`Docs/History/**` 与历史 Reports 未动;acceptance 附 3(Phase 13 历史快照,含"270→364")与 test_spec UE 5.7 BC 区按历史/不维护惯例保留原文。
+
+## Phase 15 范围裁决补记(2026-06-12,PR #46 合并后)
+
+- 变更:`task.md` §5 与 `Docs/acceptance/acceptance_report.md` 附 4.4——"扇出 N demo + 挑选会话层"经 msc 裁决自 Phase 15 范围去除(恢复需 msc 主动提出;产品愿景保持为长期方向)。
+- 性质:doc-only 范围记录,无行为/契约/测试变更;未跑测试(doc-only)。
+- Coverage:A(task.md)+ B(acceptance_report 附 4.4)同步一致;记忆(memory)同步由主会话完成。
