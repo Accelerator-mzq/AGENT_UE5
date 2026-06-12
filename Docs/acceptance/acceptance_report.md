@@ -2,7 +2,7 @@
 
 > 版本: v1(2026-05-26,Phase 1.16 初稿)
 > 上游: <code>Docs/Current/18&#95;Phase11&#95;Closeout.md</code>(Phase 4 已搬到 `Docs/archive/current/18_Phase11_Closeout.md`,本文件 §1 是其消化后归宿)+ ProjectState/Reports/2026-04-17/task15_phase11_final_acceptance.md + phase11_feature_coverage_report.md
-> 关联: Docs/FEATURE_INVENTORY.md(108 F-* IDs)+ Docs/testing/test_spec.md(364 case)+ Docs/contracts/{schemas_catalog,mcp_tools_catalog}.md
+> 关联: Docs/FEATURE_INVENTORY.md(108 F-* IDs)+ Docs/testing/test_spec.md(420 case)+ Docs/contracts/{schemas_catalog,mcp_tools_catalog}.md
 > 关联 spec: Docs/superpowers/specs/2026-05-26-docs-restructure-for-ue57.md v1.1 §4.5
 > 状态: §1 / §2 / §4 已基于 Phase 11 as-is 实地化;§3 UE 5.7 验收为空模板,待重构完成后逐项勾选
 
@@ -80,27 +80,27 @@ Defer 治理项与 UE 运行时专项全部落盘,残留风险仅有 `LLM Intern
 
 下列 5 个门禁是 main 主线的回归门禁(原 UE 5.7 重构验收口径),任何一项不通过视为 main 退化:
 
-### 2.1 Schema --strict 28/28
+### 2.1 Schema --strict 30/30
 
 ```bash
 python Plugins/AgentBridge/Scripts/validation/validate_examples.py --strict
 ```
 
-期望:`checked=28, passed=28, failed=0`(基线演进:Phase 11 收尾 26 → 2026-05-27 ForgeUE +1 → 2026-06-11 Phase 13 +`phase13_gdd_coverage_matrix.example.json` = 28)。
+期望:`checked=30, passed=30, failed=0`(基线演进:Phase 11 收尾 26 → 2026-05-27 ForgeUE +1 → 2026-06-11 Phase 13 +`phase13_gdd_coverage_matrix.example.json` = 28 → 2026-06-12 Phase 14 +`phase14_demo_plan`/`phase14_demo_story` example = 30)。
 该数字基线意味着登记进 strict 映射的每个 example 能在 `--strict` 严格模式下通过 JSON Schema Draft 校验。
 详细 schema 与 example 的逐项映射见 [schemas_catalog.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/contracts/schemas_catalog.md) 附录。
 对应 F-SCH-01..06 / F-VAL-02。任何 schema 升级或 example 改动,都必须在本门禁下复测才能合入。
 
-### 2.2 SystemTest 364 case
+### 2.2 SystemTest 420 case
 
 ```bash
 python Plugins/AgentBridge/Tests/run_system_tests.py
 ```
 
-期望:`STAGES TOTAL_CASES = 364`(基线演进:266 → Phase 12 +LIR 4 = 270 → Phase 13 +SKS 89 = 359 → 终审修复 +SKS 5 = 364),17 测试类全 pass(允许显式 skip,不允许 fail)。
-17 测试类逐类详情见 [test_spec.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/testing/test_spec.md) §3。
+期望:`STAGES TOTAL_CASES = 420`(基线演进:266 → Phase 12 +LIR 4 = 270 → Phase 13 +SKS 89 = 359 → 终审修复 +SKS 5 = 364 → 2026-06-12 Phase 14 +Stage 14 DMP 56 = 420),18 测试类全 pass(允许显式 skip,不允许 fail)。
+18 测试类逐类详情见 [test_spec.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/testing/test_spec.md) §3。
 对应 F-TST-04;`--no-editor` 等价分段验证见 task08_orchestrate 内置链路。
-已知预存失败(非 Phase 13 引入,2026-06-11 如实记录):MCP-03/04/05(环境缺 `mcp` 包)、MCP-08/10、P11-09/10/18、CP-44(gitignore 产物 / 历史证据缺失)。
+已知预存失败(非 Phase 13/14 引入,2026-06-12 如实记录):MCP-03/04/05(环境缺 `mcp` 包)、MCP-08/10、P11-09/10/18、CP-44(gitignore 产物 / 历史证据缺失);SKS 4 条(Phase 13 验收 run 留树合成包致注册表对账失配,属 Phase 13 backlog registry_scan 目录白名单,详见 Phase 14 runbook 附录 A)。
 
 ### 2.3 UE 运行时双路径
 
@@ -115,13 +115,13 @@ Standalone smoke 入口脚本:`Plugins/AgentBridge/Tests/scripts/task14a_phase11
 UE 5.7 升级后,BC-008 EditorScriptingUtilities 与 BC-025 硬编码 `UE_5.5` 路径
 若未处理,该门禁会立即失败。
 
-### 2.4 MCP 工具注册数 55
+### 2.4 MCP 工具注册数 57
 
 ```bash
 python -c "from Plugins.AgentBridge.MCP.tool_definitions import ALL_TOOLS; print(len(ALL_TOOLS))"
 ```
 
-期望输出 `55`(Bridge 28 + Compiler 前端 16 + 后端治理/Evidence 11;含 4 兼容 alias。基线演进:Phase 11 收尾 53 → 2026-06-11 Phase 13 +`compiler_skill_synthesis_prepare/save` = 55)。
+期望输出 `57`(Bridge 28 + Compiler 前端 18 + 后端治理/Evidence 11;含 4 兼容 alias。基线演进:Phase 11 收尾 53 → 2026-06-11 Phase 13 +`compiler_skill_synthesis_prepare/save` = 55 → 2026-06-12 Phase 14 +`demo_story_fetch/submit` = 57,demo 工具对注册在 `COMPILER_FRONTEND_TOOLS` 内)。
 Phase 11 实施前文档中的 `50` 是 planning 口径,不再使用。
 详细工具表(主工具 51 + alias 4)见 [mcp_tools_catalog.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/contracts/mcp_tools_catalog.md)。
 对应 F-MCP-01..13 + F-CMP-25。

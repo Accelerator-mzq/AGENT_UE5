@@ -1,16 +1,16 @@
-# Schemas Catalog — 45 主 Schema 字段级索引(+ 28 examples 附录)
+# Schemas Catalog — 47 主 Schema 字段级索引(+ 30 examples 附录)
 
-> 版本: v1.2(2026-06-11 Phase 13 增 `gdd_coverage_matrix` schema + 1 example;同日补登记 Phase 12 漏录的 `provider_call` / `retry_policy` 2 份;2026-05-27 ForgeUE 增 `forgeue_import_evidence` schema + 1 example)
+> 版本: v1.3(2026-06-12 Phase 14 增 `demo_plan` / `demo_story` schema + 2 examples;2026-06-11 Phase 13 增 `gdd_coverage_matrix` schema + 1 example;同日补登记 Phase 12 漏录的 `provider_call` / `retry_policy` 2 份;2026-05-27 ForgeUE 增 `forgeue_import_evidence` schema + 1 example)
 > 关联 spec: Docs/superpowers/specs/2026-05-26-docs-restructure-for-ue57.md v1.1 + Docs/superpowers/specs/2026-06-10-phase13-skill-synthesis-design.md §5
 > 关联 FEATURE_INVENTORY: Docs/FEATURE_INVENTORY.md F-SCH-* 族
 > 验收门禁: 每行 5 字段完整(文件/用途/版本/引用方/关键字段清单)
-> 数字注脚: spec v1.1 §3.2 写"64 Schema",2026-05-26 实测 67(41+26),2026-05-27 ForgeUE milestone 后实测 69(42+27),2026-06-11 实测 73(45+28,Phase 13 +1 与 Phase 12 补登记 +2);实测为准。
+> 数字注脚: spec v1.1 §3.2 写"64 Schema",2026-05-26 实测 67(41+26),2026-05-27 ForgeUE milestone 后实测 69(42+27),2026-06-11 实测 73(45+28,Phase 13 +1 与 Phase 12 补登记 +2),2026-06-12 实测 77(47+30,Phase 14 +`demo_plan`/`demo_story` schema +2 与 example +2);实测为准。
 
 > 路径基准: 所有 `文件` 列条目均相对 `Plugins/AgentBridge/Schemas/`。
 > 引用方采集方法: 在 `Plugins/AgentBridge/{Scripts,Compiler,MCP,SkillTemplates,Tests,AgentBridgeTests}` 与根 `Scripts/` 下,对每个 schema basename 做内容搜索(`.py` + `.json`),排除 schema 自身与 examples 数据。每行给出 ≤3 个代表性引用,完整命中数见行尾括号。
 > 关键字段清单: 取顶层 `properties` 的前 8 个 key;若顶层只有 `$defs`(common 库)则标注 "$defs 库:..." 列出 def 名;若是 manifest 则取 manifest 顶层 key。
 
-## 主表(45 主 Schema)
+## 主表(47 主 Schema)
 
 | 文件 | 用途 | 版本 | 引用方 | 关键字段清单 |
 |------|------|------|--------|--------------|
@@ -28,6 +28,8 @@
 | converged_realization_pack.schema.json | Phase 11 Convergence 最终选择产物 | v1 | Scripts/validation/validate_examples.py; Compiler/pipeline/pipeline_orchestrator.py; Tests/scripts/task11_phase11_mcp_e2e.py (4) | pack_version, skill_instance_id, source_candidates, converged_choices, cross_dimension_consistency, metadata |
 | cross_review_report.schema.json | Cross-Spec Review 阶段统一审查报告 | v1 | Compiler/cross_review/cross_review.py; Compiler/cross_review/__init__.py; Compiler/pipeline/pipeline_orchestrator.py (3) | review_id, review_version, input_fragment_ids, review_status, review_checks, issues_found, phase_scope_check, reviewed_dynamic_spec_tree... |
 | cross_review_report_v2.schema.json | Stage 5 跨域冲突与 Blueprint 薄层审查 | v2 | Scripts/validation/validate_examples.py; Compiler/pipeline/pipeline_orchestrator.py; Tests/scripts/task11_phase11_mcp_e2e.py (4) | review_id, review_version, source_contract_id, source_gate_id, source_graph_id, input_fragment_ids, review_status, review_checks... |
+| demo_plan.schema.json | Phase 14 demo-first 批次计划(v0 批=全部库内绑定节点;每合成节点一增量批;批内拓扑序;每批末尾文档 story) | v1(const 1.0.0) | Scripts/demo_plan_main.py; Scripts/validation/validate_examples.py (2) | plan_schema_version, run_id, source_graph_id, manifest_version, batches |
+| demo_story.schema.json | Phase 14 demo-first 单条施工工单(materials 全部为路径指针,agent 读全文零语义压缩) | v1(const 1.0.0) | Scripts/demo_plan_main.py; Scripts/validation/validate_examples.py (2) | story_schema_version, story_id, batch_id, story_kind, capability_id, instance_id, evidence_class, depends_on... |
 | design_decision_log.schema.json | Stage 4 非平凡设计选择结构化日志 | v1 | Scripts/validation/validate_examples.py (1) | log_version, source_kind, source_id, entries, metadata |
 | design_space_report.schema.json | Phase 11 Design Space Discovery 产物 | v1 | Scripts/validation/validate_examples.py; Compiler/pipeline/pipeline_orchestrator.py; Tests/scripts/task11_phase11_mcp_e2e.py (4) | report_version, skill_instance_id, source_contract_id, source_graph_id, discovery_dimensions, locked_dimensions, metadata |
 | evidence_manifest.schema.json | Phase 10 MCP 后端证据裁决标准化清单 | v1 | Scripts/evidence/evidence_manager.py (1) | run_id, created_at, test_type, test_scope, evidence_items, summary, status |
@@ -60,9 +62,9 @@
 | versions/v0.1_manifest.json | v0.1 Schema 清单 manifest(列出 common/stable/experimental/examples 分组) | v0.1 | (暂无外部引用 — manifest 类自描述文件,Phase 2 验证脚本索引中纳入) | version, engine_version, description, common_schemas, stable_schemas, experimental_schemas, examples |
 | write_feedback/write_operation_feedback.response.schema.json | 通用写操作反馈结构(spawn/transform/import 等) | v1 | Scripts/bridge/write_tools.py; Scripts/validation/validate_examples.py; Schemas/versions/v0.1_manifest.json (3) | status, summary, data, warnings, errors |
 
-## 附录 A: examples/ 示例数据(28 份)
+## 附录 A: examples/ 示例数据(30 份)
 
-`Plugins/AgentBridge/Schemas/examples/` 下是用于 Schema 验证 + 单元测试的 fixture 数据,**非契约本体**,不进主表。完整 28 份按文件名与对应 Schema 映射如下:
+`Plugins/AgentBridge/Schemas/examples/` 下是用于 Schema 验证 + 单元测试的 fixture 数据,**非契约本体**,不进主表。完整 30 份按文件名与对应 Schema 映射如下:
 
 | example 文件 | 对应主 Schema |
 |---|---|
@@ -90,6 +92,8 @@
 | phase11_skill_fragment_v2.example.json | skill_fragment_v2.schema.json |
 | phase11_skill_graph.example.json | skill_graph.schema.json |
 | phase13_gdd_coverage_matrix.example.json | gdd_coverage_matrix.schema.json |
+| phase14_demo_plan.example.json | demo_plan.schema.json |
+| phase14_demo_story.example.json | demo_story.schema.json |
 | reviewed_handoff_greenfield.example.json | reviewed_handoff.schema.json |
 | run_map_check.example.json | feedback/validation/run_map_check.response.schema.json |
 | run_plan_greenfield.example.json | run_plan.schema.json |
@@ -97,11 +101,11 @@
 
 ## 附录 B: 行数自检
 
-- 主 catalog 数据行数实测: **45**(已在主表逐行列出,2026-05-26 41 + 2026-05-27 ForgeUE +1 + Phase 12 `provider_call`/`retry_policy` +2(2026-06-11 补登记)+ 2026-06-11 Phase 13 +1 = 45)
-- examples 附录数据行数实测: **28**(已在附录 A 逐行列出,2026-05-26 26 + 2026-05-27 ForgeUE +1 + 2026-06-11 Phase 13 +1 = 28)
-- 合计 **73**(spec v1.1 §3.2 写 64,实测 +9,以实测为准)
+- 主 catalog 数据行数实测: **47**(已在主表逐行列出,2026-05-26 41 + 2026-05-27 ForgeUE +1 + Phase 12 `provider_call`/`retry_policy` +2(2026-06-11 补登记)+ 2026-06-11 Phase 13 +1 + 2026-06-12 Phase 14 `demo_plan`/`demo_story` +2 = 47)
+- examples 附录数据行数实测: **30**(已在附录 A 逐行列出,2026-05-26 26 + 2026-05-27 ForgeUE +1 + 2026-06-11 Phase 13 +1 + 2026-06-12 Phase 14 +2 = 30)
+- 合计 **77**(spec v1.1 §3.2 写 64,实测 +13,以实测为准)
 - 自检命令(Windows PowerShell 等价 / Git-Bash):
-  - `find Plugins/AgentBridge/Schemas -name "*.json" -not -path "*/examples/*" | wc -l` → 45
-  - `find Plugins/AgentBridge/Schemas/examples -name "*.json" | wc -l` → 28
+  - `find Plugins/AgentBridge/Schemas -name "*.json" -not -path "*/examples/*" | wc -l` → 47
+  - `find Plugins/AgentBridge/Schemas/examples -name "*.json" | wc -l` → 30
 - 引用方采集方法: 在 `Plugins/AgentBridge/{Scripts,Compiler,MCP,SkillTemplates,Tests,AgentBridgeTests}` 与根 `Scripts/` 下扫描 `*.py` + `*.json`(共 176 个候选文件),逐 schema basename 做字面包含搜索,排除 schema 自身和 examples 数据
 - Schema 字段读取方法: 直接读取每个 `.schema.json` 顶层 `properties` 取前 8 个 key;若顶层只有 `$defs`(common 库)则列出 def 名;manifest 文件取其顶层 key

@@ -71,14 +71,14 @@ Docs/
 │       ├── 06_skills_and_templates.md        # Skill & Template(F-SKL-01..04)
 │       └── 07_runtime_and_evidence.md        # 运行时/证据/测试/Hook/Input/Demo/Validation
 ├── testing/
-│   └── test_spec.md                          # 17 测试类 / 364 case 索引
+│   └── test_spec.md                          # 18 测试类 / 420 case 索引
 ├── acceptance/
 │   └── acceptance_report.md                  # Phase 11 基线 + UE 5.7 验收模板
 ├── contracts/
 │   ├── tool_contract.md                      # L1/L2/L3 工具协议(7 章)
 │   ├── field_specification.md                # 字段命名/单位/Schema 规则(5 章)
-│   ├── schemas_catalog.md                    # 45 主 Schema + 28 examples
-│   └── mcp_tools_catalog.md                  # 55 MCP 工具签名表
+│   ├── schemas_catalog.md                    # 47 主 Schema + 30 examples
+│   └── mcp_tools_catalog.md                  # 57 MCP 工具签名表
 ├── superpowers/
 │   ├── specs/                                # 设计 spec(本次重组 + UE 5.7 scan)
 │   └── plans/                                # 实施 plan
@@ -102,10 +102,10 @@ Docs/
 
 | 硬事实 | 权威文档 | 数字 / 内容 |
 |--------|----------|-------------|
-| MCP 工具数 | `Docs/contracts/mcp_tools_catalog.md` 主表 | **57**(Bridge 28 + 前端 16 + 后端 11 + demo 2;2026-06-11 Phase 13 +`compiler_skill_synthesis_prepare/save`=55;2026-06-12 Phase 14 +`demo_story_fetch/submit`=57,实测 `tool_definitions.ALL_TOOLS`)|
-| Schema 数 | `Docs/contracts/schemas_catalog.md` 主表 + 附录 A | **45 主 + 28 examples = 73**(2026-06-11 Phase 13 新增 `gdd_coverage_matrix` schema + 1 example,同日补登记 Phase 12 漏录的 `provider_call`/`retry_policy`;2026-05-27 ForgeUE +`forgeue_import_evidence`)|
+| MCP 工具数 | `Docs/contracts/mcp_tools_catalog.md` 主表 | **57**(Bridge 28 + 前端 18 + 后端 11,demo 工具对注册在 `COMPILER_FRONTEND_TOOLS` 内;2026-06-11 Phase 13 +`compiler_skill_synthesis_prepare/save`=55;2026-06-12 Phase 14 +`demo_story_fetch/submit`=57,实测 `tool_definitions.ALL_TOOLS`)|
+| Schema 数 | `Docs/contracts/schemas_catalog.md` 主表 + 附录 A | **47 主 + 30 examples = 77**(2026-06-12 Phase 14 +`demo_plan`/`demo_story` schema 与 example 各 2;2026-06-11 Phase 13 新增 `gdd_coverage_matrix` schema + 1 example,同日补登记 Phase 12 漏录的 `provider_call`/`retry_policy`;2026-05-27 ForgeUE +`forgeue_import_evidence`)|
 | 系统测试用例数 | `Docs/testing/test_spec.md` §3 + `Plugins/AgentBridge/Tests/run_system_tests.py` TOTAL_CASES | **420**(14 stage;2026-06-11 Phase 13 +Stage 13 SKS=364;2026-06-12 Phase 14 +Stage 14 DMP-01~56=420,实测 `run_system_tests.py` TOTAL_CASES)|
-| C++ Automation 测试数 | `Docs/testing/test_spec.md` §1 + `Plugins/AgentBridge/AgentBridgeTests/` | **~26**(独立计数,不计入 364)|
+| C++ Automation 测试数 | `Docs/testing/test_spec.md` §1 + `Plugins/AgentBridge/AgentBridgeTests/` | **~26**(独立计数,不计入 420)|
 | 7 阶段主链 | `Docs/requirements/SRS.md §4.1` + `Docs/design/HLD.md §2.1` | Stage 1-7(Root Skill Contract → Reviewed Handoff v3);Phase 13 起含条件环节 S3.5 Skill Synthesis(capability_gaps 非空且 `allow_skill_synthesis=true` 时)|
 | Run 治理 | `Docs/requirements/SRS.md §4.3` + `Docs/design/HLD.md §3` | F-GOV-01..05(run_id / fast_mode / generator_provider / compare-promote / synthesized+gap promote 守卫)|
 | Schema --strict 30/30 | `Docs/testing/test_spec.md §5` + `Docs/acceptance/acceptance_report.md §2.1` | `validate_examples.py --strict`(2026-06-11 27→28 加 `phase13_gdd_coverage_matrix`;2026-06-12 Phase 14 +`phase14_demo_plan`/`phase14_demo_story` example=30,实测 Checked/Passed 30)|
@@ -146,11 +146,14 @@ Docs/
 ## 6. 常用命令(从旧 <code>Docs/Current/06&#95;Current&#95;Task&#95;List.md</code> 搬迁)
 
 ```bash
-# Schema 校验(--strict 28/28)
+# Schema 校验(--strict 30/30)
 python Plugins/AgentBridge/Scripts/validation/validate_examples.py --strict
 
-# 系统测试:一键全 13 stage / 364 case
+# 系统测试:一键全 14 stage / 420 case
 python Plugins/AgentBridge/Tests/run_system_tests.py
+
+# 系统测试:仅 Phase 14 Demo Plan(Stage 14 / DMP-01~56)
+python Plugins/AgentBridge/Tests/run_system_tests.py --stage=14
 
 # 系统测试:仅 Phase 13 Skill Synthesis(Stage 13 / SKS-01~94)
 python Plugins/AgentBridge/Tests/run_system_tests.py --stage=13
