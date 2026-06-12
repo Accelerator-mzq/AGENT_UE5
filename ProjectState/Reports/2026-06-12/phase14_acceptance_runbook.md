@@ -79,9 +79,8 @@
 
 ## C6 接口中立
 
-- [ ] 工具数 57:
-  `python -c "import sys; sys.path.insert(0, 'Plugins/AgentBridge'); from MCP import tool_definitions as td; print(td.TOOL_COUNT)"`
-- [ ] demo_story_fetch / demo_story_submit 在 MCP server 工具清单可见(Codex 可接入,本期不实证)
+- [x] 工具数 57:**已闭环(2026-06-12 执行)**——`TOOL_COUNT=57`,两工具均在 ALL_TOOLS
+- [x] demo_story_fetch / demo_story_submit 在 MCP server 工具清单可见:**已闭环**——经真实 MCP stdio(initialize → tools/list)实测 server 暴露 57 工具,两者均可见(Codex 可接入,本期不实证)
 
 ---
 
