@@ -53,6 +53,7 @@
       归因:机器面全绿但无 authored 关卡/交互入口,"可玩"在 msc 语义与机器门禁语义间存在定义缝(根因=spec 设计,详见 pivot note)。
       纠偏:施工规范 1.0.1→1.1.0(新增 §0 v0 可玩硬判据 / §1 authored 启动关卡必含 / §4 关卡加载冒烟 / §7 无人值守资产创建通路);
       插件整体删除;story 全量重置 pending(manifest 戳 1.1.0);attempt-1 证据归档 `ProjectState/Evidence/phase14_v0_attempt1/`。
+- [x] **attempt 2 主会话独立复证(2026-06-12)**:17/17 verified(attempts=0,manifest 戳 1.1.0,增量批未触碰);机制与主模块零触碰;9 张截图逐一查验内容真实各异;**亲跑冒烟 7/7**(`ProjectState/Evidence/phase14_v0_attempt2/smoke_report_recheck.json`,exit 0);**亲自驱动一局**(autoplay 80 回合上限,exit 0,推进至回合 21+,玩家资金/股市状态独立演化,日志 `my_playthrough.log`,截图 `Saved/Screenshots/WindowsEditor/ScreenShot00000.png`)——可玩硬判据经主会话实证
 - [ ] attempt 2:msc 无引导玩一局,裁决 PROCEED / PIVOT / KILL:____________(留痕路径:______________________)
 - [ ] PROCEED 时冻结 v0 冒烟基线(`<run_id>` 与插件名按实际填):
 
