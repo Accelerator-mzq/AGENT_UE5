@@ -36,6 +36,13 @@ void AMADemoPlayerController::IntentRollDice()
 		{
 			return;
 		}
+		AMADemoGameState* GS = GM->GetDemoGameState();
+		// 拍卖期 Space 语义切换:当前竞价玩家出价(热座竞价,增量批 1)。
+		if (GS && GS->TurnPhase == EMADemoTurnPhase::Auction)
+		{
+			GM->AuctionBidCurrent();
+			return;
+		}
 		// 掷骰并结算;结算完停 TurnEnd 等 Enter(回合节奏归玩家,试玩反馈修复轮)。
 		GM->RequestRollAndResolve();
 	}
@@ -51,6 +58,12 @@ void AMADemoPlayerController::IntentEndTurn()
 			return;
 		}
 		AMADemoGameState* GS = GM->GetDemoGameState();
+		// 拍卖期 Enter 语义切换:当前竞价玩家弃权(热座竞价,增量批 1)。
+		if (GS && GS->TurnPhase == EMADemoTurnPhase::Auction)
+		{
+			GM->AuctionPassCurrent();
+			return;
+		}
 		if (GS && GS->TurnPhase == EMADemoTurnPhase::TurnEnd)
 		{
 			GM->AdvanceToNextPlayer();

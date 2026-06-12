@@ -101,7 +101,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Demo|Rules")
 	int32 MaxGameRounds = 200;
 
-	// 自动购买保留缓冲(provisional,AutoBuyPolicy 留够保释金缓冲才买)。
+	// 自动购买保留缓冲(provisional):现金 < 地价+此值 时拒购进拍卖。
+	// 增量批 1 实测:缓冲 100/300 时开局人人买得起,16 块地产售罄前拒购窗口不存在,
+	// 120 玩家回合零拍卖。调到 1200:开局第 2-3 块地即进拍卖通道(便宜地直接买、
+	// 贵地拒购进拍卖,符合真实大富翁手感),拍卖在对局中频率可见;数据驱动可回调。
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Demo|Rules")
-	int32 AutoBuyReserveBuffer = 100;
+	int32 AutoBuyReserveBuffer = 1200;
+
+	// 自动竞价保留缓冲(增量批 1,provisional):自动代打出价后剩余须 ≥ 此值。
+	// 与购买缓冲拆分——拒购门槛高、竞价意愿高,拍卖才有成交看头。
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Demo|Rules")
+	int32 AuctionBidReserveBuffer = 100;
 };

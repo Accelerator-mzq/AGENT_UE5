@@ -61,6 +61,19 @@ Core / CoreUObject / Engine / InputCore(public)与 UMG / Slate / SlateCore(priva
 `EMADemoTurnPhase`:NotStarted → WaitingForRoll →(Resolving)→ TurnEnd/WaitingForRoll(双数再掷)
 → AdvanceToNextPlayer → … → GameOver。胜负在 `CheckGameOver` 收敛(存活 1 人或达回合上限按净资产)。
 
+增量批 1 加 **Auction** 阶段:落无主地产拒购时 Resolving → Auction(打断双数追加掷并暂存),
+拍卖收敛(成交/流拍)后 → TurnEnd 或 WaitingForRoll(恢复追加掷)。
+
+## 3.1 拍卖子状态机(增量批 1,GDD 2.1)
+
+- 入口:`HandlePropertyTile` 拒购 → `StartAuction`(守卫:仅无主地产)。
+- 轮转:`AuctionBidCurrent`(出价=首口起拍价/最高+步长,出价守卫拒绝超出现金)/
+  `AuctionPassCurrent`(弃权粘性)→ `AdvanceAuctionTurn` 找下一未弃权者;
+  收敛判定:全弃无人出价→流拍;仅剩最高出价者→成交;经 `FinishAuction` 结算并恢复回合流。
+- 自动代打:`AutoAuctionStep`(自动竞价策略,provisional);暂停冻结:`bPaused` 时出价/弃权被拒。
+- 意图映射:拍卖期 `AMADemoPlayerController` 把 Space/Enter 转发为出价/弃权(键位语义切换)。
+- 呈现:`AMADemoHUD` 的 DrawAuctionPanel(标的/底价/最高价高亮/弃权变灰/出价记录/拟出价提示)。
+
 ## 4. 数据流(冒烟直驱路径)
 
 ```
@@ -75,12 +88,14 @@ InitializeGame(N, seed)
 
 ## 5. 扩展点(Phase 14 留缝)
 
-- 规则数值:改 `UMADemoRulesDataAsset` 实例值。
+- 规则数值:改 `UMADemoRulesDataAsset` 实例值(拍卖起拍比例/步长同源)。
 - 棋盘布局:改 `UMADemoBoardDataAsset` 的 Tiles。
-- 拍卖/股票交易 UI:在 increment 批新增 widget 与 GameMode 分支,数据结构
-  `FMADemoAuctionState` / `UMADemoStockMarket` 已就位。
+- 拍卖已入可玩循环(增量批 1);股票交易 UI 在 increment-2 新增,
+  数据结构 `UMADemoStockMarket` 已就位。
 
-## 6. 冒烟用例覆盖(`Demo_MonopolyAuction.Smoke`)
+## 6. 冒烟用例覆盖
+
+v0 基线(`Demo_MonopolyAuction.Smoke`,已冻结 hash 守门):
 
 | 用例 | 覆盖 |
 |------|------|
@@ -92,3 +107,14 @@ InitializeGame(N, seed)
 | JailBankruptcy | 监狱标记与存活计数语义 |
 | WidgetCreation | HUD 快照 + 全部前台 widget + 三底座创建 |
 | InteractionSemantics | 试玩反馈修复轮回归:结算停 TurnEnd 未切人 / TurnEnd 掷骰被拒 / Enter 推进玩家 / 暂停态掷骰被拒 |
+
+增量批 1(`Demo_MonopolyAuction.Inc1`,独立新文件 MADemoInc1AuctionTests.cpp):
+
+| 用例 | 覆盖 |
+|------|------|
+| AuctionTrigger | 拒购触发 / 起拍价 50% / 轮转起点 / 已有主与非地产不触发 / 他人地产付租不触发 |
+| AuctionBidProgression | 首口=起拍价 / 步长 +10 / 最高价与轮转推进 |
+| AuctionSettlement | 其余全弃 → 最高者立付获契 / 拍后停 TurnEnd |
+| AuctionNoSale | 全弃无人出价 → 流拍保持无主 |
+| AuctionPausedFrozen | 暂停期间出价/弃权被拒,恢复后正常 |
+| FullGameWithAuction | 多种子整局含自动拍卖收敛零报错、拍卖不悬挂 |

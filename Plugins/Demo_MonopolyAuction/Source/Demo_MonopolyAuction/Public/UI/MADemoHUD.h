@@ -34,4 +34,8 @@ private:
 
 	// 按 PanelMode 选择绘制内容。
 	void DrawSelectedPanel();
+
+	// 拍卖面板(增量批 1,GDD 3.1):标的/底价/起拍价、最高价+出价人(高亮)、
+	// 轮到谁、各玩家弃权状态、出价记录滚动、键位提示。拍卖进行中渲染于屏幕中央。
+	void DrawAuctionPanel();
 };

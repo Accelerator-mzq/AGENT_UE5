@@ -41,9 +41,38 @@ Esc 仅打日志)。修复(msc 裁决:缺陷修复轮,不算 PIVOT,v0 未冻结)
   钉死四条交互语义回归(结算停 TurnEnd 未切人/TurnEnd 掷骰被拒/Enter 推进/暂停掷骰被拒);
   8/8 全绿。
 
-## increment-1(待批)
+## increment-1(2026-06-12,英式拍卖入可玩循环)
 
-- 地产拍卖完整交互(英式拍卖出价面板)。
+msc PROCEED 后首个增量批。v0 冒烟基线已冻结(hash 守门),本批零触碰冻结文件,
+拍卖用例放独立新文件 Demo_MonopolyAuction.Inc1 名字空间。
+
+新增(GDD 2.1 地产拍卖;合成包 synthesized.gameplay-property-auction.v1 为设计参考):
+- **触发**:玩家落无主地产且拒购(AutoBuyPolicy 拒绝)→ 立即进入英式拍卖;
+  途经/已有主/非地产格不触发(`AMADemoGameMode` 的 StartAuction 守卫)。
+- **规则**(数据驱动,`UMADemoRulesDataAsset`):起拍价=地价 50%、加价步长 $10(GDD 锁定);
+  全体未破产玩家轮流出价或弃权(破产者无资格);弃权粘性(退出本场);
+  全弃且无人出价→流拍保持无主(不降价重拍);仅剩最高出价者→立即按出价支付并获地契。
+- **热座竞价交互**:拍卖期键位语义切换——轮到的竞价玩家 [Space]=出价(首口=起拍价,
+  其后=最高+步长)、[Enter]=弃权;买不起拟出价时 Space 无效(HUD 提示只能弃权)。
+- **HUD 拍卖面板**(`AMADemoHUD` 的 DrawAuctionPanel,GDD 3.1):标的名/地价/起拍价/步长、
+  当前最高价+出价人(高亮)、各玩家竞价状态(弃权变灰)、轮到谁、出价记录(最近 6 条)、
+  拟出价键位提示;拍后主面板保留"上一场拍卖"结果行。
+- **暂停冻结**:Esc 暂停期间出价/弃权双层守卫拒绝,恢复后继续。
+- **回合流衔接**:拍卖打断双数追加掷时暂存,拍后恢复等待掷骰,否则停 TurnEnd;
+  自动模式(冒烟直驱/-MADemoAutoPlay)按自动竞价策略代打
+  (出价后剩余≥缓冲且拟出价≤地价则出价,否则弃权,provisional)。
+- **冒烟**:新文件 MADemoInc1AuctionTests.cpp 六用例(AuctionTrigger/AuctionBidProgression/
+  AuctionSettlement/AuctionNoSale/AuctionPausedFrozen/FullGameWithAuction);
+  全量 14/14 通过,v0 回归段 pass(冻结 hash 对账通过)。
+
+**拍卖可见性调参(实测驱动)**:缓冲 100/300 时开局人人买得起,16 块地产售罄前
+拒购窗口不存在,120 玩家回合零拍卖(日志实证);购买缓冲(AutoBuyReserveBuffer)
+调至 1200 并与竞价缓冲(AuctionBidReserveBuffer=100)拆分后,30 玩家回合内 6 场拍卖
+跨玩家竞价成交(便宜地直接买、贵地进拍卖,合真实大富翁手感)。自动演示模式拍卖期
+逐口推进(每 tick 一步),旁观者可见面板过程;`-MADemoAuctionShotPath=` 可截首场拍卖面板。
+
+provisional:轮转起点=落格玩家且拒购者可参拍;弃权粘性(全弃即流拍的最小解释);
+自动竞价不溢价(拟出价≤地价);购买/竞价缓冲拆分(1200/100,数据驱动可回调)。
 
 ## increment-2(待批)
 

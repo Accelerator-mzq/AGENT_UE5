@@ -136,6 +136,12 @@ void AMADemoGameMode::ParseLaunchArgs()
 	{
 		bAutoPauseShot = true;
 	}
+	// 拍卖面板截图:首场拍卖开始后延迟截取(增量批 1 呈现实证)。
+	FString AuctionShot;
+	if (FParse::Value(CmdLine, TEXT("MADemoAuctionShotPath="), AuctionShot))
+	{
+		AuctionShotPath = AuctionShot;
+	}
 }
 
 void AMADemoGameMode::InjectEscapeKey()
@@ -291,6 +297,11 @@ void AMADemoGameMode::RequestRollAndResolve()
 	{
 		return;
 	}
+	// 拍卖进行中掷骰无效(拍卖期 Space 语义切换为出价,经 AuctionBidCurrent 进入)。
+	if (GS->TurnPhase == EMADemoTurnPhase::Auction)
+	{
+		return;
+	}
 	UMADemoPlayerData* P = GS->GetPlayer(GS->CurrentPlayerIndex);
 	if (!P || P->bIsBankrupt)
 	{
@@ -328,6 +339,13 @@ void AMADemoGameMode::RequestRollAndResolve()
 
 	if (GS->bGameOver)
 	{
+		return;
+	}
+
+	// 落格触发了拍卖:回合流被打断,暂存双数追加掷,待 FinishAuction 恢复。
+	if (GS->TurnPhase == EMADemoTurnPhase::Auction)
+	{
+		bPendingExtraRollAfterAuction = Dice.bIsDouble && !P->bIsBankrupt && !P->bIsInJail;
 		return;
 	}
 
@@ -398,7 +416,7 @@ void AMADemoGameMode::HandlePropertyTile(int32 TileIndex)
 
 	if (TileOwnerIndex < 0)
 	{
-		// 无主:自动购买策略(无人值守裁决)。放弃则进拍卖骨架(v0 不展开交互)。
+		// 无主:自动购买策略裁决"是否购买"(无人值守与人玩同语义,provisional)。
 		if (AutoBuyPolicy(TileIndex))
 		{
 			const FMADemoTileInfo Info = GS->GetTileInfo(TileIndex);
@@ -408,13 +426,8 @@ void AMADemoGameMode::HandlePropertyTile(int32 TileIndex)
 		}
 		else
 		{
-			// 放弃购买 → 进入拍卖(GDD 2.1,v0 仅置数据态,不展开多轮交互 UI)。
-			GS->AuctionState.bActive = true;
-			GS->AuctionState.TileIndex = TileIndex;
-			GS->AuctionState.HighestBid = 0;
-			GS->AuctionState.HighestBidderIndex = -1;
-			// v0 流拍收敛:无买家则保持无主,清拍卖态。
-			GS->AuctionState.bActive = false;
+			// 拒购 → 立即进入英式拍卖(GDD 2.1;增量批 1 完整实现)。
+			StartAuction(TileIndex);
 		}
 	}
 	else if (TileOwnerIndex != P->PlayerIndex)
@@ -535,6 +548,251 @@ bool AMADemoGameMode::AutoBuyPolicy(int32 TileIndex)
 	return P->Money >= (Info.Price + Buffer);
 }
 
+// --- 拍卖(增量批 1,GDD 2.1 英式拍卖)---
+
+void AMADemoGameMode::StartAuction(int32 TileIndex)
+{
+	AMADemoGameState* GS = CachedGameState;
+	if (!GS || GS->bGameOver)
+	{
+		return;
+	}
+	const FMADemoTileInfo Info = GS->GetTileInfo(TileIndex);
+	// 守卫:仅无主地产可拍(评审清单 1:途经/已有主不触发)。
+	if (Info.TileType != EMADemoTileType::Property || GS->GetTileOwner(TileIndex) >= 0)
+	{
+		return;
+	}
+
+	FMADemoAuctionState& A = GS->AuctionState;
+	A.bActive = true;
+	A.TileIndex = TileIndex;
+	// 起拍价 = 地价 50%(GDD 2.1 锁定,数据驱动)。
+	A.StartPrice = (Info.Price * GS->RulesData->AuctionStartPricePercent) / 100;
+	A.HighestBid = 0;
+	A.HighestBidderIndex = -1;
+	// 出价资格:全体未破产玩家(破产者开场即标弃权,评审清单 5)。
+	A.PassedPlayers.Init(false, GS->Players.Num());
+	int32 EligibleCount = 0;
+	for (int32 i = 0; i < GS->Players.Num(); ++i)
+	{
+		const UMADemoPlayerData* P = GS->GetPlayer(i);
+		if (!P || P->bIsBankrupt)
+		{
+			A.PassedPlayers[i] = true;
+		}
+		else
+		{
+			++EligibleCount;
+		}
+	}
+	A.BidLog.Empty();
+	A.BidLog.Add(FString::Printf(TEXT("开拍:%s(地价 $%d,起拍 $%d)"),
+		*Info.Name, Info.Price, A.StartPrice));
+	// 轮转起点:落格玩家(拒购者也可参拍,现实 Monopoly 惯例,provisional)。
+	A.CurrentBidderIndex = GS->CurrentPlayerIndex;
+	GS->TurnPhase = EMADemoTurnPhase::Auction;
+	// 留痕:拍卖开局(无人值守验证与 msc 试玩观察点)。
+	UE_LOG(LogTemp, Log, TEXT("[Demo_MonopolyAuction] 拍卖开始:%s(地价 $%d,起拍 $%d),P%d 拒购"),
+		*Info.Name, Info.Price, A.StartPrice, GS->CurrentPlayerIndex + 1);
+
+	// 首场拍卖面板截图(-MADemoAuctionShotPath 指定;仅关卡上下文,纯逻辑测试无 World 不进入)。
+	if (!AuctionShotPath.IsEmpty() && !bAuctionShotTaken && GetWorld() && bInteractiveContext)
+	{
+		bAuctionShotTaken = true;
+		FTimerHandle AuctionShotHandle;
+		GetWorldTimerManager().SetTimer(AuctionShotHandle, [this]()
+		{
+			RequestViewportScreenshot(AuctionShotPath);
+		}, 1.2f, false);
+	}
+
+	// 防御:无任何有资格竞价人(理论不可达,当前玩家必未破产)→ 直接流拍。
+	if (EligibleCount == 0)
+	{
+		FinishAuction(false);
+	}
+}
+
+int32 AMADemoGameMode::GetNextBidAmount() const
+{
+	const AMADemoGameState* GS = CachedGameState;
+	if (!GS || !GS->AuctionState.bActive)
+	{
+		return 0;
+	}
+	const FMADemoAuctionState& A = GS->AuctionState;
+	// 首口价 = 起拍价;其后 = 当前最高 + 步长(GDD 2.1 加价步长 10,数据驱动)。
+	return (A.HighestBidderIndex < 0)
+		? A.StartPrice
+		: A.HighestBid + GS->RulesData->AuctionBidStep;
+}
+
+void AMADemoGameMode::AuctionBidCurrent()
+{
+	AMADemoGameState* GS = CachedGameState;
+	if (!GS || !GS->AuctionState.bActive || GS->bPaused)
+	{
+		// 暂停期间拍卖冻结(Esc 暂停语义贯穿拍卖)。
+		return;
+	}
+	FMADemoAuctionState& A = GS->AuctionState;
+	UMADemoPlayerData* Bidder = GS->GetPlayer(A.CurrentBidderIndex);
+	if (!Bidder || A.PassedPlayers[A.CurrentBidderIndex])
+	{
+		return;
+	}
+	const int32 Amount = GetNextBidAmount();
+	// 出价守卫:买不起拟出价则无效(玩家只能弃权;成交时支付必然可兑现)。
+	if (!Bidder->CanAfford(Amount))
+	{
+		return;
+	}
+	A.HighestBid = Amount;
+	A.HighestBidderIndex = A.CurrentBidderIndex;
+	A.BidLog.Add(FString::Printf(TEXT("P%d 出价 $%d"), A.CurrentBidderIndex + 1, Amount));
+	AdvanceAuctionTurn();
+}
+
+void AMADemoGameMode::AuctionPassCurrent()
+{
+	AMADemoGameState* GS = CachedGameState;
+	if (!GS || !GS->AuctionState.bActive || GS->bPaused)
+	{
+		// 暂停期间拍卖冻结。
+		return;
+	}
+	FMADemoAuctionState& A = GS->AuctionState;
+	if (!A.PassedPlayers.IsValidIndex(A.CurrentBidderIndex)
+		|| A.PassedPlayers[A.CurrentBidderIndex])
+	{
+		return;
+	}
+	// 防御:当前最高出价者不该弃权(出价即承诺;轮转设计上不会轮到领先者,理论不可达)。
+	if (A.CurrentBidderIndex == A.HighestBidderIndex)
+	{
+		return;
+	}
+	A.PassedPlayers[A.CurrentBidderIndex] = true;
+	A.BidLog.Add(FString::Printf(TEXT("P%d 弃权"), A.CurrentBidderIndex + 1));
+	AdvanceAuctionTurn();
+}
+
+void AMADemoGameMode::AdvanceAuctionTurn()
+{
+	AMADemoGameState* GS = CachedGameState;
+	FMADemoAuctionState& A = GS->AuctionState;
+
+	// 未弃权人数统计。
+	int32 ActiveCount = 0;
+	for (bool bPassed : A.PassedPlayers)
+	{
+		if (!bPassed)
+		{
+			++ActiveCount;
+		}
+	}
+
+	// 收敛 1:全员弃权(弃权粘性,provisional)→ 无人出过价则流拍保持无主(GDD 2.1)。
+	if (ActiveCount == 0)
+	{
+		FinishAuction(A.HighestBidderIndex >= 0);
+		return;
+	}
+
+	// 找下一个未弃权竞价人(环形轮转,GDD 2.1 轮流出价或弃权)。
+	const int32 Count = A.PassedPlayers.Num();
+	int32 Next = A.CurrentBidderIndex;
+	for (int32 Probe = 0; Probe < Count; ++Probe)
+	{
+		Next = (Next + 1) % Count;
+		if (!A.PassedPlayers[Next])
+		{
+			break;
+		}
+	}
+
+	// 收敛 2:仅剩当前最高出价者一人(其余全弃)→ 成交(GDD 2.1 最高出价者立付获契)。
+	if (ActiveCount == 1 && Next == A.HighestBidderIndex)
+	{
+		FinishAuction(true);
+		return;
+	}
+
+	A.CurrentBidderIndex = Next;
+}
+
+void AMADemoGameMode::FinishAuction(bool bSold)
+{
+	AMADemoGameState* GS = CachedGameState;
+	FMADemoAuctionState& A = GS->AuctionState;
+
+	if (bSold && A.HighestBidderIndex >= 0)
+	{
+		// 成交:按最终出价立即支付并转移地契(复用 property_economy 支付语义;
+		// 出价守卫保证买得起,DeductMoney 不会失败)。
+		UMADemoPlayerData* Winner = GS->GetPlayer(A.HighestBidderIndex);
+		if (Winner && Winner->DeductMoney(A.HighestBid))
+		{
+			Winner->AddProperty(A.TileIndex);
+			GS->SetTileOwner(A.TileIndex, A.HighestBidderIndex);
+			A.BidLog.Add(FString::Printf(TEXT("成交:P%d 以 $%d 拍得 %s"),
+				A.HighestBidderIndex + 1, A.HighestBid,
+				*GS->GetTileInfo(A.TileIndex).Name));
+		}
+	}
+	else
+	{
+		// 流拍:地产保持无主(GDD 2.1;不降价重拍)。
+		A.BidLog.Add(FString::Printf(TEXT("流拍:%s 保持无主"),
+			*GS->GetTileInfo(A.TileIndex).Name));
+	}
+
+	A.bActive = false;
+	A.CurrentBidderIndex = -1;
+	// 留痕:拍卖收敛结果。
+	UE_LOG(LogTemp, Log, TEXT("[Demo_MonopolyAuction] 拍卖结束:%s"),
+		A.BidLog.Num() > 0 ? *A.BidLog.Last() : TEXT("(无记录)"));
+
+	// 恢复回合流:拍卖打断的双数追加掷优先,否则停 TurnEnd 等 Enter。
+	UMADemoPlayerData* P = GS->GetPlayer(GS->CurrentPlayerIndex);
+	if (bPendingExtraRollAfterAuction && P && !P->bIsBankrupt && !P->bIsInJail)
+	{
+		GS->TurnPhase = EMADemoTurnPhase::WaitingForRoll;
+	}
+	else
+	{
+		GS->TurnPhase = EMADemoTurnPhase::TurnEnd;
+	}
+	bPendingExtraRollAfterAuction = false;
+	CheckGameOver();
+}
+
+void AMADemoGameMode::AutoAuctionStep()
+{
+	AMADemoGameState* GS = CachedGameState;
+	if (!GS || !GS->AuctionState.bActive)
+	{
+		return;
+	}
+	const FMADemoAuctionState& A = GS->AuctionState;
+	const UMADemoPlayerData* Bidder = GS->GetPlayer(A.CurrentBidderIndex);
+	const int32 Amount = GetNextBidAmount();
+	const FMADemoTileInfo Info = GS->GetTileInfo(A.TileIndex);
+	// 竞价缓冲与购买缓冲拆分(增量批 1):拒购门槛高、竞价意愿高,拍卖才有成交。
+	const int32 Buffer = GS->RulesData->AuctionBidReserveBuffer;
+	// 自动竞价策略(provisional):出价后剩余 ≥ 竞价缓冲,且拟出价不超过地价
+	// (简单理性,不溢价抢拍)——满足则出价,否则弃权。
+	if (Bidder && Bidder->Money >= Amount + Buffer && Amount <= Info.Price)
+	{
+		AuctionBidCurrent();
+	}
+	else
+	{
+		AuctionPassCurrent();
+	}
+}
+
 void AMADemoGameMode::AdvanceToNextPlayer()
 {
 	AMADemoGameState* GS = CachedGameState;
@@ -627,13 +885,18 @@ int32 AMADemoGameMode::RunFullGameToCompletion(int32 NumPlayers, int32 Seed)
 	AMADemoGameState* GS = CachedGameState;
 	StartTurn();
 
-	// 硬上限保护:防止任何逻辑缺陷死循环(回合上限 ×玩家数 ×双数+TurnEnd 两步余量)。
-	const int32 HardCap = (GS->RulesData->MaxGameRounds + 10) * NumPlayers * 6;
+	// 硬上限保护:防止任何逻辑缺陷死循环(回合上限 ×玩家数 ×双数/TurnEnd/拍卖多步余量,
+	// 增量批 1 拍卖逐口出价计步,乘数加大)。
+	const int32 HardCap = (GS->RulesData->MaxGameRounds + 10) * NumPlayers * 12;
 	int32 Steps = 0;
 	while (!GS->bGameOver && Steps < HardCap)
 	{
-		// 自动直驱代按 Enter:TurnEnd 阶段切人,否则掷骰结算(人玩节奏由 Intent 驱动,自动模式由此驱动)。
-		if (GS->TurnPhase == EMADemoTurnPhase::TurnEnd)
+		// 自动直驱:拍卖阶段按自动竞价策略推进;TurnEnd 代按 Enter;否则掷骰结算。
+		if (GS->TurnPhase == EMADemoTurnPhase::Auction)
+		{
+			AutoAuctionStep();
+		}
+		else if (GS->TurnPhase == EMADemoTurnPhase::TurnEnd)
 		{
 			AdvanceToNextPlayer();
 		}
@@ -669,13 +932,18 @@ bool AMADemoGameMode::AutoAdvanceOneTurn()
 	{
 		return false;
 	}
-	// 推进当前玩家到切人或终局:TurnEnd 时自动代按 Enter(AdvanceToNextPlayer),
-	// 否则掷骰结算;双数追加掷会多迭代几次,Guard 兜底。
+	// 推进当前玩家到切人或终局:拍卖阶段自动竞价,TurnEnd 代按 Enter,否则掷骰结算;
+	// 双数追加掷会多迭代,Guard 放宽到 64。触发拍卖即退出本次推进(归还控制权给
+	// AutoPlayTick 逐口分支),让自动演示下拍卖面板过程可见。
 	const int32 PlayerBefore = GS->CurrentPlayerIndex;
 	int32 Guard = 0;
 	do
 	{
-		if (GS->TurnPhase == EMADemoTurnPhase::TurnEnd)
+		if (GS->TurnPhase == EMADemoTurnPhase::Auction)
+		{
+			AutoAuctionStep();
+		}
+		else if (GS->TurnPhase == EMADemoTurnPhase::TurnEnd)
 		{
 			AdvanceToNextPlayer();
 		}
@@ -685,7 +953,8 @@ bool AMADemoGameMode::AutoAdvanceOneTurn()
 		}
 		++Guard;
 	}
-	while (!GS->bGameOver && GS->CurrentPlayerIndex == PlayerBefore && Guard < 12);
+	while (!GS->bGameOver && GS->CurrentPlayerIndex == PlayerBefore
+		&& GS->TurnPhase != EMADemoTurnPhase::Auction && Guard < 64);
 	return !GS->bGameOver;
 }
 
@@ -720,6 +989,15 @@ void AMADemoGameMode::RefreshHUD()
 
 void AMADemoGameMode::AutoPlayTick()
 {
+	// 拍卖期逐口推进(每 tick 仅一步,不计回合数):自动演示下拍卖面板过程对旁观者可见。
+	AMADemoGameState* GS = CachedGameState;
+	if (GS && !GS->bGameOver && GS->TurnPhase == EMADemoTurnPhase::Auction)
+	{
+		AutoAuctionStep();
+		RefreshHUD();
+		return;
+	}
+
 	// 自动驾驶:逐回合推进并刷新 HUD,达到目标回合数后截图退出(无人值守演示)。
 	const bool bContinue = AutoAdvanceOneTurn();
 	++AutoPlayedTurns;

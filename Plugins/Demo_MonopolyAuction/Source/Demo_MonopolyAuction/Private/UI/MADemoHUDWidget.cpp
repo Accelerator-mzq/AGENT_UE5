@@ -128,6 +128,7 @@ FMADemoHUDSnapshot UMADemoHUDWidget::BuildSnapshot() const
 	case EMADemoTurnPhase::WaitingForRoll: Snap.PhaseText = TEXT("等待掷骰"); break;
 	case EMADemoTurnPhase::Resolving:      Snap.PhaseText = TEXT("结算中"); break;
 	case EMADemoTurnPhase::TurnEnd:        Snap.PhaseText = TEXT("回合结束"); break;
+	case EMADemoTurnPhase::Auction:        Snap.PhaseText = TEXT("拍卖中"); break;
 	case EMADemoTurnPhase::GameOver:       Snap.PhaseText = TEXT("游戏结束"); break;
 	}
 	// 原始阶段与暂停态(键位提示按真实行为切换用)。
@@ -175,6 +176,7 @@ void UMADemoHUDWidget::ApplySnapshotToText(const FMADemoHUDSnapshot& Snap)
 			{
 			case EMADemoTurnPhase::WaitingForRoll: Hint = TEXT("[Space] 掷骰   [Esc] 暂停"); break;
 			case EMADemoTurnPhase::TurnEnd:        Hint = TEXT("[Enter] 结束回合   [Esc] 暂停"); break;
+			case EMADemoTurnPhase::Auction:        Hint = TEXT("拍卖:[Space] 出价   [Enter] 弃权"); break;
 			case EMADemoTurnPhase::GameOver:       Hint = TEXT("对局已结束"); break;
 			default:                               Hint = TEXT("[Esc] 暂停"); break;
 			}

@@ -4,6 +4,7 @@
 #include "MADemoPlayerData.h"
 #include "MADemoStockMarket.h"
 #include "MADemoFoundations.h"
+#include "MADemoDataAssets.h"
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
 #include "Misc/CommandLine.h"
@@ -34,10 +35,17 @@ void AMADemoHUD::DrawHUD()
 	}
 	DrawSelectedPanel();
 
+	const AMADemoGameState* GS = GetDemoGameState();
+
+	// 拍卖面板(增量批 1):拍卖进行中渲染于屏幕中央(GDD 2.1 出价过程须 HUD 可见)。
+	if (GS && GS->TurnPhase == EMADemoTurnPhase::Auction && GS->AuctionState.bActive)
+	{
+		DrawAuctionPanel();
+	}
+
 	// 真实暂停面板覆盖层:Esc → IntentPause → TogglePauseState → 此处渲染(再 Esc 恢复)。
-	// 非面板演示产物:仅在 GameState.bPaused 为真时出现,与人按物理 Esc 同一状态源。
-	const AMADemoGameState* PauseGS = GetDemoGameState();
-	if (PauseGS && PauseGS->bPaused)
+	// 绘制在拍卖面板之后:暂停期间拍卖冻结,暂停面板压最上层。
+	if (GS && GS->bPaused)
 	{
 		DrawShellPanel(TEXT("已暂停 (PAUSED)"),
 			{ TEXT("[Esc] 继续 (Resume)"), TEXT("暂停期间 Space/Enter 不响应"),
@@ -163,6 +171,7 @@ void AMADemoHUD::DrawGameHUD()
 	case EMADemoTurnPhase::WaitingForRoll: PhaseText = TEXT("等待掷骰"); break;
 	case EMADemoTurnPhase::Resolving:      PhaseText = TEXT("结算中"); break;
 	case EMADemoTurnPhase::TurnEnd:        PhaseText = TEXT("回合结束"); break;
+	case EMADemoTurnPhase::Auction:        PhaseText = TEXT("拍卖中"); break;
 	case EMADemoTurnPhase::GameOver:       PhaseText = TEXT("游戏结束"); break;
 	default:                               PhaseText = TEXT("未开始"); break;
 	}
@@ -221,6 +230,10 @@ void AMADemoHUD::DrawGameHUD()
 		case EMADemoTurnPhase::TurnEnd:
 			Hint = TEXT("[Enter] 结束回合   [Esc] 暂停");
 			break;
+		case EMADemoTurnPhase::Auction:
+			// 拍卖期键位提示在中央拍卖面板内,主面板只标状态。
+			Hint = TEXT("拍卖进行中(见中央面板)");
+			break;
 		case EMADemoTurnPhase::GameOver:
 			Hint = TEXT("对局已结束");
 			break;
@@ -230,10 +243,111 @@ void AMADemoHUD::DrawGameHUD()
 		}
 	}
 	DrawLine(Hint, X, Y, FLinearColor(0.7f, 1.f, 0.7f));
+	Y += 24.f;
+
+	// 最近拍卖结果一行(成交/流拍后面板已收,主面板保留可见结果,增量批 1)。
+	if (!GS->AuctionState.bActive && GS->AuctionState.BidLog.Num() > 0)
+	{
+		DrawLine(FString::Printf(TEXT("上一场拍卖:%s"), *GS->AuctionState.BidLog.Last()),
+			X, Y, FLinearColor(1.f, 0.75f, 0.45f));
+	}
 
 	if (GS->bGameOver && GS->WinnerIndex >= 0)
 	{
 		DrawLine(FString::Printf(TEXT(">>> 玩家 P%d 获胜! <<<"), GS->WinnerIndex + 1),
 			PanelX + 16.f, PanelY + PanelH + 16.f, FLinearColor(1.f, 0.8f, 0.2f));
+	}
+}
+
+void AMADemoHUD::DrawAuctionPanel()
+{
+	const AMADemoGameState* GS = GetDemoGameState();
+	if (!GS)
+	{
+		return;
+	}
+	const FMADemoAuctionState& A = GS->AuctionState;
+	const FMADemoTileInfo Info = GS->GetTileInfo(A.TileIndex);
+
+	// 面板尺寸:头部 3 行 + 玩家状态行 + 出价记录(最多 6 条)+ 提示行。
+	const int32 LogShown = FMath::Min(A.BidLog.Num(), 6);
+	const float PanelX = 700.f, PanelY = 60.f, PanelW = 540.f;
+	const float PanelH = 200.f + (GS->Players.Num() + LogShown) * 24.f;
+	FCanvasTileItem Bg(FVector2D(PanelX, PanelY), FVector2D(PanelW, PanelH),
+		FLinearColor(0.10f, 0.06f, 0.02f, 0.92f));
+	Bg.BlendMode = SE_BLEND_Translucent;
+	Canvas->DrawItem(Bg);
+
+	UFont* Font = GEngine ? GEngine->GetMediumFont() : nullptr;
+	auto DrawLine = [&](const FString& Text, float X, float Y, FLinearColor Color, float Scale = 1.15f)
+	{
+		FCanvasTextItem Item(FVector2D(X, Y), FText::FromString(Text), Font, Color);
+		Item.Scale = FVector2D(Scale, Scale);
+		Canvas->DrawItem(Item);
+	};
+
+	float Y = PanelY + 14.f;
+	const float X = PanelX + 20.f;
+
+	// 顶部:地产名 + 地价 + 起拍价(GDD 3.1)。
+	DrawLine(FString::Printf(TEXT("英式拍卖 — %s"), *Info.Name), X, Y,
+		FLinearColor(1.f, 0.85f, 0.2f), 1.4f);
+	Y += 36.f;
+	DrawLine(FString::Printf(TEXT("地价 $%d   起拍 $%d   步长 $%d"),
+		Info.Price, A.StartPrice,
+		GS->RulesData ? GS->RulesData->AuctionBidStep : 10), X, Y, FLinearColor::White);
+	Y += 26.f;
+
+	// 当前最高价(高亮,GDD 3.1)。
+	if (A.HighestBidderIndex >= 0)
+	{
+		DrawLine(FString::Printf(TEXT("当前最高:$%d(P%d)"),
+			A.HighestBid, A.HighestBidderIndex + 1), X, Y, FLinearColor(1.f, 0.9f, 0.1f), 1.3f);
+	}
+	else
+	{
+		DrawLine(TEXT("尚无出价"), X, Y, FLinearColor(0.8f, 0.8f, 0.8f), 1.3f);
+	}
+	Y += 30.f;
+
+	// 各玩家状态(弃权变灰,GDD 3.1)。
+	for (int32 i = 0; i < GS->Players.Num(); ++i)
+	{
+		const bool bPassed = A.PassedPlayers.IsValidIndex(i) && A.PassedPlayers[i];
+		const bool bTurn = (i == A.CurrentBidderIndex);
+		const FString Line = FString::Printf(TEXT("P%d  %s%s"), i + 1,
+			bPassed ? TEXT("已弃权") : TEXT("竞价中"),
+			bTurn ? TEXT("  <- 轮到") : TEXT(""));
+		const FLinearColor Col = bPassed
+			? FLinearColor(0.45f, 0.45f, 0.45f)
+			: (bTurn ? FLinearColor(0.6f, 1.f, 0.6f) : FLinearColor(0.85f, 0.85f, 0.85f));
+		DrawLine(Line, X, Y, Col);
+		Y += 24.f;
+	}
+	Y += 6.f;
+
+	// 出价记录(最近 6 条,GDD 3.1 中部滚动列表)。
+	for (int32 i = A.BidLog.Num() - LogShown; i < A.BidLog.Num(); ++i)
+	{
+		DrawLine(A.BidLog[i], X, Y, FLinearColor(0.7f, 0.85f, 1.f), 1.0f);
+		Y += 24.f;
+	}
+	Y += 8.f;
+
+	// 键位提示:拟出价金额 + 买不起提示。
+	const int32 NextBid = (A.HighestBidderIndex < 0)
+		? A.StartPrice
+		: A.HighestBid + (GS->RulesData ? GS->RulesData->AuctionBidStep : 10);
+	const UMADemoPlayerData* Bidder = GS->GetPlayer(A.CurrentBidderIndex);
+	if (Bidder && Bidder->Money < NextBid)
+	{
+		DrawLine(FString::Printf(TEXT("P%d 现金不足($%d < $%d),只能 [Enter] 弃权"),
+			A.CurrentBidderIndex + 1, Bidder->Money, NextBid), X, Y,
+			FLinearColor(1.f, 0.5f, 0.4f));
+	}
+	else
+	{
+		DrawLine(FString::Printf(TEXT("[Space] 出价 $%d   [Enter] 弃权"), NextBid),
+			X, Y, FLinearColor(0.7f, 1.f, 0.7f));
 	}
 }

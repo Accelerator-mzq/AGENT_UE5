@@ -41,7 +41,9 @@ enum class EMADemoTurnPhase : uint8
 	WaitingForRoll UMETA(DisplayName = "等待掷骰"),
 	Resolving      UMETA(DisplayName = "结算中"),
 	TurnEnd        UMETA(DisplayName = "回合结束"),
-	GameOver       UMETA(DisplayName = "游戏结束")
+	GameOver       UMETA(DisplayName = "游戏结束"),
+	// 增量批 1:英式拍卖进行中(GDD 2.1)。追加在尾部,不改既有枚举值。
+	Auction        UMETA(DisplayName = "拍卖中")
 };
 
 // 玩家意图动作枚举(输入底座)。
@@ -118,7 +120,7 @@ struct FMADemoStock
 	int32 Price = 100;
 };
 
-// 拍卖运行态(GDD 2.1 地产拍卖,v0 仅落数据骨架)。
+// 拍卖运行态(GDD 2.1 地产拍卖;增量批 1 完整实现)。
 USTRUCT(BlueprintType)
 struct FMADemoAuctionState
 {
@@ -132,13 +134,29 @@ struct FMADemoAuctionState
 	UPROPERTY(BlueprintReadOnly, Category = "Demo|Auction")
 	int32 TileIndex = -1;
 
-	// 当前最高出价。
+	// 当前最高出价(0=尚无人出价)。
 	UPROPERTY(BlueprintReadOnly, Category = "Demo|Auction")
 	int32 HighestBid = 0;
 
 	// 当前最高出价玩家索引(-1 表示无人出价)。
 	UPROPERTY(BlueprintReadOnly, Category = "Demo|Auction")
 	int32 HighestBidderIndex = -1;
+
+	// 起拍价(地价 50%,GDD 2.1 锁定;首口价即此值)。
+	UPROPERTY(BlueprintReadOnly, Category = "Demo|Auction")
+	int32 StartPrice = 0;
+
+	// 当前轮到的竞价玩家索引。
+	UPROPERTY(BlueprintReadOnly, Category = "Demo|Auction")
+	int32 CurrentBidderIndex = -1;
+
+	// 各玩家是否已弃权(按玩家索引;破产者开场即标弃权)。
+	UPROPERTY(BlueprintReadOnly, Category = "Demo|Auction")
+	TArray<bool> PassedPlayers;
+
+	// 出价/弃权记录(HUD 滚动列表用,GDD 3.1 中部出价记录)。
+	UPROPERTY(BlueprintReadOnly, Category = "Demo|Auction")
+	TArray<FString> BidLog;
 };
 
 // HUD 单次快照(只读呈现用)。

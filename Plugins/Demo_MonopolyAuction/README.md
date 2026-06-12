@@ -37,9 +37,12 @@ UnrealEditor-Cmd.exe <uproject> /Demo_MonopolyAuction/Maps/L_MonopolyDemo -game 
 |------|--------|---------|------|
 | 掷骰 | `Space` | 等待掷骰(WaitingForRoll);TurnEnd/暂停时无效 | `AMADemoPlayerController::IntentRollDice` -> `AMADemoGameMode::RequestRollAndResolve` |
 | 结束回合 | `Enter` | 回合结束(TurnEnd);其余阶段/暂停时无效 | `AMADemoPlayerController::IntentEndTurn` -> `AMADemoGameMode::AdvanceToNextPlayer` |
-| 暂停/恢复 | `Esc` | 任意阶段切换;暂停期间 Space/Enter 不响应 | `AMADemoPlayerController::IntentPause` -> `AMADemoGameMode::TogglePauseState` |
+| **拍卖出价** | `Space` | 拍卖中(Auction,语义切换);买不起拟出价时无效 | `AMADemoPlayerController::IntentRollDice` -> `AMADemoGameMode::AuctionBidCurrent` |
+| **拍卖弃权** | `Enter` | 拍卖中(Auction,语义切换) | `AMADemoPlayerController::IntentEndTurn` -> `AMADemoGameMode::AuctionPassCurrent` |
+| 暂停/恢复 | `Esc` | 任意阶段切换;暂停期间 Space/Enter 不响应(拍卖同样冻结) | `AMADemoPlayerController::IntentPause` -> `AMADemoGameMode::TogglePauseState` |
 
-HUD 键位提示随阶段切换:等待掷骰提示 Space,回合结束提示 Enter;暂停时中央渲染暂停面板([Esc] 继续)。
+HUD 键位提示随阶段切换:等待掷骰提示 Space,回合结束提示 Enter,拍卖中提示出价/弃权(含拟出价金额);
+暂停时中央渲染暂停面板([Esc] 继续)。
 
 ## 一局预期流程
 
@@ -52,25 +55,44 @@ HUD 键位提示随阶段切换:等待掷骰提示 Space,回合结束提示 Ente
 3. 破产即退场、地产归无主;存活 1 人或达回合上限(默认 200,按净资产)→ `GameOver`,
    `AMADemoGameState::WinnerIndex` 落定,结果面板呈现胜者。
 
+## 拍卖在对局中怎么发生 / 怎么看(增量批 1,GDD 2.1)
+
+- **怎么发生**:当前玩家落在**无主地产**且拒购(自动购买策略拒绝:现金不足地价+缓冲)时,
+  立即进入英式拍卖,回合阶段切到"拍卖中"。
+- **怎么看**:屏幕中央弹出**拍卖面板**——标的名/地价/起拍价(=地价 50%)/步长($10)、
+  当前最高价与出价人(高亮)、各玩家竞价状态(弃权变灰)、"<- 轮到"指示、出价记录
+  (最近 6 条)、底部拟出价键位提示;左上主 HUD 阶段显示"拍卖中"。
+- **怎么玩**(热座):轮到的竞价玩家按 `Space` 出价(首口=起拍价,其后=当前最高+$10)
+  或按 `Enter` 弃权(弃权即退出本场);买不起拟出价时面板提示"只能弃权"。
+  全员弃权且无人出价 → 流拍保持无主;其余全弃 → 最高出价者立即支付并获得地契。
+- **拍后**:回合停 TurnEnd 等 `Enter`(若拍卖打断了双数追加掷,拍后回到等待掷骰);
+  主 HUD 保留"上一场拍卖"结果行。
+
 ## 冒烟
 
 ```
 AGENTBRIDGE_UE_CMD="<UE>/UnrealEditor-Cmd.exe" \
 python Plugins/AgentBridge/Scripts/demo_smoke/runner.py \
-  --filter "Demo_MonopolyAuction.Smoke" --out <绝对路径>/smoke_report.json
+  --filter "Demo_MonopolyAuction." --v0-filter "Demo_MonopolyAuction.Smoke" \
+  --out <绝对路径>/smoke_report.json
 ```
 
-8 用例:BoardData / Dice / Economy / EntryMapLoad / FullGameLoop / InteractionSemantics /
-JailBankruptcy / WidgetCreation(InteractionSemantics 为试玩反馈修复轮新增,钉死
-"结算停 TurnEnd 不自动切人 / TurnEnd 阶段掷骰被拒 / Enter 推进玩家 / 暂停态掷骰被拒"四条交互语义)。
+v0 基线 8 用例(已冻结):BoardData / Dice / Economy / EntryMapLoad / FullGameLoop /
+InteractionSemantics / JailBankruptcy / WidgetCreation。
+增量批 1 新增 6 用例(Demo_MonopolyAuction.Inc1,独立文件):AuctionTrigger /
+AuctionBidProgression / AuctionSettlement / AuctionNoSale / AuctionPausedFrozen /
+FullGameWithAuction。全量 14 用例,增量批提交要求 v0 回归段 pass。
 
 ## Provisional 摘要
 
 插件名 `Demo_MonopolyAuction`(契约派生);交易所选 16 号格;僵局上限 200 按净资产收敛;
 设置 session_only;确定性骰子与固定先手;自动购买保守策略;Canvas HUD 截图通路(UMG 叠加层
 不入标准截图,改 Canvas 直绘);PythonScriptPlugin 临时启用建关卡;自动驾驶启动参数。
+增量批 1:拍卖轮转起点=落格玩家且拒购者可参拍;弃权粘性;自动竞价不溢价(拟出价≤地价);
+购买/竞价缓冲拆分(1200/100,实测调参保证拍卖在对局中频率可见,数据驱动可回调)。
 完整清单见 `Docs/design.md` §5。
 
 ## 边界
 
-拍卖/股票完整交互 UI、authored 3D 棋盘与棋子 Actor 非 v0 范围,见 `Docs/changelog.md`。
+股票完整交互 UI(increment-2)、authored 3D 棋盘与棋子 Actor(图形归 Phase 15)非当前范围,
+见 `Docs/changelog.md`。
