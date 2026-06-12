@@ -35,17 +35,16 @@
 
 ## C3 v0 无人值守实证(最大赌注,如实记录)
 
-- [ ] 驱动器就位(headless 会话或 driver 脚本;无人值守窗口从首次 demo_story_fetch 起算)
-- [ ] coding agent 按施工规范(`ProjectInputs/ConstructionManifest/demo_plugin_standards.md` v1.0.1)
-      在 `Plugins/<派生名>/` 完成 v0 全部 17 story:
-  - 编译通过;冒烟:一局从开始驱动到终局零报错(GameState API 直驱)+ widget 创建冒烟
-  - 冒烟 runner:`python Plugins/AgentBridge/Scripts/demo_smoke/runner.py --filter "<PluginName>.Smoke" --out ProjectState/Evidence/phase14_v0_smoke_report.json`
-    (退出码契约:0=pass / 1=demo 失败计自修轮 / 3=环境故障不计自修轮)
-  - README 试玩说明 + Docs/ 维护文档包(批末文档 story,机器引用对账)
-  - 全部 story submit verified(经 demo_story_submit,evidence 按 evidence_class 分级)
-- [ ] 自修上限:每里程碑(骨架可编译 / 完整 loop 冒烟过)≤5 轮,超限停且落盘失败报告
-- [ ] 干预/超限如实降级记录:______________________
-- [ ] 证据:`ProjectState/runs/<run_id>/velocity_log.json` + 冒烟报告 + 截图 → `ProjectState/Evidence/phase14_v0_*`
+- [x] 驱动器就位:`ProjectState/Reports/2026-06-11/mcp_driver.py`(真实 MCP stdio),无人值守窗口从首次 demo_story_fetch(2026-06-12T00:23 UTC)起算
+- [x] coding agent 按施工规范(`ProjectInputs/ConstructionManifest/demo_plugin_standards.md` v1.0.1)
+      在 `Plugins/Demo_MonopolyAuction/` 完成 v0 全部 17 story:
+  - **编译通过**;冒烟:5 个种子各驱动整局到终局零报错(GameState/GameMode API 直驱)+ widget 创建冒烟,7/7 pass
+  - 冒烟 runner:`python Plugins/AgentBridge/Scripts/demo_smoke/runner.py --filter "Demo_MonopolyAuction.Smoke" --out <绝对路径>/ProjectState/Evidence/phase14_v0_smoke_report.json` → exit 0
+  - README 试玩说明 + `Docs/`(design/architecture/changelog)文档包,机器引用对账通过
+  - **17/17 story submit verified**(经 demo_story_submit,evidence 按 evidence_class 分级,全 attempts=0)
+- [x] 自修上限:里程碑 A 用 2/5 轮、里程碑 B 用 0/5 轮,均未超限
+- [x] 干预/超限如实降级记录:**Visual 截图证据降级为 widget 反射 dump + 1 张真实引擎渲染 PNG**(无 authored WBP+关卡,无人值守不可逐页渲染),见附录 C;无超限、无人工代写代码
+- [x] 证据:冒烟报告 `ProjectState/Evidence/phase14_v0_smoke_report.json`(status=pass 7/7)+ 反射 dump `ProjectState/Evidence/visual_dumps/*.json`(9 份)+ 真实渲染 `ProjectState/Evidence/screenshots/demo_plugin_render_1280x720.png`;权威 story 状态见 `ProjectState/runs/run-20260611-052252-5101/stories/*.json`
 
 ## C4 人审窗口 1:msc 试玩 v0
 
@@ -95,3 +94,33 @@
 
 | 时间 | 故障 | 处置 |
 |------|------|------|
+| 2026-06-12 里程碑A | `LNK1104: 无法打开 UnrealEditor-Mvpv4TestCodex.dll`——后台遗留 unattended UnrealEditor(PID 4580,RCWebControl 服务)占用 DLL 锁;任务约定"无打开的 UE Editor" | 确认 commandline 属本项目后 Stop-Process 关闭,重新链接通过;非代码缺陷,不计自修轮 |
+| 2026-06-12 里程碑B | `runner.py` exit 3:`UE 报告未产出(index.json 缺失)`——runner 用相对 `--out` 派生 report_dir/abslog,UE `-ReportExportPath`/`-abslog` 相对路径解析不落预期目录 | 改传**绝对** `--out` 路径(不改 runner 机制代码),报告正常产出 exit 0;归调用约定/环境,不计自修轮 |
+
+## 附录 C:C3 里程碑与 Visual 证据降级(无人值守实施 by coding agent)
+
+### 里程碑自修轮数
+
+| 里程碑 | 自修轮数 | 说明 |
+|--------|---------|------|
+| A 骨架可编译 | 2 / 上限 5 | 轮1 修 C2445(TObjectPtr 与裸指针在三元表达式类型不一致)+ C4458(局部 `Owner` 遮蔽 `AActor::Owner`);轮2 确认干净链接 |
+| B 完整 loop 冒烟过 | 0 / 上限 5 | 首次冒烟即 7/7 pass;runner exit 3 归附录 B 环境故障,不计自修轮 |
+
+### Visual 截图证据降级披露(任务 §7 降级条款)
+
+demo UI 为 C++ UMG widget 基类,无 authored WBP 蓝图实例与 HUD 绑定关卡,无人值守命令行无法对每个
+具体页面做有意义渲染。Visual 类 9 个 story 截图证据降级为:
+
+1. 每 story 一份 widget 反射 dump(`ProjectState/Evidence/visual_dumps/<capability>.json`),
+   由自动化测试 `Demo_MonopolyAuction.Smoke.VisualDump` 反射该 widget 类 UFUNCTION/UPROPERTY + 必备元素清单;
+2. 一张真实引擎渲染 PNG(`ProjectState/Evidence/screenshots/demo_plugin_render_1280x720.png`,
+   1280x720 HighResShot,348KB,非空文件占位),证明插件加载并渲染。
+
+降级已逐条记入相关 Visual story 的 evidence.provisional_decisions。
+
+### 零造假声明
+
+- 冒烟报告由官方 runner 真实运行产出(status=pass 来自 UE index.json 解析),非手写。
+- 未修改 runner / evidence_validator / store / mcp 机制代码;未触碰 Plugins/AgentBridge 与
+  Source/Mvpv4TestCodex 下任何文件。
+- 17 story 经真实 MCP stdio(mcp_driver.py)fetch/submit,每条证据路径经机器存在性校验,全 attempts=0。

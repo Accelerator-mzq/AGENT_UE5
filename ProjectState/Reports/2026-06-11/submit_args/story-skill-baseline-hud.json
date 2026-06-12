@@ -1,0 +1,58 @@
+{
+  "session_path": "ProjectState/runs/run-20260611-052252-5101",
+  "story_id": "story-skill-baseline-hud",
+  "evidence": {
+    "files_changed": [
+      "Plugins/Demo_MonopolyAuction/Demo_MonopolyAuction.uplugin",
+      "Plugins/Demo_MonopolyAuction/README.md",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Demo_MonopolyAuction.Build.cs",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/Demo_MonopolyAuctionModule.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/MADemoBoardDataAsset.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/MADemoFoundations.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/MADemoFrontendWidgets.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/MADemoGameMode.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/MADemoGameState.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/MADemoHUDWidget.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/MADemoPlayerController.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/MADemoPlayerData.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/MADemoRulesDataAsset.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/MADemoStockMarket.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/Tests/MADemoSmokeTests.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/Tests/MADemoVisualDumpTest.cpp",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Public/Demo_MonopolyAuctionModule.h",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Public/MADemoBoardDataAsset.h",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Public/MADemoFoundations.h",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Public/MADemoFrontendWidgets.h",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Public/MADemoGameMode.h",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Public/MADemoGameState.h",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Public/MADemoHUDWidget.h",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Public/MADemoPlayerController.h",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Public/MADemoPlayerData.h",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Public/MADemoRulesDataAsset.h",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Public/MADemoStockMarket.h",
+      "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Public/MADemoTypes.h"
+    ],
+    "plugin_root": "Plugins/Demo_MonopolyAuction",
+    "provisional_decisions": [
+      {
+        "decision": "HUD 快照含回合/当前玩家/各玩家现金+股值/骰子/3股摘要",
+        "rationale": "GDD 4.1 常驻 + 扩展 4.1 股票常驻显示",
+        "scope": "HUD 字段"
+      },
+      {
+        "decision": "HUD 布局方式留待蓝图子类(C++ 仅供快照数据)",
+        "rationale": "契约 cg-hud-layout-style send_to_design_space_discovery",
+        "scope": "HUD 布局"
+      },
+      {
+        "decision": "Visual story 截图证据降级为:每 story 一份 widget 反射 dump(visual_dumps/*.json)+ 一张真实引擎渲染 PNG(1280x720 HighResShot)",
+        "rationale": "本 demo UI 为 C++ UMG widget 基类,无 authored WBP 资产与 HUD 绑定关卡;无人值守命令行无法对每个具体页面做有意义渲染。按任务§7降级条款:用能产出的最接近物(反射 dump)替代,并如实披露;真实渲染 PNG 证明插件加载并渲染。",
+        "scope": "全部 9 个 Visual 类 story 的截图证据"
+      }
+    ],
+    "screenshots": [
+      "ProjectState/Evidence/visual_dumps/baseline-hud.json",
+      "ProjectState/Evidence/screenshots/demo_plugin_render_1280x720.png"
+    ]
+  }
+}
