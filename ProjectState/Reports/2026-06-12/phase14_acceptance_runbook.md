@@ -45,6 +45,7 @@
 - [x] 自修上限:里程碑 A 用 2/5 轮、里程碑 B 用 0/5 轮,均未超限
 - [x] 干预/超限如实降级记录:**Visual 截图证据降级为 widget 反射 dump + 1 张真实引擎渲染 PNG**(无 authored WBP+关卡,无人值守不可逐页渲染),见附录 C;无超限、无人工代写代码
 - [x] 证据:冒烟报告 `ProjectState/Evidence/phase14_v0_smoke_report.json`(status=pass 7/7)+ 反射 dump `ProjectState/Evidence/visual_dumps/*.json`(9 份)+ 真实渲染 `ProjectState/Evidence/screenshots/demo_plugin_render_1280x720.png`;权威 story 状态见 `ProjectState/runs/run-20260611-052252-5101/stories/*.json`
+- [x] **主会话独立复证(2026-06-12,不信 agent 报告原则)**:story 状态/velocity/插件树/证据文件逐项盘点一致;机制与主模块 git diff 零触碰;**亲跑冒烟复证 7/7 pass**(`ProjectState/Evidence/phase14_v0_smoke_report_recheck.json`,exit 0)
 
 ## C4 人审窗口 1:msc 试玩 v0
 
