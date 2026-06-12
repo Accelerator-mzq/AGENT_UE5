@@ -58,7 +58,7 @@ GDD(不改)→ Stage 1-3(零改动)→ demo_plan 切批
 ### 4.1 呈现阶梯(presentation ladder)
 
 - **插件层**:`presentation_ladder.schema.json`(新 Schema);planner 读取与展开机制。
-- **项目层实例**:`ProjectInputs/PresentationLadder/monopoly_demo_ladder.json`,本期由实施期起草、msc 审定(性质同 GDD/施工规范的项目层输入;agent 从 GDD 自动生成阶梯草案属后续演进,本期 YAGNI)。
+- **项目层实例**:`ProjectInputs/PresentationLadder/monopoly_demo_ladder.json`,随实施 plan 一并起草、**实施启动前**经 msc 审定——归输入端(性质同 GDD/施工规范),不构成中途人审,与"决策两端化"不冲突;agent 从 GDD 自动生成阶梯草案属后续演进,本期 YAGNI。
 - rung 定义字段:`rung_id`(1/2/3)、呈现要求清单(文本,GDD 锚点可选)、批内 story 切分(见 §4.5)、每 story 显式 `evidence_class`(不走 domain_type 机械映射)、`interaction_claims`(交互宣称,喂行为校验)、`supersedes`(显式声明退役的下层实现用例,见 §4.6)。
 - 确定性:同(现 plan + 阶梯实例)输入同输出,golden 测试守门。
 
@@ -66,7 +66,7 @@ GDD(不改)→ Stage 1-3(零改动)→ demo_plan 切批
 
 - 入口:`demo_plan_main.py` 扩展(如 `--amend-presentation` / `--amend-feedback`,CLI 形态实施期定);零 LLM、确定性。
 - 依赖规则机械化:追加批的首 story 挂在"当前最后一个已 verified 批的末位文档 story"上;presentation-N+1 挂 presentation-N 末位;**increment-2 留批不在已执行序列里,不挡呈现批**。
-- `batch_id` 模式扩展:`^(v0|increment-[1-9][0-9]*|presentation-[1-9][0-9]*|feedback-[1-9][0-9]*)$`;`demo_plan.schema.json` / `demo_story.schema.json` 同步升版(版本号策略实施期按 schema 演进惯例定)。
+- `batch_id` 模式扩展:`^(v0|increment-[1-9][0-9]*|presentation-[1-9][0-9]*|feedback-[1-9][0-9]*)$`;`demo_plan.schema.json` / `demo_story.schema.json` 同步升版(`story_schema_version` / plan 版本 1.0.0 → 1.1.0,const 钉死;interaction_claims 字段同此版进入)。
 - 每个追加批末尾保持机械追加文档 story(Phase 14 机制不变)。
 
 ### 4.3 行为校验门禁(BL-05)+ BL-01/04
