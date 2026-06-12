@@ -72,10 +72,12 @@
 
 ## C5 增量批 1(拍卖)
 
-- [ ] 逐 story fetch/submit;增量批冒烟带 `--v0-filter "<PluginName>.Smoke.V0"`
-- [ ] submit 机器守门:v0 冒烟用例 hash 不变(v0_smoke_baseline.json 对账)且 v0 回归全绿
-- [ ] 文档包更新过引用对账;msc 试玩 v1 终裁:____________
-- [ ] 增量失败不毁 v0:若自修超限,增量批失败落盘,v0 保持有效交付物
+- [x] 逐 story fetch/submit:**2/2 verified(attempts=0)**——`story-skill-property-auction`(Logic)+ `story-increment-1-docs`(Config,引用对账 0 错误);increment-2 保持 pending。GDD §2.1 英式拍卖入可玩循环(热座按键竞价:拍卖中 Space=出价/Enter=弃权;HUD 拍卖面板 Canvas 直绘;暂停期拍卖冻结;参数全数据驱动),commit `200fbaa`
+- [x] submit 机器守门:**hash 守门实证生效**——冻结文件 `MADemoSmokeTests.cpp` sha256 对账 OK 零改动;冒烟 `--v0-filter "Demo_MonopolyAuction.Smoke"`(冻结 8 用例)→ **v0_regression: pass**;全量 14/14(v0 8 + Inc1 6,含 PausedFrozen/FullGameWithAuction)
+- [x] **主会话独立复证(2026-06-12)**:亲跑冒烟 14/14 + v0_regression pass(`ProjectState/Evidence/phase14_v0_attempt2/inc1_smoke_recheck.json`,exit 0);19/21 story 状态盘点一致;hash 基线亲手对账 OK;拍卖面板截图亲眼验真;机制与主模块零触碰
+- [x] 实施 agent 诚实披露(留档):首版+一轮调参后拍卖 120 玩家回合零触发(地产售罄窗口问题),经真实对局日志暴露并以数据资产调参修复(购买/竞价缓冲 1200/100 拆分,30 回合 6 场拍卖),自修 2/5 轮;AutoBuyPolicy 语义使中高价地产多经拍卖通道分配(记 provisional,可回调数据值)
+- [ ] msc 试玩 v1 终裁:____________
+- [x] 增量失败不毁 v0:本批未触发(2/2 过);机制上 v0 基线与回归门已实证可独立守护
 
 ## C6 接口中立
 
