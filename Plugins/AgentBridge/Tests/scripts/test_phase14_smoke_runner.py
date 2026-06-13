@@ -88,8 +88,9 @@ class TestSmokeRunner:
         editor = _fake_env(r, workspace_tmp_path, monkeypatch)
 
         def _fake_run(editor_cmd, uproject, test_filter, report_dir, log_path):
-            # v0 段写失败报告,主段写通过报告
-            _write_index(Path(report_dir), failed=1 if Path(report_dir).name == "v0" else 0)
+            # regression_1 段(原 v0 段)写失败报告,主段写通过报告
+            # Phase 15 多段回归重构后目录名从 "v0" 改为 "regression_1"
+            _write_index(Path(report_dir), failed=1 if Path(report_dir).name == "regression_1" else 0)
 
         monkeypatch.setattr(r, "run_automation", _fake_run)
         out = workspace_tmp_path / "smoke_report.json"
