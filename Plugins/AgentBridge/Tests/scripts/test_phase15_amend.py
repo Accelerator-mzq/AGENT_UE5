@@ -188,3 +188,58 @@ class TestFeedbackAmend:
         with pytest.raises(ValueError, match="open"):
             a.build_feedback_amend(plan, st, [_entry("fb-w1-01", status="resolved")],
                                    "1.2.0", _PATHS)
+
+
+class TestAmendCli:
+    def _seed_run(self, tmp):
+        """最小已完成 run:v0 批全 verified + 必需产物。"""
+        plan = {"plan_schema_version": "1.1.0", "run_id": "r-cli", "source_graph_id": "g",
+                "manifest_version": "1.0.0",
+                "batches": [{"batch_id": "v0", "story_ids": ["story-v0-a", "story-v0-docs"]}]}
+        base_mat = {"gdd_path": "ProjectInputs/GDD/x.md",
+                    "gdd_anchors": [], "contract_path": "c.json", "skill_graph_path": "s.json",
+                    "template_id": None, "template_source": None, "template_dir": None,
+                    "construction_manifest_path": "m.md", "extra_paths": []}
+        (tmp / "stories").mkdir(parents=True)
+        for sid, kind, ec in (("story-v0-a", "presentation", "Integration"),
+                              ("story-v0-docs", "documentation", "Config")):
+            story = {"story_schema_version": "1.1.0", "story_id": sid, "batch_id": "v0",
+                     "story_kind": kind, "evidence_class": ec, "depends_on": [],
+                     "materials": dict(base_mat), "acceptance_criteria": ["x"],
+                     "status": "verified", "attempts": 0, "manifest_version": "1.0.0"}
+            (tmp / "stories" / f"{sid}.json").write_text(json.dumps(story), encoding="utf-8")
+        (tmp / "demo_plan.json").write_text(json.dumps(plan), encoding="utf-8")
+        ladder = {"ladder_schema_version": "1.0.0", "ladder_id": "ladder-cli",
+                  "target_plugin_root": "Plugins/DemoX",
+                  "rungs": [{"rung_id": 1, "title": "R1", "gdd_anchors": [], "supersedes": [],
+                             "stories": [{"story_slug": "s1", "summary": "x",
+                                          "evidence_class": "Integration",
+                                          "requirements": ["r"]}]}]}
+        ladder_path = tmp / "ladder.json"
+        ladder_path.write_text(json.dumps(ladder), encoding="utf-8")
+        return ladder_path
+
+    def _run_cli(self, project_root, *argv):
+        """子进程跑真实 CLI(demo_plan_main.py),返回 CompletedProcess 供断言退出码/输出。"""
+        import subprocess, sys
+        cli = Path(project_root) / "Plugins" / "AgentBridge" / "Scripts" / "demo_plan_main.py"
+        return subprocess.run([sys.executable, str(cli), *argv],
+                              capture_output=True, text=True, cwd=project_root)
+
+    def test_p15a14_cli_amend_presentation_writes_plan_and_stories(self, workspace_tmp_path, project_root):
+        ladder_path = self._seed_run(workspace_tmp_path)
+        result = self._run_cli(project_root, "--run-dir", str(workspace_tmp_path),
+                               "--amend-presentation", "--ladder", str(ladder_path))
+        assert result.returncode == 0, result.stderr
+        plan = json.loads((workspace_tmp_path / "demo_plan.json").read_text(encoding="utf-8"))
+        assert [b["batch_id"] for b in plan["batches"]] == ["v0", "presentation-1"]
+        assert plan["plan_schema_version"] == "1.1.0"
+        # story 文件名:slug 为 s1,前缀 story-presentation-<rung>- 由机制拼接,故落盘文件名为 story-presentation-1-s1.json
+        assert (workspace_tmp_path / "stories" / "story-presentation-1-s1.json").exists()
+
+    def test_p15a15_cli_amend_fails_closed_on_missing_ladder(self, workspace_tmp_path, project_root):
+        self._seed_run(workspace_tmp_path)
+        result = self._run_cli(project_root, "--run-dir", str(workspace_tmp_path),
+                               "--amend-presentation")
+        assert result.returncode == 2
+        assert "--ladder" in (result.stderr + result.stdout) and "Traceback" not in result.stderr
