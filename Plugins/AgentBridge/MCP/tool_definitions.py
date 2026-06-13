@@ -449,6 +449,14 @@ COMPILER_FRONTEND_TOOLS = {
         },
         "returns": "data.story_status(verified|in_progress) / data.errors / data.attempts;校验拒绝是业务信号,status 仍为 success(failed 仅环境/数据异常,触发 MCP isError)",
     },
+    "demo_feedback_log": {
+        "description": "Phase 15 反馈回流:登记一条试玩窗口反馈条目(结构化:现象/期望/严重度),落 run 目录 feedback/,状态 open;之后由 demo_plan CLI --amend-feedback 确定性切 feedback 批。",
+        "params": {
+            "session_path": {"type": "string", "required": True, "description": "run 目录路径"},
+            "entry": {"type": "object", "required": True, "description": "window_id/phenomenon/expectation/severity(/related_rung/related_capability);feedback_id 与 status 由工具生成"},
+        },
+        "returns": "data.feedback_id / data.path;status=success/failed(failed 含条目 schema 不合法——登记是人审窗口操作,改对参数重调即可)",
+    },
 }
 
 
@@ -562,7 +570,7 @@ ALL_TOOLS.update(EVIDENCE_JUDGE_TOOLS)
 
 TOOL_COUNT = len(ALL_TOOLS)
 # 当前 flat alias layout：
-# 7(query) + 6(write) + 5(service) + 9(asset) + 1(fallback) + 18(compiler_frontend) + 11(evidence_backend) = 57
+# 7(query) + 6(write) + 5(service) + 9(asset) + 1(fallback) + 19(compiler_frontend) + 11(evidence_backend) = 58
 
 
 def to_json_schema(tool_def: dict) -> dict:

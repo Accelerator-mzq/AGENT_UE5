@@ -872,3 +872,48 @@ def demo_story_submit(session_path: str, story_id: str, evidence: dict,
             f"demo_story_submit 失败: {exc}",
             errors=[f"TOOL_EXECUTION_FAILED: {exc}"],
         )
+
+
+def demo_feedback_log(session_path: str, entry: dict) -> dict:
+    """登记一条试玩窗口反馈条目(Phase 15 反馈回流入口)。
+
+    设计要点:
+      - feedback_id 由工具按窗口内序号生成(fb-<window_id>-NN),调用方不可指定(防撞号);
+      - 条目经 feedback_entry.schema 校验后才落盘;不合法 → status="failed"
+        (登记是人审窗口操作,改对参数直接重调,无 in_progress 重试态);
+      - .part 原子写 + velocity 留痕(与 story 流转同口径)。
+    """
+    try:
+        import jsonschema  # 延迟导入,镜像 demo_plan_main 的用法
+        schema_path = Path(__file__).resolve().parents[1] / "Schemas" / "feedback_entry.schema.json"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        feedback_dir = Path(session_path) / "feedback"
+        feedback_dir.mkdir(parents=True, exist_ok=True)
+        window_id = str(entry.get("window_id", ""))
+        seq = 1 + sum(1 for _ in feedback_dir.glob(f"fb-{window_id}-*.json"))
+        record = dict(entry)
+        record["feedback_schema_version"] = "1.0.0"
+        record["feedback_id"] = f"fb-{window_id}-{seq:02d}"
+        record["status"] = "open"
+        jsonschema.validate(record, schema)
+        path = feedback_dir / f"{record['feedback_id']}.json"
+        tmp = path.with_suffix(".json.part")
+        tmp.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+        tmp.replace(path)
+        velocity.append_event(session_path, {"kind": "feedback_log",
+                                             "feedback_id": record["feedback_id"],
+                                             "severity": record.get("severity")})
+        return _make_response(
+            "success",
+            f"反馈已登记: {record['feedback_id']}(severity={record.get('severity')})",
+            data={"feedback_id": record["feedback_id"],
+                  "path": str(path).replace("\\", "/")},
+        )
+    except Exception as exc:
+        # jsonschema.ValidationError 不继承 ValueError,必须宽 except 才能把 schema 校验失败归为 failed
+        # (demo_story_fetch/submit 无需捕 ValidationError 故用收窄 except,此处口径不同是有意的)
+        return _make_response(
+            "failed",
+            f"demo_feedback_log 失败: {exc}",
+            errors=[f"TOOL_EXECUTION_FAILED: {exc}"],
+        )
