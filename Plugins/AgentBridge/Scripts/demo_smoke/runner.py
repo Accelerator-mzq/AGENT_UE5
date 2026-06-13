@@ -4,11 +4,15 @@
 用法(runbook):
   python Plugins/AgentBridge/Scripts/demo_smoke/runner.py \
       --filter "<PluginName>.Smoke" --out ProjectState/Evidence/<name>_smoke_report.json \
-      [--v0-filter "<PluginName>.Smoke.V0"] [--editor-cmd <UnrealEditor-Cmd.exe>]
+      [--v0-filter "<PluginName>.Smoke.V0"] [--regression-filter "<Plugin>.Smoke.RungN"] \
+      [--editor-cmd <UnrealEditor-Cmd.exe>]
 
 环境约定:editor-cmd 缺省读环境变量 AGENTBRIDGE_UE_CMD;uproject 取项目根唯一 .uproject。
 报告契约(evidence_validator 消费):{"status": "pass|fail", "v0_regression": "pass|fail|n/a",
-"counts": {...}, "suites": [...], "screenshots": [...], "log_path": ...}
+"counts": {...}, "suites": [{"name", "state", "errors": [str]}], "screenshots": [...],
+"log_path": ..., "regression_segments": [{"filter", "status": "pass|fail"}]}
+字段说明:suites[n].errors 为该用例 Error 类型 entry 的 message 列表(Phase 15 新增,BL-04);
+regression_segments 为冻结层多段回归逐段明细(Phase 15 新增,顶层字段)。
 退出码契约:0=pass / 1=demo 失败(计自修轮) / 3=环境故障(不计自修轮,spec §5.1 归因分离)。
 """
 import argparse
@@ -61,7 +65,8 @@ def build_smoke_report(report_dir, v0_regression: str, screenshots: list,
 
     Args:
         report_dir: UE 写入 index.json 的目录路径。
-        v0_regression: "pass" / "fail" / "n/a"(无 v0 回归段时传 n/a)。
+        v0_regression: 多段冻结层回归聚合结果(Phase 15+ 由 aggregate_regression 产出;
+            键名 Phase 14 兼容保留)。取值 "pass" / "fail" / "n/a"(无回归段时传 n/a)。
         screenshots: 截图文件路径列表。
         log_path: 对应的 abslog 路径(可选,供溯查)。
 
@@ -78,23 +83,45 @@ def build_smoke_report(report_dir, v0_regression: str, screenshots: list,
         "status": "pass" if failed == 0 else "fail",
         "v0_regression": v0_regression,
         "counts": {k: data.get(k, 0) for k in ("succeeded", "succeededWithWarnings", "failed", "notRun")},
-        "suites": [{"name": t.get("fullTestPath", ""), "state": t.get("state", "")}
+        "suites": [{"name": t.get("fullTestPath", ""), "state": t.get("state", ""),
+                    "errors": [str((e.get("event") or {}).get("message", ""))
+                               for e in (t.get("entries") or [])
+                               if str((e.get("event") or {}).get("type", "")).lower() == "error"]}
                    for t in data.get("tests", [])],
         "screenshots": list(screenshots),
         "log_path": log_path,
     }
 
 
-def main() -> int:
-    """CLI 入口:返回退出码 0/1/3。"""
-    parser = argparse.ArgumentParser(description="Phase 14 demo 冒烟 runner")
+def build_parser() -> argparse.ArgumentParser:
+    """CLI 参数定义(抽出便于纯函数测试)。"""
+    parser = argparse.ArgumentParser(description="Phase 14/15 demo 冒烟 runner")
     parser.add_argument("--filter", required=True, help="Automation 测试过滤器")
-    parser.add_argument("--v0-filter", default=None, help="v0 回归段过滤器(可选)")
+    parser.add_argument("--v0-filter", default=None, help="v0 回归段过滤器(兼容保留,与 --regression-filter 合并)")
+    parser.add_argument("--regression-filter", action="append", default=[],
+                        help="冻结层回归过滤器(可重复:逐 rung 契约段等)")
     parser.add_argument("--out", required=True, help="输出报告 JSON 路径")
     parser.add_argument("--editor-cmd", default=os.environ.get("AGENTBRIDGE_UE_CMD", ""),
                         help="UnrealEditor-Cmd.exe 路径,缺省读 AGENTBRIDGE_UE_CMD")
     parser.add_argument("--screenshots", nargs="*", default=[], help="附加截图路径列表")
-    args = parser.parse_args()
+    return parser
+
+
+def collect_regression_filters(args) -> list:
+    """合并 v0 兼容口径与多段回归过滤器(顺序稳定:v0 在前)。"""
+    return ([args.v0_filter] if args.v0_filter else []) + list(args.regression_filter)
+
+
+def aggregate_regression(states: list) -> str:
+    """聚合冻结层回归段:全 pass → pass;任一非 pass → fail;空 → n/a。"""
+    if not states:
+        return "n/a"
+    return "pass" if all(s == "pass" for s in states) else "fail"
+
+
+def main() -> int:
+    """CLI 入口:返回退出码 0/1/3。"""
+    args = build_parser().parse_args()
 
     # 环境自检:uproject 与 editor-cmd 必须存在
     uprojects = sorted(PROJECT_ROOT.glob("*.uproject"))
@@ -111,13 +138,15 @@ def main() -> int:
     work.mkdir(parents=True, exist_ok=True)
 
     try:
-        # v0 回归段(可选):先单独跑一轮,记录 v0_state
-        v0_state = "n/a"
-        if args.v0_filter:
-            v0_dir = work / "v0"
-            run_automation(Path(args.editor_cmd), uprojects[0], args.v0_filter, v0_dir,
-                           work / "v0.log")
-            v0_state = "pass" if build_smoke_report(v0_dir, "n/a", [])["status"] == "pass" else "fail"
+        # 冻结层回归段(可多段):逐段单跑,聚合进 v0_regression(键名兼容 validator 契约)
+        segments = []
+        for i, reg_filter in enumerate(collect_regression_filters(args), start=1):
+            seg_dir = work / f"regression_{i}"
+            run_automation(Path(args.editor_cmd), uprojects[0], reg_filter, seg_dir,
+                           work / f"regression_{i}.log")
+            seg_state = "pass" if build_smoke_report(seg_dir, "n/a", [])["status"] == "pass" else "fail"
+            segments.append({"filter": reg_filter, "status": seg_state})
+        v0_state = aggregate_regression([s["status"] for s in segments])
 
         # 主冒烟段
         main_dir = work / "main"
@@ -129,6 +158,9 @@ def main() -> int:
         # 环境故障:退出码 3,不计入 demo 失败与自修轮次
         print(f"[ENV] {exc}", file=sys.stderr)
         return 3
+
+    # 分段回归明细附进报告(便于溯查每段 filter 与状态)
+    report["regression_segments"] = segments
 
     # 写报告 JSON;v0 回归破同样判失败(计自修轮),打印与退出码同步看 v0_state
     out_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")

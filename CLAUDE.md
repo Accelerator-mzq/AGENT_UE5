@@ -111,7 +111,7 @@ AgentBridge 不只是工具接口插件，而是包含编译前端（Skill Compi
 # Schema 校验（验证现有 MVP 不破坏）
 python Plugins/AgentBridge/Scripts/validation/validate_examples.py --strict
 
-# 系统测试：一键执行全部 14 个 Stage（当前登记 420 条，权威源 run_system_tests.py TOTAL_CASES）
+# 系统测试：一键执行全部 15 个 Stage（当前登记 466 条，权威源 run_system_tests.py TOTAL_CASES）
 python Plugins/AgentBridge/Tests/run_system_tests.py
 
 # 系统测试：交互模式（选择 Stage）
@@ -158,14 +158,16 @@ python compiler_main.py
 
 ## 当前阶段
 
-Phase 14 — Demo-First 增量主链:实施 + 验收全部完成(2026-06-12),demo-first 增量主链,msc v1 终裁通过
-Phase 14 spec：`Docs/superpowers/specs/2026-06-11-phase14-demo-first-design.md`
-Phase 14 plan：`Docs/superpowers/plans/2026-06-11-phase14-demo-first.md`
-Phase 14 验收 runbook：`ProjectState/Reports/2026-06-12/phase14_acceptance_runbook.md`
+Phase 15 — 呈现增量轴 + 反馈回流通道:**机制层完成**(2026-06-13,最终整体复审 Ready to merge),**验收期进行中**(demo 三 rung 无人值守 + 试玩两窗口未启动)
+Phase 15 spec：`Docs/superpowers/specs/2026-06-12-phase15-presentation-axis-design.md`(含实施期修订 R1-R5)
+Phase 15 plan：`Docs/superpowers/plans/2026-06-12-phase15-presentation-axis.md`(13 任务 + 验收交接段)
+Phase 15 机制层验证报告：`ProjectState/Reports/2026-06-13/phase15_mechanism_verification.md`
+权威数字(2026-06-13 实测):phase15 pytest 46 / phase14 56 / 系统测试 466(15 stage)/ strict 32 / MCP 工具 58
+Phase 14 已完成 — Demo-First 增量主链(2026-06-12,PR #46 已合,BL-01/04/05/06 经 Phase 15 闭环)
 Phase 13 已完成 — Skill 合成主链(2026-06-11)
 Phase 12 已完成 — LLM Internal Reopen(2026-05-27)
 Phase 11 已完成 — Skill-First Design Compiler Framework
-当前主入口：`task.md`(Phase 14 任务书)
+当前主入口：`task.md`(Phase 15 任务书,机制层完成/验收期进行中)
 当前索引：`Docs/INDEX.md`
 MCP 总口径锚定：`Docs/design/HLD.md#4`
 四层主链定义：`Docs/requirements/SRS.md#4`

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""DMP-33~38a: MCP 工具对——注册三处齐全、fetch 载荷、submit 校验闭环、工具数 57。
+"""DMP-33~38a: MCP 工具对——注册三处齐全、fetch 载荷、submit 校验闭环、工具数 58。
 
 返回形状契约(2026-06-12 审查修订):统一 _make_response 五键
 {"status","summary","data","warnings","errors"}——
@@ -57,9 +57,9 @@ class TestMcpDemoTools:
         assert "demo_story_fetch" in td.COMPILER_FRONTEND_TOOLS
         assert "demo_story_submit" in td.COMPILER_FRONTEND_TOOLS
 
-    def test_dmp34_tool_count_is_57(self):
+    def test_dmp34_tool_count_is_58(self):
         td = _import_mcp("tool_definitions")
-        assert td.TOOL_COUNT == 57
+        assert td.TOOL_COUNT == 58
 
     def test_dmp35_server_dispatch_has_both(self):
         src = (PLUGIN_ROOT / "MCP" / "server.py").read_text(encoding="utf-8")

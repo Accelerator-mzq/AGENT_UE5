@@ -1,11 +1,13 @@
-manifest_version: 1.1.0
+manifest_version: 1.2.0
 
-# Demo Plugin 施工规范(construction manifest)v1.1
+# Demo Plugin 施工规范(construction manifest)v1.2
 
 > 消费者:实施 demo story 的 coding agent(经 demo_story_fetch 全文下发)。
 > 本文件是项目层实例;版本变更时递增顶部 manifest_version,story 携带切批时版本,fetch 不符告警。
 > 1.1.0 修订(2026-06-12,PIVOT #1):新增 v0 可玩硬判据、authored 启动关卡必含、无人值守资产创建通路——
 > 见 `ProjectState/Reports/2026-06-12/phase14_v0_pivot_note_1.md`。
+> 1.2.0 修订(Phase 15):§4 补呈现用例文件约定;§7 补程序化 3D 通路;新增 §8 呈现层架构约束——
+> 见 `Docs/superpowers/specs/2026-06-12-phase15-presentation-axis-design.md`。
 
 ## 0. v0 可玩硬判据(PIVOT #1 新增,不满足即 v0 不算完成)
 
@@ -45,6 +47,10 @@ manifest_version: 1.1.0
   **启动关卡加载用例**(加载 `<EntryMap>`,校验 WorldSettings GameMode 为 demo GameMode、GameState 类正确、HUD widget 在关卡上下文创建成功)
 - v0 经 msc PROCEED 后用例冻结(hash 守门),增量批只许新增用例文件,不许改既有
 - 基线冻结由验收 runbook 在 msc PROCEED 时调用 evidence_validator.freeze_v0_baseline 落盘 v0_smoke_baseline.json,agent 无需自行触发
+- **呈现用例文件约定(Phase 15)**:呈现契约用例集中 `Private/Tests/<模块前缀>PresentationContractTests.cpp`
+  (逐 rung 验收后冻结,断言信息可见性,禁绑具体 widget 类名);呈现实现用例按 rung 分文件
+  `Private/Tests/<模块前缀>PresentationRung<N>Tests.cpp`(可被后续 rung 经阶梯 supersedes 声明退役);
+  交互行为用例命名 `<PluginName>.InteractionSemantics.<Key>`(行为校验门禁按此对账)
 
 ## 5. Provisional 决策留痕
 
@@ -68,3 +74,19 @@ manifest_version: 1.1.0
   uplugin 声明依赖,记 provisional;不许改 .uproject 之外的工程级配置
 - WBP 蓝图实例创建非必需;若尝试失败不阻塞(C++ CreateWidget 兜底),记 provisional
 - 截图:有了启动关卡后,Visual 证据用 `-game` 模式 HighResShot 真实截取 HUD 画面;反射 dump 仅作补充
+- **程序化 3D 通路(Phase 15)**:3D 棋盘/棋子一律用引擎自带基础几何(`/Engine/BasicShapes/` 的
+  Cube/Plane/Cylinder/Sphere)+ 动态材质实例(MID)程序化配色 + TextRender 或 widget component 做标签;
+  **禁外部资产导入**(无美术管线);相机限定固定机位 CameraActor + 简单插值运镜,禁复杂 cinematic;
+  3D 摆放可运行时程序化生成(GameMode/专责 actor 在 BeginPlay 构建),不强制落 .umap 编辑器资产
+
+## 8. 呈现层架构约束(Phase 15 新增)
+
+- 呈现只读 GameState 快照(快照结构体形如 `F<模块前缀>HUDSnapshot`,例:Demo_MonopolyAuction 的 `FMADemoHUDSnapshot`):呈现组件不查询规则、不改状态、只发意图
+- 呈现组件三层独立可替换:HUD 面板 / 棋盘渲染 / 世界 actor,层间不互相持有,各自可单独退役
+- 配色/布局/尺寸等呈现参数一律进 DataAsset(`Content/Data/`),C++ 不硬编码
+- **呈现批不得改玩法逻辑文件**(GameMode/GameState/PlayerData 等;冻结层 hash 守门技术钉死)
+- **README 必须含『## 键位』节**,键位用 `[Key]` 方括号 token 标注(行为校验门禁的机器对账锚);
+  每个键位必须有通过的 `<PluginName>.InteractionSemantics.<Key>` 用例
+- **呈现契约用例形状**(逐 rung 冻结):GameState API 直驱到目标局面 → 经呈现快照接口取值 →
+  断言信息可见(如"拍卖进行时快照含拍卖地块标识与当前价")+ 呈现入口存在(viewport 有注册的呈现根);
+  禁止断言具体 widget 类名/控件树结构(那属实现用例,可随 rung 替换退役)

@@ -8,8 +8,8 @@ capability_id 等业务字符串仅透传,不参与任何分支判断。
 """
 from typing import Any, Dict, List
 
-PLAN_SCHEMA_VERSION = "1.0.0"
-STORY_SCHEMA_VERSION = "1.0.0"
+PLAN_SCHEMA_VERSION = "1.1.0"
+STORY_SCHEMA_VERSION = "1.1.0"
 
 # evidence_class 由 domain_type 机械映射(通用字段);未知 domain 保守取 Integration
 _EVIDENCE_BY_DOMAIN = {"gameplay": "Logic", "baseline": "Visual"}

@@ -117,3 +117,6 @@ ProjectState/RuntimeConfigs/doc-release-markers/
 
 # ForgeUE 真机 import 产物(L3 smoke 多次跑会重复生成 .uasset)
 Content/Generated/
+
+# Visual Companion 会话产物(brainstorming 临时 mockup)
+.superpowers/

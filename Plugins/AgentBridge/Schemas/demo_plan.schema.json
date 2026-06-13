@@ -1,12 +1,12 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "demo_plan",
-  "description": "Phase 14 demo-first:批次计划。v0 批 = 全部库内绑定节点;每个合成节点一个增量批;批内拓扑序;每批末尾文档 story。",
+  "description": "Phase 14 demo-first:批次计划。v0 批 = 全部库内绑定节点;每个合成节点一个增量批;批内拓扑序;每批末尾文档 story。;Phase 15 增 presentation-N / feedback-N 批次。",
   "type": "object",
   "additionalProperties": false,
   "required": ["plan_schema_version", "run_id", "source_graph_id", "manifest_version", "batches"],
   "properties": {
-    "plan_schema_version": {"const": "1.0.0", "description": "schema 版本(当前钉死 1.0.0)"},
+    "plan_schema_version": {"const": "1.1.0", "description": "schema 版本(Phase 15 升 1.1.0)"},
     "run_id": {"type": "string", "minLength": 1, "description": "本次运行 id(非空)"},
     "source_graph_id": {"type": "string", "description": "来源 skill_graph 的 graph_id"},
     "manifest_version": {"type": "string", "description": "切批时施工规范版本"},
@@ -16,7 +16,7 @@
         "type": "object", "additionalProperties": false,
         "required": ["batch_id", "story_ids"],
         "properties": {
-          "batch_id": {"type": "string", "pattern": "^(v0|increment-[1-9][0-9]*)$"},
+          "batch_id": {"type": "string", "pattern": "^(v0|increment-[1-9][0-9]*|presentation-[1-9][0-9]*|feedback-[1-9][0-9]*)$", "description": "批次 id(Phase 15 增 presentation-N / feedback-N)"},
           "story_ids": {"type": "array", "items": {"type": "string"}, "minItems": 1,
                         "description": "批内拓扑序,末位恒为文档 story"}
         }

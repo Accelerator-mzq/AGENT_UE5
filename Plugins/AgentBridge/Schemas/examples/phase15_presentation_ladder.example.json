@@ -1,0 +1,36 @@
+{
+  "ladder_schema_version": "1.0.0",
+  "ladder_id": "ladder-example-demo",
+  "target_plugin_root": "Plugins/Demo_Example",
+  "rungs": [
+    {
+      "rung_id": 1,
+      "title": "信息面板化",
+      "gdd_anchors": ["4.1 HUD 常驻扩展"],
+      "supersedes": [],
+      "stories": [
+        {
+          "story_slug": "hud-panels",
+          "summary": "文字 HUD 升级为结构化面板",
+          "evidence_class": "Integration",
+          "requirements": ["HUD 呈现回合与玩家状态面板,数据仅来自 GameState 快照"],
+          "interaction_claims": [{"input": "Space", "behavior": "推进回合,面板同步刷新"}]
+        }
+      ]
+    },
+    {
+      "rung_id": 2,
+      "title": "2D 棋盘",
+      "gdd_anchors": [],
+      "supersedes": ["Plugins/Demo_Example/Source/Demo_Example/Private/Tests/Rung1ImplTests.cpp"],
+      "stories": [
+        {
+          "story_slug": "board-2d",
+          "summary": "2D 棋盘可视化",
+          "evidence_class": "Integration",
+          "requirements": ["棋盘环形布局呈现全部地块"]
+        }
+      ]
+    }
+  ]
+}

@@ -21,6 +21,7 @@ _MECHANISM_FILES = [
     PLUGIN_ROOT / "Compiler" / "demo_plan" / "evidence_validator.py",
     PLUGIN_ROOT / "Compiler" / "demo_plan" / "velocity.py",
     PLUGIN_ROOT / "Compiler" / "demo_plan" / "manifest_loader.py",
+    PLUGIN_ROOT / "Compiler" / "demo_plan" / "amend.py",  # Phase 15 新增:呈现批/反馈批追加机制
 ]
 
 
@@ -35,7 +36,7 @@ class TestNoDomainSemantics:
     def test_dmp12_mcp_demo_tool_impl_free_of_domain_words(self):
         src = (PLUGIN_ROOT / "MCP" / "compiler_tools.py").read_text(encoding="utf-8")
         # 分别截取 Phase 14 两个工具函数体(未实现则跳过,Task 7 落地后自动生效)
-        for fn in ("demo_story_fetch", "demo_story_submit"):
+        for fn in ("demo_story_fetch", "demo_story_submit", "demo_feedback_log"):
             match = re.search(rf"def {fn}\b.*?(?=\ndef [a-z]|\Z)", src, re.DOTALL)
             if match is None:
                 continue

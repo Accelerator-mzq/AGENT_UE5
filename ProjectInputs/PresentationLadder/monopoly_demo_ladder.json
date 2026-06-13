@@ -1,0 +1,124 @@
+{
+  "ladder_schema_version": "1.0.0",
+  "ladder_id": "ladder-monopoly-demo-v1",
+  "target_plugin_root": "Plugins/Demo_MonopolyAuction",
+  "rungs": [
+    {
+      "rung_id": 1,
+      "title": "UMG 信息面板化(文字 HUD → 结构化面板)",
+      "gdd_anchors": ["4.1 HUD 常驻扩展", "4.2 弹出式 UI 扩展"],
+      "supersedes": [],
+      "stories": [
+        {
+          "story_slug": "hud-panels",
+          "summary": "HUD 从 5 行文本块升级为结构化面板:回合/阶段指示器、玩家卡片(色块+资金条)、拍卖弹窗面板、事件提示区;FMADemoHUDSnapshot 快照接口保持不变",
+          "evidence_class": "Integration",
+          "requirements": [
+            "HUD 呈现回合数/阶段/当前玩家高亮的指示区,数据仅来自 GameState 快照",
+            "每位玩家一张卡片:名称色块、资金数值与资金条,当前回合玩家有可见高亮",
+            "拍卖进行时屏幕中央弹出拍卖面板:地产名称、当前最高价高亮、面板中部滚动列表显示各轮出价记录、出价/弃权提示(GDD 3.1)",
+            "呈现参数(配色/布局尺寸)进 DataAsset,C++ 不硬编码可调参数",
+            "保持 FMADemoHUDSnapshot 接口与既有冒烟用例不变;新增呈现契约用例(信息可见性,施工规范 §8)"
+          ],
+          "interaction_claims": [
+            {"input": "Space", "behavior": "推进回合,HUD 回合指示区同步刷新"},
+            {"input": "Enter", "behavior": "拍卖中出价,拍卖面板当前价刷新"},
+            {"input": "Esc", "behavior": "暂停并弹出暂停面板"}
+          ]
+        },
+        {
+          "story_slug": "frontend-panels",
+          "summary": "前台外壳(开始/主菜单/设置/暂停/结果)从 presence_only 文本条目升级为真按钮+布局",
+          "evidence_class": "Integration",
+          "requirements": [
+            "五个前台面板均有标题区与按钮区布局,按钮可聚焦可触发既有意图函数",
+            "结果面板呈现胜者信息(来自 GameState),按钮可返回主菜单",
+            "面板间导航走既有意图函数(NavigateToMainMenu/IntentNewGame 等),不新增规则逻辑"
+          ],
+          "interaction_claims": []
+        }
+      ]
+    },
+    {
+      "rung_id": 2,
+      "title": "2D 棋盘可视化",
+      "gdd_anchors": ["1. 游戏概述", "3. 表现要求"],
+      "supersedes": [],
+      "stories": [
+        {
+          "story_slug": "board-2d",
+          "summary": "UMG 2D 棋盘:环形地块布局、地产组配色、归属标记、当前拍卖地块高亮,数据从 GameState 快照拉取",
+          "evidence_class": "Integration",
+          "requirements": [
+            "棋盘以环形布局呈现全部地块,地块按地产组配色(配色进 DataAsset)",
+            "地块呈现归属状态(无主/各玩家色),拍卖中地块有可见高亮",
+            "棋盘 widget 只读 GameState 快照,不持有规则逻辑(施工规范 §8 呈现分层)"
+          ],
+          "interaction_claims": []
+        },
+        {
+          "story_slug": "board-tokens",
+          "summary": "玩家 token 在 2D 棋盘上随位置移动,当前回合玩家 token 高亮",
+          "evidence_class": "Integration",
+          "requirements": [
+            "每位玩家一个 token,位置与 GameState 玩家位置一致,回合推进后移动",
+            "当前回合玩家 token 有可见高亮",
+            "token 移动允许简单插值动画;无动画立即落位亦可,记 provisional"
+          ],
+          "interaction_claims": [
+            {"input": "Space", "behavior": "推进回合,token 移动到新位置"}
+          ]
+        }
+      ]
+    },
+    {
+      "rung_id": 3,
+      "title": "3D 场景化(棋盘 mesh + 棋子 actor + 相机)",
+      "gdd_anchors": ["1. 游戏概述", "3. 表现要求"],
+      "supersedes": [
+        "Plugins/Demo_MonopolyAuction/Source/Demo_MonopolyAuction/Private/Tests/MADemoPresentationRung2Tests.cpp"
+      ],
+      "stories": [
+        {
+          "story_slug": "board-3d",
+          "summary": "程序化 3D 棋盘落入 L_MonopolyDemo:引擎基础几何拼地块环 + 动态材质实例着色 + 地块标签;演进现关卡非重建",
+          "evidence_class": "Integration",
+          "requirements": [
+            "3D 棋盘由引擎自带基础几何程序化生成(施工规范 §7,禁外部资产导入)",
+            "地块按地产组着色(动态材质实例),归属/拍卖中状态在 3D 棋盘上可见",
+            "棋盘生成落 authored 关卡 L_MonopolyDemo,关卡加载冒烟保持通过"
+          ],
+          "interaction_claims": []
+        },
+        {
+          "story_slug": "pawn-actors",
+          "summary": "玩家棋子 actor(基础几何),GameState 位置驱动插值移动",
+          "evidence_class": "Integration",
+          "requirements": [
+            "每位玩家一个棋子 actor,位置由 GameState 驱动,回合推进后插值移动到目标地块",
+            "当前回合玩家棋子有可见标识(高亮/浮标)",
+            "棋子 actor 只读 GameState,不持有规则逻辑"
+          ],
+          "interaction_claims": [
+            {"input": "Space", "behavior": "推进回合,3D 棋子移动到新地块"}
+          ]
+        },
+        {
+          "story_slug": "camera-integration",
+          "summary": "固定机位 CameraActor + HUD 面板叠加保留;2D 棋盘 widget 退役(supersedes 已声明)",
+          "evidence_class": "Integration",
+          "requirements": [
+            "固定机位 CameraActor 俯视/斜视棋盘,允许简单插值运镜,禁复杂 cinematic(施工规范 §7)",
+            "rung1 的 HUD 面板与拍卖面板继续叠加呈现,全部呈现契约用例保持通过",
+            "2D 棋盘 widget 自画面退役,其实现用例按 supersedes 声明退役;信息可见性由呈现契约用例守住"
+          ],
+          "interaction_claims": [
+            {"input": "Space", "behavior": "推进回合,3D 视角下回合信息与棋子状态同步刷新"},
+            {"input": "Enter", "behavior": "拍卖中出价,拍卖面板在 3D 场景上叠加刷新"},
+            {"input": "Esc", "behavior": "暂停并弹出暂停面板(3D 场景上叠加)"}
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -28,6 +28,13 @@ _PATH_FIELDS = ("files_changed", "test_report", "smoke_report", "screenshots", "
 _CLASS_TOKEN = re.compile(r"`([AUFE][A-Z][A-Za-z0-9_]{2,})`")
 _ASSET_TOKEN = re.compile(r"`(/[A-Za-z0-9_]+(?:/[A-Za-z0-9_.]+)+)`")
 
+# 行为校验(P14-BL-05):InteractionSemantics 用例通过态 + README 键位 token
+_PASS_STATES = {"success", "passed", "pass"}
+_KEY_TOKEN = re.compile(r"\[([A-Za-z0-9]+)\]")
+
+# 守门批前缀:增量 / 呈现 / 反馈批都受冻结层 hash 守门与回归门约束
+_GATED_PREFIXES = ("increment", "presentation", "feedback")
+
 
 def _iter_paths(evidence: Dict[str, Any]):
     """遍历 evidence 中所有路径型字段，逐一 yield (field, 路径字符串)。"""
@@ -58,15 +65,38 @@ def freeze_v0_baseline(project_root, run_dir, smoke_file_rel_paths: List[str]) -
     return baseline
 
 
-def _check_baseline(project_root: Path, baseline: Dict[str, Any]) -> List[str]:
-    """对比现有文件 hash 与 v0 冻结基线，返回篡改/缺失错误列表。"""
+def freeze_layer(project_root, run_dir, layer_name: str,
+                 file_rel_paths: List[str]) -> Dict[str, Any]:
+    """冻结一层判据文件 hash(逻辑层/各 rung 呈现契约层/实现层),
+    追加进 run 目录 frozen_baselines.json(.part 原子写)。
+    验收 runbook 在 rung verified / msc PROCEED 时调用(v0 沿用 freeze_v0_baseline 不迁移)。"""
+    root = Path(project_root)
+    # Windows 反斜杠统一转正斜杠,保证跨平台 key 一致
+    files = {str(rel).replace("\\", "/"): _sha256(root / rel) for rel in file_rel_paths}
+    path = Path(run_dir) / "frozen_baselines.json"
+    # 读取已有数据或初始化空结构
+    data = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {"layers": {}}
+    data["layers"][layer_name] = {"files": files,
+                                  "frozen_at": datetime.now(timezone.utc).isoformat()}
+    # 原子写入:先写临时文件再 replace,防止并发读到半写文件
+    tmp = path.with_suffix(".json.part")
+    tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    os.replace(tmp, path)
+    return data["layers"][layer_name]
+
+
+def _check_baseline(project_root: Path, baseline: Dict[str, Any],
+                    exempt=frozenset(), layer: str = "v0") -> List[str]:
+    """对比现有文件 hash 与冻结基线;exempt 为阶梯 supersedes 显式退役清单(authored 数据)。"""
     errors = []
     for rel, expected in baseline.get("files", {}).items():
+        if rel in exempt:
+            continue  # supersedes 显式声明放行(退役非作弊)
         target = project_root / rel
         if not target.exists():
-            errors.append(f"hash 守门: 基线文件缺失 {rel}")
+            errors.append(f"hash 守门[{layer}]: 基线文件缺失 {rel}(退役须经阶梯 supersedes 声明)")
         elif _sha256(target) != expected:
-            errors.append(f"hash 守门: 基线文件被修改 {rel}(v0 冒烟用例 PROCEED 后冻结,不许动)")
+            errors.append(f"hash 守门[{layer}]: 基线文件被修改 {rel}(冻结层不许动;退役须经阶梯 supersedes 声明)")
     return errors
 
 
@@ -99,10 +129,81 @@ def _check_doc_references(doc_text: str, plugin_root: Path) -> List[str]:
     return errors
 
 
+def _readme_key_tokens(readme_text: str) -> Optional[set]:
+    """提取 README『## 键位』节中的 [Key] token;无该节返回 None(调用处报错)。"""
+    lines = readme_text.splitlines()
+    start = None
+    for i, line in enumerate(lines):
+        # 键位须紧跟 `## ` 之后(容忍"## 键位表"等后缀,拒"## 其他键位说明"中段误匹配)
+        if re.match(r"^##\s+键位", line.strip()):
+            start = i + 1
+            break
+    if start is None:
+        return None
+    section = []
+    for line in lines[start:]:
+        if line.strip().startswith("## "):
+            break
+        section.append(line)
+    return set(_KEY_TOKEN.findall("\n".join(section)))
+
+
+def _check_interaction_claims(story: Dict[str, Any], evidence: Dict[str, Any],
+                              root: Path, plugin_root) -> List[str]:
+    """行为校验门禁(P14-BL-05):claims∪README 全集逐 key 对 InteractionSemantics 用例,
+    claims ⊆ README。claims 为空整体放行(玩法/文档/反馈工单不强制)。"""
+    claims = story.get("interaction_claims") or []
+    if not claims:
+        return []
+    report_rel = evidence.get("test_report")
+    if not report_rel or not (root / str(report_rel)).exists():
+        return ["行为校验: interaction_claims 非空时必须提交 test_report(InteractionSemantics 用例报告)"]
+    try:
+        report = json.loads((root / str(report_rel)).read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as exc:
+        return [f"行为校验: test_report 不可解析: {exc}"]
+    suites = report.get("suites") if isinstance(report, dict) else None
+    if not isinstance(suites, list):
+        return ["行为校验: test_report 缺 suites 数组(报告契约与冒烟报告同形)"]
+    # 通过态用例名集合(大小写不敏感匹配 state)
+    passing = {str(s.get("name", "")) for s in suites
+               if str(s.get("state", "")).lower() in _PASS_STATES}
+
+    errors: List[str] = []
+    claimed = {c["input"] for c in claims}
+    readme_tokens: set = set()
+    if plugin_root is None:
+        errors.append("行为校验: interaction_claims 非空时 evidence 必须带 plugin_root(README 对账需要)")
+        # README 都查不了,后续全集逐 key 报"无用例"是噪声,早退
+        return errors
+    else:
+        readme = Path(plugin_root) / "README.md"
+        if not readme.exists():
+            errors.append("行为校验: plugin README.md 不存在,无法做键位对账")
+        else:
+            tokens = _readme_key_tokens(readme.read_text(encoding="utf-8", errors="ignore"))
+            if tokens is None:
+                errors.append("行为校验: README 缺『## 键位』节(施工规范 §8 要求,机器对账锚)")
+            else:
+                readme_tokens = tokens
+                # claims ⊆ README token:代码有行为文档必须宣称
+                for missing in sorted(claimed - tokens):
+                    errors.append(f"行为校验: README 键位节未宣称 [{missing}](代码有行为文档没写)")
+    # 全集(claims ∪ README token)逐 key 必须有通过的 InteractionSemantics 用例
+    # C4 教训:文档写了键位、代码没行为 → 这里拒
+    for key in sorted(claimed | readme_tokens):
+        token = f"InteractionSemantics.{key}"
+        if not any(token in name for name in passing):
+            errors.append(f"行为校验: 键位 [{key}] 无通过的 {token} 用例(命名约定见施工规范 §8)")
+    return errors
+
+
 def validate_evidence(story: Dict[str, Any], evidence: Dict[str, Any], project_root,
                       baseline: Optional[Dict[str, Any]] = None,
-                      plugin_root=None) -> Dict[str, Any]:
+                      plugin_root=None,
+                      frozen_layers: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """返回 {"status": "verified"|"rejected", "errors": [...]};错误信息具体可执行(重试闭环)。"""
+    # frozen_layers:守门批分层冻结基线(见下方第 4 段);v0 baseline 与之双轨
     root = Path(project_root)
     errors: List[str] = []
 
@@ -116,16 +217,33 @@ def validate_evidence(story: Dict[str, Any], evidence: Dict[str, Any], project_r
         if evidence.get(field) is None:
             errors.append(f"缺少必交证据字段: {field}(evidence_class={story['evidence_class']})")
 
-    # ── 2. 路径存在检查 ─────────────────────────────────────────────────────
+    # ── 1b. 呈现批附加必交:真实截图(Phase 15 spec §4.3 第 3 道) ──────────────
+    # 仅当 evidence_class 本身未要求 screenshots 时补报,避免与第 1 段重复
+    if str(story.get("batch_id", "")).startswith("presentation") \
+            and "screenshots" not in (required or ()) and evidence.get("screenshots") is None:
+        errors.append("缺少必交证据字段: screenshots(呈现批必交真实截图)")
+
+    # ── 2. 路径越界 + 存在检查(P14-BL-01:resolve 后必须仍在项目根内) ────────
+    root_resolved = root.resolve()
     for field, rel in _iter_paths(evidence):
-        if not (root / rel).exists():
+        target = root / rel
+        try:
+            resolved = target.resolve()
+        except OSError as exc:
+            errors.append(f"证据路径不可解析: {field} -> {rel}({exc})")
+            continue
+        if not resolved.is_relative_to(root_resolved):
+            errors.append(f"证据路径越界: {field} -> {rel} 不在项目根内(P14-BL-01 守门)")
+            continue
+        if not target.exists():
             errors.append(f"证据路径不存在: {field} -> {rel}")
 
-    # ── 3. smoke_report 状态检查 ────────────────────────────────────────────
+    # ── 3. smoke_report 状态检查(读内容前二次越界过滤,与第 2 段双栅栏) ──────
     smoke_rel = evidence.get("smoke_report")
-    if smoke_rel and (root / str(smoke_rel)).exists():
+    smoke_path = (root / str(smoke_rel)) if smoke_rel else None
+    if smoke_path is not None and smoke_path.resolve().is_relative_to(root_resolved) and smoke_path.exists():
         try:
-            report = json.loads((root / str(smoke_rel)).read_text(encoding="utf-8"))
+            report = json.loads(smoke_path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError) as exc:
             errors.append(f"smoke_report 不可解析: {exc}")
         else:
@@ -136,16 +254,25 @@ def validate_evidence(story: Dict[str, Any], evidence: Dict[str, Any], project_r
             else:
                 if report.get("status") != "pass":
                     errors.append(f"smoke_report 状态非 pass: {report.get('status')}")
-                # 增量批还须 v0 回归通过
-                if str(story.get("batch_id", "")).startswith("increment") and report.get("v0_regression") != "pass":
-                    errors.append(f"增量批要求 v0 回归 pass,实际: {report.get('v0_regression')}")
+                # 守门批(增量/呈现/反馈)还须 v0 冻结层回归通过
+                if str(story.get("batch_id", "")).startswith(_GATED_PREFIXES) \
+                        and report.get("v0_regression") != "pass":
+                    errors.append(f"守门批要求 v0 回归 pass,实际: {report.get('v0_regression')}")
 
-    # ── 4. 增量批 baseline 检查 ─────────────────────────────────────────────
-    if str(story.get("batch_id", "")).startswith("increment"):
-        if baseline is None:
-            errors.append("增量批必须提供 v0 baseline(先在人审窗口 1 冻结)")
-        else:
-            errors.extend(_check_baseline(root, baseline))
+    # ── 4. 守门批冻结基线检查(v0 基线 + frozen_baselines 分层;supersedes 放行) ──
+    if str(story.get("batch_id", "")).startswith(_GATED_PREFIXES):
+        exempt = frozenset(str(p).replace("\\", "/")
+                           for p in (story.get("materials") or {}).get("supersedes_paths") or [])
+        if baseline is None and not frozen_layers:
+            errors.append("守门批必须提供冻结基线(v0_smoke_baseline 或 frozen_baselines,先在人审/rung 验收时冻结)")
+        if baseline is not None:
+            errors.extend(_check_baseline(root, baseline, exempt=exempt, layer="v0"))
+        for layer_name in sorted(frozen_layers or {}):
+            errors.extend(_check_baseline(root, (frozen_layers or {})[layer_name],
+                                          exempt=exempt, layer=layer_name))
+
+    # ── 4b. 行为校验门禁(P14-BL-05) ────────────────────────────────────────
+    errors.extend(_check_interaction_claims(story, evidence, root, plugin_root))
 
     # ── 5. 文档 story 引用对账 ──────────────────────────────────────────────
     if story.get("story_kind") == "documentation":

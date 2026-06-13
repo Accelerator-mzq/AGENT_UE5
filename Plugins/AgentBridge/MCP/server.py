@@ -806,6 +806,7 @@ TOOL_DISPATCH.update(
         "compiler_skill_synthesis_save": ("compiler", compiler_tools.compiler_skill_synthesis_save),
         "demo_story_fetch": ("compiler", compiler_tools.demo_story_fetch),
         "demo_story_submit": ("compiler", compiler_tools.demo_story_submit),
+        "demo_feedback_log": ("compiler", compiler_tools.demo_feedback_log),
     }
 )
 TOOL_DISPATCH.update(
