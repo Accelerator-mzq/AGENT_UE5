@@ -1,64 +1,72 @@
-# 当前任务入口 — Phase 14 Demo-First 增量主链
+# 当前任务入口 — Phase 15 呈现增量轴 + 反馈回流通道
 
-> 当前状态:Phase 14 Demo-First 增量主链**实施 + 验收全部完成**(2026-06-12)/ UE 5.5.4 稳定 / 验收 C1-C6 全闭环,msc v1 终裁**通过**
-> 入口类型:Phase 14 任务书(已完成)
-> 分支:`feat/phase14-demo-first-spec`(实现 commit 范围 cd84dfe..739ecc1)
+> 当前状态:Phase 15 **机制层完成**(2026-06-13,最终整体复审 Ready to merge)/ **验收期进行中**(demo 三 rung 无人值守 + 试玩两窗口未启动)/ UE 5.5.4 稳定
+> 入口类型:Phase 15 任务书(机制层已落地,验收待执行)
+> 分支:`feat/phase15-presentation-axis`(机制层 commit 范围 acab5c5..b7c9d42,领先 main 17 commit,未合)
 
-## 1. Phase 14 是什么
+## 1. Phase 15 是什么
 
-产品愿景"GDD → agent 发散创造 → N 份 demo → 使用者挑选"的增量交付实证:**让 agent 无人值守把一份 GDD 写出一个可玩 v0 demo,并以机器守门保证后续增量不破坏可玩**。两条核心主张:
+把"呈现 / 图形"建成与玩法批同等地位的**增量维度**(机制能力),无人值守把 Demo_MonopolyAuction 的呈现从文字 HUD 逐级升到 3D 场景(面板 → 2D 棋盘 → 3D);并把试玩反馈回流建成**机制内闭环**(反馈批),人只在两个试玩窗口出现。两条主轴:
 
-1. **agent 无人值守写出可玩 v0** — 切批机制(planner)按拓扑序把 skill_graph 切成 v0 全量批 + 每合成节点一增量批,coding agent 凭施工规范在 `Plugins/Demo_MonopolyAuction/` 落地 authored 启动关卡 + 键盘可玩 + 真实 HUD,经证据门(evidence_validator 分级必交 + hash 守门 + 文档引用对账)验收;
-2. **增量不破可玩** — v0 冒烟基线冻结后,每个增量批 submit 走 hash 守门(冻结文件改动即拒)+ v0 回归冒烟门,实证"拍卖增量入可玩循环且 v0 不退化"。
+1. **呈现增量轴** — planner 新增 `amend` 批次追加模式,读项目层呈现阶梯(`monopoly_demo_ladder.json`)数据驱动切出 presentation-1/2/3 三批(UMG 面板 → 2D 棋盘 → 3D);每批结束 demo 仍可玩、冒烟全绿;冻结分层(逻辑 / 呈现契约 / 呈现实现三层 + supersedes 退役声明)保证"可玩且不降呈现"。
+2. **反馈回流通道**(根治 P14-BL-06) — `demo_feedback_log` 登记试玩反馈 → amend 确定性切 feedback 批 → 走同一 fetch/submit 门禁 + 不退化守门 → 修复 story verified 后条目流转 resolved。配套行为校验门禁(BL-05:claims/README『## 键位』/InteractionSemantics 三方对账,根治 C4 教训)。
 
-机制层全部落 AgentBridge 框架(planner / story_store 状态机 / evidence_validator / velocity / manifest_loader 五模块 + MCP 工具对 + 冒烟 runner);可玩 demo `Plugins/Demo_MonopolyAuction/` 是**项目层产物,不属 AgentBridge 框架**。
+机制层全部落 AgentBridge 框架;阶梯实例 / 施工规范 / 可玩 demo 是**项目层产物,不属框架**。
 
 ## 2. 权威文档
 
-- 设计 spec:[2026-06-11-phase14-demo-first-design.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/specs/2026-06-11-phase14-demo-first-design.md)(顶部含实施期修订记录)
-- 实施 plan:[2026-06-11-phase14-demo-first.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/plans/2026-06-11-phase14-demo-first.md)(11 任务,TDD,机制层全代码就绪)
-- 验收 runbook:[phase14_acceptance_runbook.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-06-12/phase14_acceptance_runbook.md)(C1-C6 全闭环 + 最终判定表 + PIVOT/修复轮全记录)
-- PIVOT note:[phase14_v0_pivot_note_1.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-06-12/phase14_v0_pivot_note_1.md)(C4 attempt 1 可玩定义缝根因)
-- 施工规范:[demo_plugin_standards.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectInputs/ConstructionManifest/demo_plugin_standards.md)(项目层实例,当前版本 **1.1.0**)
+- 设计 spec:[2026-06-12-phase15-presentation-axis-design.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/specs/2026-06-12-phase15-presentation-axis-design.md)(顶部含实施期修订记录 R1-R5)
+- 实施 plan:[2026-06-12-phase15-presentation-axis.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/plans/2026-06-12-phase15-presentation-axis.md)(13 任务,TDD,机制层全代码就绪 + 验收交接段)
+- 机制层验证报告:[phase15_mechanism_verification.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-06-13/phase15_mechanism_verification.md)(全量机器证据)
+- 呈现阶梯实例:[monopoly_demo_ladder.json](/D:/UnrealProjects/Mvpv4TestCodex/ProjectInputs/PresentationLadder/monopoly_demo_ladder.json)(3 rung / 7 story,游戏语义只在此)
+- 施工规范:[demo_plugin_standards.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectInputs/ConstructionManifest/demo_plugin_standards.md)(项目层实例,当前版本 **1.2.0**)
 
-## 3. 交付摘要(cd84dfe..739ecc1)
+## 3. 交付摘要(机制层,acab5c5..b7c9d42)
 
-- **机制层(插件层)**:`Plugins/AgentBridge/Compiler/demo_plan/` 五模块——planner(拓扑序切批 + v0 全量批 + 每合成节点增量批 + 文档 story 末位)/ story_store(状态机:依赖门 / 幂等重入 / `.part` 事务)/ evidence_validator(分级必交 + hash 守门 + 文档引用对账)/ velocity / manifest_loader(版本对账 fail-closed)。
-- **Schema +2**:`demo_plan.schema.json` + `demo_story.schema.json` + 2 examples,入 strict 校验(**30/30**,实测 `validate_examples.py --strict`)。
-- **MCP 工具对**:`demo_story_fetch` / `demo_story_submit`(`_make_response` 契约统一,`plugin_root` 锚定校验),工具数 **55→57**(实测 `tool_definitions.ALL_TOOLS` = 57)。
-- **CLI + 冒烟 runner**:`Scripts/demo_plan_main.py`(gap/run_id fail-closed + schema 自校验落盘 + 友好报错)+ `Scripts/demo_smoke/runner.py`(环境自检 / 报告契约 / 归因分离退出码 0/1/3)。
-- **系统测试**:Stage 14 DMP-01~56 登记(6 个 `test_phase14_*.py` 纯 Python),系统测试总数 **364→420**(实测 `run_system_tests.py` TOTAL_CASES = 420,14 stage;`SystemTestCases.md` 已同步,`CLAUDE.md` 常用命令行已同步)。
-- **项目层产物**:施工规范 `demo_plugin_standards.md`(经 C4 PIVOT #1 从 1.0.1 升 1.1.0,增 §0 可玩硬判据 / §1 authored 关卡必含 / §4 关卡加载冒烟 / §7 无人值守资产创建通路)+ 可玩 demo `Plugins/Demo_MonopolyAuction/`(authored 关卡 + 键盘可玩 + 拍卖增量,不属 AgentBridge 框架)。
+- **planner amend 模式**:`Compiler/demo_plan/amend.py`(新)——build_presentation_amend(阶梯数据驱动切呈现批)+ build_feedback_amend(open 反馈条目机械切批);锚点 = 最后一个全 verified 批末位,幂等,零 LLM 确定性,零游戏语义。
+- **evidence_validator 三道新门禁**:BL-01 路径越界(resolve + is_relative_to)/ BL-05 行为校验(interaction_claims 三方对账)/ 冻结分层(`freeze_layer` → `frozen_baselines.json`,supersedes_paths 放行退役),v0_smoke_baseline 双轨兼容。
+- **MCP**:`demo_feedback_log`(工具数 **57→58**,实测 `len(ALL_TOOLS) = 58`)+ demo_story_submit 接 frozen_layers + feedback→resolved 流转。
+- **smoke runner**:BL-04 errorMessage 透传(含 null 防御)+ 多段冻结层回归聚合。
+- **Schema +2**:`presentation_ladder` + `feedback_entry`(strict **30→32**);`demo_story`/`demo_plan` 升 1.1.0(batch_id +presentation-N/feedback-N,story_kind +presentation/feedback,interaction_claims)。
+- **系统测试**:Stage 15 PRX-01~46 登记(5 个 `test_phase15_*.py` 纯 Python),系统测试总数 **420→466**(实测 `run_system_tests.py` TOTAL_CASES = 466,15 stage)。
+- **项目层产物**:阶梯实例 `monopoly_demo_ladder.json` + 施工规范 1.2.0(§4 呈现用例文件约定 / §7 程序化 3D 通路 / §8 呈现层架构约束含键位对账锚)。
 
-权威数字(实测,2026-06-12):phase14 pytest **56**(`pytest -k phase14 --collect-only`);系统测试 **420**(14 stage,Stage 14 DMP 56);Schema examples strict **30/30**;MCP 工具 **57**。
+权威数字(实测,2026-06-13):phase15 pytest **46** / phase14 回归 **56** / 系统测试 **466**(15 stage,Stage 15 PRX 46)/ Schema examples strict **32/32** / MCP 工具 **58** / 红线 diff 空(零触碰)。
 
-## 4. 验收状态
+## 4. 验收状态(C 系,沿用 Phase 14 形状)
 
 | 判据 | 状态 |
 |---|---|
-| C1 机器(pytest 56 / Stage 14 / 全量等价 / strict 30) | ✅ 全过(主会话亲跑) |
-| C2 切批标准答案(3 批 / 21 story / 拓扑序) | ✅ 全中(含机器断言) |
-| C3 v0 无人值守 | ✅ 经 1 次 PIVOT + 1 次试玩反馈修复轮后达成(attempt 2:17/17 verified,authored 关卡 + 键盘可玩 + 真实截图;主会话亲驱一局复证) |
-| C4 人审窗口 1 | ✅ attempt 1 PIVOT(可玩定义缝,规范升 1.1.0)→ attempt 2 修复轮(Enter/Esc)→ **PROCEED**(图形归 Phase 15) |
-| C5 增量批 1(拍卖) | ✅ 2/2 verified;hash 守门 + v0 回归实证;拍卖入可玩循环;**msc 试玩 v1 终裁通过** |
-| C6 接口中立 | ✅ 真实 MCP stdio 实测 57 工具,fetch/submit 可见 |
+| C1 机器全绿(pytest 46+56 / strict 32 / Stage 15+14 / 工具 58) | ✅ 全过(主会话亲跑,机制层) |
+| C2 切批标准答案(amend 后呈现 3 批 golden) | ⏳ 验收期(机制 golden 已绿,真机切批待跑) |
+| C3 无人值守 rung1+rung2 | ⏳ 验收期(coding agent fetch/submit 待执行) |
+| C4 窗口 1 + 回流闭环(msc 试玩 2D + 反馈批) | ⏳ 验收期(msc 试玩) |
+| C5 无人值守 rung3(3D) | ⏳ 验收期 |
+| C6 窗口 2 终裁 | ⏳ 验收期(msc) |
 
-- 范围说明:increment-2(股票市场)按 spec §2 留批不执行(计划在册,Phase 14 范围 = v0 + 一次增量)。
-- 关键事件:C3 经 1 次 PIVOT(可玩定义缝,spec 根因)+ 1 次试玩反馈修复轮(Enter/Esc 空操作);C4 PROCEED(图形归 Phase 15)。
+- 机制层完成 ≠ 验收完成:真正赌注(3D 批无人值守、msc 试玩终裁)在验收期。最终整体复审(opus)判定机制层 **Ready to merge**。
 
-## 5. 下一步(Phase 15 输入)
+## 5. 下一步(验收期,plan 末尾交接段)
 
-1. **呈现 / 图形增量轴**(msc 试玩诉求):demo 当前只有文字 HUD,capability 切批机制缺呈现升级轴;Phase 15 需把"呈现/图形"作为增量分化维度。
-2. **词表扩展 / Stage 1 模板固化**(Phase 13 遗留)。
-3. Phase 14 实施期 backlog(P14-BL-01~06,含安全/机制/性能/可观测/门禁/机制缺口)见 `Docs/acceptance/acceptance_report.md` 附 4。
+1. amend 追加呈现 3 批(C2 切批 golden 真机断言)。
+2. coding agent 无人值守跑 presentation-1/2,每 rung verified 后 runbook 调 `freeze_layer` 冻 `rung<N>-contract`/`rung<N>-impl` 层(C3)。
+3. 窗口 1:msc 试玩 2D 版 → `demo_feedback_log` 登记 → `--amend-feedback` 切批 → 修复复验(C4 回流实证;诚实条款:零真实反馈时用显式"演练"合成条目)。
+4. presentation-3 无人值守(C5)→ 窗口 2 终裁(C6)。
+5. 收尾:document-release(本期机制层已跑一次)→ finishing-a-development-branch(**merge 方式 msc 定**)。
 
-> 范围裁决(msc,2026-06-12):原列项"扇出 N demo + 挑选会话层"自 Phase 15 范围去除,恢复需 msc 主动提出;"N 份 demo + 使用者挑选"保持为产品长期方向,不进近期阶段规划。
+> 范围裁决(msc,延续 2026-06-12):"扇出 N demo + 挑选会话层"维持去除,恢复需 msc 主动提出;backlog **BL-02/BL-03/词表扩展/模板固化不纳入 Phase 15**(spec §5);已纳入 **BL-01/04/05/06**(机制层闭环,见 `Docs/acceptance/acceptance_report.md` 附 5)。
 
 ---
 
 ## 历史阶段归档
 
-> 以下为上一版任务书与跳转页保留的归档链接,Phase 11 / 12 / 13 事实不再改写。
+> 以下为上一版任务书与跳转页保留的归档链接,Phase 11 / 12 / 13 / 14 事实不再改写。
+
+> **Phase 14 — Demo-First 增量主链**(已完成 2026-06-12,验收 C1-C6 全闭环 msc v1 终裁通过,**PR #46 已合 main**):agent 无人值守把 GDD 写出可玩 v0 demo + 机器守门保证增量不破可玩;可玩 demo `Plugins/Demo_MonopolyAuction/`(authored 关卡 + 键盘可玩 + 拍卖增量)。
+> Phase 14 spec:[2026-06-11-phase14-demo-first-design.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/specs/2026-06-11-phase14-demo-first-design.md)
+> Phase 14 plan:[2026-06-11-phase14-demo-first.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/plans/2026-06-11-phase14-demo-first.md)
+> Phase 14 验收 runbook:[phase14_acceptance_runbook.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-06-12/phase14_acceptance_runbook.md)
+> Phase 14 backlog(P14-BL-01~06):[acceptance_report.md 附 4](/D:/UnrealProjects/Mvpv4TestCodex/Docs/acceptance/acceptance_report.md)(BL-01/04/05/06 经 Phase 15 闭环,见附 5)
 
 > **Phase 13 — Skill 合成主链**(已完成 2026-06-11,验收 1-12 全执行,commit d02e8bf):capability gap 显式化 + Stage 3 注册表数据化 + S3.5 链内合成环节(MCP `compiler_skill_synthesis_prepare/save` 双 gate)+ GDD 覆盖矩阵。
 > Phase 13 spec:[2026-06-10-phase13-skill-synthesis-design.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/specs/2026-06-10-phase13-skill-synthesis-design.md)

@@ -1,7 +1,7 @@
 # Mvpv4TestCodex
 
 > 目标引擎版本：UE5.5.4
-> 当前状态：Phase 14 Demo-First 增量主链实施 + 验收全部完成(2026-06-12,C1-C6 全闭环,msc v1 终裁通过);Phase 13 / 12 / 11 已归档
+> 当前状态：Phase 15 呈现增量轴 + 反馈回流通道机制层完成(2026-06-13,验收期进行中);Phase 14 Demo-First 增量主链实施 + 验收全部完成(2026-06-12,C1-C6 全闭环,msc v1 终裁通过);Phase 13 / 12 / 11 已归档
 > 当前正式口径：根 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md)(Phase 14 任务书) + [phase14_acceptance_runbook.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-06-12/phase14_acceptance_runbook.md) + [18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/acceptance/acceptance_report.md#1)
 
 ## 项目简介
@@ -34,9 +34,9 @@ GDD -> Root Skill Contract -> Clarification Gate -> Skill Graph Planning
 ## Phase 14 完成结果(Demo-First 增量主链,2026-06-12)
 
 - demo_plan 切批机制:`Plugins/AgentBridge/Compiler/demo_plan/` 五模块(planner 拓扑序切批 / story_store 状态机 / evidence_validator 证据门含 hash 守门 / velocity / manifest_loader)
-- MCP 工具对 `demo_story_fetch/submit`(工具数 55→`57`)+ `demo_plan`/`demo_story` Schema(strict `30/30`)+ CLI `demo_plan_main.py` + 冒烟 runner(退出码 0/1/3 归因分离)
+- MCP 工具对 `demo_story_fetch/submit`(工具数 55→`57`)+ `demo_plan`/`demo_story` Schema(strict `30/30`,Phase 15 已升至 `32/32`)+ CLI `demo_plan_main.py` + 冒烟 runner(退出码 0/1/3 归因分离)
 - 可玩 demo:`Plugins/Demo_MonopolyAuction/`(authored 关卡 + 键盘可玩 + 拍卖增量,**项目层产物,不属 AgentBridge 框架**);施工规范 `ProjectInputs/ConstructionManifest/demo_plugin_standards.md` 1.1.0
-- 系统测试 `14 stage / 420 case`(Stage 14 DMP-01~56)
+- 系统测试 `15 stage / 466 case`(Stage 14 DMP-01~56 + Stage 15 PRX-01~46)
 - 验收状态:C1-C6 全闭环,经 1 次 PIVOT(可玩定义缝)+ 1 次试玩反馈修复轮,msc v1 终裁**通过**;详见 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) 与 [phase14_acceptance_runbook.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-06-12/phase14_acceptance_runbook.md)
 
 ## Phase 13 完成结果(Skill 合成主链,2026-06-11)
@@ -98,4 +98,13 @@ python Plugins/AgentBridge/MCP/server.py
 - `Docs/INDEX.md` 及其指向的 L1 文档体系(SRS / HLD / LLD / contracts / testing / acceptance)是当前项目口径的最高优先级。
 - 根目录 [task.md](/D:/UnrealProjects/Mvpv4TestCodex/task.md) 现在是 Phase 14 任务书(已完成),是当前阶段唯一开发驱动入口。
 - Phase 11 的正式完成口径以 [18_Phase11_Closeout.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/acceptance/acceptance_report.md#1) 和 [task11_phase11.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/archive/history/Tasks/task11_phase11.md) 为准。
-- MCP 当前可见工具注册数为 `57`，其中 `53` 个为正式主工具、`4` 个为兼容 alias(2026-06-12 Phase 14 +`demo_story_fetch/submit`)。
+- MCP 当前可见工具注册数为 `58`，其中 `54` 个为正式主工具、`4` 个为兼容 alias(2026-06-12 Phase 14 +`demo_story_fetch/submit`;2026-06-13 Phase 15 +`demo_feedback_log`)。
+
+## Phase 15 机制层完成结果(呈现增量轴 + 反馈回流通道,2026-06-13)
+
+- **机制层(插件层)**:planner amend(amend.py 切呈现/反馈批)+ evidence_validator 行为校验门禁 BL-05 + 冻结分层 frozen_baselines / supersedes + MCP demo_feedback_log(工具数 57→58)+ smoke runner BL-04 + Schema +2 入 strict(30→32)+ demo_story/demo_plan 升 1.1.0
+- **项目层产物**:阶梯实例 ProjectInputs/Ladder/monopoly_demo_ladder.json + 施工规范 ProjectInputs/ConstructionManifest/demo_plugin_standards.md 升 1.2.0
+- **系统测试**:Stage 15 PRX-01~46 登记,系统测试 420→466(15 stage)
+- **验收状态**:机制层完成(最终整体复审 Ready to merge),验收期未启动(demo 三 rung 无人值守 + 试玩两窗口);spec/plan 见 Docs/superpowers/specs/2026-06-12-phase15-presentation-axis.md 与 Docs/superpowers/plans/2026-06-12-phase15-presentation-axis.md
+- 权威数字(实测,2026-06-13):pytest `-k phase15` **46** / `-k phase14` **56** / 系统测试 **466**(15 stage)/ Schema examples strict **32/32** / MCP 工具 **58**
+- 证据:[phase15_mechanism_verification.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-06-13/phase15_mechanism_verification.md)
