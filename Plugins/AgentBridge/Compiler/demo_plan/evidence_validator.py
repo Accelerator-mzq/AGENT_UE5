@@ -28,6 +28,10 @@ _PATH_FIELDS = ("files_changed", "test_report", "smoke_report", "screenshots", "
 _CLASS_TOKEN = re.compile(r"`([AUFE][A-Z][A-Za-z0-9_]{2,})`")
 _ASSET_TOKEN = re.compile(r"`(/[A-Za-z0-9_]+(?:/[A-Za-z0-9_.]+)+)`")
 
+# 行为校验(P14-BL-05):InteractionSemantics 用例通过态 + README 键位 token
+_PASS_STATES = {"success", "passed", "pass"}
+_KEY_TOKEN = re.compile(r"\[([A-Za-z0-9]+)\]")
+
 
 def _iter_paths(evidence: Dict[str, Any]):
     """遍历 evidence 中所有路径型字段，逐一 yield (field, 路径字符串)。"""
@@ -99,6 +103,75 @@ def _check_doc_references(doc_text: str, plugin_root: Path) -> List[str]:
     return errors
 
 
+def _readme_key_tokens(readme_text: str) -> Optional[set]:
+    """提取 README『## 键位』节中的 [Key] token;无该节返回 None(调用处报错)。"""
+    lines = readme_text.splitlines()
+    start = None
+    for i, line in enumerate(lines):
+        # 键位须紧跟 `## ` 之后(容忍"## 键位表"等后缀,拒"## 其他键位说明"中段误匹配)
+        if re.match(r"^##\s+键位", line.strip()):
+            start = i + 1
+            break
+    if start is None:
+        return None
+    section = []
+    for line in lines[start:]:
+        if line.strip().startswith("## "):
+            break
+        section.append(line)
+    return set(_KEY_TOKEN.findall("\n".join(section)))
+
+
+def _check_interaction_claims(story: Dict[str, Any], evidence: Dict[str, Any],
+                              root: Path, plugin_root) -> List[str]:
+    """行为校验门禁(P14-BL-05):claims∪README 全集逐 key 对 InteractionSemantics 用例,
+    claims ⊆ README。claims 为空整体放行(玩法/文档/反馈工单不强制)。"""
+    claims = story.get("interaction_claims") or []
+    if not claims:
+        return []
+    report_rel = evidence.get("test_report")
+    if not report_rel or not (root / str(report_rel)).exists():
+        return ["行为校验: interaction_claims 非空时必须提交 test_report(InteractionSemantics 用例报告)"]
+    try:
+        report = json.loads((root / str(report_rel)).read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as exc:
+        return [f"行为校验: test_report 不可解析: {exc}"]
+    suites = report.get("suites") if isinstance(report, dict) else None
+    if not isinstance(suites, list):
+        return ["行为校验: test_report 缺 suites 数组(报告契约与冒烟报告同形)"]
+    # 通过态用例名集合(大小写不敏感匹配 state)
+    passing = {str(s.get("name", "")) for s in suites
+               if str(s.get("state", "")).lower() in _PASS_STATES}
+
+    errors: List[str] = []
+    claimed = {c["input"] for c in claims}
+    readme_tokens: set = set()
+    if plugin_root is None:
+        errors.append("行为校验: interaction_claims 非空时 evidence 必须带 plugin_root(README 对账需要)")
+        # README 都查不了,后续全集逐 key 报"无用例"是噪声,早退
+        return errors
+    else:
+        readme = Path(plugin_root) / "README.md"
+        if not readme.exists():
+            errors.append("行为校验: plugin README.md 不存在,无法做键位对账")
+        else:
+            tokens = _readme_key_tokens(readme.read_text(encoding="utf-8", errors="ignore"))
+            if tokens is None:
+                errors.append("行为校验: README 缺『## 键位』节(施工规范 §8 要求,机器对账锚)")
+            else:
+                readme_tokens = tokens
+                # claims ⊆ README token:代码有行为文档必须宣称
+                for missing in sorted(claimed - tokens):
+                    errors.append(f"行为校验: README 键位节未宣称 [{missing}](代码有行为文档没写)")
+    # 全集(claims ∪ README token)逐 key 必须有通过的 InteractionSemantics 用例
+    # C4 教训:文档写了键位、代码没行为 → 这里拒
+    for key in sorted(claimed | readme_tokens):
+        token = f"InteractionSemantics.{key}"
+        if not any(token in name for name in passing):
+            errors.append(f"行为校验: 键位 [{key}] 无通过的 {token} 用例(命名约定见施工规范 §8)")
+    return errors
+
+
 def validate_evidence(story: Dict[str, Any], evidence: Dict[str, Any], project_root,
                       baseline: Optional[Dict[str, Any]] = None,
                       plugin_root=None,
@@ -165,6 +238,9 @@ def validate_evidence(story: Dict[str, Any], evidence: Dict[str, Any], project_r
             errors.append("增量批必须提供 v0 baseline(先在人审窗口 1 冻结)")
         else:
             errors.extend(_check_baseline(root, baseline))
+
+    # ── 4b. 行为校验门禁(P14-BL-05) ────────────────────────────────────────
+    errors.extend(_check_interaction_claims(story, evidence, root, plugin_root))
 
     # ── 5. 文档 story 引用对账 ──────────────────────────────────────────────
     if story.get("story_kind") == "documentation":

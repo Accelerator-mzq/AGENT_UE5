@@ -56,3 +56,90 @@ class TestPathAndScreenshotGate:
             workspace_tmp_path, frozen_layers={})
         assert out["status"] == "rejected"
         assert any("screenshots" in e for e in out["errors"])
+
+
+def _report(root: Path, suites, rel="test_report.json") -> str:
+    """test_report 与冒烟报告同形({suites:[{name,state}]})。"""
+    return _touch(root, rel, json.dumps({"suites": suites}))
+
+
+def _readme(root: Path, plugin_rel: str, keys) -> Path:
+    """写 plugin README,含『## 键位』节。返回 plugin 绝对根。"""
+    lines = ["# Demo", "", "## 键位", ""] + [f"- [{k}] 某操作" for k in keys] + ["", "## 其他", "x"]
+    p = root / plugin_rel / "README.md"
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text("\n".join(lines), encoding="utf-8")
+    return root / plugin_rel
+
+
+_CLAIM = [{"input": "Space", "behavior": "推进回合"}]
+
+
+class TestInteractionClaims:
+    # 行为校验与批前缀无关;用 batch_id="v0"(非守门批)隔离被测变量,
+    # 避免空 frozen_layers 触发守门批"冻结基线缺失"拒绝干扰断言
+    def _story_claims(self):
+        return _story(batch_id="v0", claims=_CLAIM)
+
+    def _evidence(self, root, suites, keys=("Space",)):
+        # plugin_root 经独立参数传入(各测试 plugin_root=plugin),不放进 evidence 字典
+        smoke = _smoke(root)
+        return {"files_changed": [smoke], "smoke_report": smoke,
+                "screenshots": [_touch(root, "shot.png")],
+                "test_report": _report(root, suites)}, _readme(root, "Plugins/DemoX", keys)
+
+    def test_p15b03_claim_without_passing_case_rejected(self, workspace_tmp_path):
+        ev = _load("evidence_validator")
+        evidence, plugin = self._evidence(workspace_tmp_path, suites=[])
+        out = ev.validate_evidence(self._story_claims(), evidence, workspace_tmp_path,
+                                   plugin_root=plugin, frozen_layers={})
+        assert out["status"] == "rejected"
+        assert any("InteractionSemantics.Space" in e for e in out["errors"])
+
+    def test_p15b04_claim_with_failing_case_rejected(self, workspace_tmp_path):
+        ev = _load("evidence_validator")
+        evidence, plugin = self._evidence(
+            workspace_tmp_path,
+            suites=[{"name": "DemoX.InteractionSemantics.Space", "state": "fail"}])
+        out = ev.validate_evidence(self._story_claims(), evidence, workspace_tmp_path,
+                                   plugin_root=plugin, frozen_layers={})
+        assert out["status"] == "rejected"
+
+    def test_p15b05_claim_with_passing_case_and_readme_passes(self, workspace_tmp_path):
+        ev = _load("evidence_validator")
+        evidence, plugin = self._evidence(
+            workspace_tmp_path,
+            suites=[{"name": "DemoX.InteractionSemantics.Space", "state": "Success"}])
+        out = ev.validate_evidence(self._story_claims(), evidence, workspace_tmp_path,
+                                   plugin_root=plugin, frozen_layers={})
+        assert out["status"] == "verified", out["errors"]
+
+    def test_p15b06_readme_key_without_behavior_case_rejected(self, workspace_tmp_path):
+        # C4 教训本尊:README 宣称 [Enter] 但没有对应 InteractionSemantics 用例
+        ev = _load("evidence_validator")
+        evidence, plugin = self._evidence(
+            workspace_tmp_path,
+            suites=[{"name": "DemoX.InteractionSemantics.Space", "state": "Success"}],
+            keys=("Space", "Enter"))
+        out = ev.validate_evidence(self._story_claims(), evidence, workspace_tmp_path,
+                                   plugin_root=plugin, frozen_layers={})
+        assert out["status"] == "rejected"
+        assert any("InteractionSemantics.Enter" in e for e in out["errors"])
+
+    def test_p15b07_claim_missing_from_readme_or_no_section_rejected(self, workspace_tmp_path):
+        ev = _load("evidence_validator")
+        # 7a: README 键位节没宣称 claim 的键
+        evidence, plugin = self._evidence(
+            workspace_tmp_path,
+            suites=[{"name": "DemoX.InteractionSemantics.Space", "state": "Success"}],
+            keys=())
+        out = ev.validate_evidence(self._story_claims(), evidence, workspace_tmp_path,
+                                   plugin_root=plugin, frozen_layers={})
+        assert out["status"] == "rejected"
+        assert any("未宣称" in e for e in out["errors"])
+        # 7b: README 缺『## 键位』节
+        (workspace_tmp_path / "Plugins" / "DemoX" / "README.md").write_text("# 无键位节", encoding="utf-8")
+        out2 = ev.validate_evidence(self._story_claims(), evidence, workspace_tmp_path,
+                                    plugin_root=plugin, frozen_layers={})
+        assert out2["status"] == "rejected"
+        assert any("缺『## 键位』节" in e for e in out2["errors"])
