@@ -5,6 +5,20 @@
 > 上游输入:Phase 14 收尾在册输入(task.md §5 / acceptance_report.md 附 4.4)+ msc 启动指令(2026-06-12)
 > 关联:Phase 14 spec `2026-06-11-phase14-demo-first-design.md` / 验收 runbook `ProjectState/Reports/2026-06-12/phase14_acceptance_runbook.md`
 
+> **实施期修订记录:**
+> - R1(plan Task 1/3):呈现 story 用独立 `story_kind: "presentation"`(spec §4.2 原文只点名 +feedback;
+>   复用 capability 需伪造 capability_id/instance_id,违背 schema 条件约束本意)。
+> - R2(plan Task 1):磁盘上 Phase 14 既有 run 的 1.0.0 story 不回写不重校验;amend 只新增 1.1.0 产物,
+>   plan 文件在 amend 时升 1.1.0(store 不做 schema 校验,验收 runbook 用新 CLI 自校验口径)。
+> - R3(plan Task 8):呈现契约/实现用例的冻结落地为 `frozen_baselines.json` 分层(layer 命名由 runbook 定,
+>   建议 `rung<N>-contract` / `rung<N>-impl`),v0 沿用 `v0_smoke_baseline.json` 不迁移;
+>   supersedes 放行经 story.materials.supersedes_paths(authored 阶梯数据,非 agent 自报)。
+> - R4(plan Task 9):runner 报告契约键 `v0_regression` 保留(validator 兼容),语义升级为"全部冻结层回归聚合";
+>   分段明细新增 `regression_segments`。
+> - R5(plan Task 8/10):反馈批 feedback story submit verified 时,demo_story_submit 把反馈条目状态流转为 resolved
+>   (BL-06 闭环),p15f08 端到端覆盖;Stage 15 因此较 plan 增 2 条(feedback_tool 7→8、smoke_runner 5→6,
+>   总 44→46),smoke_runner 增的 p15r06 为 BL-04 errors 透传的 null 防御回归测试。
+
 ## 1. 背景与目标
 
 ### 1.1 Phase 15 在册输入
