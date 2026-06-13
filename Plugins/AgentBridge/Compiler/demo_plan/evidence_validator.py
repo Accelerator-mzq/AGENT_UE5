@@ -101,8 +101,10 @@ def _check_doc_references(doc_text: str, plugin_root: Path) -> List[str]:
 
 def validate_evidence(story: Dict[str, Any], evidence: Dict[str, Any], project_root,
                       baseline: Optional[Dict[str, Any]] = None,
-                      plugin_root=None) -> Dict[str, Any]:
+                      plugin_root=None,
+                      frozen_layers: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """返回 {"status": "verified"|"rejected", "errors": [...]};错误信息具体可执行(重试闭环)。"""
+    # frozen_layers:Task 8 分层冻结门禁用,本 Task 仅透传签名,暂不消费
     root = Path(project_root)
     errors: List[str] = []
 
@@ -116,16 +118,33 @@ def validate_evidence(story: Dict[str, Any], evidence: Dict[str, Any], project_r
         if evidence.get(field) is None:
             errors.append(f"缺少必交证据字段: {field}(evidence_class={story['evidence_class']})")
 
-    # ── 2. 路径存在检查 ─────────────────────────────────────────────────────
+    # ── 1b. 呈现批附加必交:真实截图(Phase 15 spec §4.3 第 3 道) ──────────────
+    # 仅当 evidence_class 本身未要求 screenshots 时补报,避免与第 1 段重复
+    if str(story.get("batch_id", "")).startswith("presentation") \
+            and "screenshots" not in (required or ()) and evidence.get("screenshots") is None:
+        errors.append("缺少必交证据字段: screenshots(呈现批必交真实截图)")
+
+    # ── 2. 路径越界 + 存在检查(P14-BL-01:resolve 后必须仍在项目根内) ────────
+    root_resolved = root.resolve()
     for field, rel in _iter_paths(evidence):
-        if not (root / rel).exists():
+        target = root / rel
+        try:
+            resolved = target.resolve()
+        except OSError as exc:
+            errors.append(f"证据路径不可解析: {field} -> {rel}({exc})")
+            continue
+        if not resolved.is_relative_to(root_resolved):
+            errors.append(f"证据路径越界: {field} -> {rel} 不在项目根内(P14-BL-01 守门)")
+            continue
+        if not target.exists():
             errors.append(f"证据路径不存在: {field} -> {rel}")
 
-    # ── 3. smoke_report 状态检查 ────────────────────────────────────────────
+    # ── 3. smoke_report 状态检查(读内容前二次越界过滤,与第 2 段双栅栏) ──────
     smoke_rel = evidence.get("smoke_report")
-    if smoke_rel and (root / str(smoke_rel)).exists():
+    smoke_path = (root / str(smoke_rel)) if smoke_rel else None
+    if smoke_path is not None and smoke_path.resolve().is_relative_to(root_resolved) and smoke_path.exists():
         try:
-            report = json.loads((root / str(smoke_rel)).read_text(encoding="utf-8"))
+            report = json.loads(smoke_path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError) as exc:
             errors.append(f"smoke_report 不可解析: {exc}")
         else:
