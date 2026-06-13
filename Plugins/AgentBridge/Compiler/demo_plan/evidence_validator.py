@@ -203,7 +203,7 @@ def validate_evidence(story: Dict[str, Any], evidence: Dict[str, Any], project_r
                       plugin_root=None,
                       frozen_layers: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """返回 {"status": "verified"|"rejected", "errors": [...]};错误信息具体可执行(重试闭环)。"""
-    # frozen_layers:Task 8 分层冻结门禁用,本 Task 仅透传签名,暂不消费
+    # frozen_layers:守门批分层冻结基线(见下方第 4 段);v0 baseline 与之双轨
     root = Path(project_root)
     errors: List[str] = []
 

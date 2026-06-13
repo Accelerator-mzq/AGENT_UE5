@@ -812,7 +812,7 @@
 
 ## 20. Phase 15 Presentation Axis（PRX）
 
-> 来源：[Docs/superpowers/specs/2026-06-12-phase15-presentation-axis-spec.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/specs/2026-06-12-phase15-presentation-axis-spec.md) 验收口径
+> 来源：[Docs/superpowers/specs/2026-06-12-phase15-presentation-axis-design.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/specs/2026-06-12-phase15-presentation-axis-design.md) 验收口径
 > 自动化方式：pytest 全量（5 个 `test_phase15_*.py` 文件，按收集顺序 PRX-01 ~ PRX-46 连续分段编号）
 > 环境要求：Python 3.x；不要求 UE5 Editor
 > 分段：PRX-01~15 amend / PRX-16~25 behavior_gate / PRX-26~33 feedback_tool / PRX-34~40 schemas / PRX-41~46 smoke_runner
