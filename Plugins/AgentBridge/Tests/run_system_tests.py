@@ -213,11 +213,19 @@ STAGES = {
         'requires_editor': False,
         'requires_build': False,
     },
+    15: {
+        'name': 'Phase 15 Presentation Axis（PRX）',
+        'cases': 'PRX-01 ~ PRX-46（5 个 test_phase15_* 文件）',
+        'case_ids': make_case_ids('PRX', 1, 46),
+        'count': 46,
+        'requires_editor': False,
+        'requires_build': False,
+    },
 }
 
-TOTAL_CASES = sum(s['count'] for s in STAGES.values())  # 420 (364 + P14 DMP-01~56 加 56)
+TOTAL_CASES = sum(s['count'] for s in STAGES.values())  # 466 (420 + P15 PRX-01~46 加 46)
 CASE_ID_PATTERN = re.compile(
-    r'^\|\s*((?:SV|BL|Q|W|CL|UI|CMD|PY|ORC|CP|SS|GA|E2E|MCP|P11|LIR|SKS|DMP)-\d{2})\s*\|',
+    r'^\|\s*((?:SV|BL|Q|W|CL|UI|CMD|PY|ORC|CP|SS|GA|E2E|MCP|P11|LIR|SKS|DMP|PRX)-\d{2})\s*\|',
     re.MULTILINE,
 )
 PHASE7_STAGE7_CASE_IDS = make_case_ids('CP', 32, 40) + make_case_ids('SS', 14, 20)
@@ -3114,6 +3122,117 @@ def run_stage_14(result, engine_root, completed_results=None):
         )
 
 
+def run_stage_15(result, engine_root, completed_results=None):
+    """Stage 15：Phase 15 Presentation Axis — PRX-01~46 用例。
+
+    5 个 test_phase15_*.py 文件按 pytest 收集顺序（文件名字母序）连续编号：
+      PRX-01~15: test_phase15_amend.py          （amend 呈现批/反馈批/CLI）
+      PRX-16~25: test_phase15_behavior_gate.py  （BL-01/截图/行为校验/冻结分层）
+      PRX-26~33: test_phase15_feedback_tool.py  （MCP demo_feedback_log + resolved 流转）
+      PRX-34~40: test_phase15_schemas.py        （schema 1.1.0 + 新 schema + 阶梯实例）
+      PRX-41~46: test_phase15_smoke_runner.py   （BL-04 + 多段回归聚合 + null 防御）
+
+    注：测试函数内部编号（test_p15aXX / test_p15bXX 等）为功能分组编号，不与上述文件段连续编号对应；
+    此处用于系统测试注册的 PRX-01~46 为文件段顺序登记编号（共 46 条）。
+    判据与 Stage 14 同款——pytest 全绿 + 实收数 == 登记数。
+    """
+    check_map = {}
+    runtime_dir = os.path.join(PROJECT_ROOT, 'ProjectState', 'Temp', 'run_system_tests_stage15')
+    os.makedirs(runtime_dir, exist_ok=True)
+    result.log_path = runtime_dir
+
+    # 文件名 -> (PRX 起始编号, 期望用例数)；登记数与 pytest --co 实收数挂钩，漂移即 FAIL
+    phase15_test_files = [
+        ('test_phase15_amend.py', 1, 15),
+        ('test_phase15_behavior_gate.py', 16, 10),
+        ('test_phase15_feedback_tool.py', 26, 8),
+        ('test_phase15_schemas.py', 34, 7),
+        ('test_phase15_smoke_runner.py', 41, 6),
+    ]
+
+    file_notes = []
+    for file_name, start_id, expected_count in phase15_test_files:
+        # 逐文件跑 pytest，日志单独落盘，方便事后按文件追溯
+        exit_code, stdout, stderr = run_pytest_selection(
+            [os.path.join(TESTS_SCRIPTS_DIR, file_name)], timeout=900
+        )
+        passed_match = re.search(r'(\d+)\s+passed', stdout)
+        failed_match = re.search(r'(\d+)\s+failed', stdout)
+        skipped_match = re.search(r'(\d+)\s+skipped', stdout)
+        n_pass = int(passed_match.group(1)) if passed_match else 0
+        n_fail = int(failed_match.group(1)) if failed_match else 0
+        n_skip = int(skipped_match.group(1)) if skipped_match else 0
+
+        log_path = os.path.join(runtime_dir, f'{file_name}_pytest.log')
+        try:
+            with open(log_path, 'w', encoding='utf-8') as fp:
+                fp.write(f'cmd_exit={exit_code}\n--- stdout ---\n{stdout}\n--- stderr ---\n{stderr}\n')
+        except Exception:
+            pass
+
+        # 判据：pytest 全绿 + 实跑用例数 == 登记数（防止加/删测试后登记表无声过期）
+        ok = (
+            exit_code == 0
+            and n_fail == 0
+            and (n_pass + n_skip) == expected_count
+        )
+        range_label = f'PRX-{start_id:02d}~PRX-{start_id + expected_count - 1:02d}'
+        note = (
+            f'{file_name}: pytest passed={n_pass} failed={n_fail} skipped={n_skip} '
+            f'exit={exit_code} 登记={expected_count}'
+        )
+        file_notes.append((range_label, ok, note))
+        for case_index in range(start_id, start_id + expected_count):
+            check_map[f'PRX-{case_index:02d}'] = (ok, note)
+
+    # 写汇总 JSON
+    summary_path = os.path.join(runtime_dir, 'phase15_case_checks.json')
+    with open(summary_path, 'w', encoding='utf-8') as file:
+        json.dump(
+            {
+                'generated_at': datetime.datetime.now().isoformat(),
+                'cases': {
+                    case_id: {'ok': ok, 'note': note}
+                    for case_id, (ok, note) in check_map.items()
+                },
+            },
+            file,
+            ensure_ascii=False,
+            indent=2,
+        )
+
+    missing_case_ids = [case_id for case_id in STAGES[15]['case_ids'] if case_id not in check_map]
+    if missing_case_ids:
+        result.status = 'failed'
+        result.exit_code = 1
+        result.message = f'Stage 15 用例注册不完整，缺失: {", ".join(missing_case_ids)}'
+        return
+
+    checks = [
+        (case_id, check_map[case_id][0], check_map[case_id][1])
+        for case_id in STAGES[15]['case_ids']
+    ]
+    passed = sum(1 for _, ok, _ in checks if ok)
+    total = len(checks)
+    failed_cases = [case_id for case_id, ok, _ in checks if not ok]
+
+    # 按文件分段打印（46 条逐条打印过于冗长，按 5 个文件段汇报）
+    for range_label, ok, note in file_notes:
+        print(f'  [{range_label}] {"PASS" if ok else "FAIL"} - {note}')
+
+    if passed == total:
+        result.status = 'passed'
+        result.exit_code = 0
+        result.message = f'Phase 15 Presentation Axis 全部通过 ({passed}/{total})'
+    else:
+        result.status = 'failed'
+        result.exit_code = 1
+        result.message = (
+            f'Phase 15 Presentation Axis 未全部通过 ({passed}/{total})，'
+            f'失败项: {", ".join(failed_cases[:10])}{"…" if len(failed_cases) > 10 else ""}'
+        )
+
+
 # Stage ID -> 执行函数映射
 STAGE_RUNNERS = {
     1: run_stage_1,
@@ -3130,6 +3249,7 @@ STAGE_RUNNERS = {
     12: run_stage_12,
     13: run_stage_13,
     14: run_stage_14,
+    15: run_stage_15,
 }
 
 

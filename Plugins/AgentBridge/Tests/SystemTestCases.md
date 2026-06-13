@@ -28,6 +28,7 @@
 - [17. Phase 12 LLM Internal Reopen（LIR）](#17-phase-12-llm-internal-reopenlir)
 - [18. Phase 13 Skill Synthesis（SKS）](#18-phase-13-skill-synthesissks)
 - [19. Phase 14 Demo Plan（DMP）](#19-phase-14-demo-plandmp)
+- [20. Phase 15 Presentation Axis（PRX）](#20-phase-15-presentation-axisprx)
 - [附录 A：UE5 Automation Test ID 速查表](#附录-aue5-automation-test-id-速查表)
 - [附录 B：统计摘要](#附录-b统计摘要)
 - [附录 C：自动化工具链](#附录-c自动化工具链)
@@ -55,8 +56,9 @@
 | LIR | Phase 12 LLM Internal Reopen | Python | `run_system_tests.py --stage=12` / pytest 子集 |
 | SKS | Phase 13 Skill Synthesis | Python | `run_system_tests.py --stage=13` / pytest 全量（9 个 `test_phase13_*.py`） |
 | DMP | Phase 14 Demo Plan | Python | `run_system_tests.py --stage=14` / pytest 全量（6 个 `test_phase14_*.py`） |
+| PRX | Phase 15 Presentation Axis | Python | `run_system_tests.py --stage=15` / pytest 全量（5 个 `test_phase15_*.py`） |
 
-> 全部 420 条用例均已登记到当前测试总表。证据目录分层为：`ProjectState/Reports/`（当期执行）+ `Docs/History/reports/AgentBridgeEvidence/`（历史归档）。
+> 全部 466 条用例均已登记到当前测试总表。证据目录分层为：`ProjectState/Reports/`（当期执行）+ `Docs/History/reports/AgentBridgeEvidence/`（历史归档）。
 
 ---
 
@@ -808,6 +810,66 @@
 
 ---
 
+## 20. Phase 15 Presentation Axis（PRX）
+
+> 来源：[Docs/superpowers/specs/2026-06-12-phase15-presentation-axis-spec.md](/D:/UnrealProjects/Mvpv4TestCodex/Docs/superpowers/specs/2026-06-12-phase15-presentation-axis-spec.md) 验收口径
+> 自动化方式：pytest 全量（5 个 `test_phase15_*.py` 文件，按收集顺序 PRX-01 ~ PRX-46 连续分段编号）
+> 环境要求：Python 3.x；不要求 UE5 Editor
+> 分段：PRX-01~15 amend / PRX-16~25 behavior_gate / PRX-26~33 feedback_tool / PRX-34~40 schemas / PRX-41~46 smoke_runner
+
+| 编号 | 用例名称 | 测试方式 | 预期结果 |
+|------|---------|---------|---------|
+| PRX-01 | `TestPresentationAmend::test_p15a01_appends_three_presentation_batches` | `pytest test_phase15_amend.py` | PASS，失败 0 |
+| PRX-02 | `TestPresentationAmend::test_p15a02_story_ids_derived_from_slug` | `pytest test_phase15_amend.py` | PASS，失败 0 |
+| PRX-03 | `TestPresentationAmend::test_p15a03_first_story_anchored_on_last_verified_doc` | `pytest test_phase15_amend.py` | PASS，失败 0 |
+| PRX-04 | `TestPresentationAmend::test_p15a04_pending_increment_does_not_block_or_anchor` | `pytest test_phase15_amend.py` | PASS，失败 0 |
+| PRX-05 | `TestPresentationAmend::test_p15a05_sequential_chain_within_batch` | `pytest test_phase15_amend.py` | PASS，失败 0 |
+| PRX-06 | `TestPresentationAmend::test_p15a06_doc_story_last_depends_members` | `pytest test_phase15_amend.py` | PASS，失败 0 |
+| PRX-07 | `TestPresentationAmend::test_p15a07_idempotent_existing_batches_skipped` | `pytest test_phase15_amend.py` | PASS，失败 0 |
+| PRX-08 | `TestPresentationAmend::test_p15a08_materials_carry_ladder_supersedes_manifest` | `pytest test_phase15_amend.py` | PASS，失败 0 |
+| PRX-09 | `TestPresentationAmend::test_p15a09_deterministic_rung_order_input_invariant` | `pytest test_phase15_amend.py` | PASS，失败 0 |
+| PRX-10 | `TestPresentationAmend::test_p15a10_no_verified_base_fails_closed` | `pytest test_phase15_amend.py` | PASS，失败 0 |
+| PRX-11 | `TestFeedbackAmend::test_p15a11_feedback_one_story_per_entry_plus_doc` | `pytest test_phase15_amend.py` | PASS，失败 0 |
+| PRX-12 | `TestFeedbackAmend::test_p15a12_feedback_batch_numbering_increments` | `pytest test_phase15_amend.py` | PASS，失败 0 |
+| PRX-13 | `TestFeedbackAmend::test_p15a13_feedback_sorted_and_no_open_fails_closed` | `pytest test_phase15_amend.py` | PASS，失败 0 |
+| PRX-14 | `TestAmendCli::test_p15a14_cli_amend_presentation_writes_plan_and_stories` | `pytest test_phase15_amend.py` | PASS，失败 0 |
+| PRX-15 | `TestAmendCli::test_p15a15_cli_amend_fails_closed_on_missing_ladder` | `pytest test_phase15_amend.py` | PASS，失败 0 |
+| PRX-16 | `TestPathAndScreenshotGate::test_p15b01_path_traversal_rejected` | `pytest test_phase15_behavior_gate.py` | PASS，失败 0 |
+| PRX-17 | `TestPathAndScreenshotGate::test_p15b02_presentation_requires_screenshots` | `pytest test_phase15_behavior_gate.py` | PASS，失败 0 |
+| PRX-18 | `TestInteractionClaims::test_p15b03_claim_without_passing_case_rejected` | `pytest test_phase15_behavior_gate.py` | PASS，失败 0 |
+| PRX-19 | `TestInteractionClaims::test_p15b04_claim_with_failing_case_rejected` | `pytest test_phase15_behavior_gate.py` | PASS，失败 0 |
+| PRX-20 | `TestInteractionClaims::test_p15b05_claim_with_passing_case_and_readme_passes` | `pytest test_phase15_behavior_gate.py` | PASS，失败 0 |
+| PRX-21 | `TestInteractionClaims::test_p15b06_readme_key_without_behavior_case_rejected` | `pytest test_phase15_behavior_gate.py` | PASS，失败 0 |
+| PRX-22 | `TestInteractionClaims::test_p15b07_claim_missing_from_readme_or_no_section_rejected` | `pytest test_phase15_behavior_gate.py` | PASS，失败 0 |
+| PRX-23 | `TestFrozenLayers::test_p15b08_frozen_layer_modified_rejected` | `pytest test_phase15_behavior_gate.py` | PASS，失败 0 |
+| PRX-24 | `TestFrozenLayers::test_p15b09_supersedes_exempts_declared_file` | `pytest test_phase15_behavior_gate.py` | PASS，失败 0 |
+| PRX-25 | `TestFrozenLayers::test_p15b10_gated_batch_requires_regression_pass_and_some_baseline` | `pytest test_phase15_behavior_gate.py` | PASS，失败 0 |
+| PRX-26 | `TestFeedbackTool::test_p15f01_tool_definitions_registered` | `pytest test_phase15_feedback_tool.py` | PASS，失败 0 |
+| PRX-27 | `TestFeedbackTool::test_p15f02_tool_count_is_58` | `pytest test_phase15_feedback_tool.py` | PASS，失败 0 |
+| PRX-28 | `TestFeedbackTool::test_p15f03_server_dispatch_registered` | `pytest test_phase15_feedback_tool.py` | PASS，失败 0 |
+| PRX-29 | `TestFeedbackTool::test_p15f04_log_writes_entry_open_with_sequential_id` | `pytest test_phase15_feedback_tool.py` | PASS，失败 0 |
+| PRX-30 | `TestFeedbackTool::test_p15f05_second_entry_increments_seq` | `pytest test_phase15_feedback_tool.py` | PASS，失败 0 |
+| PRX-31 | `TestFeedbackTool::test_p15f06_invalid_entry_failed` | `pytest test_phase15_feedback_tool.py` | PASS，失败 0 |
+| PRX-32 | `TestFeedbackTool::test_p15f07_velocity_event_appended` | `pytest test_phase15_feedback_tool.py` | PASS，失败 0 |
+| PRX-33 | `TestFeedbackTool::test_p15f08_submit_feedback_story_marks_entry_resolved` | `pytest test_phase15_feedback_tool.py` | PASS，失败 0 |
+| PRX-34 | `TestStorySchema110::test_p15s01_story_accepts_feedback_kind` | `pytest test_phase15_schemas.py` | PASS，失败 0 |
+| PRX-35 | `TestStorySchema110::test_p15s02_story_accepts_presentation_batch_id` | `pytest test_phase15_schemas.py` | PASS，失败 0 |
+| PRX-36 | `TestStorySchema110::test_p15s03_story_rejects_unknown_batch_id` | `pytest test_phase15_schemas.py` | PASS，失败 0 |
+| PRX-37 | `TestStorySchema110::test_p15s04_interaction_claims_shape_enforced` | `pytest test_phase15_schemas.py` | PASS，失败 0 |
+| PRX-38 | `TestNewSchemas::test_p15s05_ladder_example_validates` | `pytest test_phase15_schemas.py` | PASS，失败 0 |
+| PRX-39 | `TestNewSchemas::test_p15s06_feedback_example_validates` | `pytest test_phase15_schemas.py` | PASS，失败 0 |
+| PRX-40 | `TestProjectLadderInstance::test_p15s07_real_monopoly_ladder_validates` | `pytest test_phase15_schemas.py` | PASS，失败 0 |
+| PRX-41 | `TestSmokeRunnerP15::test_p15r01_suites_carry_error_messages` | `pytest test_phase15_smoke_runner.py` | PASS，失败 0 |
+| PRX-42 | `TestSmokeRunnerP15::test_p15r02_aggregate_all_pass` | `pytest test_phase15_smoke_runner.py` | PASS，失败 0 |
+| PRX-43 | `TestSmokeRunnerP15::test_p15r03_aggregate_any_fail` | `pytest test_phase15_smoke_runner.py` | PASS，失败 0 |
+| PRX-44 | `TestSmokeRunnerP15::test_p15r04_aggregate_empty_is_na` | `pytest test_phase15_smoke_runner.py` | PASS，失败 0 |
+| PRX-45 | `TestSmokeRunnerP15::test_p15r05_collect_filters_merges_v0_and_regression` | `pytest test_phase15_smoke_runner.py` | PASS，失败 0 |
+| PRX-46 | `TestSmokeRunnerP15::test_p15r06_null_entries_and_event_do_not_crash` | `pytest test_phase15_smoke_runner.py` | PASS，失败 0 |
+
+> 证据：`ProjectState/Temp/run_system_tests_stage15/phase15_case_checks.json` + 各文件的 `test_phase15_*.py_pytest.log`
+
+---
+
 ## 附录 A：UE5 Automation Test ID 速查表
 
 | Test ID | 全名 | 类型 | 所属分类 |
@@ -859,7 +921,9 @@
 | P11 Phase 11 设计编译器框架 | 18 | 🟢 自动+证据 |
 | LIR Phase 12 LLM Internal Reopen | 4 | 🟢 pytest 子集（含 1 占位 SKIPPED） |
 | SKS Phase 13 Skill Synthesis | 94 | 🟢 pytest 全量（9 个 test_phase13_* 文件） |
-| **合计** | **364** | **🟢 364 条已登记（含 4 条 LIR-04 占位 SKIPPED）** |
+| DMP Phase 14 Demo Plan | 56 | 🟢 pytest 全量（6 个 test_phase14_* 文件） |
+| PRX Phase 15 Presentation Axis | 46 | 🟢 pytest 全量（5 个 test_phase15_* 文件） |
+| **合计** | **466** | **🟢 466 条已登记（含 4 条 LIR-04 占位 SKIPPED）** |
 
 ---
 
