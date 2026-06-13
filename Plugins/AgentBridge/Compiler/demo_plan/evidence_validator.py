@@ -32,6 +32,9 @@ _ASSET_TOKEN = re.compile(r"`(/[A-Za-z0-9_]+(?:/[A-Za-z0-9_.]+)+)`")
 _PASS_STATES = {"success", "passed", "pass"}
 _KEY_TOKEN = re.compile(r"\[([A-Za-z0-9]+)\]")
 
+# 守门批前缀:增量 / 呈现 / 反馈批都受冻结层 hash 守门与回归门约束
+_GATED_PREFIXES = ("increment", "presentation", "feedback")
+
 
 def _iter_paths(evidence: Dict[str, Any]):
     """遍历 evidence 中所有路径型字段，逐一 yield (field, 路径字符串)。"""
@@ -62,15 +65,38 @@ def freeze_v0_baseline(project_root, run_dir, smoke_file_rel_paths: List[str]) -
     return baseline
 
 
-def _check_baseline(project_root: Path, baseline: Dict[str, Any]) -> List[str]:
-    """对比现有文件 hash 与 v0 冻结基线，返回篡改/缺失错误列表。"""
+def freeze_layer(project_root, run_dir, layer_name: str,
+                 file_rel_paths: List[str]) -> Dict[str, Any]:
+    """冻结一层判据文件 hash(逻辑层/各 rung 呈现契约层/实现层),
+    追加进 run 目录 frozen_baselines.json(.part 原子写)。
+    验收 runbook 在 rung verified / msc PROCEED 时调用(v0 沿用 freeze_v0_baseline 不迁移)。"""
+    root = Path(project_root)
+    # Windows 反斜杠统一转正斜杠,保证跨平台 key 一致
+    files = {str(rel).replace("\\", "/"): _sha256(root / rel) for rel in file_rel_paths}
+    path = Path(run_dir) / "frozen_baselines.json"
+    # 读取已有数据或初始化空结构
+    data = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {"layers": {}}
+    data["layers"][layer_name] = {"files": files,
+                                  "frozen_at": datetime.now(timezone.utc).isoformat()}
+    # 原子写入:先写临时文件再 replace,防止并发读到半写文件
+    tmp = path.with_suffix(".json.part")
+    tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    os.replace(tmp, path)
+    return data["layers"][layer_name]
+
+
+def _check_baseline(project_root: Path, baseline: Dict[str, Any],
+                    exempt=frozenset(), layer: str = "v0") -> List[str]:
+    """对比现有文件 hash 与冻结基线;exempt 为阶梯 supersedes 显式退役清单(authored 数据)。"""
     errors = []
     for rel, expected in baseline.get("files", {}).items():
+        if rel in exempt:
+            continue  # supersedes 显式声明放行(退役非作弊)
         target = project_root / rel
         if not target.exists():
-            errors.append(f"hash 守门: 基线文件缺失 {rel}")
+            errors.append(f"hash 守门[{layer}]: 基线文件缺失 {rel}(退役须经阶梯 supersedes 声明)")
         elif _sha256(target) != expected:
-            errors.append(f"hash 守门: 基线文件被修改 {rel}(v0 冒烟用例 PROCEED 后冻结,不许动)")
+            errors.append(f"hash 守门[{layer}]: 基线文件被修改 {rel}(冻结层不许动;退役须经阶梯 supersedes 声明)")
     return errors
 
 
@@ -228,16 +254,22 @@ def validate_evidence(story: Dict[str, Any], evidence: Dict[str, Any], project_r
             else:
                 if report.get("status") != "pass":
                     errors.append(f"smoke_report 状态非 pass: {report.get('status')}")
-                # 增量批还须 v0 回归通过
-                if str(story.get("batch_id", "")).startswith("increment") and report.get("v0_regression") != "pass":
-                    errors.append(f"增量批要求 v0 回归 pass,实际: {report.get('v0_regression')}")
+                # 守门批(增量/呈现/反馈)还须 v0 冻结层回归通过
+                if str(story.get("batch_id", "")).startswith(_GATED_PREFIXES) \
+                        and report.get("v0_regression") != "pass":
+                    errors.append(f"守门批要求 v0 回归 pass,实际: {report.get('v0_regression')}")
 
-    # ── 4. 增量批 baseline 检查 ─────────────────────────────────────────────
-    if str(story.get("batch_id", "")).startswith("increment"):
-        if baseline is None:
-            errors.append("增量批必须提供 v0 baseline(先在人审窗口 1 冻结)")
-        else:
-            errors.extend(_check_baseline(root, baseline))
+    # ── 4. 守门批冻结基线检查(v0 基线 + frozen_baselines 分层;supersedes 放行) ──
+    if str(story.get("batch_id", "")).startswith(_GATED_PREFIXES):
+        exempt = frozenset(str(p).replace("\\", "/")
+                           for p in (story.get("materials") or {}).get("supersedes_paths") or [])
+        if baseline is None and not frozen_layers:
+            errors.append("守门批必须提供冻结基线(v0_smoke_baseline 或 frozen_baselines,先在人审/rung 验收时冻结)")
+        if baseline is not None:
+            errors.extend(_check_baseline(root, baseline, exempt=exempt, layer="v0"))
+        for layer_name in sorted(frozen_layers or {}):
+            errors.extend(_check_baseline(root, (frozen_layers or {})[layer_name],
+                                          exempt=exempt, layer=layer_name))
 
     # ── 4b. 行为校验门禁(P14-BL-05) ────────────────────────────────────────
     errors.extend(_check_interaction_claims(story, evidence, root, plugin_root))

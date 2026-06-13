@@ -831,12 +831,32 @@ def demo_story_submit(session_path: str, story_id: str, evidence: dict,
             baseline_path = Path(session_path) / "v0_smoke_baseline.json"
             if baseline_path.exists():
                 baseline = json.loads(baseline_path.read_text(encoding="utf-8"))
+            # 读取分层冻结基线(Task 8 新增;不存在则不传,validate_evidence 按守门批规则判断)
+            frozen_layers = None
+            frozen_path = Path(session_path) / "frozen_baselines.json"
+            if frozen_path.exists():
+                frozen_layers = json.loads(frozen_path.read_text(encoding="utf-8")).get("layers", {})
             result = evidence_validator.validate_evidence(
-                story, evidence, root, baseline=baseline, plugin_root=plugin_root)
+                story, evidence, root, baseline=baseline, plugin_root=plugin_root,
+                frozen_layers=frozen_layers)
         updated = store.submit(story_id, evidence, result)
         velocity.append_event(session_path, {"kind": "submit", "story_id": story_id,
                                              "result": updated["status"],
                                              "attempts": updated.get("attempts", 0)})
+        # feedback story verified 后,将对应反馈条目状态流转为 resolved(降级失败进 warnings)
+        warnings: list[str] = []
+        if updated["status"] == "verified" and updated.get("story_kind") == "feedback":
+            fb_rel = (updated.get("materials") or {}).get("feedback_path")
+            if fb_rel:
+                try:
+                    fb_path = root / str(fb_rel)
+                    entry = json.loads(fb_path.read_text(encoding="utf-8"))
+                    entry["status"] = "resolved"
+                    tmp = fb_path.with_suffix(".json.part")
+                    tmp.write_text(json.dumps(entry, ensure_ascii=False, indent=2), encoding="utf-8")
+                    tmp.replace(fb_path)
+                except (OSError, json.JSONDecodeError) as exc:
+                    warnings.append(f"反馈条目 resolved 流转失败(story 已 verified): {exc}")
         return _make_response(
             "success",
             f"story 提交已处理: {story_id} -> {updated['status']}"
@@ -844,6 +864,7 @@ def demo_story_submit(session_path: str, story_id: str, evidence: dict,
             data={"story_status": updated["status"],
                   "errors": updated.get("submit_errors", []),
                   "attempts": updated.get("attempts", 0)},
+            warnings=warnings,
         )
     except (ValueError, OSError, json.JSONDecodeError) as exc:
         return _make_response(

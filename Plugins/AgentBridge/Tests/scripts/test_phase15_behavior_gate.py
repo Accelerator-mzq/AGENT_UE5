@@ -143,3 +143,55 @@ class TestInteractionClaims:
                                     plugin_root=plugin, frozen_layers={})
         assert out2["status"] == "rejected"
         assert any("缺『## 键位』节" in e for e in out2["errors"])
+
+
+class TestFrozenLayers:
+    def test_p15b08_frozen_layer_modified_rejected(self, workspace_tmp_path):
+        ev = _load("evidence_validator")
+        guarded = _touch(workspace_tmp_path, "Plugins/DemoX/Tests/ContractTests.cpp", "v1")
+        layer = ev.freeze_layer(workspace_tmp_path, workspace_tmp_path,
+                                "presentation-contract-rung1", [guarded])
+        assert layer["files"][guarded]
+        (workspace_tmp_path / guarded).write_text("v2-tampered", encoding="utf-8")
+        smoke = _smoke(workspace_tmp_path)
+        frozen = json.loads((workspace_tmp_path / "frozen_baselines.json").read_text(encoding="utf-8"))
+        out = ev.validate_evidence(
+            _story(batch_id="presentation-2"),
+            {"files_changed": [smoke], "smoke_report": smoke,
+             "screenshots": [_touch(workspace_tmp_path, "s.png")]},
+            workspace_tmp_path, frozen_layers=frozen["layers"])
+        assert out["status"] == "rejected"
+        assert any("presentation-contract-rung1" in e and "被修改" in e for e in out["errors"])
+
+    def test_p15b09_supersedes_exempts_declared_file(self, workspace_tmp_path):
+        ev = _load("evidence_validator")
+        guarded = _touch(workspace_tmp_path, "Plugins/DemoX/Tests/R2Impl.cpp", "v1")
+        ev.freeze_layer(workspace_tmp_path, workspace_tmp_path, "rung2-impl", [guarded])
+        (workspace_tmp_path / guarded).unlink()  # rung3 退役该实现用例文件
+        smoke = _smoke(workspace_tmp_path)
+        frozen = json.loads((workspace_tmp_path / "frozen_baselines.json").read_text(encoding="utf-8"))
+        out = ev.validate_evidence(
+            _story(batch_id="presentation-3", supersedes=[guarded]),
+            {"files_changed": [smoke], "smoke_report": smoke,
+             "screenshots": [_touch(workspace_tmp_path, "s.png")]},
+            workspace_tmp_path, frozen_layers=frozen["layers"])
+        assert out["status"] == "verified", out["errors"]
+
+    def test_p15b10_gated_batch_requires_regression_pass_and_some_baseline(self, workspace_tmp_path):
+        ev = _load("evidence_validator")
+        # 10a: 守门批但回归段 fail → 拒
+        smoke_bad = _smoke(workspace_tmp_path, rel="bad.json", regression="fail")
+        out = ev.validate_evidence(
+            _story(batch_id="feedback-1", kind="feedback"),
+            {"files_changed": [smoke_bad], "smoke_report": smoke_bad},
+            workspace_tmp_path, frozen_layers={"l": {"files": {}}})
+        assert out["status"] == "rejected"
+        assert any("回归" in e for e in out["errors"])
+        # 10b: 守门批但既无 baseline 也无 frozen_layers → 拒
+        smoke_ok = _smoke(workspace_tmp_path, rel="ok.json")
+        out2 = ev.validate_evidence(
+            _story(batch_id="feedback-1", kind="feedback"),
+            {"files_changed": [smoke_ok], "smoke_report": smoke_ok},
+            workspace_tmp_path, baseline=None, frozen_layers=None)
+        assert out2["status"] == "rejected"
+        assert any("冻结基线" in e for e in out2["errors"])
