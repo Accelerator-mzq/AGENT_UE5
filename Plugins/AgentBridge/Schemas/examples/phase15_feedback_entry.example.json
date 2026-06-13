@@ -1,0 +1,11 @@
+{
+  "feedback_schema_version": "1.0.0",
+  "feedback_id": "fb-w1-01",
+  "window_id": "w1",
+  "phenomenon": "拍卖面板出价后当前价未刷新",
+  "expectation": "出价后面板当前最高价立即更新并高亮",
+  "severity": "major",
+  "related_rung": 1,
+  "related_capability": "gameplay-property-auction",
+  "status": "open"
+}

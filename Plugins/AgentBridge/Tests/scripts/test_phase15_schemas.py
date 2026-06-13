@@ -57,3 +57,21 @@ class TestStorySchema110:
             _story(interaction_claims=[{"input": "Space", "behavior": "推进回合"}]), schema)
         with pytest.raises(jsonschema.ValidationError):
             jsonschema.validate(_story(interaction_claims=[{"input": "Space"}]), schema)
+
+
+class TestNewSchemas:
+    """Task 2 新增:presentation_ladder / feedback_entry schema 实例校验。"""
+
+    def test_p15s05_ladder_example_validates(self):
+        """presentation_ladder example 必须通过对应 schema 校验。"""
+        schema = _schema("presentation_ladder.schema.json")
+        example = json.loads((SCHEMAS / "examples" / "phase15_presentation_ladder.example.json")
+                             .read_text(encoding="utf-8"))
+        jsonschema.validate(example, schema)
+
+    def test_p15s06_feedback_example_validates(self):
+        """feedback_entry example 必须通过对应 schema 校验。"""
+        schema = _schema("feedback_entry.schema.json")
+        example = json.loads((SCHEMAS / "examples" / "phase15_feedback_entry.example.json")
+                             .read_text(encoding="utf-8"))
+        jsonschema.validate(example, schema)

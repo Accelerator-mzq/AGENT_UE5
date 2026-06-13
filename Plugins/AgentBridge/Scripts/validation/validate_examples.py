@@ -130,6 +130,12 @@ EXAMPLE_TO_SCHEMA: Dict[str, str] = {
         "demo_plan.schema.json",
     "phase14_demo_story.example.json":
         "demo_story.schema.json",
+
+    # === Phase 15 呈现增量轴 + 反馈回流 ===
+    "phase15_presentation_ladder.example.json":
+        "presentation_ladder.schema.json",
+    "phase15_feedback_entry.example.json":
+        "feedback_entry.schema.json",
 }
 
 # 这些 example 默认跳过自动 schema 校验，仅作为参考样例。

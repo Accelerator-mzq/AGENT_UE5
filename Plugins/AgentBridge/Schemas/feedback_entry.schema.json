@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "feedback_entry",
+  "description": "Phase 15 试玩反馈条目:demo_feedback_log 登记 → amend 切 feedback 批 → 状态机 open/in_batch/resolved。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["feedback_schema_version", "feedback_id", "window_id", "phenomenon", "expectation", "severity", "status"],
+  "properties": {
+    "feedback_schema_version": {"const": "1.0.0", "description": "schema 版本(当前钉死 1.0.0)"},
+    "feedback_id": {"type": "string", "pattern": "^fb-w[0-9]+-[0-9]{2}$", "description": "条目 id(工具按窗口内序号生成)"},
+    "window_id": {"type": "string", "pattern": "^w[0-9]+$", "description": "人审窗口 id(w1/w2/...)"},
+    "phenomenon": {"type": "string", "minLength": 1, "description": "现象(msc 原话或忠实转述)"},
+    "expectation": {"type": "string", "minLength": 1, "description": "期望行为"},
+    "severity": {"enum": ["blocker", "major", "minor"], "description": "严重度"},
+    "related_rung": {"type": ["integer", "null"], "description": "关联呈现 rung(可选)"},
+    "related_capability": {"type": ["string", "null"], "description": "关联 capability(可选)"},
+    "status": {"enum": ["open", "in_batch", "resolved"], "description": "open=已登记 / in_batch=已切批 / resolved=修复 story verified"}
+  }
+}
