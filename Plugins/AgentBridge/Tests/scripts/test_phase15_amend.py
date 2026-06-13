@@ -142,3 +142,49 @@ class TestPresentationAmend:
         plan, st = _plan_and_stories([], ["v0"])
         with pytest.raises(ValueError, match="基底"):
             a.build_presentation_amend(plan, st, _ladder(), "1.2.0", _PATHS)
+
+
+def _entry(fid, status="open", phenomenon="现象X", expectation="期望Y"):
+    return {"feedback_schema_version": "1.0.0", "feedback_id": fid, "window_id": "w1",
+            "phenomenon": phenomenon, "expectation": expectation, "severity": "major",
+            "related_rung": None, "related_capability": None, "status": status}
+
+
+class TestFeedbackAmend:
+    def test_p15a11_feedback_one_story_per_entry_plus_doc(self):
+        a = _load("amend")
+        plan, st = _plan_and_stories(["v0", "presentation-1"])
+        out = a.build_feedback_amend(plan, st, [_entry("fb-w1-01"), _entry("fb-w1-02")],
+                                     "1.2.0", _PATHS)
+        batch = out["plan"]["batches"][-1]
+        assert batch["batch_id"] == "feedback-1"
+        assert batch["story_ids"] == ["story-feedback-1-fb-w1-01", "story-feedback-1-fb-w1-02",
+                                      "story-feedback-1-docs"]
+        s1 = [s for s in out["new_stories"] if s["story_id"] == "story-feedback-1-fb-w1-01"][0]
+        assert s1["story_kind"] == "feedback"
+        assert s1["depends_on"] == ["story-presentation-1-docs"]
+        assert s1["materials"]["feedback_path"] == f"{_PATHS['feedback_dir']}/fb-w1-01.json"
+        assert any("现象X" in c for c in s1["acceptance_criteria"])
+        # 批内链式依赖:第二条依赖第一条(防"全依赖 anchor"退化),doc 依赖全部成员
+        s2 = [s for s in out["new_stories"] if s["story_id"] == "story-feedback-1-fb-w1-02"][0]
+        assert s2["depends_on"] == ["story-feedback-1-fb-w1-01"]
+        doc = [s for s in out["new_stories"] if s["story_id"] == "story-feedback-1-docs"][0]
+        assert set(doc["depends_on"]) == {"story-feedback-1-fb-w1-01", "story-feedback-1-fb-w1-02"}
+
+    def test_p15a12_feedback_batch_numbering_increments(self):
+        a = _load("amend")
+        plan, st = _plan_and_stories(["v0", "feedback-1"])
+        out = a.build_feedback_amend(plan, st, [_entry("fb-w2-01")], "1.2.0", _PATHS)
+        assert out["plan"]["batches"][-1]["batch_id"] == "feedback-2"
+
+    def test_p15a13_feedback_sorted_and_no_open_fails_closed(self):
+        a = _load("amend")
+        plan, st = _plan_and_stories(["v0"])
+        out = a.build_feedback_amend(
+            plan, st, [_entry("fb-w1-02"), _entry("fb-w1-01")], "1.2.0", _PATHS)
+        story_ids = out["plan"]["batches"][-1]["story_ids"]
+        assert story_ids[0] == "story-feedback-1-fb-w1-01"
+        assert story_ids[1] == "story-feedback-1-fb-w1-02"
+        with pytest.raises(ValueError, match="open"):
+            a.build_feedback_amend(plan, st, [_entry("fb-w1-01", status="resolved")],
+                                   "1.2.0", _PATHS)

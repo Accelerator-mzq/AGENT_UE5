@@ -169,3 +169,74 @@ def build_presentation_amend(plan: Dict[str, Any], stories_by_id: Dict[str, Any]
     new_plan["batches"] = list(plan["batches"]) + new_batches
 
     return {"plan": new_plan, "new_stories": new_stories}
+
+
+def build_feedback_amend(plan: Dict[str, Any], stories_by_id: Dict[str, Any],
+                         entries: List[Dict[str, Any]], manifest_version: str,
+                         paths: Dict[str, Any]) -> Dict[str, Any]:
+    """追加一个反馈批:open 条目按 feedback_id 字典序,每条一个 story(机械规则零 LLM)。
+
+    批号 = 已有 feedback 批数 + 1(每个人审窗口切一批);无 open 条目 → fail-closed。
+
+    注意:无幂等保护,每次调用均生成新批号(每人审窗口切一次为预期语义)。
+    """
+    # 过滤 open 状态条目并按 feedback_id 字典序排序(保证确定性,输入顺序无关)
+    open_entries = sorted((e for e in entries if e.get("status") == "open"),
+                          key=lambda e: e["feedback_id"])
+    if not open_entries:
+        raise ValueError("amend: 没有 open 状态的反馈条目,反馈批无可切(fail-closed)")
+
+    # 锚点:最后一个全 verified 批的末位 story
+    anchor = _last_verified_tail(plan, stories_by_id)
+    if anchor is None:
+        raise ValueError("amend: 没有全 verified 的基底批(fail-closed)")
+
+    # 批号 = 现有 feedback 批数 + 1(batch_id 前缀匹配)
+    seq = 1 + sum(1 for b in plan["batches"] if str(b["batch_id"]).startswith("feedback-"))
+    batch_id = f"feedback-{seq}"
+
+    member_ids: List[str] = []
+    new_stories: List[Dict[str, Any]] = []
+    prev_tail = anchor  # 链式依赖起点
+
+    for entry in open_entries:
+        story_id = f"story-{batch_id}-{entry['feedback_id']}"
+
+        # materials 携带反馈条目文件路径
+        materials = _base_materials(paths)
+        materials["feedback_path"] = f"{paths['feedback_dir']}/{entry['feedback_id']}.json"
+
+        story = {
+            "story_schema_version": STORY_SCHEMA_VERSION,
+            "story_id": story_id,
+            "batch_id": batch_id,
+            "story_kind": "feedback",
+            "evidence_class": "Integration",
+            "depends_on": [prev_tail],
+            # feedback story 不携带 interaction_claims(修复不声明新行为;行为变更走呈现批)
+            "materials": materials,
+            "acceptance_criteria": [
+                f"复现并修复反馈现象: {entry['phenomenon']}",
+                f"达成期望行为: {entry['expectation']}",
+                "demo plugin 编译通过且全部已冻结层冒烟不退化(证据: smoke_report)",
+                "按 evidence_class=Integration 提交全部必交证据并通过机器校验",
+            ],
+            "status": "pending",
+            "attempts": 0,
+            "manifest_version": manifest_version,
+        }
+        new_stories.append(story)
+        member_ids.append(story_id)
+        prev_tail = story_id  # 下一条依赖当前条(批内链式)
+
+    # 批末文档 story:依赖批内所有 member story
+    doc = _doc_story(batch_id, member_ids, manifest_version, paths)
+    new_stories.append(doc)
+
+    # 构造新 plan(浅拷贝,追加反馈批)
+    new_plan = dict(plan)
+    new_plan["plan_schema_version"] = PLAN_SCHEMA_VERSION
+    new_plan["batches"] = list(plan["batches"]) + [
+        {"batch_id": batch_id, "story_ids": member_ids + [doc["story_id"]]}]
+
+    return {"plan": new_plan, "new_stories": new_stories}
