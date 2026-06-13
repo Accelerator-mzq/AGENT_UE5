@@ -75,3 +75,16 @@ class TestNewSchemas:
         example = json.loads((SCHEMAS / "examples" / "phase15_feedback_entry.example.json")
                              .read_text(encoding="utf-8"))
         jsonschema.validate(example, schema)
+
+
+class TestProjectLadderInstance:
+    """Task 11 新增:项目层真实阶梯实例校验。"""
+
+    def test_p15s07_real_monopoly_ladder_validates(self, project_root):
+        """monopoly_demo_ladder.json 必须通过 presentation_ladder schema 校验,且 rung_id 序列正确。"""
+        schema = _schema("presentation_ladder.schema.json")
+        ladder_path = (Path(project_root) / "ProjectInputs" / "PresentationLadder"
+                       / "monopoly_demo_ladder.json")
+        ladder = json.loads(ladder_path.read_text(encoding="utf-8"))
+        jsonschema.validate(ladder, schema)
+        assert [r["rung_id"] for r in ladder["rungs"]] == [1, 2, 3]
