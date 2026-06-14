@@ -158,16 +158,18 @@ python compiler_main.py
 
 ## 当前阶段
 
-Phase 15 — 呈现增量轴 + 反馈回流通道:**机制层完成**(2026-06-13,最终整体复审 Ready to merge),**验收期进行中**(demo 三 rung 无人值守 + 试玩两窗口未启动)
+Phase 15 — 呈现增量轴 + 反馈回流通道:**机制层 + 验收全部完成**(2026-06-14,验收 C1-C6 全闭环,msc 终裁 PROCEED;机制层 PR #47 已合 main)
 Phase 15 spec：`Docs/superpowers/specs/2026-06-12-phase15-presentation-axis-design.md`(含实施期修订 R1-R5)
 Phase 15 plan：`Docs/superpowers/plans/2026-06-12-phase15-presentation-axis.md`(13 任务 + 验收交接段)
 Phase 15 机制层验证报告：`ProjectState/Reports/2026-06-13/phase15_mechanism_verification.md`
+Phase 15 验收 runbook：`ProjectState/Reports/2026-06-13/phase15_acceptance_runbook.md`(C1-C6 全闭环 + 14 story verified + 两窗口反馈对照)
+可玩 demo（呈现升级）：`Plugins/Demo_MonopolyAuction/`（文字 HUD → 面板 → 2D 棋盘 → 3D 场景；`AMADemoBoard3DActor` 程序化 3D 棋盘/棋子/相机）
 权威数字(2026-06-13 实测):phase15 pytest 46 / phase14 56 / 系统测试 466(15 stage)/ strict 32 / MCP 工具 58
 Phase 14 已完成 — Demo-First 增量主链(2026-06-12,PR #46 已合,BL-01/04/05/06 经 Phase 15 闭环)
 Phase 13 已完成 — Skill 合成主链(2026-06-11)
 Phase 12 已完成 — LLM Internal Reopen(2026-05-27)
 Phase 11 已完成 — Skill-First Design Compiler Framework
-当前主入口：`task.md`(Phase 15 任务书,机制层完成/验收期进行中)
+当前主入口：`task.md`(Phase 15 任务书,机制层 + 验收全部完成)
 当前索引：`Docs/INDEX.md`
 MCP 总口径锚定：`Docs/design/HLD.md#4`
 四层主链定义：`Docs/requirements/SRS.md#4`

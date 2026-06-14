@@ -1,8 +1,8 @@
 # 当前任务入口 — Phase 15 呈现增量轴 + 反馈回流通道
 
-> 当前状态:Phase 15 **机制层完成**(2026-06-13,最终整体复审 Ready to merge)/ **验收期进行中**(demo 三 rung 无人值守 + 试玩两窗口未启动)/ UE 5.5.4 稳定
-> 入口类型:Phase 15 任务书(机制层已落地,验收待执行)
-> 分支:`feat/phase15-presentation-axis`(机制层 commit 范围 acab5c5..b7c9d42,领先 main 17 commit,未合)
+> 当前状态:Phase 15 **机制层 + 验收全部完成**(2026-06-14,验收 C1-C6 全闭环,msc 终裁 **PROCEED**)/ UE 5.5.4 稳定
+> 入口类型:Phase 15 任务书(已完成)
+> 分支:`feat/phase15-presentation-axis`(机制层 PR #47 已合 main;验收期 demo 产物追加提交中)
 
 ## 1. Phase 15 是什么
 
@@ -37,21 +37,22 @@
 
 | 判据 | 状态 |
 |---|---|
-| C1 机器全绿(pytest 46+56 / strict 32 / Stage 15+14 / 工具 58) | ✅ 全过(主会话亲跑,机制层) |
-| C2 切批标准答案(amend 后呈现 3 批 golden) | ⏳ 验收期(机制 golden 已绿,真机切批待跑) |
-| C3 无人值守 rung1+rung2 | ⏳ 验收期(coding agent fetch/submit 待执行) |
-| C4 窗口 1 + 回流闭环(msc 试玩 2D + 反馈批) | ⏳ 验收期(msc 试玩) |
-| C5 无人值守 rung3(3D) | ⏳ 验收期 |
-| C6 窗口 2 终裁 | ⏳ 验收期(msc) |
+| C1 机器全绿(pytest 46+56 / strict 32 / Stage 15+14 / 工具 58) | ✅ 全过(主会话亲跑) |
+| C2 切批标准答案(amend 后呈现 3 批 golden) | ✅ 真机 run 上 golden ALL PASS(批序/story 数/锚点/留批不挡/supersedes) |
+| C3 无人值守 rung1+rung2 | ✅ 6 story verified(HUD/前台面板 + 2D 棋盘/token),面板/棋盘截图主会话亲验 |
+| C4 窗口 1 + 回流闭环(msc 试玩 2D + 反馈批) | ✅ msc 认可 2D 版;演练反馈 → feedback-1 批 → 修复 → resolved(BL-06 实证) |
+| C5 无人值守 rung3(3D) | ✅ 3 story verified(3D 棋盘/棋子/相机,2D 退役);最大赌注实证成立(经 1 轮 redirect) |
+| C6 窗口 2 终裁 | ✅ **PROCEED**(msc 试玩 3D 版,真实反馈 feedback-2 棋子定位经回流闭环修复 + 复验认可) |
 
-- 机制层完成 ≠ 验收完成:真正赌注(3D 批无人值守、msc 试玩终裁)在验收期。最终整体复审(opus)判定机制层 **Ready to merge**。
+- 真正赌注(3D 批无人值守、msc 试玩终裁)在验收期已兑现:3D 场景化做成(经亲验 redirect),两窗口反馈回流(演练 + 真实各一)实证 BL-06。
+- 验收 runbook:[phase15_acceptance_runbook.md](/D:/UnrealProjects/Mvpv4TestCodex/ProjectState/Reports/2026-06-13/phase15_acceptance_runbook.md)(C1-C6 全记录 + 两窗口反馈对照 + P15A-BL-01~05)。
 
-## 5. 下一步(验收期,plan 末尾交接段)
+## 5. 验收完成 — 可玩 demo 与下一步
 
-1. amend 追加呈现 3 批(C2 切批 golden 真机断言)。
-2. coding agent 无人值守跑 presentation-1/2,每 rung verified 后 runbook 调 `freeze_layer` 冻 `rung<N>-contract`/`rung<N>-impl` 层(C3)。
-3. 窗口 1:msc 试玩 2D 版 → `demo_feedback_log` 登记 → `--amend-feedback` 切批 → 修复复验(C4 回流实证;诚实条款:零真实反馈时用显式"演练"合成条目)。
-4. presentation-3 无人值守(C5)→ 窗口 2 终裁(C6)。
+可玩 demo `Plugins/Demo_MonopolyAuction/`:文字 HUD → 结构化面板 → 2D 棋盘 → **3D 场景**(3D 棋盘 + 棋子 + 相机,Canvas HUD 叠加,2D 退役);14 story(presentation-1/2/3 + feedback-1/2)全 verified,六个冻结 rung 层守不退化。
+
+- 验收期 backlog **P15A-BL-01~05**(runner UE5.5 回归 quirk / 截图门误触发文档 story / supersedes 退役后冻结基线 stale / 文档对账误判引擎资产 / 呈现批视觉需人亲验)落 acceptance 附 5。
+- increment-2(股票市场)继续留批不执行;呈现 provisional(3D 配色偏暗/棋子无插值)留后续。
 5. 收尾:document-release(本期机制层已跑一次)→ finishing-a-development-branch(**merge 方式 msc 定**)。
 
 > 范围裁决(msc,延续 2026-06-12):"扇出 N demo + 挑选会话层"维持去除,恢复需 msc 主动提出;backlog **BL-02/BL-03/词表扩展/模板固化不纳入 Phase 15**(spec §5);已纳入 **BL-01/04/05/06**(机制层闭环,见 `Docs/acceptance/acceptance_report.md` 附 5)。

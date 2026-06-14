@@ -5,6 +5,7 @@
 #include "MADemoStockMarket.h"
 #include "MADemoDataAssets.h"
 #include "MADemoPlayerController.h"
+#include "MADemoBoard3DActor.h"
 #include "UI/MADemoHUDWidget.h"
 #include "UI/MADemoHUD.h"
 #include "Blueprint/UserWidget.h"
@@ -40,6 +41,27 @@ void AMADemoGameMode::BeginPlay()
 	InitializeGame(4, Seed);
 
 	StartTurn();
+
+	// 呈现 wiring(Phase15 presentation-3):在关卡上下文里 spawn 程序化 3D 棋盘 Actor。
+	// 规则逻辑零侵入——仅新增呈现层 Actor,不改任何规则字段/流程。
+	if (UWorld* W3D = GetWorld())
+	{
+		// 3D 棋盘摆放在场景中心正上方(Z=10,避免陷入地面)。
+		const FVector BoardOrigin(0.f, 0.f, 10.f);
+		FActorSpawnParameters BoardSpawnParams;
+		BoardSpawnParams.Owner = this;
+		BoardSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		AMADemoBoard3DActor* Board3D = W3D->SpawnActor<AMADemoBoard3DActor>(
+			AMADemoBoard3DActor::StaticClass(), BoardOrigin, FRotator::ZeroRotator, BoardSpawnParams);
+		if (Board3D)
+		{
+			UE_LOG(LogTemp, Log, TEXT("[Demo_MonopolyAuction] 程序化 3D 棋盘 Actor 已 Spawn"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[Demo_MonopolyAuction] 3D 棋盘 Actor Spawn 失败"));
+		}
+	}
 
 	// 延迟创建 HUD:确保 PlayerController/LocalPlayer/GameViewport 已就绪后再 CreateWidget+AddToViewport。
 	// BeginPlay 时机 PC 可能尚未具备 LocalPlayer,直接建 widget 会拿不到有效 player context 而不渲染。
