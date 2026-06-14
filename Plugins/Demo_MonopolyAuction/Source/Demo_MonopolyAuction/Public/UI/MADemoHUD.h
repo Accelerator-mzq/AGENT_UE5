@@ -38,4 +38,8 @@ private:
 	// 拍卖面板(增量批 1,GDD 3.1):标的/底价/起拍价、最高价+出价人(高亮)、
 	// 轮到谁、各玩家弃权状态、出价记录滚动、键位提示。拍卖进行中渲染于屏幕中央。
 	void DrawAuctionPanel();
+
+	// 2D 棋盘(presentation-2 board-2d):环形布局 28 格,地产组配色,归属状态,拍卖高亮。
+	// 纯只读 GameState,不持有规则逻辑。
+	void DrawBoard2D();
 };

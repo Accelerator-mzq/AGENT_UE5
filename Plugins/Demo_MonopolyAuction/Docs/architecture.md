@@ -118,3 +118,11 @@ v0 基线(`Demo_MonopolyAuction.Smoke`,已冻结 hash 守门):
 | AuctionNoSale | 全弃无人出价 → 流拍保持无主 |
 | AuctionPausedFrozen | 暂停期间出价/弃权被拒,恢复后正常 |
 | FullGameWithAuction | 多种子整局含自动拍卖收敛零报错、拍卖不悬挂 |
+
+## 呈现层(Phase 15 presentation-1)
+
+> 生成物,与 run 数据不一致时以数据为准。
+
+- **可见 HUD = Canvas 版 `AMADemoHUD`**(GameMode 的 HUDClass,每帧 `DrawHUD()` 即时绘制,最上层、Frame 1 即渲染)。呈现增量批的图形升级落在此层:`DrawGameHUD`(对局 HUD 卡片化)、`DrawSelectedPanel`/`DrawShellPanel`(前台外壳按钮面板化)、`DrawAuctionPanel`(拍卖弹窗)。
+- **呈现参数数据资产 `UMADemoPresentationConfig`**(扩展点):配色/布局尺寸/字体集中于此 DataAsset,CDO 默认值即运行期兜底;扇出/换肤改本资产实例即可,C++ 不硬编码。
+- 呈现只读 GameState 快照(`FMADemoHUDSnapshot` 等),不持有规则;UMG 层 `UMADemoHUDWidget` 为 Phase 14 遗留的被遮挡冗余层,呈现增量不在其上做。

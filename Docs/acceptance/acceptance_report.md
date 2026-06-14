@@ -597,6 +597,17 @@ Phase 15 机制层完成(分支 `feat/phase15-presentation-axis`),交付:
 
 ### 附 5.3 状态说明
 
-**机制层完成**(最终整体复审 Ready to merge):pytest 46 passed(-k phase15)/ 系统测试 PRX-01~46 全部登记 / strict 32/32 / 红线零触碰 / 两份新 schema 入 catalog。
+**机制层完成**(PR #47 已合 main,merge commit cc2a005):pytest 46 passed(-k phase15)/ 系统测试 PRX-01~46 全部登记 / strict 32/32 / 红线零触碰 / 两份新 schema 入 catalog。
 
-**验收期未启动**:demo 三 rung 无人值守运行(amend 切 rung 批 → story_store 状态机 → evidence_validator 行为门)+ 试玩两窗口(窗口 1 文字 HUD rung 2 图形牌板,MCP demo_feedback_log 收集反馈)为计划末尾交接段,需人工触发。交接启动条件见 plan 末尾交接段。
+**验收期完成(2026-06-14,C1-C6 全闭环,msc 终裁 PROCEED)**:验收 runbook `ProjectState/Reports/2026-06-13/phase15_acceptance_runbook.md`。
+- C1 机器全绿 / C2 amend 切呈现 3 批 golden ALL PASS(真机 run) / C3 rung1+rung2 无人值守 6 story verified(HUD 面板/前台/2D 棋盘/token,截图主会话亲验) / C4 窗口 1 演练反馈回流闭环 / C5 rung3 3D 无人值守 3 story verified(3D 棋盘/棋子/相机,2D 退役,最大赌注实证成立) / C6 窗口 2 真实反馈(棋子定位)回流闭环修复 + msc 复验 PROCEED。
+- 共 **14 story verified**(presentation-1/2/3 = 10 + feedback-1/2 = 4),六个冻结 rung 层(逻辑 + rung1/2/3 契约/实现)守不退化;呈现增量轴(文字→面板→2D→3D)+ 反馈回流通道(两窗口:演练 + 真实)两条主轴全部实证。
+- 可玩 demo `Plugins/Demo_MonopolyAuction/`:`AMADemoHUD`(Canvas 面板化 HUD + 前台按钮)+ `AMADemoBoard3DActor`(程序化 3D 棋盘/棋子/相机)+ `UMADemoPresentationConfig`(呈现配置 DataAsset)+ 7 个呈现测试文件。
+
+### 附 5.4 验收期 backlog(P15A-BL,主会话亲跑/msc 试玩暴露)
+
+- **P15A-BL-01(可观测)**:`demo_smoke/runner.py` 多段回归在 UE 5.5 下,regression 段偶发只写 index.html 不写 index.json → 误归因退出码 3(实际 EXIT CODE 0、测试全过)。最终报告仍有效(status/v0_regression=pass)。
+- **P15A-BL-02(机制缝)**:`evidence_validator` 第 1b 段"呈现批截图必交"对 presentation 批所有 story 触发,含 documentation 文档 story(本不该需截图)。应改为 `startswith("presentation") and story_kind != "documentation"`。
+- **P15A-BL-03(机制缝)**:rung 经 supersedes 退役某冻结层文件后,该层冻结基线未自动更新,导致后续不带该 supersedes 的 story 撞旧 hash。应在 supersedes 生效时更新/移除对应冻结层。
+- **P15A-BL-04(机制缝)**:`_check_doc_references` 把 changelog 反引号包裹的引擎资产路径(`/Engine/BasicShapes/*`)当 plugin Content 资产校验失败。应排除 `/Engine/` 等引擎前缀。
+- **P15A-BL-05(验证缺口)**:呈现批的呈现契约用例测"信息数据可达"(机器可验),但"渲染出彩色/立体/对齐"的视觉真实性机器查不出——3D 两轮 + 棋子一轮均机器全绿但视觉问题靠主会话亲验截图 / msc 试玩抓出。呈现批视觉应有人亲验/截图比对环节(已在本期实践:主会话每呈现 story 亲验截图 + msc 两窗口试玩)。
